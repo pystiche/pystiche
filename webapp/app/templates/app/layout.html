@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Pystiche </title>
+    {% load staticfiles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'app/content/bootstrap.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'app/content/site.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'app/content/dropzone.css' %}"/>
+    <script src="{% static 'app/scripts/modernizr-2.6.2.js' %}"></script>
+</head>
+
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="/" class="navbar-brand">Pystiche</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+<!--                <li><a href="{% url 'home' %}">Home</a></li>-->
+
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="container body-content">
+    {% block content %}
+    {% endblock %}
+    <hr/>
+    <footer>
+        <p>&copy; {{year}} Pystiche</p>
+    </footer>
+</div>
+
+<script src="{% static 'app/scripts/jquery-1.10.2.js' %}"></script>
+<script src="{% static 'app/scripts/bootstrap.js' %}"></script>
+<script src="{% static 'app/scripts/respond.js' %}"></script>
+<script src="{% static 'app/scripts/dropzone.js' %}"></script>
+<script type="text/javascript">
+// Immediately after the js include
+Dropzone.autoDiscover = false;
+$("#loader").hide();
+$(document).ready(() => {
+    const dropzones = [];
+
+    $("#loader").hide();
+
+    const getFormData = () => {
+        // Das erste Formular als Ausgangsbasis nehmen
+        let form = new FormData($('form')[0]);
+
+        // Jede Dropzone-Datei an das Formular anhängen
+        dropzones.forEach(dz => {
+            dz.files.forEach(file => form.append(dz.options.paramName, file));
+        });
+
+        return form;
+    }
+
+    const sendRequest = (form) => {
+        // Request an action des ersten Formulars senden
+        $.ajax({
+            url: 'http://{{ request.META.HTTP_HOST }}/doTheMagic/',
+            method: 'POST',
+            data: form,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                $("#loader").hide();
+                $('#resultImage').attr("src", response.imgsrc);
+            }
+        });
+    };
+
+    const onClick = (e) => {
+        // Formular nicht senden
+        e.preventDefault();
+        e.stopPropagation();
+         $("#loader").show();
+
+        sendRequest(getFormData());
+    }
+
+
+    // Alle Elemente abgreifen, an denen die Klasse dropzone vorhanden ist
+    $('.dropzone').each(function (i, el) {
+        // Name des Formular-Parameters beim POST-Request hängt am HTML-Element Attribut data-field
+        const name = $(el).data('field');
+
+        console.log("Initialisiere Dropzone " + name);
+
+        // Aus jedem Element eine Dropzone machen
+        var myDropzone = new Dropzone(el, {
+            url: window.location.pathname,
+            autoProcessQueue: true,
+            uploadMultiple: true,
+            parallelUploads: 100,
+            maxFiles: 1,
+            acceptedFiles: "image/*",
+            clickable: true,
+            paramName: name,
+            addRemoveLinks: true,
+        });
+
+        dropzones.push(myDropzone)
+    });
+
+    document.querySelector("#submit-all").addEventListener("click", onClick);
+})
+</script>
+{% block scripts %}{% endblock %}
+
+</body>
+</html>
