@@ -1,11 +1,11 @@
-language: python
-python:
-    - "3.6"
-    - "3.7"
+python: "3.6"
 
-install:
-    - pip install black
-    - pip install .
+matrix:
+    include:
+        - env: FORMAT_CHECK
+            install: pip install black
+            script: black --check .
+        - env: TEST
+            install: pip install .
+            script: pytest test
 
-script:
-    - black --check --include pystiche
