@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import Any, Optional, Union, Callable, Iterator, Iterable, Sequence
 import warnings
+from collections import OrderedDict
 import itertools
 from math import floor
 import torch
@@ -30,7 +31,7 @@ class ImageOptimizer(pystiche.object):
         self, *operators: Operator, optimizer_getter: Optional[Callable] = None
     ) -> None:
         super().__init__()
-        self._operators = pystiche.set(operators)
+        self._operators = pystiche.tuple(OrderedDict.fromkeys(operators))
 
         encoders = [operator.encoder for operator in self.operators(Encoding)]
         self._encoders = pystiche.set(encoders)

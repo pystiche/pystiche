@@ -115,6 +115,10 @@ class Comparison(Operator):
             ctx = ctx.detach()
         self._ctx = ctx
 
+    @property
+    def has_target_image(self) -> bool:
+        return self.target_image is not None
+
     @abstractmethod
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
         pass
