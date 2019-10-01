@@ -3,7 +3,7 @@ python: "3.6"
 
 matrix:
   include:
-    - name: "Formatting check"
+    - name: "Formatting"
       before_install: pip install black
       install: skip
       script: black --check .
@@ -11,22 +11,3 @@ matrix:
       before_install: pip install pytest
       install: pip install .
       script: pytest test
-#
-#
-#install:
-#    - pip install .
-#
-#script:
-#    - pytest test
-
-#before_install:
-#  - pip install black
-#  - pip install pytest
-#
-#install:
-#  - pip install .
-#
-#script:
-#  - black --check .
-#  - pytest test
-
