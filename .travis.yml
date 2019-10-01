@@ -3,10 +3,11 @@ python: "3.6"
 
 matrix:
   include:
-    - env: FORMAT_CHECK
+    - name: "Formatting check"
       before_install: pip install black
+      install: skip
       script: black --check .
-    - env: TEST
+    - name: "Tests"
       before_install: pip install pytest
       install: pip install .
       script: pytest test
