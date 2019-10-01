@@ -1,13 +1,16 @@
 language: python
 python: "3.6"
 
-#matrix:
-#    include:
-#        - env: FORMAT_CHECK
-#            install: pip install black
-#            script: black --check .
-#        - env: TEST
-#            before_install: pip install pytest
+matrix:
+  include:
+    - env: FORMAT_CHECK
+      before_install: pip install black
+      script: black --check .
+    - env: TEST
+      before_install: pip install pytest
+      install: pip install .
+      script: pytest test
+#
 #
 #install:
 #    - pip install .
@@ -15,14 +18,14 @@ python: "3.6"
 #script:
 #    - pytest test
 
-before_install:
-  - pip install black
-  - pip install pytest
-
-install:
-  - pip install .
-
-script:
-  - black --check .
-  - pytest test
+#before_install:
+#  - pip install black
+#  - pip install pytest
+#
+#install:
+#  - pip install .
+#
+#script:
+#  - black --check .
+#  - pytest test
 
