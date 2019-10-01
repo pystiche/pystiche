@@ -7,6 +7,11 @@ matrix:
             install: pip install black
             script: black --check .
         - env: TEST
-            install: pip install .
-            script: pytest test
+            before_install: pip install pytest
+
+install: 
+    - pip install .
+
+script: 
+    - pytest test
 
