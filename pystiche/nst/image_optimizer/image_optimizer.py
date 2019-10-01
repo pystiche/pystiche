@@ -164,9 +164,11 @@ class PreprocessingImageOptimizer(ImageOptimizer):
     ) -> None:
         super().__init__(*args, **kwargs)
         if multi_encoder_warning and len(self._encoders) > 1:
-            msg = ("Multiple encoders detected. Are you sure that you want to use "
-                   "multiple encoders with the same preprocessing? To suppress this "
-                   "warning, set multi_encoder_warning=False.")
+            msg = (
+                "Multiple encoders detected. Are you sure that you want to use "
+                "multiple encoders with the same preprocessing? To suppress this "
+                "warning, set multi_encoder_warning=False."
+            )
             warnings.warn(msg, RuntimeWarning)
 
     @abstractmethod
