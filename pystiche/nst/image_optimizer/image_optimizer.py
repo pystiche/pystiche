@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from typing import Any, Optional, Union, Callable, Iterator, Iterable, Sequence
+import warnings
 from collections import OrderedDict
 import itertools
 from math import floor
@@ -160,12 +161,16 @@ class ImageOptimizer(pystiche.object):
 
 class PreprocessingImageOptimizer(ImageOptimizer):
     def __init__(
-        self, *args: Any, multi_encoder_error: bool = True, **kwargs: Any
+        self, *args: Any, multi_encoder_warning: bool = True, **kwargs: Any
     ) -> None:
         super().__init__(*args, **kwargs)
-        if multi_encoder_error and len(self._encoders) > 1:
-            # TODO: error message
-            raise RuntimeError
+        if multi_encoder_warning and len(self._encoders) > 1:
+            msg = (
+                "Multiple encoders detected. Are you sure that you want to use "
+                "multiple encoders with the same preprocessing? To suppress this "
+                "warning, set multi_encoder_warning=False."
+            )
+            warnings.warn(msg, RuntimeWarning)
 
     @abstractmethod
     def preprocess(self, image: torch.Tensor) -> torch.Tensor:
