@@ -114,17 +114,22 @@ class ImageOptimizerPyramid(pystiche.object):
         return pystiche.tuple(output_images).detach()
 
     def _extract_comparison_initial_states(self) -> Dict[Operator, InitialState]:
-        operators = tuple(self.image_optimizer.operators(Comparison))
+        operators = tuple(self.image_optimizer.operators())
         init_states = []
         for operator in operators:
-            target_image = operator.target_image
+            has_target_image = (
+                isinstance(operator, Comparison) and operator.has_target_image
+            )
+            target_image = operator.target_image if has_target_image else None
 
             has_input_guide = (
                 isinstance(operator, Guidance) and operator.has_input_guide
             )
             input_guide = operator.input_guide if has_input_guide else None
 
-            has_target_guide = isinstance(operator, ComparisonGuidance)
+            has_target_guide = (
+                isinstance(operator, ComparisonGuidance) and operator.has_target_guide
+            )
             target_guide = operator.target_guide if has_target_guide else None
 
             init_states.append(
