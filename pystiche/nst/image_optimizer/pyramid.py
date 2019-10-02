@@ -1,15 +1,18 @@
 import warnings
 from typing import Union, Optional, Sequence, Tuple, Dict, Callable
+from itertools import repeat
 import numpy as np
 import torch
 import pystiche
-from pystiche.misc import zip_equal
+from pystiche.misc import zip_equal, verify_str_arg
 from pystiche.image import (
     is_image_size,
     is_edge_size,
     calculate_aspect_ratio,
     image_to_edge_size,
     extract_image_size,
+    extract_aspect_ratio,
+    edge_to_image_size,
 )
 from pystiche.image.transforms import (
     Transform,
@@ -18,6 +21,7 @@ from pystiche.image.transforms import (
     FixedAspectRatioResize,
     GrayscaleToBinary,
 )
+from pystiche.image.transforms.functional import resize
 from ..operators import Operator, Comparison, Guidance, ComparisonGuidance
 from .image_optimizer import ImageOptimizer
 
@@ -28,30 +32,51 @@ class PyramidLevel(pystiche.object):
     def __init__(
         self,
         num: int,
+        edge_size: int,
         num_steps: int,
-        transform: Callable,
-        guide_transform: Optional[Callable] = None,
+        edge: str,
+        binarizer: Optional[Callable] = None,
+        interpolation_mode: str = "bilinear",
     ) -> None:
         super().__init__()
         self.num: int = num
+        self.edge_size = edge_size
         self.num_steps: int = num_steps
+        self.edge = verify_str_arg(edge, "edge", ("short", "long"))
 
-        if isinstance(transform, ResizeTransform) and not transform.has_fixed_size:
-            msg = (
-                "The usage of a resize transformation that calculates the image size "
-                "at runtime is not recommended. If you experience size-mismatch "
-                "errors, consider using resize transformations with a fixed size."
-            )
-            warnings.warn(msg, RuntimeWarning)
-        self.transform: Callable = transform
+        if binarizer is None:
+            binarizer = GrayscaleToBinary()
+        self.binarizer = binarizer
 
-        if guide_transform is None and isinstance(transform, Transform):
-            guide_transform = transform + GrayscaleToBinary()
-        self.guide_transform: Callable = guide_transform
+        self.interpolation_mode = interpolation_mode
+
+    def resize(
+        self,
+        image: torch.Tensor,
+        aspect_ratio: Optional[float] = None,
+        binarize: bool = False,
+    ):
+        transform = FixedAspectRatioResize(
+            self.edge_size,
+            self.edge,
+            aspect_ratio=aspect_ratio,
+            interpolation_mode=self.interpolation_mode,
+        )
+        image = transform(image)
+        if binarize:
+            image = self.binarizer(image)
+        return image
 
     def extra_str(self) -> str:
-        extra = "num={num}", "num_steps={num_steps}", "size={size}"
-        return ", ".join(extra).format(size=self.transform.size, **self.__dict__)
+        extras = [
+            "num={num}",
+            "edge_size={edge_size}",
+            "num_steps={num_steps}",
+            "edge={edge}",
+        ]
+        if self.interpolation_mode != "bilinear":
+            extras.append("interpolation_mode={interpolation_mode}")
+        return ", ".join(extras).format(size=self.transform.size, **self.__dict__)
 
 
 class ImageOptimizerPyramid(pystiche.object):
@@ -65,22 +90,22 @@ class ImageOptimizerPyramid(pystiche.object):
         self._levels = None
 
     def build_levels(
-        self, level_image_sizes, level_steps: Union[Sequence[int], int], **kwargs
+        self,
+        level_edge_sizes: Sequence[int],
+        level_steps: Union[Sequence[int], int],
+        edges: Union[Sequence[str], str] = "short",
+        **kwargs
     ):
+        num_levels = len(level_edge_sizes)
         if isinstance(level_steps, int):
-            level_steps = tuple([level_steps] * len(level_image_sizes))
-
-        level_transforms = [
-            Resize(level_image_size)
-            if is_image_size(level_image_size)
-            else FixedAspectRatioResize(level_image_size, **kwargs)
-            for level_image_size in level_image_sizes
-        ]
+            level_steps = [level_steps] * num_levels
+        if isinstance(edges, str):
+            edges = [edges] * num_levels
 
         levels = [
-            PyramidLevel(num, num_steps, transform)
-            for num, (num_steps, transform) in enumerate(
-                zip_equal(level_steps, level_transforms)
+            PyramidLevel(num, *level_args, **kwargs)
+            for num, level_args in enumerate(
+                zip_equal(level_edge_sizes, level_steps, edges)
             )
         ]
         self._levels = pystiche.tuple(levels)
@@ -89,31 +114,23 @@ class ImageOptimizerPyramid(pystiche.object):
     def has_levels(self) -> bool:
         return self._levels is not None
 
-    def assert_has_levels(self):
+    def _assert_has_levels(self):
         if not self.has_levels:
-            # TODO: add error message
-            raise RuntimeError
+            msg = "You need to call build_levels() before starting the optimization"
+            raise RuntimeError(msg)
 
-    @property
-    def max_level_transform(self) -> Callable:
-        self.assert_has_levels()
-        return self._levels[-1].transform
-
-    @property
-    def max_level_guide_transform(self) -> Callable:
-        self.assert_has_levels()
-        return self._levels[-1].guide_transform
+    def max_resize(self, image, **kwargs):
+        self._assert_has_levels()
+        return self._levels[-1].resize(image, **kwargs)
 
     def __call__(self, input_image: torch.Tensor, quiet: bool = False, **kwargs):
-        self.assert_has_levels()
-
-        init_states = self._extract_comparison_initial_states()
-
+        self._assert_has_levels()
+        init_states = self._extract_operator_initial_states()
         output_images = self._iterate(input_image, init_states, quiet, **kwargs)
-
+        self._reset_operators(init_states)
         return pystiche.tuple(output_images).detach()
 
-    def _extract_comparison_initial_states(self) -> Dict[Operator, InitialState]:
+    def _extract_operator_initial_states(self) -> Dict[Operator, InitialState]:
         operators = tuple(self.image_optimizer.operators())
         init_states = []
         for operator in operators:
@@ -137,6 +154,17 @@ class ImageOptimizerPyramid(pystiche.object):
             )
         return dict(zip(operators, init_states))
 
+    def _reset_operators(self, init_states: Dict[Operator, InitialState]):
+        for operator, init_state in init_states.items():
+            if isinstance(operator, Guidance):
+                operator.set_input_guide(init_state.input_guide)
+
+            if isinstance(operator, ComparisonGuidance):
+                operator.set_target_guide(init_state.target_guide)
+
+            if isinstance(operator, Comparison):
+                operator.set_target(init_state.target_image)
+
     def _iterate(
         self,
         input_image: torch.Tensor,
@@ -144,10 +172,11 @@ class ImageOptimizerPyramid(pystiche.object):
         quiet: bool,
         **kwargs
     ):
+        aspect_ratio = extract_aspect_ratio(input_image)
         output_images = [input_image]
         for level in self._levels:
-            input_image = level.transform(output_images[-1])
-            self._transform_targets(level.transform, level.guide_transform, init_states)
+            input_image = level.resize(output_images[-1], aspect_ratio=aspect_ratio)
+            self._resize_operator_images(level, init_states)
 
             if not quiet:
                 self._print_header(level.num, input_image)
@@ -159,26 +188,27 @@ class ImageOptimizerPyramid(pystiche.object):
 
         return pystiche.tuple(output_images[1:])
 
-    def _transform_targets(
-        self,
-        transform: Callable,
-        guide_transform: Callable,
-        init_states: Dict[Operator, InitialState],
+    def _resize_operator_images(
+        self, level: PyramidLevel, init_states: Dict[Operator, InitialState]
     ):
         for operator, init_state in init_states.items():
-            if isinstance(operator, Guidance) and init_state.input_guide is not None:
-                guide = guide_transform(init_state.input_guide)
+            if isinstance(operator, Guidance):
+                if init_state.input_guide is None:
+                    continue
+                guide = level.resize(init_state.input_guide, binarize=True)
                 operator.set_input_guide(guide)
 
-            if (
-                isinstance(operator, ComparisonGuidance)
-                and init_state.target_guide is not None
-            ):
-                guide = guide_transform(init_state.target_guide)
+            if isinstance(operator, ComparisonGuidance):
+                if init_state.target_guide is None:
+                    continue
+                guide = level.resize(init_state.target_guide, binarize=True)
                 operator.set_target_guide(guide)
 
-            image = transform(init_state.target_image)
-            operator.set_target(image)
+            if isinstance(operator, Comparison):
+                if init_state.target_image is None:
+                    continue
+                image = level.resize(init_state.target_image)
+                operator.set_target(image)
 
     def _print_header(self, level: int, image: torch.Tensor):
         image_size = extract_image_size(image)
