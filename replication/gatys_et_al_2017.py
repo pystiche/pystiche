@@ -32,12 +32,11 @@ def perform_nst(content_image, style_image, impl_params, device):
     input_image = utils.get_input_image("content", content_image=content_image)
 
     nst_pyramid = GatysEtAl2017NSTPyramid(impl_params).to(device)
-    nst_pyramid.build_levels(input_image, impl_params)
+    nst_pyramid.build_levels(impl_params)
 
-    transform = nst_pyramid.max_level_transform
-    content_image = transform(content_image)
-    style_image = transform(style_image)
-    input_image = transform(input_image)
+    content_image = nst_pyramid.max_resize(content_image)
+    style_image = nst_pyramid.max_resize(style_image)
+    input_image = nst_pyramid.max_resize(input_image)
 
     nst = nst_pyramid.image_optimizer
     nst.content_loss.set_target(content_image)
