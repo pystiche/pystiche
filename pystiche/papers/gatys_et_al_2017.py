@@ -192,9 +192,7 @@ class _GatysEtAl2017NSTPyramidBase(ImageOptimizerPyramid):
         level_edge_sizes = 512 if impl_params else 500, 800
         level_steps = 500, 200
         edges = "short"
-        super().build_levels(
-            level_edge_sizes, level_steps, edges=edges
-        )
+        super().build_levels(level_edge_sizes, level_steps, edges=edges)
 
 
 class GatysEtAl2017NSTPyramid(_GatysEtAl2017NSTPyramidBase):
