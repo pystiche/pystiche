@@ -94,7 +94,7 @@ class ImageOptimizerPyramid(pystiche.object):
         level_edge_sizes: Sequence[int],
         level_steps: Union[Sequence[int], int],
         edges: Union[Sequence[str], str] = "short",
-        **kwargs
+        **kwargs,
     ):
         num_levels = len(level_edge_sizes)
         if isinstance(level_steps, int):
@@ -170,7 +170,7 @@ class ImageOptimizerPyramid(pystiche.object):
         input_image: torch.Tensor,
         init_states: InitialState,
         quiet: bool,
-        **kwargs
+        **kwargs,
     ):
         aspect_ratio = extract_aspect_ratio(input_image)
         output_images = [input_image]
@@ -236,6 +236,4 @@ class ImageOptimizerOctavePyramid(ImageOptimizerPyramid):
             round(max_edge_size / (2.0 ** ((num_levels - 1) - level)))
             for level in range(num_levels)
         ]
-        super().build_levels(
-            level_edge_sizes, level_steps, edges=edges
-        )
+        super().build_levels(level_edge_sizes, level_steps, edges=edges)

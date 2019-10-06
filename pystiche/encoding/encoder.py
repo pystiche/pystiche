@@ -10,6 +10,7 @@ __all__ = ["Encoder"]
 
 from torch import nn
 
+
 class Encoder(nn.Sequential):
     def forward(
         self, x: torch.Tensor, layers: Sequence[str]
@@ -49,11 +50,11 @@ class Encoder(nn.Sequential):
         guides_dct = {}
         for name, module in self._necessary_named_modules(layers):
             if isinstance(module, nn.MaxPool2d):
-            # if isinstance(module, PoolModule):
+                # if isinstance(module, PoolModule):
                 guide = F.max_pool2d(guide, **pystiche.pool_module_meta(module))
             # TODO: deal with convolution that doesn't preserve the output shape
             elif isinstance(module, nn.Conv2d) and method != "simple":
-            # elif isinstance(module, ConvModule) and method != "simple":
+                # elif isinstance(module, ConvModule) and method != "simple":
                 meta = pystiche.conv_module_meta(module)
                 guide_unfolded = F.unfold(guide, **meta).byte()
 
