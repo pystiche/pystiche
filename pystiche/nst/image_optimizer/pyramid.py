@@ -222,31 +222,20 @@ class ImageOptimizerPyramid(pystiche.object):
 class ImageOptimizerOctavePyramid(ImageOptimizerPyramid):
     def build_levels(
         self,
-        size: Union[Tuple[int, int], int],
+        max_edge_size: int,
         level_steps: Union[Sequence[int], int],
         num_levels: Optional[int] = None,
         min_edge_size: int = 64,
-        edge: str = "short",
+        edges: str = "short",
+        **kwargs,
     ):
-        edge_size, aspect_ratio = self._extract_image_params(size, edge)
-
         if num_levels is None:
-            num_levels = int(np.floor(np.log2(edge_size / min_edge_size))) + 1
+            num_levels = int(np.floor(np.log2(max_edge_size / min_edge_size))) + 1
 
-        level_image_sizes = [
-            round(edge_size / (2.0 ** ((num_levels - 1) - level)))
+        level_edge_sizes = [
+            round(max_edge_size / (2.0 ** ((num_levels - 1) - level)))
             for level in range(num_levels)
         ]
         super().build_levels(
-            level_image_sizes, level_steps, aspect_ratio=aspect_ratio, edge=edge
+            level_edge_sizes, level_steps, edges=edges
         )
-
-    @staticmethod
-    def _extract_image_params(size: Union[Tuple[int, int], int], edge: str):
-        if is_image_size(size):
-            return image_to_edge_size(size, edge), calculate_aspect_ratio(size)
-        elif is_edge_size(size):
-            return size, None
-        else:
-            # FIXME: error message
-            raise ValueError
