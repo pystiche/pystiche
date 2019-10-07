@@ -250,8 +250,8 @@ class LiWand2016NSTPyramid(ImageOptimizerOctavePyramid):
 
     Args:
         impl_params: If True, hyper parameters from the authors implementation
-            <https://github.com/leongatys/PytorchNeuralStyleTransfer> rather than the
-            parameters given in the paper are used.
+            <https://github.com/chuanli11/CNNMRF> rather than the parameters given in
+            the paper are used.
 
     Attributes:
         nst: NST image optimizer
@@ -270,8 +270,8 @@ class LiWand2016NSTPyramid(ImageOptimizerOctavePyramid):
 
         Args:
             impl_params: If True, hyper parameters from the authors implementation
-                <https://github.com/leongatys/PytorchNeuralStyleTransfer> rather than
-                the parameters given in the paper are used.
+            <https://github.com/chuanli11/CNNMRF> rather than the parameters given in
+            the paper are used.
         """
         max_edge_size = 384
         level_steps = 100 if impl_params else 200
