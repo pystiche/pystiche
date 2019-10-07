@@ -6,17 +6,15 @@ import utils
 
 
 def perform_nst(content_image, style_image, impl_params, device):
+    nst_pyramid = LiWand2016NSTPyramid(impl_params).to(device)
+    nst_pyramid.build_levels(impl_params)
+
+    content_image = nst_pyramid.max_resize(content_image)
+    style_image = nst_pyramid.max_resize(style_image)
+
     utils.make_reproducible()
     starting_point = "content" if impl_params else "random"
     input_image = utils.get_input_image(starting_point, content_image=content_image)
-
-    nst_pyramid = LiWand2016NSTPyramid(impl_params).to(device)
-    nst_pyramid.build_levels(input_image, impl_params)
-
-    transform = nst_pyramid.max_level_transform
-    content_image = transform(content_image)
-    style_image = transform(style_image)
-    input_image = transform(input_image)
 
     nst = nst_pyramid.image_optimizer
     nst.content_loss.set_target(content_image)

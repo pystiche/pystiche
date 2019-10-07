@@ -3,7 +3,6 @@ import torch
 from torch import optim
 import pystiche
 from pystiche.misc import to_engstr
-from pystiche.image import extract_image_size
 from pystiche.encoding import vgg19_encoder
 from pystiche.nst import (
     DirectEncodingComparisonOperator,
@@ -263,23 +262,26 @@ class LiWand2016NSTPyramid(ImageOptimizerOctavePyramid):
         super().__init__(nst)
         self.nst = nst
 
-    def build_levels(self, input_image, impl_params):
+    def build_levels(self, impl_params):
         """
         Build the levels of the pyramid. The image size between two levels is increased
         by a factor of two. The pyramid starts with an image, which longest edge is
         atleast 64 pixels wide. On each level 100 optimization steps are performed.
 
         Args:
-            input_image: Image with given aspect ratio for which the levels are build
             impl_params: If True, hyper parameters from the authors implementation
                 <https://github.com/leongatys/PytorchNeuralStyleTransfer> rather than
                 the parameters given in the paper are used.
         """
-        image_size = extract_image_size(input_image)
+        max_edge_size = 384
         level_steps = 100 if impl_params else 200
         num_levels = 3 if impl_params else None
         min_edge_size = 64
-        edge = "long"
+        edges = "long"
         super().build_levels(
-            image_size, level_steps, num_levels, min_edge_size=min_edge_size, edge=edge
+            max_edge_size,
+            level_steps,
+            num_levels,
+            min_edge_size=min_edge_size,
+            edges=edges,
         )

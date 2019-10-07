@@ -28,16 +28,14 @@ def display_saving_info(output_file):
 
 
 def perform_nst(content_image, style_image, impl_params, device):
+    nst_pyramid = GatysEtAl2017NSTPyramid(impl_params).to(device)
+    nst_pyramid.build_levels(impl_params)
+
+    content_image = nst_pyramid.max_resize(content_image)
+    style_image = nst_pyramid.max_resize(style_image)
+
     utils.make_reproducible()
     input_image = utils.get_input_image("content", content_image=content_image)
-
-    nst_pyramid = GatysEtAl2017NSTPyramid(impl_params).to(device)
-    nst_pyramid.build_levels(input_image, impl_params)
-
-    transform = nst_pyramid.max_level_transform
-    content_image = transform(content_image)
-    style_image = transform(style_image)
-    input_image = transform(input_image)
 
     nst = nst_pyramid.image_optimizer
     nst.content_loss.set_target(content_image)
@@ -56,22 +54,24 @@ def figure_2(source_folder, guides_root, replication_folder, device, impl_params
         impl_params,
         device,
     ):
-        utils.make_reproducible()
-        input_image = utils.get_input_image("content", content_image=content_image)
-
         nst_pyramid = GatysEtAl2017SpatialControlNSTPyramid(
             len(guide_names), impl_params, guide_names
         )
         nst_pyramid = nst_pyramid.to(device)
-        nst_pyramid.build_levels(input_image, impl_params)
+        nst_pyramid.build_levels(impl_params)
 
-        transform = nst_pyramid.max_level_transform
-        content_image = transform(content_image)
-        style_images = [transform(image) for image in style_images]
+        content_image = nst_pyramid.max_resize(content_image)
+        style_images = [nst_pyramid.max_resize(image) for image in style_images]
 
-        guide_transform = nst_pyramid.max_level_guide_transform
-        content_guides = [guide_transform(guide) for guide in content_guides]
-        style_guides = [guide_transform(guide) for guide in style_guides]
+        content_guides = [
+            nst_pyramid.max_resize(guide, binarize=True) for guide in content_guides
+        ]
+        style_guides = [
+            nst_pyramid.max_resize(guide, binarize=True) for guide in style_guides
+        ]
+
+        utils.make_reproducible()
+        input_image = utils.get_input_image("content", content_image=content_image)
 
         nst = nst_pyramid.image_optimizer
         nst.content_loss.set_target(content_image)
