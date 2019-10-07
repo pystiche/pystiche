@@ -3,7 +3,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import pystiche
-from pystiche.typing import ConvModule, PoolModule
+from pystiche.typing import is_conv_module, is_pool_module
 from pystiche.misc import verify_str_arg
 
 __all__ = ["Encoder"]
@@ -47,10 +47,10 @@ class Encoder(nn.Sequential):
         verify_str_arg(method, "method", ("simple", "inside", "all"))
         guides_dct = {}
         for name, module in self._necessary_named_modules(layers):
-            if isinstance(module, PoolModule):
+            if is_pool_module(module):
                 guide = F.max_pool2d(guide, **pystiche.pool_module_meta(module))
             # TODO: deal with convolution that doesn't preserve the output shape
-            elif isinstance(module, ConvModule) and method != "simple":
+            elif is_conv_module(module) and method != "simple":
                 meta = pystiche.conv_module_meta(module)
                 guide_unfolded = F.unfold(guide, **meta).byte()
 
