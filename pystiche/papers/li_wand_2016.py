@@ -46,6 +46,8 @@ class LiWand2016ContentLoss(DirectEncodingComparisonOperator):
     def __init__(self, encoder=None, impl_params=True):
         if encoder is None:
             encoder = get_encoder()
+        self.impl_params = impl_params
+
         name = "Content loss (direct)"
         encoding_layers = ("relu_4_2",)
         layer_weights = "sum"
@@ -119,6 +121,8 @@ class LiWand2016StyleLoss(MRFEncodingComparisonOperator):
     def __init__(self, encoder=None, impl_params=True):
         if encoder is None:
             encoder = get_encoder()
+        self.impl_params = impl_params
+
         name = "Style loss (MRF)"
         encoding_layers = ("relu_3_1", "relu_4_1")
         patch_size = 3
@@ -184,6 +188,8 @@ class LiWand2016Regularizer(TotalVariationPixelRegularizationOperator):
     """
 
     def __init__(self, impl_params=True):
+        self.impl_params = impl_params
+
         name = "Regularizer (total variation)"
         exponent = 2.0
         score_weight = 1e-3
@@ -261,21 +267,18 @@ class LiWand2016NSTPyramid(ImageOptimizerOctavePyramid):
         nst = LiWand2016NST(impl_params)
         super().__init__(nst)
         self.nst = nst
+        self.impl_params = impl_params
+        self.build_levels()
 
-    def build_levels(self, impl_params):
+    def build_levels(self):
         """
         Build the levels of the pyramid. The image size between two levels is increased
         by a factor of two. The pyramid starts with an image, which longest edge is
         atleast 64 pixels wide. On each level 100 optimization steps are performed.
-
-        Args:
-            impl_params: If True, hyper parameters from the authors implementation
-            <https://github.com/chuanli11/CNNMRF> rather than the parameters given in
-            the paper are used.
         """
         max_edge_size = 384
-        level_steps = 100 if impl_params else 200
-        num_levels = 3 if impl_params else None
+        level_steps = 100 if self.impl_params else 200
+        num_levels = 3 if self.impl_params else None
         min_edge_size = 64
         edges = "long"
         super().build_levels(

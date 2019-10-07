@@ -29,7 +29,6 @@ def display_saving_info(output_file):
 
 def perform_nst(content_image, style_image, impl_params, device):
     nst_pyramid = GatysEtAl2017NSTPyramid(impl_params).to(device)
-    nst_pyramid.build_levels(impl_params)
 
     content_image = nst_pyramid.max_resize(content_image)
     style_image = nst_pyramid.max_resize(style_image)
@@ -58,7 +57,6 @@ def figure_2(source_folder, guides_root, replication_folder, device, impl_params
             len(guide_names), impl_params, guide_names
         )
         nst_pyramid = nst_pyramid.to(device)
-        nst_pyramid.build_levels(impl_params)
 
         content_image = nst_pyramid.max_resize(content_image)
         style_images = [nst_pyramid.max_resize(image) for image in style_images]
