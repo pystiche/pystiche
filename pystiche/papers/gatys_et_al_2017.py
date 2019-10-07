@@ -62,7 +62,11 @@ class GatysEtAl2017StyleLoss(GramEncodingComparisonOperator):
             parameters given in the paper are used.
     """
 
-    def __init__(self, encoder, impl_params=True):
+    def __init__(self, encoder=None, impl_params=True):
+        if encoder is None:
+            encoder = get_encoder()
+        self.impl_params = impl_params
+
         name = "Style loss (Gram)"
         layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
         layer_weights = [
