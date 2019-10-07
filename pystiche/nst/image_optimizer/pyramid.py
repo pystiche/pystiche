@@ -226,7 +226,7 @@ class ImageOptimizerOctavePyramid(ImageOptimizerPyramid):
         level_steps: Union[Sequence[int], int],
         num_levels: Optional[int] = None,
         min_edge_size: int = 64,
-        edges: str = "short",
+        edges: Union[Sequence[str], str] = "short",
         **kwargs,
     ):
         if num_levels is None:
