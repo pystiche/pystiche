@@ -107,25 +107,30 @@ class ImageOptimizerPyramid(pystiche.object):
     def __call__(self, input_image: torch.Tensor, quiet: bool = False, **kwargs):
         self.assert_has_levels()
 
-        init_states = self._extract_comparison_initial_states()
+        init_states = self._extract_operator_initial_states()
 
         output_images = self._iterate(input_image, init_states, quiet, **kwargs)
 
         return pystiche.tuple(output_images).detach()
 
-    def _extract_comparison_initial_states(self) -> Dict[Operator, InitialState]:
-        operators = tuple(self.image_optimizer.operators(Comparison))
+    def _extract_operator_initial_states(self) -> Dict[Operator, InitialState]:
+        operators = tuple(self.image_optimizer.operators())
         init_states = []
         for operator in operators:
-            target_image = operator.target_image
-
             has_input_guide = (
                 isinstance(operator, Guidance) and operator.has_input_guide
             )
             input_guide = operator.input_guide if has_input_guide else None
 
-            has_target_guide = isinstance(operator, ComparisonGuidance)
+            has_target_guide = (
+                isinstance(operator, ComparisonGuidance) and operator.has_target_guide
+            )
             target_guide = operator.target_guide if has_target_guide else None
+
+            has_target_image = (
+                isinstance(operator, Comparison) and operator.has_target_image
+            )
+            target_image = operator.target_image if has_target_image else None
 
             init_states.append(
                 self.InitialState(target_image, input_guide, target_guide)
