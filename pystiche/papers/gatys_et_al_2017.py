@@ -178,25 +178,21 @@ class _GatysEtAl2017NSTPyramidBase(ImageOptimizerPyramid):
         super().__init__(nst)
         self.nst = nst
 
-    def build_levels(self, input_image, impl_params):
+    def build_levels(self, impl_params=True):
         """
         Build the levels of the pyramid. The pyramid comprises two levels with 500 and
         200 steps respectively. The images are resized so that their short edge is 500
         and 800 pixels wide.
 
         Args:
-            input_image: Image with given aspect ratio for which the levels are build
             impl_params: If True, hyper parameters from the authors implementation
                 <https://github.com/leongatys/PytorchNeuralStyleTransfer> rather than
                 the parameters given in the paper are used.
         """
-        level_image_sizes = 512 if impl_params else 500, 800
+        level_edge_sizes = 512 if impl_params else 500, 800
         level_steps = 500, 200
-        aspect_ratio = extract_aspect_ratio(input_image)
-        edge = "short"
-        super().build_levels(
-            level_image_sizes, level_steps, aspect_ratio=aspect_ratio, edge=edge
-        )
+        edges = "short"
+        super().build_levels(level_edge_sizes, level_steps, edges=edges)
 
 
 class GatysEtAl2017NSTPyramid(_GatysEtAl2017NSTPyramidBase):
