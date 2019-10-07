@@ -1,27 +1,10 @@
-import warnings
-from typing import Union, Optional, Sequence, Tuple, Dict, Callable
-from itertools import repeat
+from typing import Union, Optional, Sequence, Dict, Callable
 import numpy as np
 import torch
 import pystiche
 from pystiche.misc import zip_equal, verify_str_arg
-from pystiche.image import (
-    is_image_size,
-    is_edge_size,
-    calculate_aspect_ratio,
-    image_to_edge_size,
-    extract_image_size,
-    extract_aspect_ratio,
-    edge_to_image_size,
-)
-from pystiche.image.transforms import (
-    Transform,
-    ResizeTransform,
-    Resize,
-    FixedAspectRatioResize,
-    GrayscaleToBinary,
-)
-from pystiche.image.transforms.functional import resize
+from pystiche.image import extract_image_size, extract_aspect_ratio
+from pystiche.image.transforms import FixedAspectRatioResize, GrayscaleToBinary
 from ..operators import Operator, Comparison, Guidance, ComparisonGuidance
 from .image_optimizer import ImageOptimizer
 

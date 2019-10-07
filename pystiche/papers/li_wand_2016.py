@@ -3,7 +3,6 @@ import torch
 from torch import optim
 import pystiche
 from pystiche.misc import to_engstr
-from pystiche.image import extract_image_size
 from pystiche.encoding import vgg19_encoder
 from pystiche.nst import (
     DirectEncodingComparisonOperator,
@@ -280,5 +279,9 @@ class LiWand2016NSTPyramid(ImageOptimizerOctavePyramid):
         min_edge_size = 64
         edges = "long"
         super().build_levels(
-            max_edge_size, level_steps, num_levels, min_edge_size=min_edge_size, edges=edges
+            max_edge_size,
+            level_steps,
+            num_levels,
+            min_edge_size=min_edge_size,
+            edges=edges,
         )
