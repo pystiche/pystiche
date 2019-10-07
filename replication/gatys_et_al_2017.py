@@ -61,13 +61,14 @@ def figure_2(source_folder, guides_root, replication_folder, device, impl_params
         nst_pyramid.build_levels(impl_params)
 
         content_image = nst_pyramid.max_resize(content_image)
-        style_images = [nst_pyramid.max_resize(image)
-                        for image in style_images]
+        style_images = [nst_pyramid.max_resize(image) for image in style_images]
 
-        content_guides = [nst_pyramid.max_resize(guide, binarize=True)
-                          for guide in content_guides]
-        style_guides = [nst_pyramid.max_resize(guide, binarize=True)
-                          for guide in style_guides]
+        content_guides = [
+            nst_pyramid.max_resize(guide, binarize=True) for guide in content_guides
+        ]
+        style_guides = [
+            nst_pyramid.max_resize(guide, binarize=True) for guide in style_guides
+        ]
 
         utils.make_reproducible()
         input_image = utils.get_input_image("content", content_image=content_image)
