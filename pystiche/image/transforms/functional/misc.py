@@ -66,13 +66,18 @@ def transform_channels_linearly(x: torch.Tensor, matrix: torch.Tensor) -> torch.
 def transform_channels_affinely(
     x: torch.Tensor, matrix: torch.Tensor, bias: Optional[torch.tensor] = None
 ) -> torch.Tensor:
-    batch_size, num_channels, *spatial_size = x.size()
+    batch_size, _, *spatial_size = x.size()
     x = pystiche.flatten_channelwise(x)
+
     if matrix.dim() == 2:
         matrix = matrix.unsqueeze(0).repeat(batch_size, 1, 1)
+    num_channels = matrix.size()[1]
+
     x = torch.bmm(matrix, x)
+
     if bias is not None:
         if bias.dim() == 2:
             bias = bias.unsqueeze(0)
         x += bias
+
     return x.view(batch_size, num_channels, *spatial_size)
