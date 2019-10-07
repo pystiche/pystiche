@@ -8,8 +8,8 @@ from pystiche.image.transforms.transforms import (
 )
 
 
-TORCHVISION_MEAN = (0.485, 0.456, 0.406)
-TORCHVISION_STD = (0.229, 0.224, 0.225)
+TORCH_MEAN = (0.485, 0.456, 0.406)
+TORCH_STD = (0.229, 0.224, 0.225)
 
 CAFFE_MEAN = (0.485, 0.458, 0.408)
 CAFFE_STD = (1.0, 1.0, 1.0)
@@ -24,13 +24,13 @@ __all__ = [
 
 class TorchPreprocessing(Compose):
     def __init__(self) -> None:
-        transforms = [Normalize(TORCHVISION_MEAN, TORCHVISION_STD)]
+        transforms = [Normalize(TORCH_MEAN, TORCH_STD)]
         super().__init__(*transforms)
 
 
 class TorchPostprocessing(Compose):
     def __init__(self) -> None:
-        transforms = [Denormalize(TORCHVISION_MEAN, TORCHVISION_STD)]
+        transforms = [Denormalize(TORCH_MEAN, TORCH_STD)]
         super().__init__(*transforms)
 
 
