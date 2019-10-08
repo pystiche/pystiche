@@ -5,7 +5,12 @@ import pystiche
 from pystiche.misc import zip_equal, verify_str_arg
 from pystiche.image import extract_image_size, extract_aspect_ratio
 from pystiche.image.transforms import FixedAspectRatioResize, GrayscaleToBinary
-from ..operators import Operator, Comparison, Guidance, ComparisonGuidance
+from ..operators import (
+    Operator,
+    ComparisonOperator,
+    GuidanceOperator,
+    ComparisonGuidanceOperator,
+)
 from .image_optimizer import ImageOptimizer
 
 __all__ = ["PyramidLevel", "ImageOptimizerPyramid", "ImageOptimizerOctavePyramid"]
@@ -118,17 +123,18 @@ class ImageOptimizerPyramid(pystiche.object):
         init_states = []
         for operator in operators:
             has_input_guide = (
-                isinstance(operator, Guidance) and operator.has_input_guide
+                isinstance(operator, GuidanceOperator) and operator.has_input_guide
             )
             input_guide = operator.input_guide if has_input_guide else None
 
             has_target_guide = (
-                isinstance(operator, ComparisonGuidance) and operator.has_target_guide
+                isinstance(operator, ComparisonGuidanceOperator)
+                and operator.has_target_guide
             )
             target_guide = operator.target_guide if has_target_guide else None
 
             has_target_image = (
-                isinstance(operator, Comparison) and operator.has_target_image
+                isinstance(operator, ComparisonOperator) and operator.has_target_image
             )
             target_image = operator.target_image if has_target_image else None
 
@@ -139,13 +145,13 @@ class ImageOptimizerPyramid(pystiche.object):
 
     def _reset_operators(self, init_states: Dict[Operator, InitialState]):
         for operator, init_state in init_states.items():
-            if isinstance(operator, Guidance):
+            if isinstance(operator, GuidanceOperator):
                 operator.set_input_guide(init_state.input_guide)
 
-            if isinstance(operator, ComparisonGuidance):
+            if isinstance(operator, ComparisonGuidanceOperator):
                 operator.set_target_guide(init_state.target_guide)
 
-            if isinstance(operator, Comparison):
+            if isinstance(operator, ComparisonOperator):
                 operator.set_target(init_state.target_image)
 
     def _iterate(
@@ -175,19 +181,19 @@ class ImageOptimizerPyramid(pystiche.object):
         self, level: PyramidLevel, init_states: Dict[Operator, InitialState]
     ):
         for operator, init_state in init_states.items():
-            if isinstance(operator, Guidance):
+            if isinstance(operator, GuidanceOperator):
                 if init_state.input_guide is None:
                     continue
                 guide = level.resize(init_state.input_guide, binarize=True)
                 operator.set_input_guide(guide)
 
-            if isinstance(operator, ComparisonGuidance):
+            if isinstance(operator, ComparisonGuidanceOperator):
                 if init_state.target_guide is None:
                     continue
                 guide = level.resize(init_state.target_guide, binarize=True)
                 operator.set_target_guide(guide)
 
-            if isinstance(operator, Comparison):
+            if isinstance(operator, ComparisonOperator):
                 if init_state.target_image is None:
                     continue
                 image = level.resize(init_state.target_image)

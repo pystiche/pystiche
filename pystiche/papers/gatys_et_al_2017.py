@@ -7,7 +7,7 @@ from pystiche.encoding import vgg19_encoder
 from pystiche.nst import (
     DirectEncodingComparisonOperator,
     GramEncodingComparisonOperator,
-    GuidedEncodingComparison,
+    GuidedEncodingComparisonOperator,
     MultiOperatorEncoder,
     CaffePreprocessingImageOptimizer,
     ImageOptimizerPyramid,
@@ -97,7 +97,7 @@ class GatysEtAl2017StyleLoss(GramEncodingComparisonOperator):
 
 
 class GatysEtAl2017SpatialControlStyleLoss(
-    GuidedEncodingComparison, GatysEtAl2017StyleLoss
+    GuidedEncodingComparisonOperator, GatysEtAl2017StyleLoss
 ):
     r"""Spatially guided style loss based on gram matrices from
     `"Controlling Perceptual Factors in Neural Style Transfer" <http://openaccess.thecvf.com/content_cvpr_2017/papers/Gatys_Controlling_Perceptual_Factors_CVPR_2017_paper.pdf>`

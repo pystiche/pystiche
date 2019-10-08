@@ -1,10 +1,10 @@
-from ._base import GuidedEncodingComparison
+from ._base import GuidedEncodingComparisonOperator
 from .encoding import GramEncodingComparisonOperator
 
 __all__ = ["GuidedGramEncodingComparisonOperator"]
 
 
 class GuidedGramEncodingComparisonOperator(
-    GuidedEncodingComparison, GramEncodingComparisonOperator
+    GuidedEncodingComparisonOperator, GramEncodingComparisonOperator
 ):
     pass
