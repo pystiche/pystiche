@@ -90,6 +90,7 @@ class GatysEtAl2017StyleLoss(GramEncodingComparisonOperator):
 
     def extra_descriptions(self):
         dct = OrderedDict()
+        dct["Implementation parameters"] = self.impl_params
         if self.score_correction_factor != 1.0:
             dct["Score correction factor"] = to_engstr(self.score_correction_factor)
         return dct

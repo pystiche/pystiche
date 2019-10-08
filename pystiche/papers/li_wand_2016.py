@@ -67,6 +67,7 @@ class LiWand2016ContentLoss(DirectEncodingComparisonOperator):
 
     def extra_descriptions(self):
         dct = OrderedDict()
+        dct["Implementation parameters"] = self.impl_params
         if self.loss_reduction != "mean":
             dct["Loss reduction"] = self.loss_reduction
         return dct
@@ -169,6 +170,7 @@ class LiWand2016StyleLoss(MRFEncodingComparisonOperator):
 
     def extra_descriptions(self):
         dct = OrderedDict()
+        dct["Implementation parameters"] = self.impl_params
         if self.normalize_patches_grad:
             dct["Normalize patches gradient"] = self.normalize_patches_grad
         dct["Loss reduction"] = self.loss_reduction
@@ -206,6 +208,7 @@ class LiWand2016Regularizer(TotalVariationPixelRegularizationOperator):
 
     def extra_descriptions(self):
         dct = OrderedDict()
+        dct["Implementation parameters"] = self.impl_params
         dct["Loss reduction"] = self.loss_reduction
         if self.score_correction_factor != 1.0:
             dct["Score correction factor"] = to_engstr(self.score_correction_factor)
