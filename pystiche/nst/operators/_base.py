@@ -162,6 +162,7 @@ class EncodingOperator(Operator):
         **kwargs
     ) -> None:
         super().__init__(name, **kwargs)
+        encoder.verify_layers(layers)
         self.encoder = encoder
         self.layers = layers
         self.layer_weights = self._verify_layer_weights(layer_weights)
