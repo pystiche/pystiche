@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple, Dict, Iterator
+from typing import Sequence, Tuple, Iterator
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -13,40 +13,24 @@ class Encoder(nn.Sequential):
     def forward(
         self, x: torch.Tensor, layers: Sequence[str]
     ) -> Tuple[torch.Tensor, ...]:
+        self._assert_contains_layers(layers)
         encs_dict = {}
-        for name, module in self._necessary_named_modules(layers):
+        for name, module in self._required_named_children(layers):
             x = encs_dict[name] = module(x)
         return tuple([encs_dict[name] for name in layers])
 
     def trim(self, layers: Sequence[str]):
-        last_module_name = self._find_last_module_name(layers)
+        self._assert_contains_layers(layers)
+        last_module_name = self._find_last_required_children_name(layers)
         idx = list(self.children_names()).index(last_module_name)
         del self[idx + 1 :]
-
-    def children_names(self) -> Iterator[str]:
-        for name, module in self.named_children():
-            yield name
-
-    def _necessary_named_modules(self, layers: Sequence[str]):
-        last_module_name = self._find_last_module_name(layers)
-        for name, module in self.named_children():
-            yield name, module
-            if name == last_module_name:
-                break
-
-    def _find_last_module_name(self, layers: Sequence[str]) -> str:
-        try:
-            return sorted(set(layers), key=list(self.children_names()).index)[-1]
-        except ValueError as e:
-            name = str(e).split()[0]
-        raise ValueError("Layer {0} is not part of the encoder".format(name))
 
     def propagate_guide(
         self, guide: torch.Tensor, layers: Sequence[str], method: str = "simple"
     ) -> Tuple[torch.Tensor, ...]:
         verify_str_arg(method, "method", ("simple", "inside", "all"))
         guides_dct = {}
-        for name, module in self._necessary_named_modules(layers):
+        for name, module in self._required_named_children(layers):
             if is_pool_module(module):
                 guide = F.max_pool2d(guide, **pystiche.pool_module_meta(module))
             # TODO: deal with convolution that doesn't preserve the output shape
@@ -70,3 +54,25 @@ class Encoder(nn.Sequential):
             guides_dct[name] = guide
 
         return tuple([guides_dct[name] for name in layers])
+
+    def children_names(self) -> Iterator[str]:
+        for name, child in self.named_children():
+            yield name
+
+    def __contains__(self, name: str) -> bool:
+        return name in self.children_names()
+
+    def _assert_contains_layers(self, layers: Sequence[str]):
+        for layer in layers:
+            if layer not in self:
+                raise ValueError(f"Layer {layer} is not part of the encoder.")
+
+    def _find_last_required_children_name(self, layers: Sequence[str]) -> str:
+        return sorted(set(layers), key=list(self.children_names()).index)[-1]
+
+    def _required_named_children(self, layers: Sequence[str]):
+        last_required_children_name = self._find_last_required_children_name(layers)
+        for name, child in self.named_children():
+            yield name, child
+            if name == last_required_children_name:
+                break
