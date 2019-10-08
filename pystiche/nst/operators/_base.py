@@ -9,24 +9,24 @@ from pystiche.encoding import Encoder
 
 __all__ = [
     "Operator",
-    "Diagnosis",
-    "Comparison",
-    "Regularization",
-    "Encoding",
-    "Pixel",
+    "DiagnosisOperator",
+    "ComparisonOperator",
+    "RegularizationOperator",
+    "EncodingOperator",
+    "PixelOperator",
     "EncodingComparisonOperator",
     "EncodingRegularizationOperator",
     "PixelComparisonOperator",
     "PixelRegularizationOperator",
-    "Guidance",
-    "ComparisonGuidance",
-    "RegularizationGuidance",
-    "EncodingGuidance",
-    "PixelGuidance",
-    "GuidedEncodingComparison",
-    "GuidedEncodingRegularization",
-    "GuidedPixelComparison",
-    "GuidedPixelRegularization",
+    "GuidanceOperator",
+    "ComparisonGuidanceOperator",
+    "RegularizationGuidanceOperator",
+    "EncodingGuidanceOperator",
+    "PixelGuidanceOperator",
+    "GuidedEncodingComparisonOperator",
+    "GuidedEncodingRegularizationOperator",
+    "GuidedPixelComparisonOperator",
+    "GuidedPixelRegularizationOperator",
 ]
 
 
@@ -94,12 +94,12 @@ class Operator(pystiche.object):
         pass
 
 
-class Diagnosis(Operator):
+class DiagnosisOperator(Operator):
     def __call__(self, input_image: torch.Tensor):
         super().__call__(input_image)
 
 
-class Comparison(Operator):
+class ComparisonOperator(Operator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.target_image = None
@@ -138,7 +138,7 @@ class Comparison(Operator):
         pass
 
 
-class Regularization(Operator):
+class RegularizationOperator(Operator):
     @abstractmethod
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
         pass
@@ -152,7 +152,7 @@ class Regularization(Operator):
         pass
 
 
-class Encoding(Operator):
+class EncodingOperator(Operator):
     def __init__(
         self,
         encoder: Encoder,
@@ -198,13 +198,13 @@ class Encoding(Operator):
         pass
 
 
-class Pixel(Operator):
+class PixelOperator(Operator):
     @abstractmethod
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
         pass
 
 
-class EncodingComparisonOperator(Encoding, Comparison):
+class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
         target_reprs, ctxs = self._target_repr, self._ctx
         input_reprs = self._process_input(input_image, ctxs)
@@ -253,7 +253,7 @@ class EncodingComparisonOperator(Encoding, Comparison):
         pass
 
 
-class EncodingRegularizationOperator(Encoding, Regularization):
+class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
         input_reprs = self._process_input(input_image)
 
@@ -281,7 +281,7 @@ class EncodingRegularizationOperator(Encoding, Regularization):
         pass
 
 
-class PixelComparisonOperator(Pixel, Comparison):
+class PixelComparisonOperator(PixelOperator, ComparisonOperator):
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
         target_repr, ctx = self._target_repr, self._ctx
         input_repr = self._process_input(input_image, ctx)
@@ -311,7 +311,7 @@ class PixelComparisonOperator(Pixel, Comparison):
         pass
 
 
-class PixelRegularizationOperator(Pixel, Regularization):
+class PixelRegularizationOperator(PixelOperator, RegularizationOperator):
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
         input_repr = self._process_input(input_image)
 
@@ -331,7 +331,7 @@ class PixelRegularizationOperator(Pixel, Regularization):
         pass
 
 
-class Guidance(Operator):
+class GuidanceOperator(Operator):
     def __init__(self, name: str, method: str = "simple", **kwargs) -> None:
         super().__init__(name, **kwargs)
         self.input_guide = None
@@ -348,7 +348,7 @@ class Guidance(Operator):
         return self.input_guide is not None
 
 
-class ComparisonGuidance(Guidance, Comparison):
+class ComparisonGuidanceOperator(GuidanceOperator, ComparisonOperator):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.target_guide = None
@@ -361,11 +361,11 @@ class ComparisonGuidance(Guidance, Comparison):
         return self.target_guide is not None
 
 
-class RegularizationGuidance(Guidance, Regularization):
+class RegularizationGuidanceOperator(GuidanceOperator, RegularizationOperator):
     pass
 
 
-class EncodingGuidance(Guidance, Encoding):
+class EncodingGuidanceOperator(GuidanceOperator, EncodingOperator):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._input_enc_guides = None
@@ -390,12 +390,12 @@ class EncodingGuidance(Guidance, Encoding):
         return self._input_enc_guides is not None
 
 
-class PixelGuidance(Guidance, Pixel):
+class PixelGuidanceOperator(GuidanceOperator, PixelOperator):
     pass
 
 
-class GuidedEncodingComparison(
-    EncodingGuidance, ComparisonGuidance, EncodingComparisonOperator
+class GuidedEncodingComparisonOperator(
+    EncodingGuidanceOperator, ComparisonGuidanceOperator, EncodingComparisonOperator
 ):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -426,7 +426,9 @@ class GuidedEncodingComparison(
         return self._target_enc_guides is not None
 
 
-class GuidedPixelComparison(PixelGuidance, ComparisonGuidance, PixelComparisonOperator):
+class GuidedPixelComparisonOperator(
+    PixelGuidanceOperator, ComparisonGuidanceOperator, PixelComparisonOperator
+):
     def _input_image_to_repr(self, image: torch.Tensor, ctx: Any) -> Any:
         if self.has_input_guide:
             image = self._apply_guide(image, self.input_guide)
@@ -438,8 +440,10 @@ class GuidedPixelComparison(PixelGuidance, ComparisonGuidance, PixelComparisonOp
         return super()._target_image_to_repr(image)
 
 
-class GuidedEncodingRegularization(
-    EncodingGuidance, RegularizationGuidance, EncodingRegularizationOperator
+class GuidedEncodingRegularizationOperator(
+    EncodingGuidanceOperator,
+    RegularizationGuidanceOperator,
+    EncodingRegularizationOperator,
 ):
     def _input_encs_to_reprs(self, encs: Sequence[torch.Tensor]) -> Sequence[Any]:
         if self.has_input_enc_guides:
@@ -447,8 +451,8 @@ class GuidedEncodingRegularization(
         return super()._input_encs_to_reprs(encs)
 
 
-class GuidedPixelRegularization(
-    PixelGuidance, RegularizationGuidance, PixelRegularizationOperator
+class GuidedPixelRegularizationOperator(
+    PixelGuidanceOperator, RegularizationGuidanceOperator, PixelRegularizationOperator
 ):
     def _input_image_to_repr(self, image: torch.Tensor) -> Any:
         if self.has_input_guide:
