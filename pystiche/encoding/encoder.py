@@ -10,17 +10,12 @@ __all__ = ["Encoder"]
 
 
 class Encoder(nn.Sequential):
-    def forward(
-        self, x: torch.Tensor, layers: Sequence[str]
-    ) -> Tuple[torch.Tensor, ...]:
-        self._assert_contains_layers(layers)
-        encs_dict = {}
-        for name, module in self._required_named_children(layers):
-            x = encs_dict[name] = module(x)
-        return tuple([encs_dict[name] for name in layers])
+    def verify_layers(self, layers: Sequence[str]):
+        for layer in layers:
+            if layer not in self:
+                raise ValueError(f"Layer {layer} is not part of the encoder.")
 
     def trim(self, layers: Sequence[str]):
-        self._assert_contains_layers(layers)
         last_module_name = self._find_last_required_children_name(layers)
         idx = list(self.children_names()).index(last_module_name)
         del self[idx + 1 :]
@@ -55,6 +50,14 @@ class Encoder(nn.Sequential):
 
         return tuple([guides_dct[name] for name in layers])
 
+    def forward(
+        self, x: torch.Tensor, layers: Sequence[str]
+    ) -> Tuple[torch.Tensor, ...]:
+        encs_dict = {}
+        for name, module in self._required_named_children(layers):
+            x = encs_dict[name] = module(x)
+        return tuple([encs_dict[name] for name in layers])
+
     def children_names(self) -> Iterator[str]:
         for name, child in self.named_children():
             yield name
@@ -62,12 +65,8 @@ class Encoder(nn.Sequential):
     def __contains__(self, name: str) -> bool:
         return name in self.children_names()
 
-    def _assert_contains_layers(self, layers: Sequence[str]):
-        for layer in layers:
-            if layer not in self:
-                raise ValueError(f"Layer {layer} is not part of the encoder.")
-
     def _find_last_required_children_name(self, layers: Sequence[str]) -> str:
+        self.verify_layers(layers)
         return sorted(set(layers), key=list(self.children_names()).index)[-1]
 
     def _required_named_children(self, layers: Sequence[str]):
