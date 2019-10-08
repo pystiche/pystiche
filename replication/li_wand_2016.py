@@ -7,7 +7,6 @@ import utils
 
 def perform_nst(content_image, style_image, impl_params, device):
     nst_pyramid = LiWand2016NSTPyramid(impl_params).to(device)
-    nst_pyramid.build_levels(impl_params)
 
     content_image = nst_pyramid.max_resize(content_image)
     style_image = nst_pyramid.max_resize(style_image)

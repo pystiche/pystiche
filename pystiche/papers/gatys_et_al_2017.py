@@ -62,7 +62,11 @@ class GatysEtAl2017StyleLoss(GramEncodingComparisonOperator):
             parameters given in the paper are used.
     """
 
-    def __init__(self, encoder, impl_params=True):
+    def __init__(self, encoder=None, impl_params=True):
+        if encoder is None:
+            encoder = get_encoder()
+        self.impl_params = impl_params
+
         name = "Style loss (Gram)"
         layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
         layer_weights = [
@@ -86,6 +90,7 @@ class GatysEtAl2017StyleLoss(GramEncodingComparisonOperator):
 
     def extra_descriptions(self):
         dct = OrderedDict()
+        dct["Implementation parameters"] = self.impl_params
         if self.score_correction_factor != 1.0:
             dct["Score correction factor"] = to_engstr(self.score_correction_factor)
         return dct
@@ -174,22 +179,19 @@ class GatysEtAl2017SpatialControlNST(CaffePreprocessingImageOptimizer):
 
 
 class _GatysEtAl2017NSTPyramidBase(ImageOptimizerPyramid):
-    def __init__(self, nst):
+    def __init__(self, nst, impl_params):
         super().__init__(nst)
         self.nst = nst
+        self.impl_params = impl_params
+        self.build_levels()
 
-    def build_levels(self, impl_params=True):
+    def build_levels(self):
         """
         Build the levels of the pyramid. The pyramid comprises two levels with 500 and
         200 steps respectively. The images are resized so that their short edge is 500
         and 800 pixels wide.
-
-        Args:
-            impl_params: If True, hyper parameters from the authors implementation
-                <https://github.com/leongatys/PytorchNeuralStyleTransfer> rather than
-                the parameters given in the paper are used.
         """
-        level_edge_sizes = 512 if impl_params else 500, 800
+        level_edge_sizes = 512 if self.impl_params else 500, 800
         level_steps = 500, 200
         edges = "short"
         super().build_levels(level_edge_sizes, level_steps, edges=edges)
@@ -212,7 +214,8 @@ class GatysEtAl2017NSTPyramid(_GatysEtAl2017NSTPyramidBase):
     """
 
     def __init__(self, impl_params=True):
-        super().__init__(GatysEtAl2017NST(impl_params))
+        nst = GatysEtAl2017NST(impl_params)
+        super().__init__(nst, impl_params)
 
 
 class GatysEtAl2017SpatialControlNSTPyramid(_GatysEtAl2017NSTPyramidBase):
@@ -236,4 +239,4 @@ class GatysEtAl2017SpatialControlNSTPyramid(_GatysEtAl2017NSTPyramidBase):
 
     def __init__(self, num_guides, impl_params=True, guide_names=None):
         nst = GatysEtAl2017SpatialControlNST(num_guides, impl_params, guide_names)
-        super().__init__(nst)
+        super().__init__(nst, impl_params)

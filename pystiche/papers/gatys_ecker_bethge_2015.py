@@ -40,6 +40,8 @@ class GatysEckerBethge2015ContentLoss(DirectEncodingComparisonOperator):
     def __init__(self, encoder=None, impl_params=True):
         if encoder is None:
             encoder = get_encoder()
+        self.impl_params = impl_params
+
         name = "Content loss (direct)"
         layers = ("relu_4_2",)
         layer_weights = "sum" if impl_params else "mean"
@@ -60,6 +62,7 @@ class GatysEckerBethge2015ContentLoss(DirectEncodingComparisonOperator):
 
     def extra_descriptions(self):
         dct = OrderedDict()
+        dct["Implementation parameters"] = self.impl_params
         if self.score_correction_factor != 1.0:
             dct["Score correction factor"] = to_engstr(self.score_correction_factor)
         if self.loss_reduction != "mean":
@@ -82,6 +85,8 @@ class GatysEckerBethge2015StyleLoss(GramEncodingComparisonOperator):
     def __init__(self, encoder=None, impl_params=False):
         if encoder is None:
             encoder = get_encoder()
+        self.impl_params = impl_params
+
         name = "Style loss (Gram)"
         layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
         layer_weights = "sum" if impl_params else "mean"
@@ -103,6 +108,7 @@ class GatysEckerBethge2015StyleLoss(GramEncodingComparisonOperator):
 
     def extra_descriptions(self):
         dct = OrderedDict()
+        dct["Implementation parameters"] = self.impl_params
         if self.score_correction_factor != 1.0:
             dct["Score correction factor"] = to_engstr(self.score_correction_factor)
         return dct
@@ -133,6 +139,8 @@ class GatysEckerBethge2015NST(CaffePreprocessingImageOptimizer):
     """
 
     def __init__(self, impl_params=True):
+        self.impl_params = impl_params
+
         encoder = MultiOperatorEncoder(get_encoder())
         if not impl_params:
             max_to_avg_pooling(encoder)
