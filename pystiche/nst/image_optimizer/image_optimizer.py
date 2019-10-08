@@ -8,6 +8,7 @@ import torch
 from torch import optim
 from torch.optim.optimizer import Optimizer
 import pystiche
+from pystiche.misc import subclass_iterator
 from pystiche.image.transforms import (
     TorchPreprocessing,
     TorchPostprocessing,
@@ -127,30 +128,13 @@ class ImageOptimizer(pystiche.object):
             operator.print_score(step)
         print("-" * operator.len_score_str)
 
-    @staticmethod
-    def _subclass_iterator(
-        sequence: Sequence,
-        *subclasses: Any,
-        not_instance: bool = False,
-        all_subclasses: bool = True
-    ) -> Iterator[Any]:
-        if not subclasses:
-            return iter(sequence)
-
-        mask = [
-            [isinstance(obj, subclass) for subclass in subclasses] for obj in sequence
-        ]
-        reduce_fn = all if all_subclasses else any
-        mask = map(lambda x: not_instance ^ reduce_fn(x), mask)
-        return itertools.compress(sequence, mask)
-
     def operators(self, *args: Any, **kwargs: Any) -> Iterator[Operator]:
-        return self._subclass_iterator(self._operators, *args, **kwargs)
+        return subclass_iterator(self._operators, *args, **kwargs)
 
     def encoders(
         self, *args: Any, **kwargs: Any
     ) -> Iterator[Union[Encoder, MultiOperatorEncoder]]:
-        return self._subclass_iterator(self._encoders, *args, **kwargs)
+        return subclass_iterator(self._encoders, *args, **kwargs)
 
     def nst_encoders(self) -> Iterator[MultiOperatorEncoder]:
         return self.encoders(MultiOperatorEncoder)

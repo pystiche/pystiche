@@ -1,7 +1,7 @@
-from typing import overload, Any, Optional, Iterable, Sequence, Sized, Tuple
+from typing import overload, Any, Optional, Iterator, Iterable, Sequence, Sized, Tuple
 from keyword import iskeyword
 from functools import reduce
-from itertools import repeat
+import itertools
 from operator import mul
 import numpy as np
 
@@ -18,7 +18,7 @@ def _to_nd_arg(x: Any, dims: int) -> Any:
         assert len(x) == dims
         y = x
     else:
-        y = repeat(x, dims)
+        y = itertools.repeat(x, dims)
     return tuple(y)
 
 
@@ -124,3 +124,18 @@ def verify_str_arg(
 def is_valid_variable_name(name: str) -> bool:
     name = str(name)
     return name.isidentifier() and not iskeyword(name)
+
+
+def subclass_iterator(
+    sequence: Sequence,
+    *subclasses: Any,
+    not_instance: bool = False,
+    all_subclasses: bool = True
+) -> Iterator[Any]:
+    if not subclasses:
+        return iter(sequence)
+
+    mask = [[isinstance(obj, subclass) for subclass in subclasses] for obj in sequence]
+    reduce_fn = all if all_subclasses else any
+    mask = map(lambda x: not_instance ^ reduce_fn(x), mask)
+    return itertools.compress(sequence, mask)
