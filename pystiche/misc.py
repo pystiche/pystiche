@@ -135,9 +135,7 @@ def subclass_iterator(
     if not subclasses:
         return iter(sequence)
 
-    mask = [
-        [isinstance(obj, subclass) for subclass in subclasses] for obj in sequence
-    ]
+    mask = [[isinstance(obj, subclass) for subclass in subclasses] for obj in sequence]
     reduce_fn = all if all_subclasses else any
     mask = map(lambda x: not_instance ^ reduce_fn(x), mask)
     return itertools.compress(sequence, mask)
