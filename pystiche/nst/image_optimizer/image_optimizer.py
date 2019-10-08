@@ -61,7 +61,7 @@ class ImageOptimizer(pystiche.object):
         for operator in self.operators():
             operator.len_name_str = maxlen_name_str
 
-        for encoder in self.nst_encoders():
+        for encoder in self.multi_operator_encoders():
             encoder.reset_layers()
 
         for operator in self.operators(Encoding):
@@ -70,12 +70,12 @@ class ImageOptimizer(pystiche.object):
                 encoder.register_layers(operator.layers)
 
         if trim:
-            for encoder in self.nst_encoders():
+            for encoder in self.multi_operator_encoders():
                 encoder.trim()
 
         output_image = self._iterate(input_image, num_steps, quiet, print_steps)
 
-        for encoder in self.nst_encoders():
+        for encoder in self.multi_operator_encoders():
             encoder.clear_storage()
 
         return output_image.detach()
@@ -107,7 +107,7 @@ class ImageOptimizer(pystiche.object):
 
     def _closure(self, input_image: torch.Tensor, optimizer: Optimizer) -> torch.Tensor:
         optimizer.zero_grad()
-        for encoder in self.nst_encoders():
+        for encoder in self.multi_operator_encoders():
             encoder.encode(input_image)
 
         loss = sum(
@@ -136,7 +136,7 @@ class ImageOptimizer(pystiche.object):
     ) -> Iterator[Union[Encoder, MultiOperatorEncoder]]:
         return subclass_iterator(self._encoders, *args, **kwargs)
 
-    def nst_encoders(self) -> Iterator[MultiOperatorEncoder]:
+    def multi_operator_encoders(self) -> Iterator[MultiOperatorEncoder]:
         return self.encoders(MultiOperatorEncoder)
 
     def extra_str(self):
@@ -185,7 +185,7 @@ class PreprocessingImageOptimizer(ImageOptimizer):
 
     def _closure(self, input_image: torch.Tensor, optimizer: Optimizer) -> torch.Tensor:
         optimizer.zero_grad()
-        for encoder in self.nst_encoders():
+        for encoder in self.multi_operator_encoders():
             encoder.encode(input_image)
 
         operators = set(self.operators(Diagnosis, not_instance=True))
