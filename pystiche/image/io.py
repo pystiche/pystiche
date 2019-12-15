@@ -1,6 +1,5 @@
 from typing import Any, Union, Optional, Sequence
 from PIL import Image
-import matplotlib.pyplot as plt
 import torch
 from .utils import is_image_size, is_edge_size
 from .transforms.functional import import_from_pil, export_to_pil
@@ -40,13 +39,5 @@ def show_image(
     image: torch.Tensor,
     mode: Optional[str] = None,
     title: Optional[str] = None,
-    show_axis: bool = False,
 ):
-    fig, ax = plt.subplots()
-    ax.imshow(export_to_pil(image, mode=mode))
-    if not show_axis:
-        ax.axis("off")
-    if title is not None:
-        ax.set_title(title)
-    plt.pause(1e-1)
-    fig.show()
+    export_to_pil(image, mode=mode).show(title=title)
