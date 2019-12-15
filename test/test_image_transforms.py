@@ -1,72 +1,41 @@
-from os import path
 import unittest
 from PIL import Image
 import numpy as np
 import torch
 from pystiche.image import calculate_aspect_ratio, edge_to_image_size, transforms
 from pystiche.image.transforms import functional as F
+from utils import PysticheImageTestscae
 
 
-class Tester(unittest.TestCase):
-    # The test image was downloaded from
-    # http://www.r0k.us/graphics/kodak/kodim15.html
-    # and is cleared for unrestricted usage
-    TEST_IMAGE_FILE = path.join(path.dirname(__file__), "test_image.png")
-
-    def pil_to_pystiche(self, image, device=None):
-        if device is None:
-            device = torch.device("cpu")
-        return F.import_from_pil(image, device)
-
-    def pystiche_to_pil(self, image, mode=None):
-        return F.export_to_pil(image, mode=mode)
-
-    def get_pil_test_image(self):
-        return Image.open(self.TEST_IMAGE_FILE)
-
-    def get_pystiche_test_image(self):
-        return self.pil_to_pystiche(self.get_pil_test_image())
-
-    def assertImagesAlmostEqual(self, image1, image2, mean_tolerance=1e-2):
-        def cast(image):
-            if isinstance(image, Image.Image):
-                mode = image.mode
-                image = np.asarray(image, dtype=np.float32)
-                if mode in ("L", "RGB"):
-                    image /= 255.0
-                if mode in ("1", "L"):
-                    image = np.expand_dims(image, 2)
-                return np.transpose(image, (2, 0, 1))
-            elif isinstance(image, torch.Tensor):
-                return image.squeeze(0).numpy()
-            else:
-                raise TypeError
-
-        actual = np.mean(np.abs(cast(image1) - cast(image2)))
-        desired = 0.0
-        np.testing.assert_allclose(actual, desired, atol=mean_tolerance, rtol=0.0)
-
+class Tester(PysticheImageTestscae, unittest.TestCase):
     def assertTransformEqualsPIL(
         self,
         pystiche_transform,
         pil_transform,
         pystiche_image=None,
         pil_image=None,
-        mean_tolerance=1e-2,
+        mean_abs_tolerance=1e-2,
     ):
-        if pil_image is None:
-            pil_image = self.get_pil_test_image()
-        if pystiche_image is None:
-            pystiche_image = self.pil_to_pystiche(pil_image)
+        if pil_image is None and pystiche_image is None:
+            pil_image = self.load_image("PIL")
+            pystiche_image = self.load_image("pystiche")
+        elif pil_image is None:
+            pil_image = F.export_to_pil(pystiche_image)
+        elif pystiche_image is None:
+            pystiche_image = F.import_from_pil(pil_image, torch.device("cpu"))
 
         actual = pystiche_transform(pystiche_image)
         desired = pil_transform(pil_image)
-        self.assertImagesAlmostEqual(actual, desired, mean_tolerance=mean_tolerance)
+        self.assertImagesAlmostEqual(
+            actual, desired, mean_abs_tolerance=mean_abs_tolerance
+        )
 
-    def assertIdentityTransform(self, transform, image, mean_tolerance=1e-2):
+    def assertIdentityTransform(self, transform, image, mean_abs_tolerance=1e-2):
         actual = image
         desired = transform(image)
-        self.assertImagesAlmostEqual(actual, desired, mean_tolerance=mean_tolerance)
+        self.assertImagesAlmostEqual(
+            actual, desired, mean_abs_tolerance=mean_abs_tolerance
+        )
 
     def test_pil_import_export(self):
         import_transform = transforms.ImportFromPIL()
@@ -75,13 +44,13 @@ class Tester(unittest.TestCase):
         def import_export_transform(image):
             return export_transform(import_transform(image))
 
-        self.assertIdentityTransform(import_export_transform, self.get_pil_test_image())
+        self.assertIdentityTransform(import_export_transform, self.load_image("PIL"))
 
         def export_import_transform(image):
             return import_transform(export_transform(image))
 
         self.assertIdentityTransform(
-            export_import_transform, self.get_pystiche_test_image()
+            export_import_transform, self.load_image("pystiche")
         )
 
     def test_resize(self):
@@ -95,7 +64,7 @@ class Tester(unittest.TestCase):
         self.assertTransformEqualsPIL(
             pystiche_transform=pystiche_transform,
             pil_transform=pil_transform,
-            mean_tolerance=3e-2,
+            mean_abs_tolerance=3e-2,
         )
 
     def test_fixed_aspect_ratio_resize(self):
@@ -115,7 +84,7 @@ class Tester(unittest.TestCase):
             self.assertTransformEqualsPIL(
                 pystiche_transform=pystiche_transform,
                 pil_transform=pil_transform,
-                mean_tolerance=3e-2,
+                mean_abs_tolerance=3e-2,
             )
 
     def test_rescale(self):
@@ -132,7 +101,7 @@ class Tester(unittest.TestCase):
         self.assertTransformEqualsPIL(
             pystiche_transform=pystiche_transform,
             pil_transform=pil_transform,
-            mean_tolerance=2e-2,
+            mean_abs_tolerance=2e-2,
         )
 
     def test_translate_motif(self):
@@ -159,7 +128,7 @@ class Tester(unittest.TestCase):
         )
 
     def test_rotate_motif(self):
-        pil_image = self.get_pil_test_image()
+        pil_image = self.load_image("PIL")
 
         def PILRotateMotif(angle, clockwise=False, center=None):
             if clockwise:
@@ -264,7 +233,7 @@ class Tester(unittest.TestCase):
         self.assertTransformEqualsPIL(
             pystiche_transform=transforms.GrayscaleToFakegrayscale(),
             pil_transform=PILGrayscaleToFakegrayscale(),
-            pil_image=self.get_pil_test_image().convert("L"),
+            pil_image=self.load_image("PIL").convert("L"),
         )
 
     def test_rgb_to_fakegrayscale(self):
@@ -291,7 +260,7 @@ class Tester(unittest.TestCase):
         self.assertTransformEqualsPIL(
             pystiche_transform=transforms.GrayscaleToBinary(),
             pil_transform=PILGrayscaleToBinary(),
-            pil_image=self.get_pil_test_image().convert("L"),
+            pil_image=self.load_image("PIL").convert("L"),
         )
 
     def test_rgb_to_binary(self):
@@ -324,7 +293,7 @@ class Tester(unittest.TestCase):
         self.assertTransformEqualsPIL(
             pystiche_transform=transforms.RGBToYUV(),
             pil_transform=PILRGBToYUV(),
-            mean_tolerance=2e-2,
+            mean_abs_tolerance=2e-2,
         )
 
     def test_yuv_to_rgb(self):
@@ -333,7 +302,7 @@ class Tester(unittest.TestCase):
             yuv_to_rgb = transforms.YUVToRGB()
             return yuv_to_rgb(rgb_to_yuv(image))
 
-        self.assertIdentityTransform(transform, self.get_pystiche_test_image())
+        self.assertIdentityTransform(transform, self.load_image("pystiche"))
 
 
 if __name__ == "__main__":

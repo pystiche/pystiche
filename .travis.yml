@@ -7,7 +7,7 @@ matrix:
       before_install: pip install black
       install: skip
       script: black --check .
-    - name: "Tests"
+    - name: "Testing"
       before_install: pip install pytest
-      install: pip install .
+      install: pip install .[testing]
       script: pytest test

@@ -6,6 +6,10 @@ requirements = (
     "torchvision >= 0.4.0",
 )
 
+testing_requires = (
+    "pyimagetest@https://github.com/pmeier/pyimagetest/archive/master.zip",
+)
+
 setup(
     name="pystiche",
     version="0.2dev",
@@ -16,4 +20,5 @@ setup(
     license="BSD-3",
     packages=find_packages(exclude=("test",)),
     install_requires=requirements,
+    extras_require={"testing": testing_requires},
 )
