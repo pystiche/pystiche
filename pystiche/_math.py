@@ -13,7 +13,7 @@ class _Safesqrt(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad_output):
-        input, = ctx.saved_tensors
+        (input,) = ctx.saved_tensors
         grad = torch.rsqrt(input) / 2.0
         grad[input <= 0.0] = 0.0
         grad_input = grad * grad_output
