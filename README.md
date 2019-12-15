@@ -85,21 +85,3 @@ output_image = nst(input_image, num_steps)
 write_image(output_image, output_file)
 ```
 
-# Replication
-
-The `pystiche` project features a replication study for NST papers. You can find the scripts in `$PYSTICHE_ROOT/replication`. Currently the following papers are pre-implemented:
-
-- [A Neural Algorithm of Artistic Style](https://arxiv.org/abs/1508.06576) by Gatys, Ecker and Bethge
-- [Combining Markov Random Fields and Convolutional Neural Networks for Image Synthesis](https://ieeexplore.ieee.org/document/7780641) by Li and Wand
-- [Controlling Perceptual Factors in Neural Style Transfer](http://openaccess.thecvf.com/content_cvpr_2017/papers/Gatys_Controlling_Perceptual_Factors_CVPR_2017_paper.pdf) by Gatys et. al.
-
-# Webapp
-
-The `pystiche` project features a webapp as frontend, which performs the demo code. To start it
-
-```bash
-cd $PYSTICHE_ROOT/webapp
-python3 manage.py runserver 8080
-```
-
-Afterwards click on the link displayed in the console or type `localhost:8080` as URL in your favorite browser.
