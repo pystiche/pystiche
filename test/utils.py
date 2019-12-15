@@ -31,10 +31,6 @@ class PysticheImageTestscae(pyimagetest.ImageTestcase):
         self.remove_image_backend("torchvision")
         self.add_image_backend("pystiche", PysticheImageBackend())
 
-    def remove_image_backend(self, name: str) -> None:
-        # FIXME: push this to pyimagetest
-        del self.backends[name]
-
     @property
     def default_test_image_file(self) -> str:
         # The test image was downloaded from
