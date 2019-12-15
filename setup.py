@@ -12,7 +12,7 @@ setup(
     author="Philip Meier",
     author_email="github.pmeier@posteo.de",
     url="https://github.com/pmeier/pystiche",
-    description="pystiche project is a framework for Neural Style Transfer (NST) algorithms built upon PyTorch",
+    description="pystiche is a framework for Neural Style Transfer (NST) algorithms built upon PyTorch",
     license="BSD-3",
     packages=find_packages(exclude=("test",)),
     install_requires=requirements,
