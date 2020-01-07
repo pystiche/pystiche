@@ -39,6 +39,12 @@ class MultiOperatorEncoder(pystiche.object):
 
         return pystiche.tuple([storage[name] for name in layers])
 
+    def verify_layers(self, layers: Sequence[str]):
+        return self._encoder(layers)
+
+    def __contains__(self, name: str) -> bool:
+        return self._encoder.__contains__(name)
+
     def trim(self):
         self._encoder.trim(self.layers)
 
