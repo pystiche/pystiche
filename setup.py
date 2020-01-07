@@ -3,6 +3,7 @@ from setuptools import setup, find_packages
 requirements = (
     "numpy",
     "torch >= 1.2.0",
+    "pillow <= 6.2.0",
     "torchvision >= 0.4.0",
 )
 
