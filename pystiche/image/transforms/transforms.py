@@ -44,12 +44,12 @@ class Transform(nn.Module):
     def forward(self, *input):
         pass
 
-    def __add__(self, other):
+    def __add__(self, other: Union["Transform", "Compose"]) -> "Compose":
         return _compose_transforms(self, other)
 
 
 class Compose(nn.Sequential):
-    def __add__(self, other):
+    def __add__(self, other: Union["Transform", "Compose"]) -> "Compose":
         return _compose_transforms(self, other)
 
 
