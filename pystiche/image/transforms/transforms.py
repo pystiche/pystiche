@@ -108,23 +108,23 @@ class ReverseChannelOrder(Transform):
 class Normalize(Transform):
     def __init__(self, mean: Sequence[Numeric], std: Sequence[Numeric]) -> None:
         super().__init__()
-        self.register_buffer("mean", torch.tensor(mean).view(1, -1, 1, 1))
-        self.register_buffer("std", torch.tensor(std).view(1, -1, 1, 1))
+        self.mean = mean
+        self.std = std
+
+        self.register_buffer("_mean", torch.tensor(mean).view(1, -1, 1, 1))
+        self.register_buffer("_std", torch.tensor(std).view(1, -1, 1, 1))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.normalize(x, self.mean, self.std)
+        return F.normalize(x, self._mean, self._std)
 
     def extra_repr(self) -> str:
-        dct = {
-            name: tuple(buffer.cpu().squeeze().numpy())
-            for name, buffer in self.named_buffers(recurse=False)
-        }
-        return "mean={mean}, std={std}".format(**dct)
+        # TODO: round values for printing
+        return "mean={mean}, std={std}".format(**self.__dict__)
 
 
 class Denormalize(Normalize):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.denormalize(x, self.mean, self.std)
+        return F.denormalize(x, self._mean, self._std)
 
 
 class ResizeTransform(Transform):
