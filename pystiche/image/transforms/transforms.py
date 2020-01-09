@@ -6,7 +6,7 @@ from PIL import Image
 import torch
 from torch import nn
 from pystiche.typing import Numeric
-from pystiche.misc import to_2d_arg, to_engstr
+from pystiche.misc import to_2d_arg, to_engstr, to_engtuplestr
 from .. import utils as U
 from . import functional as F
 
@@ -108,23 +108,24 @@ class ReverseChannelOrder(Transform):
 class Normalize(Transform):
     def __init__(self, mean: Sequence[Numeric], std: Sequence[Numeric]) -> None:
         super().__init__()
-        self.register_buffer("mean", torch.tensor(mean).view(1, -1, 1, 1))
-        self.register_buffer("std", torch.tensor(std).view(1, -1, 1, 1))
+        self.mean = mean
+        self.std = std
+
+        self.register_buffer("_mean", torch.tensor(mean).view(1, -1, 1, 1))
+        self.register_buffer("_std", torch.tensor(std).view(1, -1, 1, 1))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.normalize(x, self.mean, self.std)
+        return F.normalize(x, self._mean, self._std)
 
     def extra_repr(self) -> str:
-        dct = {
-            name: tuple(buffer.cpu().squeeze().numpy())
-            for name, buffer in self.named_buffers(recurse=False)
-        }
-        return "mean={mean}, std={std}".format(**dct)
+        mean = to_engtuplestr(self.mean)
+        std = to_engtuplestr(self.std)
+        return f"mean={mean}, std={std}"
 
 
 class Denormalize(Normalize):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.denormalize(x, self.mean, self.std)
+        return F.denormalize(x, self._mean, self._std)
 
 
 class ResizeTransform(Transform):
@@ -180,7 +181,7 @@ class FixedAspectRatioResize(ResizeTransform):
         edge_size: int,
         edge: str = "short",
         aspect_ratio: Optional[Numeric] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.edge_size: int = edge_size
@@ -262,7 +263,7 @@ class AffineTransform(GridSampleTransform):
         self,
         image_size: Optional[Tuple[int, int]] = None,
         canvas: str = "same",
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         if image_size is not None:
@@ -334,7 +335,7 @@ class TransformMotifAffinely(AffineTransform):
         scaling_center: Optional[Tuple[Numeric, Numeric]] = None,
         translation: Optional[Tuple[Numeric, Numeric]] = None,
         inverse_translation: bool = False,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.shearing_angle = shearing_angle
@@ -420,7 +421,7 @@ class ShearMotif(AffineTransform):
         angle: Numeric,
         clockwise: bool = False,
         center: Optional[Tuple[Numeric, Numeric]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.angle = angle
@@ -450,7 +451,7 @@ class RotateMotif(AffineTransform):
         angle: Numeric,
         clockwise: bool = False,
         center: Optional[Tuple[Numeric, Numeric]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.angle = angle
@@ -479,7 +480,7 @@ class ScaleMotif(AffineTransform):
         self,
         factors: Union[Numeric, Tuple[Numeric, Numeric]],
         center: Optional[Tuple[Numeric, Numeric]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.factors = to_2d_arg(factors)
@@ -502,7 +503,7 @@ class TranslateMotif(AffineTransform):
         self,
         translation: Union[Numeric, Tuple[Numeric, Numeric]],
         inverse: bool = False,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.translation = to_2d_arg(translation)
