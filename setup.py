@@ -8,7 +8,7 @@ testing_requires = (
 
 setup(
     name="pystiche",
-    version="0.2",
+    version="0.3-dev",
     author="Philip Meier",
     author_email="github.pmeier@posteo.de",
     url="https://github.com/pmeier/pystiche",
