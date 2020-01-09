@@ -62,17 +62,17 @@ class VGGEncoder(Encoder):
         block = depth = 1
         for module in model.features.children():
             if isinstance(module, nn.Conv2d):
-                name = "conv_{0}_{1}".format(block, depth)
+                name = f"conv_{block}_{depth}"
             elif isinstance(module, nn.BatchNorm2d):
-                name = "bn_{0}_{1}".format(block, depth)
+                name = f"bn_{block}_{depth}"
             elif isinstance(module, nn.ReLU):
                 if not self.allow_inplace:
                     module = nn.ReLU(inplace=False)
-                name = "relu_{0}_{1}".format(block, depth)
+                name = f"relu_{block}_{depth}"
                 # each ReLU layer increases the depth of the current block
                 depth += 1
             else:  # isinstance(module, nn.MaxPool2d):
-                name = "pool_{0}".format(block)
+                name = f"pool_{block}"
                 # each pooling layer marks the end of the current block
                 block += 1
                 depth = 1

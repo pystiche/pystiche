@@ -154,8 +154,8 @@ class MRFEncodingComparisonOperator(EncodingComparisonOperator):
         dct["Stride"] = self.stride
         if self.num_scale_steps > 0:
             dct["Number of scale steps"] = self.num_scale_steps
-            dct["Scale step width"] = "{:.1%}".format(self.scale_step_width)
+            dct["Scale step width"] = f"{self.scale_step_width:.1%}"
         if self.num_rotation_steps > 0:
             dct["Number of rotation steps"] = self.num_rotation_steps
-            dct["Rotation step width"] = "{:.1f}°".format(self.rotation_step_width)
+            dct["Rotation step width"] = f"{self.rotation_step_width:.1f}°"
         return dct

@@ -79,7 +79,7 @@ def to_tuplestr(sequence: Sequence) -> str:
         values = sequence[0] + ","
     else:
         values = ", ".join(sequence)
-    return "({})".format(values)
+    return f"({values})"
 
 
 def to_engtuplestr(sequence: Sequence, **kwargs) -> str:
@@ -102,8 +102,8 @@ def verify_str_arg(
         if param is None:
             msg1 = "Expected type str"
         else:
-            msg1 = "Expected type str for parameter {}".format(param)
-        msg2 = ", but got type {}.".format(type(arg))
+            msg1 = f"Expected type str for parameter {param}"
+        msg2 = f", but got type {type(arg)}."
         raise ValueError(msg1 + msg2)
 
     if valid_args is None:
@@ -111,9 +111,9 @@ def verify_str_arg(
 
     if arg not in valid_args:
         if param is None:
-            msg1 = "Unknown argument '{}'. ".format(arg)
+            msg1 = f"Unknown argument '{arg}'. "
         else:
-            msg1 = "Unknown argument '{}' for parameter {}. ".format(arg, param)
+            msg1 = f"Unknown argument '{arg}' for parameter {param}. "
         msg2 = "Valid arguments are {{{}}}."
         msg2 = msg2.format("'" + "', '".join(valid_args) + "'")
         raise ValueError(msg1 + msg2)

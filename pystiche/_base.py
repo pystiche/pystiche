@@ -153,7 +153,7 @@ class object(_SpecialObjectBase):
         try:
             return self._special_obj_storage[name]
         except KeyError:
-            msg = "'{}' object has no attribute '{}'".format(type(self).__name__, name)
+            msg = f"'{type(self).__name__}' object has no attribute '{name}'"
             raise AttributeError(msg)
 
     def __delattr__(self, name: str):
