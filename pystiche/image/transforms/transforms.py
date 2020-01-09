@@ -181,7 +181,7 @@ class FixedAspectRatioResize(ResizeTransform):
         edge_size: int,
         edge: str = "short",
         aspect_ratio: Optional[Numeric] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.edge_size: int = edge_size
@@ -263,7 +263,7 @@ class AffineTransform(GridSampleTransform):
         self,
         image_size: Optional[Tuple[int, int]] = None,
         canvas: str = "same",
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         if image_size is not None:
@@ -335,7 +335,7 @@ class TransformMotifAffinely(AffineTransform):
         scaling_center: Optional[Tuple[Numeric, Numeric]] = None,
         translation: Optional[Tuple[Numeric, Numeric]] = None,
         inverse_translation: bool = False,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.shearing_angle = shearing_angle
@@ -421,7 +421,7 @@ class ShearMotif(AffineTransform):
         angle: Numeric,
         clockwise: bool = False,
         center: Optional[Tuple[Numeric, Numeric]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.angle = angle
@@ -451,7 +451,7 @@ class RotateMotif(AffineTransform):
         angle: Numeric,
         clockwise: bool = False,
         center: Optional[Tuple[Numeric, Numeric]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.angle = angle
@@ -480,7 +480,7 @@ class ScaleMotif(AffineTransform):
         self,
         factors: Union[Numeric, Tuple[Numeric, Numeric]],
         center: Optional[Tuple[Numeric, Numeric]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.factors = to_2d_arg(factors)
@@ -503,7 +503,7 @@ class TranslateMotif(AffineTransform):
         self,
         translation: Union[Numeric, Tuple[Numeric, Numeric]],
         inverse: bool = False,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.translation = to_2d_arg(translation)
