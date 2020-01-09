@@ -1,33 +1,42 @@
-from typing import Optional
 from collections import OrderedDict
 from torch.utils import model_zoo
 from torch import nn
-import torchvision
-from pystiche.image.transforms import TorchPreprocessing, CaffePreprocessing
+from torchvision.models import alexnet
 from .encoder import Encoder
+from .preprocessing import get_preprocessor
 
-MODELS = {"alexnet": torchvision.models.alexnet}
 
-MODEL_URLS = {
-    ("alexnet", "torch"): "https://download.pytorch.org/models/alexnet-owt-4df8aa71.pth"
-}
+MODEL_URLS = {"torch": "https://download.pytorch.org/models/alexnet-owt-4df8aa71.pth"}
 
-PREPROCESSORS = {"torch": TorchPreprocessing(), "caffe": CaffePreprocessing()}
 
 __all__ = ["alexnet_encoder"]
 
 
 class AlexNetEncoder(Encoder):
-    def __init__(self, model: nn.Module, preprocessor: Optional[nn.Module] = None):
+    def __init__(self, weights: str, preprocessing: bool, allow_inplace: bool):
+        self.weights = weights
+        self.preprocessing = preprocessing
+        self.allow_inplace = allow_inplace
+
+        super().__init__(self._collect_modules())
+
+    def collect_modules(self):
+        base_model = alexnet()
+        url = MODEL_URLS[self.weights]
+        state_dict = model_zoo.load_url(url)
+        base_model.load_state_dict(state_dict)
+        model = base_model.features
+
         modules = OrderedDict()
-        if preprocessor is not None:
-            modules["preprocessing"] = preprocessor
+        if self.preprocessing:
+            modules["preprocessing"] = get_preprocessor(self.weights)
         block = 1
-        for module in model.features.children():
+        for module in model.children():
             if isinstance(module, nn.Conv2d):
                 name = f"conv_{block}"
             elif isinstance(module, nn.ReLU):
-                module = nn.ReLU(inplace=False)
+                if not self.allow_inplace:
+                    module = nn.ReLU(inplace=False)
                 name = f"relu_{block}"
             else:  # isinstance(module, nn.MaxPool2d):
                 name = f"pool_{block}"
@@ -36,12 +45,16 @@ class AlexNetEncoder(Encoder):
 
             modules[name] = module
 
-        super().__init__(modules)
+    def extra_repr(self):
+        extras = [f"weights={self.weights}"]
+        if not self.preprocessing:
+            extras.append(f"preprocessing={self.preprocessing}")
+        if self.allow_inplace:
+            extras.append(f"allow_inplace={self.allow_inplace}")
+        return ",".join(extras)
 
 
-def alexnet_encoder(weights: str = "torch", preprocessing=True):
-    model = torchvision.models.alexnet()
-    url = MODEL_URLS[("alexnet", weights)]
-    model.load_state_dict(model_zoo.load_url(url))
-    preprocessor = PREPROCESSORS[weights] if preprocessing else None
-    return AlexNetEncoder(model, preprocessor)
+def alexnet_encoder(
+    weights: str = "torch", preprocessing=True, allow_inplace: bool = False
+):
+    return AlexNetEncoder(weights, preprocessing, allow_inplace)
