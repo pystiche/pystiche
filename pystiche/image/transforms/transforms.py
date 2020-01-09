@@ -6,7 +6,7 @@ from PIL import Image
 import torch
 from torch import nn
 from pystiche.typing import Numeric
-from pystiche.misc import to_2d_arg, to_engstr
+from pystiche.misc import to_2d_arg, to_engstr, to_engtuplestr
 from .. import utils as U
 from . import functional as F
 
@@ -118,8 +118,9 @@ class Normalize(Transform):
         return F.normalize(x, self._mean, self._std)
 
     def extra_repr(self) -> str:
-        # TODO: round values for printing
-        return "mean={mean}, std={std}".format(**self.__dict__)
+        mean = to_engtuplestr(self.mean)
+        std = to_engtuplestr(self.std)
+        return f"mean={mean}, std={std}"
 
 
 class Denormalize(Normalize):
