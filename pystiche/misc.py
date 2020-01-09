@@ -130,7 +130,7 @@ def subclass_iterator(
     sequence: Sequence,
     *subclasses: Any,
     not_instance: bool = False,
-    all_subclasses: bool = True
+    all_subclasses: bool = True,
 ) -> Iterator[Any]:
     if not subclasses:
         return iter(sequence)

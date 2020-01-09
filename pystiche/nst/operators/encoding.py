@@ -23,7 +23,7 @@ class DirectEncodingComparisonOperator(EncodingComparisonOperator):
         encoder: Encoder,
         layers: Sequence[str],
         name: str = "Direct encoding comparison",
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(encoder, layers, name, **kwargs)
 
@@ -49,7 +49,7 @@ class GramEncodingComparisonOperator(EncodingComparisonOperator):
         layers: Sequence[str],
         name: str = "Gram encoding comparison",
         normalize: bool = True,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(encoder, layers, name, **kwargs)
         self.normalize = normalize
@@ -86,7 +86,7 @@ class MRFEncodingComparisonOperator(EncodingComparisonOperator):
         scale_step_width: Numeric = 5e-2,
         num_rotation_steps: int = 0,
         rotation_step_width: Numeric = 10,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(encoder, layers, name, **kwargs)
         self.patch_size = to_2d_arg(patch_size)
