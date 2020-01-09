@@ -36,6 +36,6 @@ def write_image(
 
 
 def show_image(
-    image: torch.Tensor, mode: Optional[str] = None, title: Optional[str] = None,
+    image: torch.Tensor, mode: Optional[str] = None, title: Optional[str] = None
 ):
     export_to_pil(image, mode=mode).show(title=title)

@@ -1,11 +1,6 @@
 from setuptools import setup, find_packages
 
-requirements = (
-    "numpy",
-    "torch >= 1.2.0",
-    "pillow <= 6.2.0",
-    "torchvision >= 0.4.0",
-)
+requirements = ("numpy", "torch >= 1.2.0", "pillow < 7.0.0", "torchvision >= 0.4.0")
 
 testing_requires = (
     "pyimagetest@https://github.com/pmeier/pyimagetest/archive/master.zip",
