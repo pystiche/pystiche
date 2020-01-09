@@ -39,7 +39,7 @@ def abort_if_cuda_memory_exausts(fn: Callable) -> Callable:
             with use_cuda_out_of_memory_error():
                 return fn(*args, **kwargs)
         except CudaOutOfMemoryError as error:
-            msg = "Aborting excecution of {}(). {}".format(fn.__name__, str(error))
+            msg = f"Aborting excecution of {fn.__name__}(). {str(error)}"
             warnings.warn(msg, CudaOutOfMemoryWarning)
             return None
 
