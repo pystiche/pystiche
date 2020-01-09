@@ -1,12 +1,11 @@
-from typing import Optional
 from collections import OrderedDict
 from torch.utils import model_zoo
 from torch import nn
 import torchvision
-from pystiche.image.transforms import TorchPreprocessing, CaffePreprocessing
 from .encoder import Encoder
+from .preprocessing import get_preprocessor
 
-VGG_NETS = {
+MODELS = {
     name: vgg_net
     for name, vgg_net in torchvision.models.vgg.__dict__.items()
     if name.startswith("vgg") and callable(vgg_net)
@@ -28,8 +27,6 @@ MODEL_URLS.update(
     }
 )
 
-PREPROCESSORS = {"torch": TorchPreprocessing(), "caffe": CaffePreprocessing()}
-
 __all__ = [
     "vgg11_encoder",
     "vgg11_bn_encoder",
@@ -43,70 +40,92 @@ __all__ = [
 
 
 class VGGEncoder(Encoder):
-    def __init__(self, vgg_net: nn.Module, preprocessor: Optional[nn.Module] = None):
+    def __init__(self, arch: str, weights: str, preprocessing, allow_inplace):
+        self.arch = arch
+        self.weights = weights
+        self.preprocessing = preprocessing
+        self.allow_inplace = allow_inplace
+
+        super().__init__(self._collect_modules())
+
+    def collect_modules(self):
+        base_model = MODELS[self.arch]
+        url = MODEL_URLS[self.weights]
+        state_dict = model_zoo.load_url(url)
+        base_model.load_state_dict(state_dict)
+        model = base_model.features
+
         modules = OrderedDict()
-        if preprocessor is not None:
-            modules["preprocessing"] = preprocessor
-        stack = depth = 1
-        for module in vgg_net.features.children():
+        if self.preprocessing:
+            modules["preprocessing"] = get_preprocessor(self.weights)
+
+        block = depth = 1
+        for module in model.features.children():
             if isinstance(module, nn.Conv2d):
-                name = "conv_{0}_{1}".format(stack, depth)
+                name = "conv_{0}_{1}".format(block, depth)
             elif isinstance(module, nn.BatchNorm2d):
-                name = "bn_{0}_{1}".format(stack, depth)
+                name = "bn_{0}_{1}".format(block, depth)
             elif isinstance(module, nn.ReLU):
-                module = nn.ReLU(inplace=False)
-                name = "relu_{0}_{1}".format(stack, depth)
-                # each ReLU layer increases the depth of the current stack
+                if not self.allow_inplace:
+                    module = nn.ReLU(inplace=False)
+                name = "relu_{0}_{1}".format(block, depth)
+                # each ReLU layer increases the depth of the current block
                 depth += 1
             else:  # isinstance(module, nn.MaxPool2d):
-                name = "pool_{0}".format(stack)
-                # each pooling layer marks the end of the current stack
-                stack += 1
+                name = "pool_{0}".format(block)
+                # each pooling layer marks the end of the current block
+                block += 1
                 depth = 1
 
             modules[name] = module
 
         super().__init__(modules)
 
+    def extra_repr(self):
+        extras = [f"arch={self.arch}, " f"weights={self.weights}"]
+        if not self.preprocessing:
+            extras.append(f"preprocessing={self.preprocessing}")
+        if self.allow_inplace:
+            extras.append(f"allow_inplace={self.allow_inplace}")
+        return ",".join(extras)
+
 
 def _vgg_encoder(
-    arch: str, weights: str = "torch", preprocessing: bool = True
+    arch: str,
+    weights: str = "torch",
+    preprocessing: bool = True,
+    allow_inplace: bool = True,
 ) -> VGGEncoder:
-    vgg_net = VGG_NETS[arch](init_weights=False)
-    url = MODEL_URLS[(weights, arch)]
-    vgg_net.load_state_dict(model_zoo.load_url(url))
-    preprocessor = PREPROCESSORS[weights] if preprocessing else None
-    return VGGEncoder(vgg_net, preprocessor)
+    return VGGEncoder(arch, weights, preprocessing, allow_inplace)
 
 
-# TODO: do these need annotating?
-def vgg11_encoder(**kwargs):
+def vgg11_encoder(**kwargs) -> VGGEncoder:
     return _vgg_encoder("vgg11", **kwargs)
 
 
-def vgg11_bn_encoder(**kwargs):
+def vgg11_bn_encoder(**kwargs) -> VGGEncoder:
     return _vgg_encoder("vgg11_bn", **kwargs)
 
 
-def vgg13_encoder(**kwargs):
+def vgg13_encoder(**kwargs) -> VGGEncoder:
     return _vgg_encoder("vgg13", **kwargs)
 
 
-def vgg13_bn_encoder(**kwargs):
+def vgg13_bn_encoder(**kwargs) -> VGGEncoder:
     return _vgg_encoder("vgg13_bn", **kwargs)
 
 
-def vgg16_encoder(**kwargs):
+def vgg16_encoder(**kwargs) -> VGGEncoder:
     return _vgg_encoder("vgg16", **kwargs)
 
 
-def vgg16_bn_encoder(**kwargs):
+def vgg16_bn_encoder(**kwargs) -> VGGEncoder:
     return _vgg_encoder("vgg16_bn", **kwargs)
 
 
-def vgg19_encoder(**kwargs):
+def vgg19_encoder(**kwargs) -> VGGEncoder:
     return _vgg_encoder("vgg19", **kwargs)
 
 
-def vgg19_bn_encoder(**kwargs):
+def vgg19_bn_encoder(**kwargs) -> VGGEncoder:
     return _vgg_encoder("vgg19_bn", **kwargs)
