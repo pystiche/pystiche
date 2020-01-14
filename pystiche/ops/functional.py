@@ -4,7 +4,7 @@ from torch.nn.functional import mse_loss, relu
 import pystiche
 from pystiche.typing import Numeric
 from pystiche.misc import verify_str_arg
-from .representation import calculate_gram_repr, calculate_mrf_repr
+from pystiche.ops.representation import calculate_gram_repr, calculate_mrf_repr
 
 
 def _reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:

@@ -1,4 +1,4 @@
-from typing import Sequence, Dict
+from typing import Sequence
 from copy import copy
 import torch
 import pystiche

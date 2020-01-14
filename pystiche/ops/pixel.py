@@ -2,7 +2,7 @@ from typing import Any, Dict
 import torch
 from pystiche.typing import Numeric
 from pystiche.misc import to_engstr
-from pystiche.nst import functional as F
+from . import functional as F
 from ._base import PixelRegularizationOperator
 
 __all__ = [

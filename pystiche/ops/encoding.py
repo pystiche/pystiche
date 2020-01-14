@@ -7,7 +7,7 @@ from pystiche.typing import Numeric
 from pystiche.misc import to_2d_arg
 from pystiche.image.transforms import TransformMotifAffinely
 from pystiche.enc import Encoder
-from pystiche.nst import representation as R, functional as F
+from . import functional as F, representation as R
 from ._base import EncodingComparisonOperator
 
 __all__ = [

@@ -2,6 +2,8 @@ from typing import Union, Sequence
 import torch
 import pystiche
 
+# FIXME check how this and functional can be embedded into the ops directly
+
 
 def calculate_gram_repr(x: torch.Tensor, normalize: bool = True) -> torch.Tensor:
     return pystiche.channelwise_gram_matrix(x, normalize=normalize)
