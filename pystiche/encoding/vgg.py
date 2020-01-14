@@ -12,7 +12,7 @@ MODELS = {
 }
 
 MODEL_URLS = {
-    ("torch", name): url for name, url in torchvision.models.vgg.model_urls.items()
+    ("torch", arch): url for arch, url in torchvision.models.vgg.model_urls.items()
 }
 MODEL_URLS.update(
     {
@@ -40,27 +40,27 @@ __all__ = [
 
 
 class VGGEncoder(Encoder):
-    def __init__(self, arch: str, weights: str, preprocessing, allow_inplace):
+    def __init__(self, arch: str, weights: str, internal_preprocessing, allow_inplace):
         self.arch = arch
         self.weights = weights
-        self.preprocessing = preprocessing
+        self.internal_preprocessing = internal_preprocessing
         self.allow_inplace = allow_inplace
 
         super().__init__(self._collect_modules())
 
-    def collect_modules(self):
-        base_model = MODELS[self.arch]
-        url = MODEL_URLS[self.weights]
+    def _collect_modules(self):
+        base_model = MODELS[self.arch]()
+        url = MODEL_URLS[(self.weights, self.arch)]
         state_dict = model_zoo.load_url(url)
         base_model.load_state_dict(state_dict)
         model = base_model.features
 
         modules = OrderedDict()
-        if self.preprocessing:
+        if self.internal_preprocessing:
             modules["preprocessing"] = get_preprocessor(self.weights)
 
         block = depth = 1
-        for module in model.features.children():
+        for module in model.children():
             if isinstance(module, nn.Conv2d):
                 name = f"conv_{block}_{depth}"
             elif isinstance(module, nn.BatchNorm2d):
@@ -79,12 +79,12 @@ class VGGEncoder(Encoder):
 
             modules[name] = module
 
-        super().__init__(modules)
+        return modules
 
     def extra_repr(self):
         extras = [f"arch={self.arch}, " f"weights={self.weights}"]
-        if not self.preprocessing:
-            extras.append(f"preprocessing={self.preprocessing}")
+        if not self.internal_preprocessing:
+            extras.append(f"internal_preprocessing={self.internal_preprocessing}")
         if self.allow_inplace:
             extras.append(f"allow_inplace={self.allow_inplace}")
         return ",".join(extras)
