@@ -1,6 +1,7 @@
 import torch
 from collections import OrderedDict
 
+__all__ = ["LossDict"]
 
 class LossDict(OrderedDict):
     @property

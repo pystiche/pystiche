@@ -1,2 +1,2 @@
 from .multi_op_loss import *
-from .pyramid import *
+from .loss_dict import *

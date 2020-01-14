@@ -2,7 +2,7 @@ from typing import Sequence, Dict
 from copy import copy
 import torch
 import pystiche
-from pystiche.encoding import Encoder
+from pystiche.enc import Encoder
 
 
 class MultiOperatorEncoder(pystiche.object):
