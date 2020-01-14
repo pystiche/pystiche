@@ -15,35 +15,35 @@ from pystiche.image.transforms import (
     CaffePreprocessing,
     CaffePostprocessing,
 )
-from pystiche.encoding import Encoder
-from ..encoder import MultiOperatorEncoder
-from ..operators import Operator, ComparisonOperator, EncodingOperator, PixelOperator
+from pystiche.enc import Encoder
+from pystiche.nst.encoder import MultiOperatorEncoder
+from pystiche.nst.operators import Operator, ComparisonOperator, EncodingOperator, PixelOperator
 
 __all__ = [
-    "ImageOptimizer",
+    "MultiOperatorLoss",
     # "PreprocessingImageOptimizer",
     # "TorchPreprocessingImageOptimizer",
     # "CaffePreprocessingImageOptimizer",
 ]
 
 
-class ImageOptimizer(pystiche.object):
-    def __init__(self, *operators: Operator, trim: bool = True) -> None:
+class MultiOperatorLoss(pystiche.object):
+    def __init__(self, *ops: Operator, trim: bool = True) -> None:
         super().__init__()
-        self._operators = pystiche.tuple(OrderedDict.fromkeys(operators))
+        self._ops = pystiche.tuple(OrderedDict.fromkeys(ops))
 
-        multi_operator_encoders = set()
-        for operator in self._operators:
+        multi_op_encoders = set()
+        for op in self._ops:
             try:
-                encoder = operator.encoder
+                encoder = op.encoder
             except AttributeError:
                 continue
 
-            multi_operator_encoders.add(encoder)
-        self._multi_operator_encoders = pystiche.tuple(multi_operator_encoders)
+            multi_op_encoders.add(encoder)
+        self._multi_op_encoders = pystiche.tuple(multi_op_encoders)
 
         # FIXME
-        # for encoder in self.multi_operator_encoders():
+        # for encoder in self.multi_op_encoders():
         #     encoder.reset_layers()
         #
         # for operator in self.operators(EncodingOperator):
@@ -52,21 +52,18 @@ class ImageOptimizer(pystiche.object):
         #         encoder.register_layers(operator.layers)
         #
         # if trim:
-        #     for encoder in self.multi_operator_encoders():
+        #     for encoder in self.multi_op_encoders():
         #         encoder.trim()
 
     def __call__(self, input_image: torch.Tensor) -> torch.Tensor:
 
-        for encoder in self._multi_operator_encoders:
+        for encoder in self._multi_op_encoders:
             encoder.encode(input_image)
 
         # FIXME: replace by loss dict
-        # loss = sum([operator(input_image) for operator in self._operators])
-        loss = 0.0
-        for operator in self._operators:
-            loss += operator(input_image)
+        loss = sum([op(input_image) for op in self._ops])
 
-        for encoder in self._multi_operator_encoders:
+        for encoder in self._multi_op_encoders:
             encoder.clear_storage()
 
         return loss
@@ -113,7 +110,7 @@ class ImageOptimizer(pystiche.object):
     #     return self.encoders(MultiOperatorEncoder)
 
     def extra_str(self):
-        return "\n".join([str(operator) for operator in self.operators()])
+        return "\n".join([str(op) for op in self._ops])
 
 
 # class PreprocessingImageOptimizer(ImageOptimizer):

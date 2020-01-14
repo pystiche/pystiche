@@ -5,13 +5,13 @@ import pystiche
 from pystiche.misc import zip_equal, verify_str_arg
 from pystiche.image import extract_image_size, extract_aspect_ratio
 from pystiche.image.transforms import FixedAspectRatioResize, GrayscaleToBinary
-from ..operators import (
+from pystiche.nst.operators import (
     Operator,
     ComparisonOperator,
     GuidanceOperator,
     ComparisonGuidanceOperator,
 )
-from .image_optimizer import ImageOptimizer
+from .multi_op_loss import MultiOperatorLoss
 
 __all__ = ["PyramidLevel", "ImageOptimizerPyramid", "ImageOptimizerOctavePyramid"]
 
@@ -72,9 +72,9 @@ class ImageOptimizerPyramid(pystiche.object):
         "init_state", ("target_image", "input_guide", "target_guide")
     )
 
-    def __init__(self, image_optimizer: ImageOptimizer):
+    def __init__(self, image_optimizer: MultiOperatorLoss):
         super().__init__()
-        self.image_optimizer: ImageOptimizer = image_optimizer
+        self.image_optimizer: MultiOperatorLoss = image_optimizer
         self._levels = None
 
     def build_levels(
