@@ -6,8 +6,8 @@ import pystiche
 from pystiche.typing import Numeric
 from pystiche.misc import to_2d_arg
 from pystiche.image.transforms import TransformMotifAffinely
-from pystiche.encoding import Encoder
-from .. import representation as R, functional as F
+from pystiche.enc import Encoder
+from pystiche.nst import representation as R, functional as F
 from ._base import EncodingComparisonOperator
 
 __all__ = [
@@ -22,7 +22,7 @@ class DirectEncodingComparisonOperator(EncodingComparisonOperator):
         self,
         encoder: Encoder,
         layers: Sequence[str],
-        name: str = "Direct encoding comparison",
+        name: str = "Direct enc comparison",
         **kwargs,
     ) -> None:
         super().__init__(encoder, layers, name, **kwargs)
@@ -47,7 +47,7 @@ class GramEncodingComparisonOperator(EncodingComparisonOperator):
         self,
         encoder: Encoder,
         layers: Sequence[str],
-        name: str = "Gram encoding comparison",
+        name: str = "Gram enc comparison",
         normalize: bool = True,
         **kwargs,
     ) -> None:
@@ -80,7 +80,7 @@ class MRFEncodingComparisonOperator(EncodingComparisonOperator):
         encoder: Encoder,
         layers: Sequence[str],
         patch_size: Union[int, Sequence[int]],
-        name: str = "MRF encoding comparison",
+        name: str = "MRF enc comparison",
         stride: Union[int, Sequence[int]] = 1,
         num_scale_steps: int = 0,
         scale_step_width: Numeric = 5e-2,

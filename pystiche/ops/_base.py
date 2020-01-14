@@ -5,7 +5,7 @@ import torch
 import pystiche
 from pystiche.typing import Numeric
 from pystiche.misc import format_dict, to_engstr
-from pystiche.encoding import Encoder
+from pystiche.enc import Encoder
 
 __all__ = [
     "Operator",
@@ -165,6 +165,7 @@ class PixelOperator(Operator):
 
 class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
+        # FIXME: do sanity checks if target was set
         target_reprs, ctxs = self._target_repr, self._ctx
         input_reprs = self._process_input(input_image, ctxs)
 

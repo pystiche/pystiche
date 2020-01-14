@@ -5,13 +5,13 @@ import pystiche
 from pystiche.misc import zip_equal, verify_str_arg
 from pystiche.image import extract_image_size, extract_aspect_ratio
 from pystiche.image.transforms import FixedAspectRatioResize, GrayscaleToBinary
-from pystiche.nst.operators import (
+from pystiche.ops import (
     Operator,
     ComparisonOperator,
     GuidanceOperator,
     ComparisonGuidanceOperator,
 )
-from .multi_op_loss import MultiOperatorLoss
+from pystiche.loss.multi_op_loss import MultiOperatorLoss
 
 __all__ = ["PyramidLevel", "ImageOptimizerPyramid", "ImageOptimizerOctavePyramid"]
 

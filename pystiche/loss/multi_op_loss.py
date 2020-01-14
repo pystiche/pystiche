@@ -1,28 +1,8 @@
-from abc import abstractmethod
-from typing import Any, Optional, Union, Callable, Iterator, Iterable, Sequence
-import warnings
 from collections import OrderedDict
-import itertools
-from math import floor
 import torch
-from torch import optim
-from torch.optim.optimizer import Optimizer
 import pystiche
-from pystiche.misc import subclass_iterator
-from pystiche.image.transforms import (
-    TorchPreprocessing,
-    TorchPostprocessing,
-    CaffePreprocessing,
-    CaffePostprocessing,
-)
-from pystiche.enc import Encoder
-from pystiche.nst.encoder import MultiOperatorEncoder
-from pystiche.nst.operators import (
-    Operator,
-    ComparisonOperator,
-    EncodingOperator,
-    PixelOperator,
-)
+from pystiche.loss.multi_op_encoder import MultiOperatorEncoder
+from pystiche.ops import Operator
 from .loss_dict import LossDict
 
 __all__ = [
@@ -102,13 +82,13 @@ class MultiOperatorLoss(pystiche.object):
     #     loss = sum(
     #         [
     #             operator(input_image)
-    #             for operator in self.operators()
+    #             for operator in self.ops()
     #         ]
     #     )
     #     loss.backward()
     #     return loss
     #
-    # def operators(self) -> Iterator[Operator]:
+    # def ops(self) -> Iterator[Operator]:
     #     # FIXME: is this needed?
     #     for operator in self._operators:
     #         yield operator
@@ -150,16 +130,16 @@ class MultiOperatorLoss(pystiche.object):
 #         self, input_image: torch.Tensor, *args: Any, **kwargs: Any
 #     ) -> torch.Tensor:
 #         input_image = self.preprocess(input_image)
-#         operators = tuple(self.operators(EncodingOperator, ComparisonOperator))
+#         ops = tuple(self.ops(EncodingOperator, ComparisonOperator))
 #         target_images = []
-#         for operator in operators:
+#         for operator in ops:
 #             target_image = operator.target_image
 #             target_images.append(target_image)
 #             operator.set_target(self.preprocess(target_image))
 #
 #         output_image = super().__call__(input_image, *args, **kwargs)
 #
-#         for operator, target_image in zip(operators, target_images):
+#         for operator, target_image in zip(ops, target_images):
 #             operator.target_image = target_image
 #         output_image = self.postprocess(output_image)
 #
@@ -170,18 +150,18 @@ class MultiOperatorLoss(pystiche.object):
 #         for encoder in self.multi_operator_encoders():
 #             encoder.encode(input_image)
 #
-#         operators = set(self.operators())
+#         ops = set(self.ops())
 #         loss = torch.tensor(0.0, **pystiche.tensor_meta(input_image))
 #
 #         pixel_operators = set(
-#             [operator for operator in operators if isinstance(operator, PixelOperator)]
+#             [operator for operator in ops if isinstance(operator, PixelOperator)]
 #         )
 #         if pixel_operators:
 #             input_image_postprocessed = self.postprocess(input_image)
 #             for operator in pixel_operators:
 #                 loss += operator(input_image_postprocessed)
 #
-#         encoding_operators = operators - pixel_operators
+#         encoding_operators = ops - pixel_operators
 #         for operator in encoding_operators:
 #             loss += operator(input_image)
 #
