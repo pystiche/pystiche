@@ -1,4 +1,14 @@
-from typing import overload, Any, Optional, Iterator, Iterable, Sequence, Sized, Tuple
+from typing import (
+    overload,
+    Any,
+    Optional,
+    Iterator,
+    Iterable,
+    Sequence,
+    Sized,
+    Tuple,
+    Dict,
+)
 from keyword import iskeyword
 from functools import reduce
 import itertools
@@ -93,6 +103,11 @@ def maxlen_fmtstr(iterable, identifier="", type="s", precision=""):
         if not precision.startswith("."):
             precision = "." + precision
     return "{" + identifier + ":" + width + precision + type + "}"
+
+
+def format_dict(dct: Dict[str, Any]):
+    # TODO: implement
+    return "Implement pystiche.misc.format_dict"
 
 
 def verify_str_arg(

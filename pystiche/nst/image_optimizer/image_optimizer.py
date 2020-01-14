@@ -55,18 +55,7 @@ class ImageOptimizer(pystiche.object):
         input_image: torch.Tensor,
         num_steps: int,
         trim: bool = True,
-        quiet=False,
-        print_steps: Optional[Union[int, Iterable[int]]] = None,
     ) -> torch.Tensor:
-        if print_steps is None:
-            print_steps = max((round(num_steps / 1e2) * 10, 10))
-        if isinstance(print_steps, int):
-            print_steps = self._interval_to_steps(print_steps, num_steps)
-
-        maxlen_name_str = max([operator.len_name_str for operator in self.operators()])
-        for operator in self.operators():
-            operator.len_name_str = maxlen_name_str
-
         for encoder in self.multi_operator_encoders():
             encoder.reset_layers()
 
@@ -79,33 +68,22 @@ class ImageOptimizer(pystiche.object):
             for encoder in self.multi_operator_encoders():
                 encoder.trim()
 
-        output_image = self._iterate(input_image, num_steps, quiet, print_steps)
+        output_image = self._iterate(input_image, num_steps)
 
         for encoder in self.multi_operator_encoders():
             encoder.clear_storage()
 
         return output_image.detach()
 
-    @staticmethod
-    def _interval_to_steps(interval: int, num_steps: int) -> Iterable[int]:
-        num_intervals = int(floor(num_steps / interval))
-        steps = set([interval * step for step in range(1, num_intervals + 1)])
-        steps.add(num_steps)
-        return steps
-
     def _iterate(
         self,
         input_image: torch.Tensor,
         num_steps: int,
-        quiet: bool,
-        print_steps: Iterable[int],
     ) -> torch.Tensor:
         optimizer = self.optimizer_getter(input_image.requires_grad_(True))
         for step in range(1, num_steps + 1):
             self._optimize(input_image, optimizer)
             self._diagnose(input_image)
-            if not quiet and step in print_steps:
-                self._print_scores(step)
         return input_image
 
     def _optimize(self, input_image: torch.Tensor, optimizer: Optimizer):
@@ -128,11 +106,6 @@ class ImageOptimizer(pystiche.object):
     def _diagnose(self, input_image: torch.Tensor):
         for operator in self.operators(DiagnosisOperator):
             operator(input_image)
-
-    def _print_scores(self, step: int):
-        for operator in self.operators():
-            operator.print_score(step)
-        print("-" * operator.len_score_str)
 
     def operators(self, *args: Any, **kwargs: Any) -> Iterator[Operator]:
         return subclass_iterator(self._operators, *args, **kwargs)

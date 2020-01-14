@@ -4,7 +4,7 @@ from collections import OrderedDict
 import torch
 import pystiche
 from pystiche.typing import Numeric
-from pystiche.misc import maxlen_fmtstr, to_engstr
+from pystiche.misc import format_dict, to_engstr
 from pystiche.encoding import Encoder
 
 __all__ = [
@@ -33,52 +33,16 @@ __all__ = [
 class Operator(pystiche.object):
     def __init__(self, name: str, score_weight: Numeric = 1.0):
         super().__init__()
-        self._name = None
-        self.len_name_str = None
         self.name = name
-        self._score = 0.0
         self.score_weight = score_weight
 
     def __call__(self, input_image: torch.Tensor) -> torch.Tensor:
-        score = self.forward(input_image)
-        score *= self.score_weight
-        self._score = score.item()
-        return score
-
-    @property
-    def score(self) -> float:
-        return self._score
-
-    def print_score(self, step: int):
-        print(self._score_str(step))
-
-    def _score_str(self, step: int) -> str:
-        name_fmtstr = "{name:" + str(self.len_name_str) + "s}"
-        fmtstr = " Step {step:4d} | " + name_fmtstr + "  {score:.3e} "
-        return fmtstr.format(step=step, name=self._name, score=self._score)
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @name.setter
-    def name(self, name: str):
-        self._name = name
-        self.len_name_str = len(name)
-
-    @property
-    def len_score_str(self) -> int:
-        return len(self._score_str(0))
+        return self.forward(input_image) * self.score_weight
 
     def extra_str(self) -> str:
         dct = self._descriptions()
         dct.update(self.extra_descriptions())
-
-        fmtstr = maxlen_fmtstr(dct.keys(), identifier="0") + "  {1}"
-        # FIXME: handle multiline descriptions
-        return "\n".join(
-            [fmtstr.format(description, value) for description, value in dct.items()]
-        )
+        return format_dict(dct)
 
     def _descriptions(self) -> Dict[str, str]:
         dct = OrderedDict()
