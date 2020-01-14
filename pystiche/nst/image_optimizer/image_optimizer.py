@@ -22,7 +22,6 @@ from ..operators import (
     ComparisonOperator,
     EncodingOperator,
     PixelOperator,
-    DiagnosisOperator,
 )
 
 __all__ = [
@@ -97,15 +96,11 @@ class ImageOptimizer(pystiche.object):
         loss = sum(
             [
                 operator(input_image)
-                for operator in self.operators(DiagnosisOperator, not_instance=True)
+                for operator in self.operators()
             ]
         )
         loss.backward()
         return loss
-
-    def _diagnose(self, input_image: torch.Tensor):
-        for operator in self.operators(DiagnosisOperator):
-            operator(input_image)
 
     def operators(self, *args: Any, **kwargs: Any) -> Iterator[Operator]:
         return subclass_iterator(self._operators, *args, **kwargs)
@@ -167,7 +162,7 @@ class PreprocessingImageOptimizer(ImageOptimizer):
         for encoder in self.multi_operator_encoders():
             encoder.encode(input_image)
 
-        operators = set(self.operators(DiagnosisOperator, not_instance=True))
+        operators = set(self.operators())
         loss = torch.tensor(0.0, **pystiche.tensor_meta(input_image))
 
         pixel_operators = set(
@@ -184,23 +179,6 @@ class PreprocessingImageOptimizer(ImageOptimizer):
 
         loss.backward()
         return loss
-
-    def _diagnose(self, input_image: torch.Tensor):
-        operators = set(self.operators(DiagnosisOperator))
-        if not operators:
-            return
-
-        pixel_operators = set(
-            [operator for operator in operators if isinstance(operator, PixelOperator)]
-        )
-        if pixel_operators:
-            input_image_postprocessed = self.postprocess(input_image)
-            for operator in pixel_operators:
-                operator(input_image_postprocessed)
-
-        encoding_operators = operators - pixel_operators
-        for operator in encoding_operators:
-            operator(input_image)
 
 
 class TorchPreprocessingImageOptimizer(PreprocessingImageOptimizer):

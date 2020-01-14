@@ -9,7 +9,6 @@ from pystiche.encoding import Encoder
 
 __all__ = [
     "Operator",
-    "DiagnosisOperator",
     "ComparisonOperator",
     "RegularizationOperator",
     "EncodingOperator",
@@ -56,11 +55,6 @@ class Operator(pystiche.object):
     @abstractmethod
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
         pass
-
-
-class DiagnosisOperator(Operator):
-    def __call__(self, input_image: torch.Tensor):
-        super().__call__(input_image)
 
 
 class ComparisonOperator(Operator):
