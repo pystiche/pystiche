@@ -18,6 +18,7 @@ from pystiche.image.transforms import (
 from pystiche.enc import Encoder
 from pystiche.nst.encoder import MultiOperatorEncoder
 from pystiche.nst.operators import Operator, ComparisonOperator, EncodingOperator, PixelOperator
+from .loss_dict import LossDict
 
 __all__ = [
     "MultiOperatorLoss",
@@ -55,13 +56,12 @@ class MultiOperatorLoss(pystiche.object):
         #     for encoder in self.multi_op_encoders():
         #         encoder.trim()
 
-    def __call__(self, input_image: torch.Tensor) -> torch.Tensor:
+    def __call__(self, input_image: torch.Tensor) -> LossDict:
 
         for encoder in self._multi_op_encoders:
             encoder.encode(input_image)
 
-        # FIXME: replace by loss dict
-        loss = sum([op(input_image) for op in self._ops])
+        loss = LossDict([(op.name, op(input_image)) for op in self._ops])
 
         for encoder in self._multi_op_encoders:
             encoder.clear_storage()
