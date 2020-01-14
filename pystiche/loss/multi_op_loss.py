@@ -17,7 +17,12 @@ from pystiche.image.transforms import (
 )
 from pystiche.enc import Encoder
 from pystiche.nst.encoder import MultiOperatorEncoder
-from pystiche.nst.operators import Operator, ComparisonOperator, EncodingOperator, PixelOperator
+from pystiche.nst.operators import (
+    Operator,
+    ComparisonOperator,
+    EncodingOperator,
+    PixelOperator,
+)
 from .loss_dict import LossDict
 
 __all__ = [
@@ -32,29 +37,36 @@ class MultiOperatorLoss(pystiche.object):
     def __init__(self, *ops: Operator, trim: bool = True) -> None:
         super().__init__()
         self._ops = pystiche.tuple(OrderedDict.fromkeys(ops))
+        self._multi_op_encoders = self._collect_multi_op_encoders()
+
+        if trim:
+            for encoder in self._multi_op_encoders:
+                encoder.trim()
+
+    def _collect_multi_op_encoders(self):
+        # FIXME: rename
+        def blub():
+            for op in self._ops:
+                try:
+                    multi_op_encoder = op.encoder
+                except AttributeError:
+                    continue
+                if not isinstance(multi_op_encoder, MultiOperatorEncoder):
+                    continue
+
+                yield op, multi_op_encoder
 
         multi_op_encoders = set()
-        for op in self._ops:
-            try:
-                encoder = op.encoder
-            except AttributeError:
-                continue
+        for op, multi_op_encoder in blub():
+            multi_op_encoders.add(multi_op_encoder)
 
-            multi_op_encoders.add(encoder)
-        self._multi_op_encoders = pystiche.tuple(multi_op_encoders)
+        for encoder in multi_op_encoders:
+            encoder.reset_layers()
 
-        # FIXME
-        # for encoder in self.multi_op_encoders():
-        #     encoder.reset_layers()
-        #
-        # for operator in self.operators(EncodingOperator):
-        #     encoder = operator.encoder
-        #     if isinstance(encoder, MultiOperatorEncoder):
-        #         encoder.register_layers(operator.layers)
-        #
-        # if trim:
-        #     for encoder in self.multi_op_encoders():
-        #         encoder.trim()
+        for op, multi_op_encoder in blub():
+            multi_op_encoder.register_layers(op.layers)
+
+        return pystiche.tuple(multi_op_encoders)
 
     def __call__(self, input_image: torch.Tensor) -> LossDict:
 
