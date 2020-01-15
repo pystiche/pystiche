@@ -1,228 +1,101 @@
-from typing import Union, Optional, Sequence, Dict, Callable
+from typing import Union, Optional, Sequence
+from collections import OrderedDict
 import numpy as np
 import torch
+from torch import nn
 import pystiche
-from pystiche.misc import zip_equal, verify_str_arg
-from pystiche.image import extract_image_size, extract_aspect_ratio
-from pystiche.image.transforms import FixedAspectRatioResize, GrayscaleToBinary
-from pystiche.ops import (
-    Operator,
-    ComparisonOperator,
-    GuidanceOperator,
-    ComparisonGuidanceOperator,
-)
-from pystiche.loss.multi_op_loss import MultiOperatorLoss
-
-__all__ = ["PyramidLevel", "ImageOptimizerPyramid", "ImageOptimizerOctavePyramid"]
+from pystiche.misc import zip_equal
+from .level import PyramidLevel
 
 
-class PyramidLevel(pystiche.object):
+__all__ = ["ImagePyramid", "OctaveImagePyramid"]
+
+
+class ImagePyramid(pystiche.Object):
     def __init__(
         self,
-        num: int,
-        edge_size: int,
-        num_steps: int,
-        edge: str,
-        binarizer: Optional[Callable] = None,
-        interpolation_mode: str = "bilinear",
-    ) -> None:
-        super().__init__()
-        self.num: int = num
-        self.edge_size = edge_size
-        self.num_steps: int = num_steps
-        self.edge = verify_str_arg(edge, "edge", ("short", "long"))
-
-        if binarizer is None:
-            binarizer = GrayscaleToBinary()
-        self.binarizer = binarizer
-
-        self.interpolation_mode = interpolation_mode
-
-    def resize(
-        self,
-        image: torch.Tensor,
-        aspect_ratio: Optional[float] = None,
-        binarize: bool = False,
-    ):
-        transform = FixedAspectRatioResize(
-            self.edge_size,
-            self.edge,
-            aspect_ratio=aspect_ratio,
-            interpolation_mode=self.interpolation_mode,
-        )
-        image = transform(image)
-        if binarize:
-            image = self.binarizer(image)
-        return image
-
-    def extra_str(self) -> str:
-        extras = [
-            "num={num}",
-            "edge_size={edge_size}",
-            "num_steps={num_steps}",
-            "edge={edge}",
-        ]
-        if self.interpolation_mode != "bilinear":
-            extras.append("interpolation_mode={interpolation_mode}")
-        return ", ".join(extras).format(size=self.transform.size, **self.__dict__)
-
-
-class ImageOptimizerPyramid(pystiche.object):
-    InitialState = pystiche.namedtuple(
-        "init_state", ("target_image", "input_guide", "target_guide")
-    )
-
-    def __init__(self, image_optimizer: MultiOperatorLoss):
-        super().__init__()
-        self.image_optimizer: MultiOperatorLoss = image_optimizer
-        self._levels = None
-
-    def build_levels(
-        self,
-        level_edge_sizes: Sequence[int],
-        level_steps: Union[Sequence[int], int],
+        edge_sizes: Sequence[int],
+        num_steps: Union[Sequence[int], int],
         edges: Union[Sequence[str], str] = "short",
-        **kwargs,
+        interpolation_mode: str = "bilinear",
+        resize_targets: Optional[
+            Sequence[Union[torch.Tensor, nn.Module, pystiche.StateObject]]
+        ] = None,
     ):
-        num_levels = len(level_edge_sizes)
-        if isinstance(level_steps, int):
-            level_steps = [level_steps] * num_levels
+        num_levels = len(edge_sizes)
+        if isinstance(num_steps, int):
+            num_steps = [num_steps] * num_levels
         if isinstance(edges, str):
             edges = [edges] * num_levels
 
-        levels = [
-            PyramidLevel(num, *level_args, **kwargs)
-            for num, level_args in enumerate(
-                zip_equal(level_edge_sizes, level_steps, edges)
+        self._levels = [
+            PyramidLevel(
+                edge_size, num_steps_, edge, interpolation_mode=interpolation_mode
             )
+            for edge_size, num_steps_, edge in zip_equal(edge_sizes, num_steps, edges)
         ]
-        self._levels = pystiche.tuple(levels)
 
-    @property
-    def has_levels(self) -> bool:
-        return self._levels is not None
+        self.resize_targets = resize_targets
 
-    def _assert_has_levels(self):
-        if not self.has_levels:
-            msg = "You need to call build_levels() before starting the optimization"
-            raise RuntimeError(msg)
+    def __len__(self):
+        return len(self._levels)
 
-    def max_resize(self, image, **kwargs):
-        self._assert_has_levels()
-        return self._levels[-1].resize(image, **kwargs)
+    def __getitem__(self, idx):
+        return self._levels[idx]
 
-    def __call__(self, input_image: torch.Tensor, quiet: bool = False, **kwargs):
-        self._assert_has_levels()
-        init_states = self._extract_operator_initial_states()
-        output_images = self._iterate(input_image, init_states, quiet, **kwargs)
-        self._reset_operators(init_states)
-        return pystiche.tuple(output_images).detach()
-
-    def _extract_operator_initial_states(self) -> Dict[Operator, InitialState]:
-        operators = tuple(self.image_optimizer.operators())
-        init_states = []
-        for operator in operators:
-            has_input_guide = (
-                isinstance(operator, GuidanceOperator) and operator.has_input_guide
-            )
-            input_guide = operator.input_guide if has_input_guide else None
-
-            has_target_guide = (
-                isinstance(operator, ComparisonGuidanceOperator)
-                and operator.has_target_guide
-            )
-            target_guide = operator.target_guide if has_target_guide else None
-
-            has_target_image = (
-                isinstance(operator, ComparisonOperator) and operator.has_target_image
-            )
-            target_image = operator.target_image if has_target_image else None
-
-            init_states.append(
-                self.InitialState(target_image, input_guide, target_guide)
-            )
-        return dict(zip(operators, init_states))
-
-    def _reset_operators(self, init_states: Dict[Operator, InitialState]):
-        for operator, init_state in init_states.items():
-            if isinstance(operator, GuidanceOperator):
-                operator.set_input_guide(init_state.input_guide)
-
-            if isinstance(operator, ComparisonGuidanceOperator):
-                operator.set_target_guide(init_state.target_guide)
-
-            if isinstance(operator, ComparisonOperator):
-                operator.set_target(init_state.target_image)
-
-    def _iterate(
-        self,
-        input_image: torch.Tensor,
-        init_states: InitialState,
-        quiet: bool,
-        **kwargs,
-    ):
-        aspect_ratio = extract_aspect_ratio(input_image)
-        output_images = [input_image]
+    def __iter__(self):
+        state_dicts = self._extract_states()
         for level in self._levels:
-            input_image = level.resize(output_images[-1], aspect_ratio=aspect_ratio)
-            self._resize_operator_images(level, init_states)
+            self._resize(level)
+            yield level
+            self._restore_states(state_dicts)
 
-            if not quiet:
-                self._print_header(level.num, input_image)
+    def _extract_states(self):
+        states = OrderedDict()
+        if self.resize_targets is None:
+            return states
 
-            output_image = self.image_optimizer(
-                input_image, level.num_steps, quiet=quiet, **kwargs
-            )
-            output_images.append(output_image)
+        for obj in set(self.resize_targets):
+            if isinstance(obj, torch.Tensor):
+                # FIXME
+                state = None
+            elif isinstance(obj, (nn.Module, pystiche.StateObject)):
+                state = obj.state_dict()
+            else:
+                state = None
 
-        return pystiche.tuple(output_images[1:])
+            states[obj] = state
+        return states
 
-    def _resize_operator_images(
-        self, level: PyramidLevel, init_states: Dict[Operator, InitialState]
-    ):
-        for operator, init_state in init_states.items():
-            if isinstance(operator, GuidanceOperator):
-                if init_state.input_guide is None:
-                    continue
-                guide = level.resize(init_state.input_guide, binarize=True)
-                operator.set_input_guide(guide)
+    def _restore_states(self, states):
+        for obj, state in states.items():
+            if state is None:
+                continue
 
-            if isinstance(operator, ComparisonGuidanceOperator):
-                if init_state.target_guide is None:
-                    continue
-                guide = level.resize(init_state.target_guide, binarize=True)
-                operator.set_target_guide(guide)
+            if isinstance(obj, torch.Tensor):
+                # FIXME
+                pass
+            else:  # FIXME
+                obj.load_state_dict(state)
 
-            if isinstance(operator, ComparisonOperator):
-                if init_state.target_image is None:
-                    continue
-                image = level.resize(init_state.target_image)
-                operator.set_target(image)
-
-    def _print_header(self, level: int, image: torch.Tensor):
-        image_size = extract_image_size(image)
-        line = " Pyramid level {0} ({2} x {1}) ".format(level, *reversed(image_size))
-        sep_line = "=" * max((len(line), 39))
-        print(sep_line)
-        print(line)
-        print(sep_line)
+    def _resize(self, level: PyramidLevel):
+        pass
 
 
-class ImageOptimizerOctavePyramid(ImageOptimizerPyramid):
-    def build_levels(
+class OctaveImagePyramid(ImagePyramid):
+    def __init__(
         self,
         max_edge_size: int,
-        level_steps: Union[Sequence[int], int],
+        num_steps: Union[Sequence[int], int],
         num_levels: Optional[int] = None,
         min_edge_size: int = 64,
-        edges: Union[Sequence[str], str] = "short",
-        **kwargs,
+        **kwargs
     ):
         if num_levels is None:
             num_levels = int(np.floor(np.log2(max_edge_size / min_edge_size))) + 1
 
-        level_edge_sizes = [
+        edge_sizes = [
             round(max_edge_size / (2.0 ** ((num_levels - 1) - level)))
             for level in range(num_levels)
         ]
-        super().build_levels(level_edge_sizes, level_steps, edges=edges)
+        super().__init__(edge_sizes, num_steps, **kwargs)

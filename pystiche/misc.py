@@ -1,4 +1,14 @@
-from typing import Any, Union, Optional, Iterator, Iterable, Sequence, Sized, Tuple, Dict
+from typing import (
+    Any,
+    Union,
+    Optional,
+    Iterator,
+    Iterable,
+    Sequence,
+    Sized,
+    Tuple,
+    Dict,
+)
 from keyword import iskeyword
 from functools import reduce
 import itertools
@@ -154,6 +164,7 @@ def is_valid_variable_name(name: str) -> bool:
     return name.isidentifier() and not iskeyword(name)
 
 
+# FIXME is this needed?
 def subclass_iterator(
     sequence: Sequence,
     *subclasses: Any,
