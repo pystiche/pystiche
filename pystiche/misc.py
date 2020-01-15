@@ -1,14 +1,4 @@
-from typing import (
-    overload,
-    Any,
-    Optional,
-    Iterator,
-    Iterable,
-    Sequence,
-    Sized,
-    Tuple,
-    Dict,
-)
+from typing import Any, Union, Optional, Iterator, Iterable, Sequence, Sized, Tuple, Dict
 from keyword import iskeyword
 from functools import reduce
 import itertools
@@ -96,18 +86,41 @@ def to_engtuplestr(sequence: Sequence, **kwargs) -> str:
     return to_tuplestr([to_engstr(item, **kwargs) for item in sequence])
 
 
-def maxlen_fmtstr(iterable, identifier="", type="s", precision=""):
-    width = str(max(map(len, iterable)))
-    if precision:
-        precision = str(precision)
-        if not precision.startswith("."):
-            precision = "." + precision
-    return "{" + identifier + ":" + width + precision + type + "}"
+def build_fmtstr(
+    id: Optional[Union[int, str]] = None,
+    align: Optional[str] = None,
+    field_len: Optional[Union[int, str]] = None,
+    precision: Optional[Union[int, str]] = None,
+    type: Optional[str] = None,
+):
+    fmtstr = r"{"
+    if id is not None:
+        fmtstr += str(id)
+    fmtstr += ":"
+    if align is not None:
+        fmtstr += align
+    if field_len is not None:
+        fmtstr += str(field_len)
+    if precision is not None:
+        fmtstr += "." + str(precision)
+    if type is not None:
+        fmtstr += type
+    fmtstr += r"}"
+    return fmtstr
 
 
-def format_dict(dct: Dict[str, Any]):
-    # TODO: implement
-    return "Implement pystiche.misc.format_dict"
+def format_dict(dct: Dict[str, Any], sep=": ", key_align="<", value_align="<"):
+    key_field_len, val_field_len = [
+        max(lens)
+        for lens in zip(*[(len(key), len(str(val))) for key, val in dct.items()])
+    ]
+
+    fmtstr = build_fmtstr(id=0, align=key_align, field_len=key_field_len, type="s")
+    fmtstr += sep
+    fmtstr += build_fmtstr(id=1, align=value_align, field_len=val_field_len, type="s")
+
+    lines = [fmtstr.format(key, str(val)) for key, val in dct.items()]
+    return "\n".join(lines)
 
 
 def verify_str_arg(
