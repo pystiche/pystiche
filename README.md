@@ -20,14 +20,14 @@ pip install pystiche/
 ```python
 from os import path
 import torch
+from torch import optim
 from pystiche.image import read_image, write_image
-from pystiche.encoding import vgg19_encoder
-from pystiche.nst import (
-    MultiOperatorEncoder,
+from pystiche.enc import vgg19_encoder
+from pystiche.ops import (
     DirectEncodingComparisonOperator,
     GramEncodingComparisonOperator,
-    ImageOptimizer,
 )
+from pystiche.loss import MultiOperatorLoss, MultiOperatorEncoder
 
 # adapt these paths to fit your use case
 # you can find a download script for some frequently used images in
@@ -40,8 +40,10 @@ output_file = "pystiche_demo.jpg"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # load the content and style images and transfer them to the selected device
-content_image = read_image(content_file).to(device)
-style_image = read_image(style_file).to(device)
+# the images are resized, since the stylization is memory intensive
+size = 500
+content_image = read_image(content_file, device=device, size=size)
+style_image = read_image(style_file, device=device, size=size)
 
 # load the encoder used to create the feature maps for the NST
 encoder = vgg19_encoder()
@@ -66,7 +68,7 @@ style_operator = GramEncodingComparisonOperator(
 )
 
 # create the image optimizer and transfer it to the selected device
-nst = ImageOptimizer(content_operator, style_operator).to(device)
+criterion = MultiOperatorLoss(content_operator, style_operator).to(device)
 
 # set the target images for the operators
 content_operator.set_target(content_image)
@@ -77,11 +79,19 @@ input_image = content_image.clone()
 # uncomment the following line if you want to start from a white noise image instead
 # input_image = torch.rand_like(content_image)
 
+# create optimizer that performs the stylization
+optimizer = optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
+
 # run the stylization
 num_steps = 500
-output_image = nst(input_image, num_steps)
+for step in range(num_steps):
+    def closure():
+        optimizer.zero_grad()
+        loss = criterion(input_image)
+        loss.backward()
+        return loss
 
 # save the stylized image
-write_image(output_image, output_file)
+write_image(input_image, output_file)
 ```
 

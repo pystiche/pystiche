@@ -4,6 +4,8 @@ import torch
 import pystiche
 from pystiche.enc import Encoder
 
+__all__ = ["MultiOperatorEncoder"]
+
 
 class MultiOperatorEncoder(pystiche.object):
     def __init__(self, encoder: Encoder) -> None:
