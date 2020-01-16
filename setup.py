@@ -1,16 +1,14 @@
 from setuptools import setup, find_packages
 
-
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-install_requires = ("numpy", "torch >= 1.2.0", "pillow < 7.0.0", "torchvision >= 0.4.0")
+install_requires = ("numpy", "torch>=1.4.0", "pillow", "torchvision>=0.5.0")
 
 extras_require = {
     # FIXME: move to a released version
     "testing": ("pyimagetest@https://github.com/pmeier/pyimagetest/archive/master.zip",)
 }
-
 
 classifiers = (
     "Development Status :: 3 - Alpha",
@@ -18,7 +16,6 @@ classifiers = (
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering",
 )
-
 
 setup(
     name="pystiche",
