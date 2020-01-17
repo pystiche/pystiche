@@ -9,8 +9,8 @@ class LossDict(OrderedDict):
     def total_loss(self) -> torch.Tensor:
         return sum(self.values())
 
-    def backward(self) -> None:
-        self.total_loss.backward()
+    def backward(self, *args, **kwargs) -> None:
+        self.total_loss.backward(*args, **kwargs)
 
     def __float__(self):
         return self.total_loss.item()

@@ -18,9 +18,7 @@ class ImagePyramid(pystiche.Object):
         num_steps: Union[Sequence[int], int],
         edges: Union[Sequence[str], str] = "short",
         interpolation_mode: str = "bilinear",
-        resize_targets: Optional[
-            Sequence[Union[torch.Tensor, nn.Module, pystiche.StateObject]]
-        ] = None,
+        resize_targets: Optional[Sequence[pystiche.StateObject]] = None,
     ):
         num_levels = len(edge_sizes)
         if isinstance(num_steps, int):

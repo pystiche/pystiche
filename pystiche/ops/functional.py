@@ -1,10 +1,7 @@
-from typing import Union, Sequence
 import torch
 from torch.nn.functional import mse_loss, relu
 import pystiche
-from pystiche.typing import Numeric
 from pystiche.misc import verify_str_arg
-from pystiche.ops.representation import calculate_gram_repr, calculate_mrf_repr
 
 
 def _reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:
@@ -38,36 +35,11 @@ def value_range_loss(
 
 
 def total_variation_loss(
-    input: torch.Tensor, exponent: Numeric = 2.0, reduction: str = "mean"
+    input: torch.Tensor, exponent: float = 2.0, reduction: str = "mean"
 ) -> torch.Tensor:
     # this ignores the last row and column of the image
     grad_vert = input[:, :, :-1, :-1] - input[:, :, 1:, :-1]
     grad_horz = input[:, :, :-1, :-1] - input[:, :, :-1, 1:]
     grad = pystiche.safesqrt(grad_vert ** 2.0 + grad_horz ** 2.0)
-    return _reduce(grad ** exponent, reduction)
-
-
-def direct_encoding_loss(
-    input: torch.Tensor, target: torch.Tensor, reduction: str = "mean"
-) -> torch.Tensor:
-    return mse_loss(input, target, reduction=reduction)
-
-
-def gram_loss(
-    input: torch.Tensor, target, normalize: bool, reduction: str = "mean"
-) -> torch.Tensor:
-    input = calculate_gram_repr(input, normalize=normalize)
-    target = calculate_gram_repr(target, normalize=normalize)
-    return mse_loss(input, target, reduction=reduction)
-
-
-def mrf_loss(
-    input: torch.Tensor,
-    target: torch.Tensor,
-    patch_size: Union[Sequence[int], int],
-    stride: Union[Sequence[int], int] = 1,
-    reduction: str = "mean",
-) -> torch.Tensor:
-    input = calculate_mrf_repr(input, patch_size, stride=stride)
-    target = calculate_mrf_repr(target, patch_size, stride=stride)
-    return patch_matching_loss(input, target, reduction=reduction)
+    loss = grad ** exponent
+    return _reduce(loss, reduction)

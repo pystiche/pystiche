@@ -167,10 +167,14 @@ input_image = content_image.clone()
 pyramid.resize_targets = (criterion, input_image)
 
 # create optimizer that performs the stylization
-optimizer = optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
+def get_optimizer(input_image):
+    return optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
 
 # run the stylization
 for level in pyramid:
+    input_image = level.resize_image(input_image)
+    optimizer = get_optimizer(input_image)
+
     for step in level:
         def closure():
             optimizer.zero_grad()
@@ -183,4 +187,3 @@ for level in pyramid:
 # save the stylized image
 write_image(input_image, output_file)
 ```
-

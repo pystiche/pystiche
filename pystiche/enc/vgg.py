@@ -87,14 +87,14 @@ class VGGEncoder(Encoder):
             extras.append(f"internal_preprocessing={self.internal_preprocessing}")
         if self.allow_inplace:
             extras.append(f"allow_inplace={self.allow_inplace}")
-        return ",".join(extras)
+        return ", ".join(extras)
 
 
 def _vgg_encoder(
     arch: str,
     weights: str = "torch",
     preprocessing: bool = True,
-    allow_inplace: bool = True,
+    allow_inplace: bool = False,
 ) -> VGGEncoder:
     return VGGEncoder(arch, weights, preprocessing, allow_inplace)
 
