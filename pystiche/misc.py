@@ -157,24 +157,3 @@ def verify_str_arg(
         raise ValueError(msg1 + msg2)
 
     return arg
-
-
-def is_valid_variable_name(name: str) -> bool:
-    name = str(name)
-    return name.isidentifier() and not iskeyword(name)
-
-
-# FIXME is this needed?
-def subclass_iterator(
-    sequence: Sequence,
-    *subclasses: Any,
-    not_instance: bool = False,
-    all_subclasses: bool = True,
-) -> Iterator[Any]:
-    if not subclasses:
-        return iter(sequence)
-
-    mask = [[isinstance(obj, subclass) for subclass in subclasses] for obj in sequence]
-    reduce_fn = all if all_subclasses else any
-    mask = map(lambda x: not_instance ^ reduce_fn(x), mask)
-    return itertools.compress(sequence, mask)

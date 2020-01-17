@@ -17,8 +17,6 @@ __all__ = [
     "extract_patches1d",
     "extract_patches2d",
     "extract_patches3d",
-    "flatten_examplewise",
-    "flatten_channelwise",
 ]
 
 
@@ -87,11 +85,3 @@ def extract_patches3d(
 ) -> torch.Tensor:
     assert x.dim() == 5
     return _extract_patchesnd(x, to_3d_arg(patch_size), to_3d_arg(stride))
-
-
-def flatten_examplewise(x: torch.Tensor) -> torch.Tensor:
-    return torch.flatten(x, 1)
-
-
-def flatten_channelwise(x: torch.Tensor) -> torch.Tensor:
-    return torch.flatten(x, 2)
