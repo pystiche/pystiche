@@ -13,17 +13,14 @@ __all__ = ["MSEEncodingLoss", "GramLoss", "MRFLoss"]
 
 
 class MSEEncodingLoss(EncodingComparisonOperator):
-    def image_to_enc(self, *args, **kwargs):
-        return super().image_to_enc(*args, **kwargs)
-
-    def _enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
+    def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         return enc
 
     def input_enc_to_repr(self, enc: torch.Tensor, ctx: None) -> torch.Tensor:
-        return self._enc_to_repr(enc)
+        return self.enc_to_repr(enc)
 
     def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
-        return self._enc_to_repr(enc), None
+        return self.enc_to_repr(enc), None
 
     def calculate_score(
         self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
@@ -35,26 +32,24 @@ class GramLoss(EncodingComparisonOperator):
     def __init__(
         self,
         encoder: Encoder,
-        layer: str,
         normalize: bool = True,
         score_weight: float = 1.0,
     ) -> None:
-        super().__init__(encoder, layer, score_weight=score_weight)
+        super().__init__(encoder, score_weight=score_weight)
         self.normalize = normalize  # FIXME: add to description
 
-    def _enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
+    def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         x = torch.flatten(enc, 2)
-        G = torch.bmm(x, x.transpose(1, 2))
+        gram_matrix = torch.bmm(x, x.transpose(1, 2))
         if self.normalize:
-            return G / x.size()[-1]
-        else:
-            return G
+            gram_matrix /= x.size()[-1]
+        return gram_matrix
 
     def input_enc_to_repr(self, enc: torch.Tensor, ctx: None) -> torch.Tensor:
-        return self._enc_to_repr(enc)
+        return self.enc_to_repr(enc)
 
     def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
-        return self._enc_to_repr(enc), None
+        return self.enc_to_repr(enc), None
 
     def calculate_score(
         self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
@@ -66,7 +61,6 @@ class MRFLoss(EncodingComparisonOperator):
     def __init__(
         self,
         encoder: Encoder,
-        layer: str,
         patch_size: Union[int, Sequence[int]],
         stride: Union[int, Sequence[int]] = 1,
         num_scale_steps: int = 0,
@@ -75,7 +69,7 @@ class MRFLoss(EncodingComparisonOperator):
         rotation_step_width: float = 10,
         score_weight: float = 1.0,
     ):
-        super().__init__(encoder, layer, score_weight=score_weight)
+        super().__init__(encoder, score_weight=score_weight)
         self.patch_size = to_2d_arg(patch_size)
         self.stride = to_2d_arg(stride)
         self.num_scale_steps = num_scale_steps

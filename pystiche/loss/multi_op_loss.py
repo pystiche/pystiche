@@ -2,7 +2,7 @@ from typing import Union, Tuple, Dict
 from collections import OrderedDict
 import torch
 import pystiche
-from pystiche.enc import Encoder
+from pystiche.enc import MultiLayerEncoder
 from pystiche.ops import Operator
 from .loss_dict import LossDict
 
@@ -29,7 +29,7 @@ class MultiOperatorLoss(pystiche.Module):
             for encoder in self._encoders:
                 encoder.trim()
 
-    def _collect_encoders(self) -> Tuple[Encoder, ...]:
+    def _collect_encoders(self) -> Tuple[MultiLayerEncoder, ...]:
         encoders = set()
         for op in self.modules():
             # FIXME: replace by isinstance(op, EncodingOp)

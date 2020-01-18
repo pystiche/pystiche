@@ -50,18 +50,15 @@ class PixelRegularizationOperator(Operator):
 
 
 class EncodingRegularizationOperator(PixelRegularizationOperator):
-    def __init__(self, encoder: Encoder, layer: str, score_weight: float = 1.0):
+    def __init__(self, encoder: Encoder, score_weight: float = 1.0):
         super().__init__(score_weight=score_weight)
         self.encoder = encoder
-        self.layer = layer
-
-    def image_to_enc(self, image):
-        return self.encoder(image, layers=(self.layer,))[0]
 
     def input_image_to_repr(
         self, image: torch.Tensor
     ) -> Union[torch.Tensor, pystiche.TensorStorage]:
-        return self.image_to_enc(image)
+        enc = self.encoder(image)
+        return self.input_enc_to_repr(enc)
 
     @abstractmethod
     def input_enc_to_repr(
@@ -125,20 +122,16 @@ class PixelComparisonOperator(Operator):
 
 
 class EncodingComparisonOperator(PixelComparisonOperator):
-    def __init__(self, encoder: Encoder, layer: str, score_weight: float = 1.0):
+    def __init__(self, encoder: Encoder, score_weight: float = 1.0):
         super().__init__(score_weight=score_weight)
         self.encoder = encoder
-        self.layer = layer
-
-    def image_to_enc(self, image):
-        return self.encoder(image, layers=(self.layer,))[0]
 
     def input_image_to_repr(
         self,
         image: torch.Tensor,
         ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ) -> Union[torch.Tensor, pystiche.TensorStorage]:
-        enc = self.image_to_enc(image)
+        enc = self.encoder(image)
         return self.input_enc_to_repr(enc, ctx)
 
     def target_image_to_repr(

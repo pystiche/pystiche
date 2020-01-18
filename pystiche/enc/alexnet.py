@@ -2,7 +2,7 @@ from collections import OrderedDict
 from torch.utils import model_zoo
 from torch import nn
 from torchvision.models import alexnet
-from .encoder import Encoder
+from .encoder import MultiLayerEncoder
 from .preprocessing import get_preprocessor
 
 
@@ -12,7 +12,7 @@ MODEL_URLS = {"torch": "https://download.pytorch.org/models/alexnet-owt-4df8aa71
 __all__ = ["alexnet_encoder"]
 
 
-class AlexNetEncoder(Encoder):
+class AlexNetEncoder(MultiLayerEncoder):
     def __init__(self, weights: str, preprocessing: bool, allow_inplace: bool):
         self.weights = weights
         self.preprocessing = preprocessing

@@ -8,18 +8,20 @@ from pystiche.ops import MSEEncodingLoss, GramLoss, MultiLayerEncodingComparison
 from pystiche.loss import MultiOperatorLoss
 
 # load the encoder used to create the feature maps for the NST
-encoder = vgg19_encoder()
+multi_layer_encoder = vgg19_encoder()
 
 # create the content loss
 content_layer = "relu_4_2"
+content_encoder = multi_layer_encoder.extract_single_layer_encoder(content_layer)
 content_weight = 1e0
-content_loss = MSEEncodingLoss(encoder, content_layer, score_weight=content_weight)
+content_loss = MSEEncodingLoss(content_encoder, score_weight=content_weight)
 
 # create the style loss
 style_layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
 style_weight = 1e4
 style_loss = MultiLayerEncodingComparisonOperator(
-    lambda layer, layer_weight: GramLoss(encoder, layer, score_weight=layer_weight),
+    GramLoss,
+    multi_layer_encoder,
     style_layers,
     score_weight=style_weight,
 )

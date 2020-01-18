@@ -2,7 +2,7 @@ from collections import OrderedDict
 from torch.utils import model_zoo
 from torch import nn
 import torchvision
-from .encoder import Encoder
+from .encoder import MultiLayerEncoder
 from .preprocessing import get_preprocessor
 
 MODELS = {
@@ -39,7 +39,7 @@ __all__ = [
 ]
 
 
-class VGGEncoder(Encoder):
+class VGGEncoder(MultiLayerEncoder):
     def __init__(self, arch: str, weights: str, internal_preprocessing, allow_inplace):
         self.arch = arch
         self.weights = weights

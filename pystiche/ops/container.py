@@ -1,6 +1,7 @@
 from typing import Union, Sequence, Callable
 from collections import OrderedDict
 import torch
+from pystiche.enc import Encoder, MultiLayerEncoder
 from .op import Operator, EncodingOperator, EncodingComparisonOperator
 
 
@@ -28,24 +29,23 @@ class CompundOperator(Operator):
 class MultiLayerEncodingOperator(CompundOperator):
     def __init__(
         self,
-        get_encoding_op: Callable[[str, float], EncodingOperator],
+        get_encoding_op: Callable[[Encoder, float], EncodingOperator],
+        multi_layer_encoder: MultiLayerEncoder,
         layers: Sequence[str],
         layer_weights: Union[str, Sequence[float]] = "mean",
         score_weight: float = 1.0,
     ):
-        ops = self._create_ops(get_encoding_op, layers, layer_weights)
+        layer_weights = self._parse_layer_weights(layer_weights, len(layers))
+
+        ops = []
+        for layer, layer_weight in zip(layers, layer_weights):
+            encoder = multi_layer_encoder.extract_single_layer_encoder(layer)
+            op = get_encoding_op(encoder, layer_weight)
+            ops.append(op)
         super().__init__(*ops, score_weight=score_weight)
 
-    def _create_ops(self, get_encoding_op, layers, layer_weights):
-        layer_weights = self._verify_layer_weights(layer_weights, layers)
-        return [
-            get_encoding_op(layer, layer_weight)
-            for layer, layer_weight in zip(layers, layer_weights)
-        ]
-
     @staticmethod
-    def _verify_layer_weights(layer_weights, layers):
-        num_layers = len(layers)
+    def _parse_layer_weights(layer_weights, num_layers):
         if isinstance(layer_weights, str):
             if layer_weights == "mean":
                 return [1.0 / num_layers] * num_layers

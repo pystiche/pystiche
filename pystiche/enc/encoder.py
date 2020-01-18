@@ -1,4 +1,6 @@
 from typing import Sequence, Tuple, Iterator, Union, Dict, Optional, Collection
+from abc import abstractmethod
+from collections import OrderedDict
 from copy import copy
 import torch
 from torch import nn
@@ -7,43 +9,65 @@ import pystiche
 from pystiche.typing import is_conv_module, is_pool_module
 from pystiche.misc import verify_str_arg
 
-__all__ = ["Encoder"]
+__all__ = ["Encoder", "SingleLayerEncoder", "MultiLayerEncoder"]
 
 
-class Encoder(nn.Sequential):
+class Encoder(pystiche.Module):
+    @abstractmethod
+    def forward(self, input_image: torch.Tensor) -> torch.Tensor:
+        pass
+
+    @abstractmethod
+    def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
+        pass
+
+
+class SingleLayerEncoder(Encoder):
+    def __init__(self, multi_layer_encoder: "MultiLayerEncoder", layer : str):
+        super().__init__()
+        self._multi_layer_encoder = multi_layer_encoder
+        self.layer = layer
+
+    def forward(self, input_image: torch.Tensor) -> torch.Tensor:
+        return self._multi_layer_encoder(input_image, layers=(self.layer,))
+
+    def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
+        pass
+
+
+class MultiLayerEncoder(pystiche.Module):
     def __init__(self, *args: Union[nn.Module, Dict[str, nn.Module]]) -> None:
-        super().__init__(*args)
-        self.layers = set()
+        super().__init__()
+        if len(args) == 1 and isinstance(args[0], OrderedDict):
+            for key, module in args[0].items():
+                self.add_module(key, module)
+        else:
+            for idx, module in enumerate(args):
+                self.add_module(str(idx), module)
+
+        self._registered_layers = set()
         self._storage = {}
 
         self.requires_grad_(False)
         self.eval()
 
-    def register_layer(self, layer: str):
-        self.layers.add(layer)
+    def extract_single_layer_encoder(self, layer: str) -> SingleLayerEncoder:
+        self._registered_layers.add(layer)
+        return SingleLayerEncoder(self, layer)
 
-    def __contains__(self, name: str) -> bool:
-        return name in self.children_names()
+    def encode(self, image: torch.Tensor):
+        if not self._registered_layers:
+            return
+
+        encs = self(image, layers=self._registered_layers, store=True)
+        self._storage = dict(zip(self._registered_layers, encs))
 
     def clear_storage(self):
         self._storage = {}
 
-    def encode(self, image: torch.Tensor):
-        # # this is only here to not run into the backward second time error
-        # self._storage = {}
-
-        if not self.layers:
-            return
-
-        encs = self(image, layers=self.layers, store=True)
-        self._storage = dict(zip(self.layers, encs))
-
     def forward(
-        self, x: torch.Tensor, layers: Optional[Sequence[str]] = None, store=False
+        self, x: torch.Tensor, layers: Sequence[str] = None, store=False
     ) -> Tuple[torch.Tensor, ...]:
-        if layers is None:
-            layers = self.layers
-
         storage = copy(self._storage)
         diff_layers = set(layers) - set(storage.keys())
         for name, module in self._required_named_children(diff_layers):
@@ -56,7 +80,7 @@ class Encoder(nn.Sequential):
 
     def trim(self, layers: Optional[Collection[str]] = None):
         if layers is None:
-            layers = self.layers
+            layers = self._registered_layers
         last_module_name = self._find_last_required_children_name(layers)
         idx = list(self.children_names()).index(last_module_name)
         del self[idx + 1 :]
@@ -64,6 +88,9 @@ class Encoder(nn.Sequential):
     def children_names(self) -> Iterator[str]:
         for name, child in self.named_children():
             yield name
+
+    def __contains__(self, name: str) -> bool:
+        return name in self.children_names()
 
     def _verify_layer(self, layer: str) -> None:
         if layer not in self:
@@ -114,3 +141,5 @@ class Encoder(nn.Sequential):
     #         guides_dct[name] = guide
     #
     #     return tuple([guides_dct[name] for name in layers])
+
+
