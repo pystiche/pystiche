@@ -48,4 +48,9 @@ class MultiOperatorLoss(pystiche.Module):
         for encoder in self._encoders:
             encoder.encode(input_image)
 
-        return LossDict([(name, op(input_image)) for name, op in self.named_children()])
+        loss = LossDict([(name, op(input_image)) for name, op in self.named_children()])
+
+        for encoder in self._encoders:
+            encoder.clear_storage()
+
+        return loss

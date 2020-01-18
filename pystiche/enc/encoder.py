@@ -25,9 +25,12 @@ class Encoder(nn.Sequential):
     def __contains__(self, name: str) -> bool:
         return name in self.children_names()
 
-    def encode(self, image: torch.Tensor):
-        # this is only here to not run into the backward second time error
+    def clear_storage(self):
         self._storage = {}
+
+    def encode(self, image: torch.Tensor):
+        # # this is only here to not run into the backward second time error
+        # self._storage = {}
 
         if not self.layers:
             return

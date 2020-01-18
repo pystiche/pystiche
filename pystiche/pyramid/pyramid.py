@@ -1,39 +1,62 @@
-from typing import Union, Optional, Sequence
+from typing import Union, Optional, Tuple, Sequence, Collection, Iterator
 from collections import OrderedDict
+import itertools
 import numpy as np
 import torch
 from torch import nn
 import pystiche
 from pystiche.misc import zip_equal
+from pystiche.ops import (
+    Operator,
+    ComparisonOperator,
+    PixelComparisonOperator,
+    EncodingComparisonOperator,
+)
 from .level import PyramidLevel
 
 
 __all__ = ["ImagePyramid", "OctaveImagePyramid"]
 
 
-class ImagePyramid(pystiche.Object):
+class ImageStorage:
+    def __init__(self, ops):
+        self.target_images = {}
+        self.input_guides = {}
+        self.target_guides = {}
+        for op in ops:
+            if isinstance(op, (PixelComparisonOperator, EncodingComparisonOperator)):
+                self.target_images[op] = op.target_image
+
+    def restore(self):
+        for op, target_image in self.target_images.items():
+            op.set_target_image(target_image)
+
+
+class ImagePyramid:
     def __init__(
         self,
         edge_sizes: Sequence[int],
         num_steps: Union[Sequence[int], int],
-        edges: Union[Sequence[str], str] = "short",
+        edge: Union[Sequence[str], str] = "short",
         interpolation_mode: str = "bilinear",
-        resize_targets: Optional[Sequence[pystiche.StateObject]] = None,
+        resize_targets: Optional[Collection[Operator]] = None,
     ):
         num_levels = len(edge_sizes)
         if isinstance(num_steps, int):
             num_steps = [num_steps] * num_levels
-        if isinstance(edges, str):
-            edges = [edges] * num_levels
+        if isinstance(edge, str):
+            edge = [edge] * num_levels
 
         self._levels = [
-            PyramidLevel(
-                edge_size, num_steps_, edge, interpolation_mode=interpolation_mode
-            )
-            for edge_size, num_steps_, edge in zip_equal(edge_sizes, num_steps, edges)
+            PyramidLevel(edge_size, num_steps_, edge_)
+            for edge_size, num_steps_, edge_ in zip_equal(edge_sizes, num_steps, edge)
         ]
 
-        self.resize_targets = resize_targets
+        self.interpolation_mode = interpolation_mode
+        self._resize_targets = set(resize_targets)
+
+    def add_resize_target(self, op: Operator):
+        self._resize_targets.add(op)
 
     def __len__(self):
         return len(self._levels)
@@ -42,42 +65,29 @@ class ImagePyramid(pystiche.Object):
         return self._levels[idx]
 
     def __iter__(self):
-        state_dicts = self._extract_states()
+        image_storage = ImageStorage(self._resize_ops())
         for level in self._levels:
-            self._resize(level)
-            yield level
-            self._restore_states(state_dicts)
-
-    def _extract_states(self):
-        states = OrderedDict()
-        if self.resize_targets is None:
-            return states
-
-        for obj in set(self.resize_targets):
-            if isinstance(obj, torch.Tensor):
-                # FIXME
-                state = None
-            elif isinstance(obj, (nn.Module, pystiche.StateObject)):
-                state = obj.state_dict()
-            else:
-                state = None
-
-            states[obj] = state
-        return states
-
-    def _restore_states(self, states):
-        for obj, state in states.items():
-            if state is None:
-                continue
-
-            if isinstance(obj, torch.Tensor):
-                # FIXME
-                pass
-            else:  # FIXME
-                obj.load_state_dict(state)
+            try:
+                self._resize(level)
+                yield level
+            finally:
+                image_storage.restore()
 
     def _resize(self, level: PyramidLevel):
-        pass
+        for op in self._resize_ops():
+            if isinstance(op, (PixelComparisonOperator, EncodingComparisonOperator)):
+                resized_image = level.resize_image(
+                    op.target_image, interpolation_mode=self.interpolation_mode
+                )
+                op.set_target_image(resized_image)
+
+    def _resize_ops(self) -> Iterator[Operator]:
+        modules = itertools.chain(
+            *[target.modules() for target in self._resize_targets]
+        )
+        ops = set([op for op in modules if isinstance(op, Operator)])
+        for op in ops:
+            yield op
 
 
 class OctaveImagePyramid(ImagePyramid):

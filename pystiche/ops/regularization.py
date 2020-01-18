@@ -1,11 +1,11 @@
 import torch
-from .op import RegularizationOperator
+from .op import PixelRegularizationOperator
 from pystiche import functional as F
 
-__all__ = ["TotalVariationRegularizationOperator", "ValueRangeRegularizationOperator"]
+__all__ = ["TotalVariationLoss", "ValueRangeLoss"]
 
 
-class TotalVariationRegularizationOperator(RegularizationOperator):
+class TotalVariationLoss(PixelRegularizationOperator):
     def __init__(self, exponent: float = 2.0, score_weight: float = 1.0):
         super().__init__(score_weight=score_weight)
         self.exponent = exponent
@@ -22,7 +22,7 @@ class TotalVariationRegularizationOperator(RegularizationOperator):
     #     return dct
 
 
-class ValueRangeRegularizationOperator(RegularizationOperator):
+class ValueRangeLoss(PixelRegularizationOperator):
     def input_image_to_repr(self, image: torch.Tensor) -> torch.Tensor:
         return image
 

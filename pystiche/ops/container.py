@@ -1,7 +1,7 @@
 from typing import Union, Sequence, Callable
 from collections import OrderedDict
 import torch
-from .op import Operator, EncodingRegularizationOperator, EncodingComparisonOperator
+from .op import Operator, EncodingOperator, EncodingComparisonOperator
 
 
 __all__ = [
@@ -28,10 +28,7 @@ class CompundOperator(Operator):
 class MultiLayerEncodingOperator(CompundOperator):
     def __init__(
         self,
-        get_encoding_op: Callable[
-            [str, float],
-            Union[EncodingRegularizationOperator, EncodingComparisonOperator],
-        ],
+        get_encoding_op: Callable[[str, float], EncodingOperator],
         layers: Sequence[str],
         layer_weights: Union[str, Sequence[float]] = "mean",
         score_weight: float = 1.0,

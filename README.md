@@ -24,8 +24,8 @@ from torch import optim
 from pystiche.image import read_image, write_image
 from pystiche.enc import vgg19_encoder
 from pystiche.ops import (
-    DirectEncodingComparisonOperator,
-    GramEncodingComparisonOperator,
+    MSEEncodingLoss,
+    GramLoss,
 )
 from pystiche.loss import MultiOperatorLoss, MultiOperatorEncoder
 
@@ -55,7 +55,7 @@ encoder = MultiOperatorEncoder(encoder)
 name = "Content loss"
 layers = ("relu_4_2",)
 score_weight = 1e0
-content_operator = DirectEncodingComparisonOperator(
+content_operator = MSEEncodingLoss(
     encoder, layers, name=name, score_weight=score_weight
 )
 
@@ -104,8 +104,8 @@ from torch import optim
 from pystiche.image import read_image, write_image
 from pystiche.enc import vgg19_encoder
 from pystiche.ops import (
-    DirectEncodingComparisonOperator,
-    GramEncodingComparisonOperator,
+    MSEEncodingLoss,
+    GramLoss,
 )
 from pystiche.loss import MultiOperatorLoss, MultiOperatorEncoder
 from pystiche.pyramid import ImagePyramid
@@ -136,7 +136,7 @@ encoder = MultiOperatorEncoder(encoder)
 name = "Content loss"
 layers = ("relu_4_2",)
 score_weight = 1e0
-content_operator = DirectEncodingComparisonOperator(
+content_operator = MSEEncodingLoss(
     encoder, layers, name=name, score_weight=score_weight
 )
 

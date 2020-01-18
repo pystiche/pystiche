@@ -9,14 +9,10 @@ from pystiche.enc import Encoder
 from pystiche import functional as F
 from .op import EncodingComparisonOperator
 
-__all__ = [
-    "DirectEncodingComparisonOperator",
-    "GramEncodingComparisonOperator",
-    "PatchEncodingComparisonOperator",
-]
+__all__ = ["MSEEncodingLoss", "GramLoss", "MRFLoss"]
 
 
-class DirectEncodingComparisonOperator(EncodingComparisonOperator):
+class MSEEncodingLoss(EncodingComparisonOperator):
     def image_to_enc(self, *args, **kwargs):
         return super().image_to_enc(*args, **kwargs)
 
@@ -35,7 +31,7 @@ class DirectEncodingComparisonOperator(EncodingComparisonOperator):
         return F.mse_loss(input_repr, target_repr)
 
 
-class GramEncodingComparisonOperator(EncodingComparisonOperator):
+class GramLoss(EncodingComparisonOperator):
     def __init__(
         self,
         encoder: Encoder,
@@ -66,7 +62,7 @@ class GramEncodingComparisonOperator(EncodingComparisonOperator):
         return F.mse_loss(input_repr, target_repr)
 
 
-class PatchEncodingComparisonOperator(EncodingComparisonOperator):
+class MRFLoss(EncodingComparisonOperator):
     def __init__(
         self,
         encoder: Encoder,

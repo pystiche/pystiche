@@ -4,11 +4,7 @@ import torch
 from torch import optim
 from pystiche.image import read_image, write_image
 from pystiche.enc import vgg19_encoder
-from pystiche.ops import (
-    DirectEncodingComparisonOperator,
-    GramEncodingComparisonOperator,
-    MultiLayerEncodingComparisonOperator,
-)
+from pystiche.ops import MSEEncodingLoss, GramLoss, MultiLayerEncodingComparisonOperator
 from pystiche.loss import MultiOperatorLoss
 
 # load the encoder used to create the feature maps for the NST
@@ -17,17 +13,13 @@ encoder = vgg19_encoder()
 # create the content loss
 content_layer = "relu_4_2"
 content_weight = 1e0
-content_loss = DirectEncodingComparisonOperator(
-    encoder, content_layer, score_weight=content_weight
-)
+content_loss = MSEEncodingLoss(encoder, content_layer, score_weight=content_weight)
 
 # create the style loss
 style_layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
 style_weight = 1e4
 style_loss = MultiLayerEncodingComparisonOperator(
-    lambda layer, layer_weight: GramEncodingComparisonOperator(
-        encoder, layer, score_weight=layer_weight
-    ),
+    lambda layer, layer_weight: GramLoss(encoder, layer, score_weight=layer_weight),
     style_layers,
     score_weight=style_weight,
 )
@@ -44,9 +36,9 @@ criterion = criterion.to(device)
 # adapt these paths to fit your use case
 # you can find a download script for some frequently used images in
 # $PYSTICHE_PROJECT_ROOT/images
-content_file = path.expanduser(path.join("milky_way_over_lake_alberta.jpg"))
-style_file = path.expanduser(path.join("starry_night.jpg"))
-output_file = "pystiche_demo.jpg"
+content_file = path.expanduser(path.join("../milky_way_over_lake_alberta.jpg"))
+style_file = path.expanduser(path.join("../starry_night.jpg"))
+output_file = "../pystiche_demo.jpg"
 
 # load the content and style images and transfer them to the selected device
 # the images are resized, since the stylization is memory intensive
@@ -76,7 +68,7 @@ for step in range(num_steps):
         loss.backward()
 
         if step % 20 == 0:
-            print(loss["content_loss"], loss["style_loss"])
+            print(loss["content_loss"].item(), loss["style_loss"].item())
 
         return loss
 

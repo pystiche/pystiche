@@ -8,8 +8,12 @@ from pystiche.enc import Encoder
 __all__ = [
     "Operator",
     "RegularizationOperator",
-    "EncodingRegularizationOperator",
     "ComparisonOperator",
+    "PixelOperator",
+    "EncodingOperator",
+    "PixelRegularizationOperator",
+    "EncodingRegularizationOperator",
+    "PixelComparisonOperator",
     "EncodingComparisonOperator",
 ]
 
@@ -27,7 +31,7 @@ class Operator(pystiche.Module):
         pass
 
 
-class RegularizationOperator(Operator):
+class PixelRegularizationOperator(Operator):
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         input_repr = self.input_image_to_repr(image)
         return self.calculate_score(input_repr)
@@ -45,7 +49,7 @@ class RegularizationOperator(Operator):
         pass
 
 
-class EncodingRegularizationOperator(RegularizationOperator):
+class EncodingRegularizationOperator(PixelRegularizationOperator):
     def __init__(self, encoder: Encoder, layer: str, score_weight: float = 1.0):
         super().__init__(score_weight=score_weight)
         self.encoder = encoder
@@ -72,7 +76,7 @@ class EncodingRegularizationOperator(RegularizationOperator):
         pass
 
 
-class ComparisonOperator(Operator):
+class PixelComparisonOperator(Operator):
     def set_target_image(self, image: torch.Tensor):
         with torch.no_grad():
             repr, ctx = self.target_image_to_repr(image)
@@ -120,7 +124,7 @@ class ComparisonOperator(Operator):
         pass
 
 
-class EncodingComparisonOperator(ComparisonOperator):
+class EncodingComparisonOperator(PixelComparisonOperator):
     def __init__(self, encoder: Encoder, layer: str, score_weight: float = 1.0):
         super().__init__(score_weight=score_weight)
         self.encoder = encoder
@@ -171,3 +175,11 @@ class EncodingComparisonOperator(ComparisonOperator):
         ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ) -> torch.Tensor:
         pass
+
+
+RegularizationOperator = Union[
+    PixelRegularizationOperator, EncodingRegularizationOperator
+]
+ComparisonOperator = Union[PixelComparisonOperator, EncodingRegularizationOperator]
+PixelOperator = Union[PixelRegularizationOperator, PixelComparisonOperator]
+EncodingOperator = Union[EncodingRegularizationOperator, EncodingComparisonOperator]
