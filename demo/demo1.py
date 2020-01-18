@@ -44,8 +44,8 @@ criterion = criterion.to(device)
 # adapt these paths to fit your use case
 # you can find a download script for some frequently used images in
 # $PYSTICHE_PROJECT_ROOT/images
-content_file = path.expanduser(path.join("~", "Pictures", "portrait.jpg"))
-style_file = path.expanduser(path.join("~", "Pictures", "style.png"))
+content_file = path.expanduser(path.join("milky_way_over_lake_alberta.jpg"))
+style_file = path.expanduser(path.join("starry_night.jpg"))
 output_file = "pystiche_demo.jpg"
 
 # load the content and style images and transfer them to the selected device
@@ -76,7 +76,7 @@ for step in range(num_steps):
         loss.backward()
 
         if step % 20 == 0:
-            print(loss)
+            print(loss["content_loss"], loss["style_loss"])
 
         return loss
 
