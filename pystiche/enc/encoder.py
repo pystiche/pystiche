@@ -23,7 +23,7 @@ class Encoder(pystiche.Module):
 
 
 class SingleLayerEncoder(Encoder):
-    def __init__(self, multi_layer_encoder: "MultiLayerEncoder", layer : str):
+    def __init__(self, multi_layer_encoder: "MultiLayerEncoder", layer: str):
         super().__init__()
         self._multi_layer_encoder = multi_layer_encoder
         self.layer = layer
@@ -141,5 +141,3 @@ class MultiLayerEncoder(pystiche.Module):
     #         guides_dct[name] = guide
     #
     #     return tuple([guides_dct[name] for name in layers])
-
-
