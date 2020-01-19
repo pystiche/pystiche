@@ -20,12 +20,13 @@ content_loss = MSEEncodingLoss(content_encoder, score_weight=content_weight)
 style_layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
 style_weight = 1e4
 style_loss = MultiLayerEncodingComparisonOperator(
-    GramLoss, multi_layer_encoder, style_layers, score_weight=style_weight,
+    GramLoss, multi_layer_encoder, style_layers, score_weight=style_weight
 )
 
 # combine the content and style loss into the optimization criterion
 criterion = MultiOperatorLoss(
-    OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)])
+    OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)]),
+    trim=False,
 )
 
 # make this demo device-agnostic
@@ -35,9 +36,9 @@ criterion = criterion.to(device)
 # adapt these paths to fit your use case
 # you can find a download script for some frequently used images in
 # $PYSTICHE_PROJECT_ROOT/images
-content_file = path.expanduser(path.join("../milky_way_over_lake_alberta.jpg"))
-style_file = path.expanduser(path.join("../starry_night.jpg"))
-output_file = "../pystiche_demo.jpg"
+content_file = path.expanduser(path.join("milky_way_over_lake_alberta.jpg"))
+style_file = path.expanduser(path.join("starry_night.jpg"))
+output_file = "pystiche_demo.jpg"
 
 # load the content and style images and transfer them to the selected device
 # the images are resized, since the stylization is memory intensive

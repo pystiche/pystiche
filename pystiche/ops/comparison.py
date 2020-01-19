@@ -30,7 +30,7 @@ class MSEEncodingLoss(EncodingComparisonOperator):
 
 class GramLoss(EncodingComparisonOperator):
     def __init__(
-        self, encoder: Encoder, normalize: bool = True, score_weight: float = 1.0,
+        self, encoder: Encoder, normalize: bool = True, score_weight: float = 1.0
     ) -> None:
         super().__init__(encoder, score_weight=score_weight)
         self.normalize = normalize  # FIXME: add to description

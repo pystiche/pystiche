@@ -140,7 +140,7 @@ class EncodingComparisonOperator(PixelComparisonOperator):
         Union[torch.Tensor, pystiche.TensorStorage],
         Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ]:
-        enc = self.image_to_enc(image)
+        enc = self.encoder(image)
         return self.target_enc_to_repr(enc)
 
     @abstractmethod

@@ -29,7 +29,7 @@ class SingleLayerEncoder(Encoder):
         self.layer = layer
 
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
-        return self._multi_layer_encoder(input_image, layers=(self.layer,))
+        return self._multi_layer_encoder(input_image, layers=(self.layer,))[0]
 
     def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
         pass
@@ -66,7 +66,7 @@ class MultiLayerEncoder(pystiche.Module):
         self._storage = {}
 
     def forward(
-        self, x: torch.Tensor, layers: Sequence[str] = None, store=False
+        self, x: torch.Tensor, layers: Sequence[str], store=False
     ) -> Tuple[torch.Tensor, ...]:
         storage = copy(self._storage)
         diff_layers = set(layers) - set(storage.keys())
