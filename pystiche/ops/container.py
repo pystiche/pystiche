@@ -36,12 +36,10 @@ class MultiLayerEncodingOperator(CompundOperator):
         score_weight: float = 1.0,
     ):
         layer_weights = self._parse_layer_weights(layer_weights, len(layers))
-
-        ops = []
-        for layer, layer_weight in zip(layers, layer_weights):
-            encoder = multi_layer_encoder.extract_single_layer_encoder(layer)
-            op = get_encoding_op(encoder, layer_weight)
-            ops.append(op)
+        ops = [
+            get_encoding_op(multi_layer_encoder[layer], layer_weight)
+            for layer, layer_weight in zip(layers, layer_weights)
+        ]
         super().__init__(*ops, score_weight=score_weight)
 
     @staticmethod

@@ -13,7 +13,7 @@ multi_layer_encoder = vgg19_encoder()
 
 # create the content loss
 content_layer = "relu_4_2"
-content_encoder = multi_layer_encoder.extract_single_layer_encoder(content_layer)
+content_encoder = multi_layer_encoder[content_layer]
 content_weight = 1e0
 content_loss = MSEEncodingLoss(content_encoder, score_weight=content_weight)
 
@@ -27,7 +27,6 @@ style_loss = MultiLayerEncodingComparisonOperator(
 # combine the content and style loss into the optimization criterion
 criterion = MultiOperatorLoss(
     OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)]),
-    trim=False,
 )
 
 # make this demo device-agnostic
