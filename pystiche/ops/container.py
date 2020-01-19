@@ -8,7 +8,6 @@ from .op import Operator, EncodingOperator, EncodingComparisonOperator
 __all__ = [
     "CompundOperator",
     "MultiLayerEncodingOperator",
-    "MultiLayerEncodingComparisonOperator",
 ]
 
 
@@ -56,10 +55,6 @@ class MultiLayerEncodingOperator(CompundOperator):
                 return layer_weights
 
             raise ValueError
-
-
-class MultiLayerEncodingComparisonOperator(MultiLayerEncodingOperator):
-    # FIXME: override the type annotations for __init__()
 
     def set_target_image(self, image: torch.Tensor):
         for op in self.children():
