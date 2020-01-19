@@ -1,6 +1,5 @@
 from typing import Optional
 import torch
-import pystiche
 from pystiche.misc import verify_str_arg
 from pystiche.image.transforms import FixedAspectRatioResize
 

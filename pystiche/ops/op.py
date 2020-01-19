@@ -1,6 +1,5 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Union, Optional, Tuple
-
 import torch
 import pystiche
 from pystiche.enc import Encoder
@@ -18,7 +17,7 @@ __all__ = [
 ]
 
 
-class Operator(pystiche.Module):
+class Operator(ABC, pystiche.Module):
     def __init__(self, score_weight: float = 1.0) -> None:
         super().__init__()
         self.score_weight = score_weight
@@ -31,7 +30,31 @@ class Operator(pystiche.Module):
         pass
 
 
-class PixelRegularizationOperator(Operator):
+class RegularizationOperator(Operator):
+    @abstractmethod
+    def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
+        pass
+
+
+class ComparisonOperator(Operator):
+    @abstractmethod
+    def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
+        pass
+
+
+class PixelOperator(Operator):
+    @abstractmethod
+    def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
+        pass
+
+
+class EncodingOperator(Operator):
+    @abstractmethod
+    def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
+        pass
+
+
+class PixelRegularizationOperator(PixelOperator, RegularizationOperator):
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         input_repr = self.input_image_to_repr(image)
         return self.calculate_score(input_repr)
@@ -49,10 +72,14 @@ class PixelRegularizationOperator(Operator):
         pass
 
 
-class EncodingRegularizationOperator(PixelRegularizationOperator):
+class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
         super().__init__(score_weight=score_weight)
         self.encoder = encoder
+
+    def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
+        input_repr = self.input_image_to_repr(image)
+        return self.calculate_score(input_repr)
 
     def input_image_to_repr(
         self, image: torch.Tensor
@@ -73,7 +100,7 @@ class EncodingRegularizationOperator(PixelRegularizationOperator):
         pass
 
 
-class PixelComparisonOperator(Operator):
+class PixelComparisonOperator(PixelOperator, ComparisonOperator):
     def set_target_image(self, image: torch.Tensor):
         with torch.no_grad():
             repr, ctx = self.target_image_to_repr(image)
@@ -121,10 +148,30 @@ class PixelComparisonOperator(Operator):
         pass
 
 
-class EncodingComparisonOperator(PixelComparisonOperator):
+class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
         super().__init__(score_weight=score_weight)
         self.encoder = encoder
+
+    def set_target_image(self, image: torch.Tensor):
+        with torch.no_grad():
+            repr, ctx = self.target_image_to_repr(image)
+        self.register_buffer("target_image", image)
+        self.register_buffer("target_repr", repr)
+        self.register_buffer("ctx", ctx)
+
+    @property
+    def has_target_image(self) -> bool:
+        return self.target_image is not None
+
+    def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
+        if not self.has_target_image:
+            # TODO: message
+            raise RuntimeError
+
+        target_repr, ctx = self.target_repr, self.ctx
+        input_repr = self.input_image_to_repr(image, ctx)
+        return self.calculate_score(input_repr, target_repr, ctx)
 
     def input_image_to_repr(
         self,
@@ -168,11 +215,3 @@ class EncodingComparisonOperator(PixelComparisonOperator):
         ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ) -> torch.Tensor:
         pass
-
-
-RegularizationOperator = Union[
-    PixelRegularizationOperator, EncodingRegularizationOperator
-]
-ComparisonOperator = Union[PixelComparisonOperator, EncodingRegularizationOperator]
-PixelOperator = Union[PixelRegularizationOperator, PixelComparisonOperator]
-EncodingOperator = Union[EncodingRegularizationOperator, EncodingComparisonOperator]

@@ -1,16 +1,10 @@
-from typing import Union, Optional, Tuple, Sequence, Collection, Iterator
-from collections import OrderedDict
+from typing import Union, Optional, Sequence, Collection, Iterator
 import itertools
 import numpy as np
-import torch
-from torch import nn
-import pystiche
 from pystiche.misc import zip_equal
 from pystiche.ops import (
     Operator,
     ComparisonOperator,
-    PixelComparisonOperator,
-    EncodingComparisonOperator,
 )
 from .level import PyramidLevel
 
@@ -24,7 +18,7 @@ class ImageStorage:
         self.input_guides = {}
         self.target_guides = {}
         for op in ops:
-            if isinstance(op, (PixelComparisonOperator, EncodingComparisonOperator)):
+            if isinstance(op, ComparisonOperator):
                 self.target_images[op] = op.target_image
 
     def restore(self):
@@ -75,7 +69,7 @@ class ImagePyramid:
 
     def _resize(self, level: PyramidLevel):
         for op in self._resize_ops():
-            if isinstance(op, (PixelComparisonOperator, EncodingComparisonOperator)):
+            if isinstance(op, ComparisonOperator):
                 resized_image = level.resize_image(
                     op.target_image, interpolation_mode=self.interpolation_mode
                 )

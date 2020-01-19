@@ -6,8 +6,6 @@ from pystiche.enc import SingleLayerEncoder, MultiLayerEncoder
 from pystiche.ops import (
     Operator,
     EncodingOperator,
-    EncodingRegularizationOperator,
-    EncodingComparisonOperator,
 )
 from .loss_dict import LossDict
 
@@ -36,9 +34,7 @@ class MultiOperatorLoss(pystiche.Module):
     def _collect_multi_layer_encoders(self) -> Tuple[MultiLayerEncoder, ...]:
         def encoding_ops() -> Iterator[EncodingOperator]:
             for module in self.modules():
-                if isinstance(
-                    module, (EncodingRegularizationOperator, EncodingComparisonOperator)
-                ):
+                if isinstance(module, EncodingOperator):
                     yield module
 
         multi_layer_encoders = set()
