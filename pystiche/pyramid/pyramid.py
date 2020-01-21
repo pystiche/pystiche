@@ -2,28 +2,12 @@ from typing import Union, Optional, Sequence, Collection, Iterator
 import itertools
 import numpy as np
 from pystiche.misc import zip_equal
-from pystiche.ops import (
-    Operator,
-    ComparisonOperator,
-)
+from pystiche.ops import Operator, ComparisonOperator, Guidance, ComparisonGuidance
 from .level import PyramidLevel
+from .storage import ImageStorage
 
 
 __all__ = ["ImagePyramid", "OctaveImagePyramid"]
-
-
-class ImageStorage:
-    def __init__(self, ops):
-        self.target_images = {}
-        self.input_guides = {}
-        self.target_guides = {}
-        for op in ops:
-            if isinstance(op, ComparisonOperator):
-                self.target_images[op] = op.target_image
-
-    def restore(self):
-        for op, target_image in self.target_images.items():
-            op.set_target_image(target_image)
 
 
 class ImagePyramid:
@@ -69,19 +53,27 @@ class ImagePyramid:
 
     def _resize(self, level: PyramidLevel):
         for op in self._resize_ops():
-            if isinstance(op, ComparisonOperator):
+            if isinstance(op, ComparisonGuidance) and op.has_target_guide:
+                resized_guide = level.resize_guide(op.target_guide)
+                op.set_target_guide(resized_guide, recalc_repr=False)
+
+            if isinstance(op, ComparisonOperator) and op.has_target_image:
                 resized_image = level.resize_image(
                     op.target_image, interpolation_mode=self.interpolation_mode
                 )
                 op.set_target_image(resized_image)
 
+            if isinstance(op, Guidance) and op.has_input_guide:
+                resized_guide = level.resize_guide(op.input_guide)
+                op.set_input_guide(resized_guide)
+
     def _resize_ops(self) -> Iterator[Operator]:
-        modules = itertools.chain(
-            *[target.modules() for target in self._resize_targets]
+        unique_modules = set(
+            itertools.chain(*[target.modules() for target in self._resize_targets])
         )
-        ops = set([op for op in modules if isinstance(op, Operator)])
-        for op in ops:
-            yield op
+        for module in unique_modules:
+            if isinstance(module, Operator):
+                yield module
 
 
 class OctaveImagePyramid(ImagePyramid):

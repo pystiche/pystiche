@@ -110,7 +110,16 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
 
     @property
     def has_target_image(self) -> bool:
-        return self.target_image is not None
+        return "target_image" in self._buffers
+
+    @abstractmethod
+    def target_image_to_repr(
+        self, image: torch.Tensor
+    ) -> Tuple[
+        Union[torch.Tensor, pystiche.TensorStorage],
+        Optional[Union[torch.Tensor, pystiche.TensorStorage]],
+    ]:
+        pass
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if not self.has_target_image:
@@ -127,15 +136,6 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
         image: torch.Tensor,
         ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ) -> Union[torch.Tensor, pystiche.TensorStorage]:
-        pass
-
-    @abstractmethod
-    def target_image_to_repr(
-        self, image: torch.Tensor
-    ) -> Tuple[
-        Union[torch.Tensor, pystiche.TensorStorage],
-        Optional[Union[torch.Tensor, pystiche.TensorStorage]],
-    ]:
         pass
 
     @abstractmethod
@@ -162,7 +162,25 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
 
     @property
     def has_target_image(self) -> bool:
-        return self.target_image is not None
+        return "target_image" in self._buffers
+
+    def target_image_to_repr(
+        self, image: torch.Tensor
+    ) -> Tuple[
+        Union[torch.Tensor, pystiche.TensorStorage],
+        Optional[Union[torch.Tensor, pystiche.TensorStorage]],
+    ]:
+        enc = self.encoder(image)
+        return self.target_enc_to_repr(enc)
+
+    @abstractmethod
+    def target_enc_to_repr(
+        self, enc: torch.Tensor
+    ) -> Tuple[
+        Union[torch.Tensor, pystiche.TensorStorage],
+        Optional[Union[torch.Tensor, pystiche.TensorStorage]],
+    ]:
+        pass
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if not self.has_target_image:
@@ -181,30 +199,12 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
         enc = self.encoder(image)
         return self.input_enc_to_repr(enc, ctx)
 
-    def target_image_to_repr(
-        self, image: torch.Tensor
-    ) -> Tuple[
-        Union[torch.Tensor, pystiche.TensorStorage],
-        Optional[Union[torch.Tensor, pystiche.TensorStorage]],
-    ]:
-        enc = self.encoder(image)
-        return self.target_enc_to_repr(enc)
-
     @abstractmethod
     def input_enc_to_repr(
         self,
         enc: torch.Tensor,
         ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ) -> Union[torch.Tensor, pystiche.TensorStorage]:
-        pass
-
-    @abstractmethod
-    def target_enc_to_repr(
-        self, enc: torch.Tensor
-    ) -> Tuple[
-        Union[torch.Tensor, pystiche.TensorStorage],
-        Optional[Union[torch.Tensor, pystiche.TensorStorage]],
-    ]:
         pass
 
     @abstractmethod

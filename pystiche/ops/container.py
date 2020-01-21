@@ -2,13 +2,11 @@ from typing import Union, Sequence, Callable
 from collections import OrderedDict
 import torch
 from pystiche.enc import Encoder, MultiLayerEncoder
-from .op import Operator, EncodingOperator, EncodingComparisonOperator
+from .op import Operator, EncodingOperator, ComparisonOperator
+from .guidance import Guidance, ComparisonGuidance
 
 
-__all__ = [
-    "CompundOperator",
-    "MultiLayerEncodingOperator",
-]
+__all__ = ["CompundOperator", "MultiLayerEncodingOperator"]
 
 
 class CompundOperator(Operator):
@@ -56,7 +54,17 @@ class MultiLayerEncodingOperator(CompundOperator):
 
             raise ValueError
 
+    def set_target_guide(self, image: torch.Tensor):
+        for op in self.children():
+            if isinstance(op, ComparisonGuidance):
+                op.set_target_guide(image)
+
     def set_target_image(self, image: torch.Tensor):
         for op in self.children():
-            if isinstance(op, EncodingComparisonOperator):
+            if isinstance(op, ComparisonOperator):
                 op.set_target_image(image)
+
+    def set_input_guide(self, image: torch.Tensor):
+        for op in self.children():
+            if isinstance(op, Guidance):
+                op.set_input_guide(image)

@@ -2,8 +2,8 @@ from collections import OrderedDict
 from torch.utils import model_zoo
 from torch import nn
 import torchvision
-from .encoder import MultiLayerEncoder
-from .preprocessing import get_preprocessor
+from ..encoder import MultiLayerEncoder
+from ..preprocessing import get_preprocessor
 
 MODELS = {
     name: vgg_net
@@ -51,8 +51,8 @@ class VGGEncoder(MultiLayerEncoder):
     def _collect_modules(self):
         base_model = MODELS[self.arch]()
         url = MODEL_URLS[(self.weights, self.arch)]
-        # state_dict = model_zoo.load_url(url)
-        # base_model.load_state_dict(state_dict)
+        state_dict = model_zoo.load_url(url)
+        base_model.load_state_dict(state_dict)
         model = base_model.features
 
         modules = OrderedDict()

@@ -26,7 +26,7 @@ style_loss = MultiLayerEncodingOperator(
 
 # combine the content and style loss into the optimization criterion
 criterion = MultiOperatorLoss(
-    OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)]),
+    OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)])
 )
 
 # make this demo device-agnostic
@@ -36,15 +36,20 @@ criterion = criterion.to(device)
 # adapt these paths to fit your use case
 # you can find a download script for some frequently used images in
 # $PYSTICHE_PROJECT_ROOT/images
-content_file = path.expanduser(path.join("milky_way_over_lake_alberta.jpg"))
-style_file = path.expanduser(path.join("starry_night.jpg"))
+images_root = path.expanduser(
+    path.join("~", "github", "pystiche_replication", "images", "source")
+)
+content_file = "house_concept_tillamook.jpg"
+style_file = "watertown.jpg"
 output_file = "pystiche_demo.jpg"
 
 # load the content and style images and transfer them to the selected device
 # the images are resized, since the stylization is memory intensive
 size = 500
-content_image = read_image(content_file, device=device, size=size)
-style_image = read_image(style_file, device=device, size=size)
+content_image = read_image(
+    path.join(images_root, content_file), device=device, size=size
+)
+style_image = read_image(path.join(images_root, style_file), device=device, size=size)
 
 # set the target images for the content and style loss
 content_loss.set_target_image(content_image)
@@ -68,7 +73,8 @@ for step in range(num_steps):
         loss.backward()
 
         if step % 20 == 0:
-            print(loss["content_loss"].item(), loss["style_loss"].item())
+            print(loss)
+            print("-" * 100)
 
         return loss
 

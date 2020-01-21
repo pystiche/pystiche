@@ -53,8 +53,17 @@ def normalize(x: torch.Tensor, mean: Numeric, std: Numeric) -> torch.Tensor:
 def resize(
     x: torch.Tensor, size: Sequence[int], interpolation_mode: str = "bilinear"
 ) -> torch.Tensor:
+    if interpolation_mode in ("nearest", "area"):
+        align_corners = None
+    else:
+        align_corners = False
+
     return interpolate(
-        x, size=size, scale_factor=None, mode=interpolation_mode, align_corners=False
+        x,
+        size=size,
+        scale_factor=None,
+        mode=interpolation_mode,
+        align_corners=align_corners,
     )
 
 

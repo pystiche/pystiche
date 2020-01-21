@@ -4,10 +4,8 @@ from collections import OrderedDict
 from copy import copy
 import torch
 from torch import nn
-import torch.nn.functional as F
 import pystiche
-from pystiche.typing import is_conv_module, is_pool_module
-from pystiche.misc import verify_str_arg
+from .guides import propagate_guide
 
 __all__ = ["Encoder", "SingleLayerEncoder", "MultiLayerEncoder"]
 
@@ -32,7 +30,7 @@ class SingleLayerEncoder(Encoder):
         return self._multi_layer_encoder(input_image, layers=(self.layer,))[0]
 
     def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
-        pass
+        return self._multi_layer_encoder.propagate_guide(guide, layers=(self.layer,))[0]
 
 
 class MultiLayerEncoder(pystiche.Module):
@@ -65,28 +63,32 @@ class MultiLayerEncoder(pystiche.Module):
     def shallowest_layer(self, layers: Collection[str]) -> str:
         for layer in layers:
             self._verify_layer(layer)
-        return sorted(set(layers), key=list(self.children_names()).index)[-1]
+        return sorted(set(layers), key=list(self.children_names()).index)[0]
 
     def deepest_layer(self, layers: Collection[str]) -> str:
         for layer in layers:
             self._verify_layer(layer)
-        return sorted(set(layers), key=list(self.children_names()).index)[0]
+        return sorted(set(layers), key=list(self.children_names()).index)[-1]
 
     def named_children_up_to(
         self, layer: Union[str, Collection[str]], include_last: bool = True
     ) -> Iterator[Tuple[str, pystiche.Module]]:
-        if not isinstance(layer, str):
+        if not layer:
+            return iter(())
+        elif not isinstance(layer, str):
             layer = self.deepest_layer(layer)
         idx = list(self.children_names()).index(layer)
-        if not include_last:
+        if include_last:
             idx += 1
-        return iter(list(self.named_children())[idx:])
+        return iter(list(self.named_children())[:idx])
 
     def named_children_from(
         self, layer: Union[str, Collection[str]], include_first: bool = True
     ) -> Iterator[Tuple[str, pystiche.Module]]:
-        if not isinstance(layer, str):
-            layer = self.shallowest_layer(layer)
+        if not layer:
+            return iter(())
+        elif not isinstance(layer, str):
+            layer = self.deepest_layer(layer)
         idx = list(self.children_names()).index(layer)
         if not include_first:
             idx += 1
@@ -130,32 +132,10 @@ class MultiLayerEncoder(pystiche.Module):
         for name, _ in self.named_children_from(layers, include_first=False):
             del self[name]
 
-    # def propagate_guide(
-    #     self, guide: torch.Tensor, layers: Sequence[str], method: str = "simple"
-    # ) -> Tuple[torch.Tensor, ...]:
-    #     verify_str_arg(method, "method", ("simple", "inside", "all"))
-    #     guides_dct = {}
-    #     for name, module in self._required_named_children(layers):
-    #         if is_pool_module(module):
-    #             guide = F.max_pool2d(guide, **pystiche.pool_module_meta(module))
-    #         # TODO: deal with convolution that doesn't preserve the output shape
-    #         elif is_conv_module(module) and method != "simple":
-    #             meta = pystiche.conv_module_meta(module)
-    #             guide_unfolded = F.unfold(guide, **meta).byte()
-    #
-    #             if method == "inside":
-    #                 mask = ~torch.all(guide_unfolded, 1, keepdim=True)
-    #                 val = False
-    #             else:
-    #                 mask = torch.any(guide_unfolded, 1, keepdim=True)
-    #                 val = True
-    #
-    #             mask, _ = torch.broadcast_tensors(mask, guide_unfolded)
-    #             guide_unfolded[mask] = val
-    #
-    #             guide_folded = F.fold(guide_unfolded.float(), guide.size()[2:], **meta)
-    #             guide = torch.clamp(guide_folded, 0.0, 1.0)
-    #
-    #         guides_dct[name] = guide
-    #
-    #     return tuple([guides_dct[name] for name in layers])
+    def propagate_guide(
+        self, guide: torch.Tensor, layers: Sequence[str], method: str = "simple"
+    ) -> Tuple[torch.Tensor, ...]:
+        guides = {}
+        for name, module in self.named_children_up_to(layers):
+            guide = guides[name] = propagate_guide(module, guide, method=method)
+        return tuple([guides[name] for name in layers])

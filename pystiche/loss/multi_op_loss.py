@@ -3,10 +3,7 @@ from collections import OrderedDict
 import torch
 import pystiche
 from pystiche.enc import SingleLayerEncoder, MultiLayerEncoder
-from pystiche.ops import (
-    Operator,
-    EncodingOperator,
-)
+from pystiche.ops import Operator, EncodingOperator
 from .loss_dict import LossDict
 
 
