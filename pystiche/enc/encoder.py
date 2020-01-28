@@ -40,7 +40,7 @@ class SingleLayerEncoder(Encoder):
             description += ", " + extra_description
         named_children = ()
         return self._build_str(
-            name=name, description=description, named_children=named_children
+            name, description=description, named_children=named_children
         )
 
 

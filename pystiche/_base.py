@@ -28,7 +28,7 @@ class Module(ABC, nn.Module):
             named_children = tuple(self.named_children())
 
         return build_obj_str(
-            name=name,
+            name,
             description=description,
             named_children=named_children,
             num_indent=self._STR_INDENT,
