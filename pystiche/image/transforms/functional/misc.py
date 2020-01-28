@@ -6,7 +6,6 @@ from torchvision.transforms.functional import (
     to_tensor as _to_tensor,
     to_pil_image as _to_pil_image,
 )
-import pystiche
 from pystiche.typing import Numeric
 
 __all__ = [
@@ -54,8 +53,17 @@ def normalize(x: torch.Tensor, mean: Numeric, std: Numeric) -> torch.Tensor:
 def resize(
     x: torch.Tensor, size: Sequence[int], interpolation_mode: str = "bilinear"
 ) -> torch.Tensor:
+    if interpolation_mode in ("nearest", "area"):
+        align_corners = None
+    else:
+        align_corners = False
+
     return interpolate(
-        x, size=size, scale_factor=None, mode=interpolation_mode, align_corners=False
+        x,
+        size=size,
+        scale_factor=None,
+        mode=interpolation_mode,
+        align_corners=align_corners,
     )
 
 
@@ -67,7 +75,7 @@ def transform_channels_affinely(
     x: torch.Tensor, matrix: torch.Tensor, bias: Optional[torch.tensor] = None
 ) -> torch.Tensor:
     batch_size, _, *spatial_size = x.size()
-    x = pystiche.flatten_channelwise(x)
+    x = torch.flatten(x, 2)
 
     if matrix.dim() == 2:
         matrix = matrix.unsqueeze(0).repeat(batch_size, 1, 1)
