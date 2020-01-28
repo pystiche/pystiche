@@ -17,7 +17,7 @@ class ImagePyramid:
         num_steps: Union[Sequence[int], int],
         edge: Union[Sequence[str], str] = "short",
         interpolation_mode: str = "bilinear",
-        resize_targets: Optional[Collection[Operator]] = None,
+        resize_targets: Collection[Operator] = (),
     ):
         num_levels = len(edge_sizes)
         if isinstance(num_steps, int):
@@ -80,7 +80,7 @@ class OctaveImagePyramid(ImagePyramid):
     def __init__(
         self,
         max_edge_size: int,
-        num_steps: Union[Sequence[int], int],
+        num_steps: Union[int, Sequence[int]],
         num_levels: Optional[int] = None,
         min_edge_size: int = 64,
         **kwargs
