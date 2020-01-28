@@ -159,3 +159,34 @@ def verify_str_arg(
         raise ValueError(msg1 + msg2)
 
     return arg
+
+
+def build_obj_str(
+    name: str,
+    description: str = "",
+    named_children: Sequence[Tuple[str, Any]] = (),
+    num_indent: int = 2,
+):
+    prefix = f"{name}("
+    postfix = ")"
+
+    description_lines = description.splitlines()
+    multi_line_descr = len(description_lines) > 1
+
+    if not named_children and not multi_line_descr:
+        return prefix + description + postfix
+
+    def indent(line):
+        return " " * num_indent + line
+
+    body = []
+    for line in description_lines:
+        body.append(indent(line))
+
+    for name, module in named_children:
+        lines = str(module).splitlines()
+        body.append(indent(f"({name}): {lines[0]}"))
+        for line in lines[1:]:
+            body.append(indent(line))
+
+    return "\n".join([prefix] + body + [postfix])

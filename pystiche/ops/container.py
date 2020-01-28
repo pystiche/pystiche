@@ -1,6 +1,7 @@
 from typing import Union, Sequence, Callable
 from collections import OrderedDict
 import torch
+from pystiche.misc import build_obj_str
 from pystiche.enc import Encoder, MultiLayerEncoder
 from .op import Operator, EncodingOperator, ComparisonOperator
 from .guidance import Guidance, ComparisonGuidance
@@ -96,9 +97,7 @@ class MultiLayerEncodingOperator(CompoundOperator):
             (name, f"{module.__class__.__name__}({module.description()})")
             for name, module in self.named_children()
         ]
-        return self._build_str(
-            description=self.description(), named_children=named_children
-        )
+        return self._build_str(named_children=named_children)
 
     def description(self) -> str:
         return self._description

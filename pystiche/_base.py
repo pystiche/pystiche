@@ -1,17 +1,23 @@
-from abc import abstractmethod
-from typing import Any, Dict, NoReturn
+from abc import ABC, abstractmethod
+from typing import Any, Optional, Sequence, Tuple, Dict, NoReturn
 import torch
 from torch import nn
+from .misc import build_obj_str
 
 
-class Module(nn.Module):
+class Module(ABC, nn.Module):
     _STR_INDENT = 2
 
     @abstractmethod
     def forward(self, *args: Any, **kwargs: Dict[str, Any]) -> Any:
         pass
 
-    def _build_str(self, name=None, description=None, named_children=None):
+    def _build_str(
+        self,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        named_children: Optional[Sequence[Tuple[str, Any]]] = None,
+    ) -> str:
         if name is None:
             name = self.__class__.__name__
 
@@ -21,29 +27,12 @@ class Module(nn.Module):
         if named_children is None:
             named_children = tuple(self.named_children())
 
-        prefix = f"{name}("
-        postfix = ")"
-
-        description_lines = description.splitlines()
-        multi_line_descr = len(description_lines) > 1
-
-        if not named_children and not multi_line_descr:
-            return prefix + description + postfix
-
-        def indent(line):
-            return " " * self._STR_INDENT + line
-
-        body = []
-        for line in description_lines:
-            body.append(indent(line))
-
-        for name, module in named_children:
-            lines = str(module).splitlines()
-            body.append(indent(f"({name}): {lines[0]}"))
-            for line in lines[1:]:
-                body.append(indent(line))
-
-        return "\n".join([prefix] + body + [postfix])
+        return build_obj_str(
+            name=name,
+            description=description,
+            named_children=named_children,
+            num_indent=self._STR_INDENT,
+        )
 
     def __str__(self) -> str:
         return self._build_str()
