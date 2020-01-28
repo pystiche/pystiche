@@ -45,7 +45,7 @@ class AlexNetEncoder(MultiLayerEncoder):
 
             modules[name] = module
 
-    def extra_repr(self):
+    def description(self):
         extras = [f"weights={self.weights}"]
         if not self.preprocessing:
             extras.append(f"preprocessing={self.preprocessing}")

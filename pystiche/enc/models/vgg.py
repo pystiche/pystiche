@@ -81,7 +81,7 @@ class VGGEncoder(MultiLayerEncoder):
 
         return modules
 
-    def extra_repr(self):
+    def description(self):
         extras = [f"arch={self.arch}, " f"weights={self.weights}"]
         if not self.internal_preprocessing:
             extras.append(f"internal_preprocessing={self.internal_preprocessing}")
