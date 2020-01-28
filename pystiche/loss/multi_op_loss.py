@@ -52,3 +52,22 @@ class MultiOperatorLoss(pystiche.Module):
             encoder.clear_storage()
 
         return loss
+
+    def __getitem__(self, item: Union[str, int]):
+        if isinstance(item, str):
+            return self._modules[item]
+        elif isinstance(item, int):
+            return self[self._get_child_name_by_idx(item)]
+        else:
+            raise TypeError
+
+    def __delitem__(self, item: Union[str, int]):
+        if isinstance(item, str):
+            del self._modules[item]
+        elif isinstance(item, int):
+            del self[self._get_child_name_by_idx(item)]
+        else:
+            raise TypeError
+
+    def _get_child_name_by_idx(self, idx: int) -> str:
+        return tuple(self._modules.keys())[idx]

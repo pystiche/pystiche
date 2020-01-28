@@ -21,6 +21,20 @@ class CompoundOperator(Operator):
     def process_input_image(self, input_image: torch.Tensor) -> torch.Tensor:
         return sum([op(input_image) for op in self.children()])
 
+    def __getitem__(self, item: Union[str, int]):
+        if isinstance(item, str):
+            return self._get_children_by_name(item)
+        elif isinstance(item, int):
+            return self._get_children_by_index(item)
+        else:
+            raise TypeError
+
+    def _get_children_by_name(self, name: str) -> Operator:
+        children = dict(self.named_children())
+        return children[name]
+
+    def _get_children_by_index(self, idx: int) -> Operator:
+        return tuple(self.children())[idx]
 
 
 class MultiLayerEncodingOperator(CompoundOperator):
@@ -33,11 +47,19 @@ class MultiLayerEncodingOperator(CompoundOperator):
         score_weight: float = 1.0,
     ):
         layer_weights = self._parse_layer_weights(layer_weights, len(layers))
-        ops = [
-            get_encoding_op(multi_layer_encoder[layer], layer_weight)
-            for layer, layer_weight in zip(layers, layer_weights)
-        ]
-        super().__init__(*ops, score_weight=score_weight)
+        ops = OrderedDict(
+            [
+                (layer, get_encoding_op(multi_layer_encoder[layer], layer_weight))
+                for layer, layer_weight in zip(layers, layer_weights)
+            ]
+        )
+
+        self._description = (
+            f"{multi_layer_encoder.__class__.__name__}"
+            f"({multi_layer_encoder.description()})"
+        )
+
+        super().__init__(ops, score_weight=score_weight)
 
     @staticmethod
     def _parse_layer_weights(layer_weights, num_layers):
@@ -68,6 +90,19 @@ class MultiLayerEncodingOperator(CompoundOperator):
         for op in self.children():
             if isinstance(op, Guidance):
                 op.set_input_guide(guide)
+
+    def __str__(self) -> str:
+        named_children = [
+            (name, f"{module.__class__.__name__}({module.description()})")
+            for name, module in self.named_children()
+        ]
+        return self._build_str(
+            description=self.description(), named_children=named_children
+        )
+
+    def description(self) -> str:
+        return self._description
+
 
 class MultiRegionOperator(CompoundOperator):
     def __init__(self, regions, get_op, *args, **kwargs):

@@ -32,6 +32,17 @@ class SingleLayerEncoder(Encoder):
     def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
         return self._multi_layer_encoder.propagate_guide(guide, layers=(self.layer,))[0]
 
+    def __str__(self) -> str:
+        name = self._multi_layer_encoder.__class__.__name__
+        description = f"layer={self.layer}"
+        extra_description = self._multi_layer_encoder.description()
+        if extra_description:
+            description += ", " + extra_description
+        named_children = ()
+        return self._build_str(
+            name=name, description=description, named_children=named_children
+        )
+
 
 class MultiLayerEncoder(pystiche.Module):
     def __init__(self, *args: Union[nn.Module, Dict[str, nn.Module]]) -> None:
