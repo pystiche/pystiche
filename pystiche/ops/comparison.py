@@ -78,17 +78,17 @@ class MRFLoss(EncodingComparisonOperator):
         return pystiche.extract_patches2d(enc, self.patch_size, self.stride)
 
     def input_enc_to_repr(self, enc: torch.Tensor, ctx: None) -> torch.Tensor:
-        return self._enc_to_repr(enc)
+        return self.enc_to_repr(enc)
 
     def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
-        return self._enc_to_repr(enc), None
+        return self.enc_to_repr(enc), None
 
     def target_image_to_repr(self, image: torch.Tensor) -> Tuple[torch.Tensor, None]:
         device = image.device
         reprs = []
         for transform in self._target_image_transforms():
             transform = transform.to(device)
-            enc = self._image_to_enc(transform(image))
+            enc = self.encoder(transform(image))
             repr, _ = self.target_enc_to_repr(enc)
             reprs.append(repr)
 
