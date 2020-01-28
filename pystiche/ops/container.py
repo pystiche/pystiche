@@ -5,11 +5,12 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from .op import Operator, EncodingOperator, ComparisonOperator
 from .guidance import Guidance, ComparisonGuidance
 
+__all__ = ["CompoundOperator", "MultiLayerEncodingOperator"]
 
-__all__ = ["CompundOperator", "MultiLayerEncodingOperator"]
 
 
-class CompundOperator(Operator):
+
+class CompoundOperator(Operator):
     def __init__(self, *args: Operator, score_weight=1.0) -> None:
         super().__init__(score_weight=score_weight)
         if len(args) == 1 and isinstance(args[0], OrderedDict):
@@ -23,7 +24,8 @@ class CompundOperator(Operator):
         return sum([op(input_image) for op in self.children()])
 
 
-class MultiLayerEncodingOperator(CompundOperator):
+
+class MultiLayerEncodingOperator(CompoundOperator):
     def __init__(
         self,
         get_encoding_op: Callable[[Encoder, float], EncodingOperator],
@@ -54,17 +56,17 @@ class MultiLayerEncodingOperator(CompundOperator):
 
             raise ValueError
 
-    def set_target_guide(self, image: torch.Tensor):
+    def set_target_guide(self, guide: torch.Tensor):
         for op in self.children():
             if isinstance(op, ComparisonGuidance):
-                op.set_target_guide(image)
+                op.set_target_guide(guide)
 
     def set_target_image(self, image: torch.Tensor):
         for op in self.children():
             if isinstance(op, ComparisonOperator):
                 op.set_target_image(image)
 
-    def set_input_guide(self, image: torch.Tensor):
+    def set_input_guide(self, guide: torch.Tensor):
         for op in self.children():
             if isinstance(op, Guidance):
-                op.set_input_guide(image)
+                op.set_input_guide(guide)
