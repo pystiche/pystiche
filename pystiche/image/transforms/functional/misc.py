@@ -7,6 +7,7 @@ from torchvision.transforms.functional import (
     to_pil_image as _to_pil_image,
 )
 from pystiche.typing import Numeric
+from ._utils import get_align_corners
 
 __all__ = [
     "import_from_pil",
@@ -53,17 +54,12 @@ def normalize(x: torch.Tensor, mean: Numeric, std: Numeric) -> torch.Tensor:
 def resize(
     x: torch.Tensor, size: Sequence[int], interpolation_mode: str = "bilinear"
 ) -> torch.Tensor:
-    if interpolation_mode in ("nearest", "area"):
-        align_corners = None
-    else:
-        align_corners = False
-
     return interpolate(
         x,
         size=size,
         scale_factor=None,
         mode=interpolation_mode,
-        align_corners=align_corners,
+        align_corners=get_align_corners(interpolation_mode),
     )
 
 
