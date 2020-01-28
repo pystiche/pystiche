@@ -5,9 +5,7 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from .op import Operator, EncodingOperator, ComparisonOperator
 from .guidance import Guidance, ComparisonGuidance
 
-__all__ = ["CompoundOperator", "MultiLayerEncodingOperator"]
-
-
+__all__ = ["CompoundOperator", "MultiLayerEncodingOperator", "MultiRegionOperator"]
 
 
 class CompoundOperator(Operator):
@@ -70,3 +68,18 @@ class MultiLayerEncodingOperator(CompoundOperator):
         for op in self.children():
             if isinstance(op, Guidance):
                 op.set_input_guide(guide)
+
+class MultiRegionOperator(CompoundOperator):
+    def __init__(self, regions, get_op, *args, **kwargs):
+        super().__init__(
+            OrderedDict([(region, get_op(*args, **kwargs)) for region in regions])
+        )
+
+    def set_target_guide(self, region, guide):
+        self[region].set_target_guide(guide)
+
+    def set_target_image(self, region, image):
+        self[region].set_target_image(image)
+
+    def set_input_guide(self, region, guide):
+        self[region].set_input_guide(guide)
