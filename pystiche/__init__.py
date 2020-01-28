@@ -1,4 +1,4 @@
-__version__ = "0.1"
+__version__ = "0.3-dev"
 
 from ._base import *
 from ._math import *

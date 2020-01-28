@@ -1,4 +1,7 @@
 from setuptools import setup, find_packages
+import pystiche
+
+version = pystiche.__version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -20,7 +23,7 @@ classifiers = (
 setup(
     name="pystiche",
     description="pystiche is a framework for Neural Style Transfer (NST) algorithms built upon PyTorch",
-    version="0.3-dev",
+    version=version,
     url="https://github.com/pmeier/pystiche",
     license="BSD-3",
     author="Philip Meier",
