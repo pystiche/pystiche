@@ -9,10 +9,10 @@ from pystiche.enc import Encoder
 from pystiche import functional as F
 from .op import EncodingComparisonOperator
 
-__all__ = ["MSEEncodingLoss", "GramLoss", "MRFLoss"]
+__all__ = ["MSEEncodingOperator", "GramOperator", "MRFOperator"]
 
 
-class MSEEncodingLoss(EncodingComparisonOperator):
+class MSEEncodingOperator(EncodingComparisonOperator):
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         return enc
 
@@ -28,7 +28,7 @@ class MSEEncodingLoss(EncodingComparisonOperator):
         return F.mse_loss(input_repr, target_repr)
 
 
-class GramLoss(EncodingComparisonOperator):
+class GramOperator(EncodingComparisonOperator):
     def __init__(
         self, encoder: Encoder, normalize: bool = True, score_weight: float = 1.0
     ) -> None:
@@ -54,7 +54,7 @@ class GramLoss(EncodingComparisonOperator):
         return F.mse_loss(input_repr, target_repr)
 
 
-class MRFLoss(EncodingComparisonOperator):
+class MRFOperator(EncodingComparisonOperator):
     def __init__(
         self,
         encoder: Encoder,
