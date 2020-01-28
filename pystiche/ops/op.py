@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 
-class Operator(ABC, pystiche.Module):
+class Operator(pystiche.Module):
     def __init__(self, score_weight: float = 1.0) -> None:
         super().__init__()
         self.score_weight = score_weight
