@@ -19,7 +19,7 @@ class CompoundOperator(Operator):
                 self.add_module(str(idx), module)
 
     def process_input_image(self, input_image: torch.Tensor) -> torch.Tensor:
-        return sum([op(input_image) for op in self.children()])
+        return self.score_weight * sum([op(input_image) for op in self.children()])
 
     def __getitem__(self, item: Union[str, int]):
         if isinstance(item, str):
