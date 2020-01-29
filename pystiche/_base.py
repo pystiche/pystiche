@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Any, Optional, Sequence, Tuple, Dict, NoReturn
+from collections import OrderedDict
+import itertools
 import torch
 from torch import nn
-from .misc import build_obj_str
+from .misc import build_obj_str, to_engstr
 
 
 class Module(ABC, nn.Module):
@@ -12,24 +14,33 @@ class Module(ABC, nn.Module):
     def forward(self, *args: Any, **kwargs: Dict[str, Any]) -> Any:
         pass
 
+    def _properties(self) -> Dict[str, str]:
+        dct = OrderedDict()
+        dct["score_weight"] = to_engstr(self.score_weight)
+        return dct
+
+    def extra_properties(self) -> Dict[str, str]:
+        return OrderedDict()
+
     def _build_str(
         self,
         name: Optional[str] = None,
-        description: Optional[str] = None,
+        properties: Optional[Dict[str, str]] = None,
         named_children: Optional[Sequence[Tuple[str, Any]]] = None,
     ) -> str:
         if name is None:
             name = self.__class__.__name__
 
-        if description is None:
-            description = self.description()
+        if properties is None:
+            properties = self._properties()
+            properties.update(self.extra_properties())
 
         if named_children is None:
             named_children = tuple(self.named_children())
 
         return build_obj_str(
             name,
-            description=description,
+            properties=properties,
             named_children=named_children,
             num_indent=self._STR_INDENT,
         )
@@ -37,11 +48,15 @@ class Module(ABC, nn.Module):
     def __str__(self) -> str:
         return self._build_str()
 
-    def description(self) -> str:
-        return ""
-
     def extra_repr(self) -> str:
-        return self.description()
+        return ", ".join(
+            [
+                f"{key}={value}"
+                for key, value in itertools.chain(
+                    self._properties().items(), self.extra_properties().items()
+                )
+            ]
+        )
 
 
 class TensorStorage(nn.Module):

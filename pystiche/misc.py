@@ -121,6 +121,7 @@ def build_fmtstr(
     return fmtstr
 
 
+# FIXME: this should be able to handle multi line values
 def format_dict(dct: Dict[str, Any], sep=": ", key_align="<", value_align="<"):
     key_field_len, val_field_len = [
         max(lens)
@@ -163,25 +164,33 @@ def verify_str_arg(
 
 def build_obj_str(
     name: str,
-    description: str = "",
+    properties: Dict[str, str] = None,
     named_children: Sequence[Tuple[str, Any]] = (),
+    properties_threshold: int = 4,
     num_indent: int = 2,
 ):
     prefix = f"{name}("
     postfix = ")"
 
-    description_lines = description.splitlines()
-    multi_line_descr = len(description_lines) > 1
+    if properties is None:
+        properties = {}
 
-    if not named_children and not multi_line_descr:
-        return prefix + description + postfix
+    num_properties = len(properties)
+    multiline_properties = any(
+        [len(value.splitlines()) > 1 for value in properties.values()]
+    )
+    if not multiline_properties and num_properties < properties_threshold:
+        properties = ", ".join([f"{key}={value}" for key, value in properties.items()])
+
+        if not named_children:
+            return prefix + properties + postfix
+    else:
+        properties = format_dict(properties, sep="=")
 
     def indent(line):
         return " " * num_indent + line
 
-    body = []
-    for line in description_lines:
-        body.append(indent(line))
+    body = [indent(line) for line in properties.splitlines()]
 
     for name, module in named_children:
         lines = str(module).splitlines()
