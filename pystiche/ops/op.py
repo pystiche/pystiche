@@ -3,7 +3,7 @@ from typing import Any, Union, Optional, Tuple, Dict
 from collections import OrderedDict
 import torch
 import pystiche
-from pystiche.misc import to_engstr
+from pystiche.misc import to_engstr, is_almost
 from pystiche.enc import Encoder
 
 __all__ = [
@@ -33,7 +33,7 @@ class Operator(pystiche.Module):
 
     def _properties(self) -> Dict[str, Any]:
         dct = OrderedDict()
-        if abs(self.score_weight - 1e0) > 1e-6:
+        if not is_almost(self.score_weight, 1e0):
             dct["score_weight"] = to_engstr(self.score_weight)
         return dct
 

@@ -1,6 +1,6 @@
 import torch
 from .op import PixelRegularizationOperator
-from pystiche.misc import to_engstr
+from pystiche.misc import to_engstr, is_almost
 from pystiche import functional as F
 
 __all__ = ["TotalVariationOperator", "ValueRangeOperator"]
@@ -19,7 +19,7 @@ class TotalVariationOperator(PixelRegularizationOperator):
 
     def _properties(self):
         dct = super()._properties()
-        if abs(self.exponent - 2.0) < 1e-6:
+        if not is_almost(self.exponent, 2.0):
             dct["exponent"] = to_engstr(self.exponent)
         return dct
 
