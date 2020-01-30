@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Optional, Sequence, Tuple, Dict, NoReturn
 from collections import OrderedDict
-import itertools
 import torch
 from torch import nn
 from .misc import build_obj_str, to_engstr
@@ -14,13 +13,16 @@ class Module(ABC, nn.Module):
     def forward(self, *args: Any, **kwargs: Dict[str, Any]) -> Any:
         pass
 
-    def _properties(self) -> Dict[str, str]:
-        dct = OrderedDict()
-        dct["score_weight"] = to_engstr(self.score_weight)
-        return dct
-
-    def extra_properties(self) -> Dict[str, str]:
+    def _properties(self) -> Dict[str, Any]:
         return OrderedDict()
+
+    def extra_properties(self) -> Dict[str, Any]:
+        return OrderedDict()
+
+    def properties(self) -> Dict[str, Any]:
+        dct = self._properties()
+        dct.update(self.extra_properties())
+        return dct
 
     def _build_str(
         self,
@@ -32,8 +34,7 @@ class Module(ABC, nn.Module):
             name = self.__class__.__name__
 
         if properties is None:
-            properties = self._properties()
-            properties.update(self.extra_properties())
+            properties = self.properties()
 
         if named_children is None:
             named_children = tuple(self.named_children())
@@ -49,14 +50,7 @@ class Module(ABC, nn.Module):
         return self._build_str()
 
     def extra_repr(self) -> str:
-        return ", ".join(
-            [
-                f"{key}={value}"
-                for key, value in itertools.chain(
-                    self._properties().items(), self.extra_properties().items()
-                )
-            ]
-        )
+        return ", ".join([f"{key}={value}" for key, value in self.properties().items()])
 
 
 class TensorStorage(nn.Module):
