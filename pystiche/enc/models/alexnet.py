@@ -45,13 +45,14 @@ class AlexNetEncoder(MultiLayerEncoder):
 
             modules[name] = module
 
-    def description(self):
-        extras = [f"weights={self.weights}"]
-        if not self.preprocessing:
-            extras.append(f"preprocessing={self.preprocessing}")
+    def extra_properties(self):
+        dct = OrderedDict()
+        dct["weights"] = self.weights
+        if not self.internal_preprocessing:
+            dct["internal_preprocessing"] = self.internal_preprocessing
         if self.allow_inplace:
-            extras.append(f"allow_inplace={self.allow_inplace}")
-        return ",".join(extras)
+            dct["allow_inplace"] = self.allow_inplace
+        return dct
 
 
 def alexnet_encoder(

@@ -81,13 +81,15 @@ class VGGEncoder(MultiLayerEncoder):
 
         return modules
 
-    def description(self):
-        extras = [f"arch={self.arch}, " f"weights={self.weights}"]
+    def extra_properties(self):
+        dct = OrderedDict()
+        dct["arch"] = self.arch
+        dct["weights"] = self.weights
         if not self.internal_preprocessing:
-            extras.append(f"internal_preprocessing={self.internal_preprocessing}")
+            dct["internal_preprocessing"] = self.internal_preprocessing
         if self.allow_inplace:
-            extras.append(f"allow_inplace={self.allow_inplace}")
-        return ", ".join(extras)
+            dct["allow_inplace"] = self.allow_inplace
+        return dct
 
 
 def _vgg_encoder(
