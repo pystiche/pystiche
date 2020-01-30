@@ -23,24 +23,23 @@ class Encoder(pystiche.Module):
 class SingleLayerEncoder(Encoder):
     def __init__(self, multi_layer_encoder: "MultiLayerEncoder", layer: str):
         super().__init__()
-        self._multi_layer_encoder = multi_layer_encoder
+        self.multi_layer_encoder = multi_layer_encoder
         self.layer = layer
 
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
-        return self._multi_layer_encoder(input_image, layers=(self.layer,))[0]
+        return self.multi_layer_encoder(input_image, layers=(self.layer,))[0]
 
     def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
-        return self._multi_layer_encoder.propagate_guide(guide, layers=(self.layer,))[0]
+        return self.multi_layer_encoder.propagate_guide(guide, layers=(self.layer,))[0]
 
     def __str__(self) -> str:
-        name = self._multi_layer_encoder.__class__.__name__
-        description = f"layer={self.layer}"
-        extra_description = self._multi_layer_encoder.description()
-        if extra_description:
-            description += ", " + extra_description
+        name = self.multi_layer_encoder.__class__.__name__
+        properties = OrderedDict()
+        properties["layer"] = self.layer
+        properties.update(self.multi_layer_encoder.properties())
         named_children = ()
         return self._build_str(
-            name, description=description, named_children=named_children
+            name=name, properties=properties, named_children=named_children
         )
 
 
