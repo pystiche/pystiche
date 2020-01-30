@@ -179,13 +179,14 @@ def build_obj_str(
     multiline_properties = any(
         [len(str(value).splitlines()) > 1 for value in properties.values()]
     )
+
     if not multiline_properties and num_properties < properties_threshold:
         properties = ", ".join([f"{key}={value}" for key, value in properties.items()])
 
         if not named_children:
             return prefix + properties + postfix
     else:
-        properties = format_dict(properties, sep="=")
+        properties = ",\n".join([f"{key}={value}" for key, value in properties.items()])
 
     def indent(line):
         return " " * num_indent + line
