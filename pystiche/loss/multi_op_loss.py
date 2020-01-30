@@ -38,7 +38,7 @@ class MultiOperatorLoss(pystiche.Module):
         for op in encoding_ops():
             encoder = op.encoder
             if isinstance(encoder, SingleLayerEncoder):
-                multi_layer_encoders.add(encoder._multi_layer_encoder)
+                multi_layer_encoders.add(encoder.multi_layer_encoder)
 
         return tuple(multi_layer_encoders)
 
