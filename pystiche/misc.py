@@ -164,7 +164,7 @@ def verify_str_arg(
 
 def build_obj_str(
     name: str,
-    properties: Dict[str, str] = None,
+    properties: Dict[str, Any] = None,
     named_children: Sequence[Tuple[str, Any]] = (),
     properties_threshold: int = 4,
     num_indent: int = 2,
@@ -177,7 +177,7 @@ def build_obj_str(
 
     num_properties = len(properties)
     multiline_properties = any(
-        [len(value.splitlines()) > 1 for value in properties.values()]
+        [len(str(value).splitlines()) > 1 for value in properties.values()]
     )
     if not multiline_properties and num_properties < properties_threshold:
         properties = ", ".join([f"{key}={value}" for key, value in properties.items()])
