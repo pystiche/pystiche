@@ -1,6 +1,14 @@
+from os import path
 from setuptools import setup, find_packages
 
-with open("README.md", "r") as fh:
+here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, "pystiche", "__version__.py"), "r") as fh:
+    content = {}
+    exec(fh.read(), content)
+    version = content["__version__"]
+
+with open(path.join(here, "README.md"), "r") as fh:
     long_description = fh.read()
 
 install_requires = ("numpy", "torch>=1.4.0", "pillow", "torchvision>=0.5.0")
@@ -20,7 +28,7 @@ classifiers = (
 setup(
     name="pystiche",
     description="pystiche is a framework for Neural Style Transfer (NST) algorithms built upon PyTorch",
-    version="0.3-dev",
+    version=version,
     url="https://github.com/pmeier/pystiche",
     license="BSD-3",
     author="Philip Meier",
