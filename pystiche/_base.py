@@ -1,17 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Sequence, Tuple, Dict, NoReturn
+from typing import Any, Optional, Sequence, Tuple, Dict, Iterator, NoReturn
 from collections import OrderedDict
 import torch
 from torch import nn
-from .misc import build_obj_str, to_engstr
+from .misc import build_obj_str
 
 
-class Module(ABC, nn.Module):
+class Object(ABC):
     _STR_INDENT = 2
-
-    @abstractmethod
-    def forward(self, *args: Any, **kwargs: Dict[str, Any]) -> Any:
-        pass
 
     def _properties(self) -> Dict[str, Any]:
         return OrderedDict()
@@ -23,6 +19,18 @@ class Module(ABC, nn.Module):
         dct = self._properties()
         dct.update(self.extra_properties())
         return dct
+
+    def _named_children(self) -> Iterator[Tuple[str, Any]]:
+        return
+        yield
+
+    def extra_named_children(self) -> Iterator[Tuple[str, Any]]:
+        return
+        yield
+
+    def named_children(self) -> Iterator[Tuple[str, Any]]:
+        yield from self._named_children()
+        yield from self.extra_named_children()
 
     def _build_str(
         self,
@@ -49,11 +57,17 @@ class Module(ABC, nn.Module):
     def __str__(self) -> str:
         return self._build_str()
 
+
+class Module(nn.Module, Object):
+    @abstractmethod
+    def forward(self, *args: Any, **kwargs: Dict[str, Any]) -> Any:
+        pass
+
     def extra_repr(self) -> str:
         return ", ".join([f"{key}={value}" for key, value in self.properties().items()])
 
 
-class TensorStorage(nn.Module):
+class TensorStorage(nn.Module, Object):
     def __init__(self, **attrs: Dict[str, Any]) -> None:
         super().__init__()
         for name, attr in attrs.items():
