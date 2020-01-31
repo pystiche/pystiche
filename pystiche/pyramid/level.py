@@ -1,16 +1,16 @@
 from typing import Optional
 import torch
-from pystiche.misc import verify_str_arg, build_obj_str
+from pystiche import Object
+from pystiche.misc import verify_str_arg
 from pystiche.image.transforms import FixedAspectRatioResize
 
 __all__ = ["PyramidLevel"]
 
 
-class PyramidLevel:
+class PyramidLevel(Object):
     def __init__(self, edge_size: int, num_steps: int, edge: str):
-
-        self.num_steps: int = num_steps
         self.edge_size = edge_size
+        self.num_steps: int = num_steps
         self.edge = verify_str_arg(edge, "edge", ("short", "long"))
 
     def _resize(
@@ -46,13 +46,9 @@ class PyramidLevel:
         for step in range(self.num_steps):
             yield step
 
-    def __str__(self):
-        name = self.__class__.__name__
-        description = ", ".join(
-            [
-                f"num_steps={self.num_steps}",
-                f"edge_size={self.edge_size}",
-                f"edge={self.edge}",
-            ]
-        )
-        return build_obj_str(name, description=description)
+    def _properties(self):
+        dct = super()._properties()
+        dct["edge_size"] = self.edge_size
+        dct["num_steps"] = self.num_steps
+        dct["edge"] = self.edge
+        return dct

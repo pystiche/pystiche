@@ -1,7 +1,8 @@
 from typing import Union, Optional, Sequence, Collection, Iterator
 import itertools
 import numpy as np
-from pystiche.misc import zip_equal, build_obj_str
+from pystiche import Object
+from pystiche.misc import zip_equal
 from pystiche.ops import Operator, ComparisonOperator, Guidance, ComparisonGuidance
 from .level import PyramidLevel
 from .storage import ImageStorage
@@ -10,7 +11,7 @@ from .storage import ImageStorage
 __all__ = ["ImagePyramid", "OctaveImagePyramid"]
 
 
-class ImagePyramid:
+class ImagePyramid(Object):
     def __init__(
         self,
         edge_sizes: Sequence[int],
@@ -75,16 +76,15 @@ class ImagePyramid:
             if isinstance(module, Operator):
                 yield module
 
-    def __str__(self):
-        name = self.__class__.__name__
+    def _properties(self):
+        dct = super()._properties()
         if self.interpolation_mode != "bilinear":
-            description = f"interpolation_mode={self.interpolation_mode}"
-        else:
-            description = ""
-        named_children = [(str(idx), level) for idx, level in enumerate(self._levels)]
-        return build_obj_str(
-            name, description=description, named_children=named_children
-        )
+            dct["interpolation_mode"] = self.interpolation_mode
+        return dct
+
+    def _named_children(self):
+        yield from super()._named_children()
+        yield from enumerate(self._levels)
 
 
 class OctaveImagePyramid(ImagePyramid):
