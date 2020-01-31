@@ -1,9 +1,14 @@
+from os import path
 from setuptools import setup, find_packages
-import pystiche
 
-version = pystiche.__version__
+here = path.abspath(path.dirname(__file__))
 
-with open("README.md", "r") as fh:
+with open(path.join(here, "pystiche", "__version__.py"), "r") as fh:
+    content = {}
+    exec(fh.read(), content)
+    version = content["__version__"]
+
+with open(path.join(here, "README.md"), "r") as fh:
     long_description = fh.read()
 
 install_requires = ("numpy", "torch>=1.4.0", "pillow", "torchvision>=0.5.0")
