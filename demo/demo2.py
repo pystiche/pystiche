@@ -21,7 +21,10 @@ content_loss = MSEEncodingOperator(content_encoder, score_weight=content_weight)
 style_layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
 style_weight = 1e4
 style_loss = MultiLayerEncodingOperator(
-    GramOperator, multi_layer_encoder, style_layers, score_weight=style_weight
+    style_layers,
+    lambda encoder, layer_weight: GramOperator(encoder, score_weight=layer_weight),
+    multi_layer_encoder,
+    score_weight=style_weight,
 )
 
 # combine the content and style loss into the optimization criterion
