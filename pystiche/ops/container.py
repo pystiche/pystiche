@@ -1,14 +1,27 @@
-from typing import Union, Sequence, Callable
+from typing import Union, Sequence, Dict, Callable
 from collections import OrderedDict
 import torch
 from pystiche.enc import Encoder, MultiLayerEncoder
 from .op import Operator, EncodingOperator, ComparisonOperator
 from .guidance import Guidance, ComparisonGuidance
 
-__all__ = ["ContainerOperator", "MultiLayerEncodingOperator", "MultiRegionOperator"]
+__all__ = ["Container", "MultiLayerEncodingOperator", "MultiRegionOperator"]
 
 
-class ContainerOperator(Operator):
+class Container(Operator):
+    def __init__(self, named_ops: Dict[str, Operator], score_weight=1e0):
+        super().__init__(score_weight=score_weight)
+        for name, op in named_ops.items():
+            self.add_module(name, op)
+
+    def process_input_image(self, input_image: torch.Tensor) -> torch.Tensor:
+        return self.score_weight * sum([op(input_image) for op in self.children()])
+
+    def __getitem__(self, name):
+        return self._modules[name]
+
+
+class SameOperatorContainer(Container):
     def __init__(
         self,
         names: Sequence[str],
@@ -16,11 +29,11 @@ class ContainerOperator(Operator):
         op_weights: Union[str, Sequence[float]] = "sum",
         score_weight=1e0,
     ) -> None:
-        super().__init__(score_weight=score_weight)
         op_weights = self._parse_op_weights(op_weights, len(names))
-        for name, weight in zip(names, op_weights):
-            op = get_op(name, weight)
-            self.add_module(name, op)
+        named_ops = OrderedDict(
+            [(name, get_op(name, weight)) for name, weight in zip(names, op_weights)]
+        )
+        super().__init__(named_ops, score_weight=score_weight)
 
     @staticmethod
     def _parse_op_weights(op_weights, num_ops):
@@ -37,14 +50,8 @@ class ContainerOperator(Operator):
 
             raise ValueError
 
-    def process_input_image(self, input_image: torch.Tensor) -> torch.Tensor:
-        return self.score_weight * sum([op(input_image) for op in self.children()])
 
-    def __getitem__(self, name):
-        return self._modules[name]
-
-
-class MultiLayerEncodingOperator(ContainerOperator):
+class MultiLayerEncodingOperator(SameOperatorContainer):
     def __init__(
         self,
         layers: Sequence[str],
@@ -102,7 +109,7 @@ class MultiLayerEncodingOperator(ContainerOperator):
         return self._build_str(properties=properties, named_children=named_children)
 
 
-class MultiRegionOperator(ContainerOperator):
+class MultiRegionOperator(SameOperatorContainer):
     def __init__(
         self,
         regions: Sequence[str],
