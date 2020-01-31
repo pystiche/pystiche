@@ -139,4 +139,3 @@ class MRFOperator(EncodingComparisonOperator):
             dct["num_rotation_steps"] = self.num_rotation_steps
             dct["rotation_step_width"] = f"{self.rotation_step_width:.1f}°"
         return dct
-

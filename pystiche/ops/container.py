@@ -102,12 +102,13 @@ class MultiLayerEncodingOperator(CompoundOperator):
             del properties["encoder"]
             return op._build_str(properties=properties, named_children=())
 
-
         properties = OrderedDict()
         properties["encoder"] = build_encoder_str()
         properties.update(self.properties())
 
-        named_children = [(name, build_op_str(op)) for name, op in self.named_children()]
+        named_children = [
+            (name, build_op_str(op)) for name, op in self.named_children()
+        ]
 
         return self._build_str(properties=properties, named_children=named_children)
 

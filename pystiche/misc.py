@@ -202,6 +202,5 @@ def build_obj_str(
     return "\n".join([prefix] + body + [postfix])
 
 
-def is_almost(actual: float, desired:float, eps=1e-6):
+def is_almost(actual: float, desired: float, eps=1e-6):
     return abs(actual - desired) < eps
-
