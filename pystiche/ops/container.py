@@ -6,11 +6,11 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from .op import Operator, EncodingOperator, ComparisonOperator
 from .guidance import Guidance, ComparisonGuidance
 
-__all__ = ["CompoundOperator", "MultiLayerEncodingOperator", "MultiRegionOperator"]
+__all__ = ["ContainerOperator", "MultiLayerEncodingOperator", "MultiRegionOperator"]
 
 
-class CompoundOperator(Operator):
-    def __init__(self, *args: Operator, score_weight=1.0) -> None:
+class ContainerOperator(Operator):
+    def __init__(self, *args: Operator, score_weight=1e0) -> None:
         super().__init__(score_weight=score_weight)
         if len(args) == 1 and isinstance(args[0], OrderedDict):
             for key, module in args[0].items():
@@ -38,7 +38,7 @@ class CompoundOperator(Operator):
         return tuple(self.children())[idx]
 
 
-class MultiLayerEncodingOperator(CompoundOperator):
+class MultiLayerEncodingOperator(ContainerOperator):
     def __init__(
         self,
         get_encoding_op: Callable[[Encoder, float], EncodingOperator],
@@ -113,11 +113,11 @@ class MultiLayerEncodingOperator(CompoundOperator):
         return self._build_str(properties=properties, named_children=named_children)
 
 
-class MultiRegionOperator(CompoundOperator):
-    def __init__(self, regions, get_op, *args, **kwargs):
-        super().__init__(
-            OrderedDict([(region, get_op(*args, **kwargs)) for region in regions])
-        )
+class MultiRegionOperator(ContainerOperator):
+    def __init__(self, regions, get_op, score_weight=1e0):
+        # FIXME: make a layer weights equivalent
+        ops = OrderedDict([(region, get_op()) for region in regions])
+        super().__init__(ops, score_weight=score_weight)
 
     def set_target_guide(self, region, guide):
         self[region].set_target_guide(guide)
