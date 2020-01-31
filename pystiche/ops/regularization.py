@@ -1,5 +1,6 @@
 import torch
 from .op import PixelRegularizationOperator
+from pystiche.misc import to_engstr, is_almost
 from pystiche import functional as F
 
 __all__ = ["TotalVariationOperator", "ValueRangeOperator"]
@@ -16,10 +17,11 @@ class TotalVariationOperator(PixelRegularizationOperator):
     def calculate_score(self, input_repr: torch.Tensor) -> torch.Tensor:
         return F.total_variation_loss(input_repr, exponent=self.exponent)
 
-    # def _descriptions(self) -> Dict[str, Any]:
-    #     dct = super()._descriptions()
-    #     dct["Exponent"] = to_engstr(self.exponent)
-    #     return dct
+    def _properties(self):
+        dct = super()._properties()
+        if not is_almost(self.exponent, 2.0):
+            dct["exponent"] = to_engstr(self.exponent)
+        return dct
 
 
 class ValueRangeOperator(PixelRegularizationOperator):

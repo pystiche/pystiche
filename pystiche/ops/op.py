@@ -1,7 +1,9 @@
-from abc import ABC, abstractmethod
-from typing import Union, Optional, Tuple
+from abc import abstractmethod
+from typing import Any, Union, Optional, Tuple, Dict
+from collections import OrderedDict
 import torch
 import pystiche
+from pystiche.misc import to_engstr, is_almost
 from pystiche.enc import Encoder
 
 __all__ = [
@@ -17,8 +19,8 @@ __all__ = [
 ]
 
 
-class Operator(ABC, pystiche.Module):
-    def __init__(self, score_weight: float = 1.0) -> None:
+class Operator(pystiche.Module):
+    def __init__(self, score_weight: float = 1e0) -> None:
         super().__init__()
         self.score_weight = score_weight
 
@@ -28,6 +30,12 @@ class Operator(ABC, pystiche.Module):
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
+
+    def _properties(self) -> Dict[str, Any]:
+        dct = OrderedDict()
+        if not is_almost(self.score_weight, 1e0):
+            dct["score_weight"] = to_engstr(self.score_weight)
+        return dct
 
 
 class RegularizationOperator(Operator):
@@ -98,6 +106,14 @@ class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
         self, input_repr: Union[torch.Tensor, pystiche.TensorStorage]
     ) -> torch.Tensor:
         pass
+
+    def _properties(self):
+        dct = super()._properties()
+        dct["encoder"] = self.encoder
+        return dct
+
+    def __str__(self) -> str:
+        return self._build_str(named_children=())
 
 
 class PixelComparisonOperator(PixelOperator, ComparisonOperator):
@@ -215,3 +231,11 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
         ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ) -> torch.Tensor:
         pass
+
+    def _properties(self):
+        dct = super()._properties()
+        dct["encoder"] = self.encoder
+        return dct
+
+    def __str__(self) -> str:
+        return self._build_str(named_children=())

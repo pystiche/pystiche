@@ -121,6 +121,7 @@ def build_fmtstr(
     return fmtstr
 
 
+# FIXME: this should be able to handle multi line values
 def format_dict(dct: Dict[str, Any], sep=": ", key_align="<", value_align="<"):
     key_field_len, val_field_len = [
         max(lens)
@@ -159,3 +160,47 @@ def verify_str_arg(
         raise ValueError(msg1 + msg2)
 
     return arg
+
+
+def build_obj_str(
+    name: str,
+    properties: Dict[str, Any] = None,
+    named_children: Sequence[Tuple[str, Any]] = (),
+    properties_threshold: int = 4,
+    num_indent: int = 2,
+):
+    prefix = f"{name}("
+    postfix = ")"
+
+    if properties is None:
+        properties = {}
+
+    num_properties = len(properties)
+    multiline_properties = any(
+        [len(str(value).splitlines()) > 1 for value in properties.values()]
+    )
+
+    if not multiline_properties and num_properties < properties_threshold:
+        properties = ", ".join([f"{key}={value}" for key, value in properties.items()])
+
+        if not named_children:
+            return prefix + properties + postfix
+    else:
+        properties = ",\n".join([f"{key}={value}" for key, value in properties.items()])
+
+    def indent(line):
+        return " " * num_indent + line
+
+    body = [indent(line) for line in properties.splitlines()]
+
+    for name, module in named_children:
+        lines = str(module).splitlines()
+        body.append(indent(f"({name}): {lines[0]}"))
+        for line in lines[1:]:
+            body.append(indent(line))
+
+    return "\n".join([prefix] + body + [postfix])
+
+
+def is_almost(actual: float, desired: float, eps=1e-6):
+    return abs(actual - desired) < eps

@@ -1,6 +1,7 @@
 from typing import Union, Sequence, Callable
 from collections import OrderedDict
 import torch
+from pystiche.misc import build_obj_str
 from pystiche.enc import Encoder, MultiLayerEncoder
 from .op import Operator, EncodingOperator, ComparisonOperator
 from .guidance import Guidance, ComparisonGuidance
@@ -54,11 +55,6 @@ class MultiLayerEncodingOperator(CompoundOperator):
             ]
         )
 
-        self._description = (
-            f"{multi_layer_encoder.__class__.__name__}"
-            f"({multi_layer_encoder.description()})"
-        )
-
         super().__init__(ops, score_weight=score_weight)
 
     @staticmethod
@@ -92,16 +88,29 @@ class MultiLayerEncodingOperator(CompoundOperator):
                 op.set_input_guide(guide)
 
     def __str__(self) -> str:
-        named_children = [
-            (name, f"{module.__class__.__name__}({module.description()})")
-            for name, module in self.named_children()
-        ]
-        return self._build_str(
-            description=self.description(), named_children=named_children
-        )
+        def build_encoder_str():
+            multi_layer_encoder = next(self.children()).encoder.multi_layer_encoder
+            name = multi_layer_encoder.__class__.__name__
+            properties = multi_layer_encoder.properties()
+            named_children = ()
+            return self._build_str(
+                name=name, properties=properties, named_children=named_children
+            )
 
-    def description(self) -> str:
-        return self._description
+        def build_op_str(op):
+            properties = op.properties()
+            del properties["encoder"]
+            return op._build_str(properties=properties, named_children=())
+
+        properties = OrderedDict()
+        properties["encoder"] = build_encoder_str()
+        properties.update(self.properties())
+
+        named_children = [
+            (name, build_op_str(op)) for name, op in self.named_children()
+        ]
+
+        return self._build_str(properties=properties, named_children=named_children)
 
 
 class MultiRegionOperator(CompoundOperator):

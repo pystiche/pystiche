@@ -33,7 +33,7 @@ class GramOperator(EncodingComparisonOperator):
         self, encoder: Encoder, normalize: bool = True, score_weight: float = 1.0
     ) -> None:
         super().__init__(encoder, score_weight=score_weight)
-        self.normalize = normalize  # FIXME: add to description
+        self.normalize = normalize
 
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         x = torch.flatten(enc, 2)
@@ -52,6 +52,12 @@ class GramOperator(EncodingComparisonOperator):
         self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
     ) -> torch.Tensor:
         return F.mse_loss(input_repr, target_repr)
+
+    def _properties(self):
+        dct = super()._properties()
+        if not self.normalize:
+            dct["normalize"] = self.normalize
+        return dct
 
 
 class MRFOperator(EncodingComparisonOperator):
@@ -122,14 +128,14 @@ class MRFOperator(EncodingComparisonOperator):
     ) -> torch.Tensor:
         return F.patch_matching_loss(input_repr, target_repr)
 
-    # def _descriptions(self) -> Dict[str, Any]:
-    #     dct = super()._descriptions()
-    #     dct["Patch size"] = self.patch_size
-    #     dct["Stride"] = self.stride
-    #     if self.num_scale_steps > 0:
-    #         dct["Number of scale steps"] = self.num_scale_steps
-    #         dct["Scale step width"] = f"{self.scale_step_width:.1%}"
-    #     if self.num_rotation_steps > 0:
-    #         dct["Number of rotation steps"] = self.num_rotation_steps
-    #         dct["Rotation step width"] = f"{self.rotation_step_width:.1f}°"
-    #     return dct
+    def _properties(self):
+        dct = super()._properties()
+        dct["patch_size"] = self.patch_size
+        dct["stride"] = self.stride
+        if self.num_scale_steps > 0:
+            dct["num_scale_steps"] = self.num_scale_steps
+            dct["scale_step_width"] = f"{self.scale_step_width:.1%}"
+        if self.num_rotation_steps > 0:
+            dct["num_rotation_steps"] = self.num_rotation_steps
+            dct["rotation_step_width"] = f"{self.rotation_step_width:.1f}°"
+        return dct
