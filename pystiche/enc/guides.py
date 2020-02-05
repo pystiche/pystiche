@@ -9,15 +9,26 @@ __all__ = ["propagate_guide"]
 
 
 def propagate_guide(
-    module: nn.Module, guide: torch.Tensor, method: str = "simple"
+    module: nn.Module,
+    guide: torch.Tensor,
+    method: str = "simple",
+    allow_empty: bool = False,
 ) -> torch.Tensor:
     verify_str_arg(method, "method", ("simple", "inside", "all"))
     if is_conv_module(module):
-        return _conv_guide(module, guide, method)
+        guide = _conv_guide(module, guide, method)
     elif is_pool_module(module):
-        return _pool_guide(module, guide)
-    else:
+        guide = _pool_guide(module, guide)
+
+    if allow_empty or torch.any(guide.bool()):
         return guide
+
+    msg = (
+        f"Guide has no longer any entries after propagation through "
+        f"{module.__class__.__name__}({module.extra_repr()}). If this is valid, "
+        f"set allow_empty=True."
+    )
+    raise RuntimeError(msg)
 
 
 def _conv_guide(module: ConvModule, guide: torch.Tensor, method: str) -> torch.Tensor:

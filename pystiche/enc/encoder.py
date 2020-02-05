@@ -143,9 +143,21 @@ class MultiLayerEncoder(pystiche.Module):
             del self[name]
 
     def propagate_guide(
-        self, guide: torch.Tensor, layers: Sequence[str], method: str = "simple"
+        self,
+        guide: torch.Tensor,
+        layers: Sequence[str],
+        method: str = "simple",
+        allow_empty=False,
     ) -> Tuple[torch.Tensor, ...]:
         guides = {}
         for name, module in self.named_children_up_to(layers):
-            guide = guides[name] = propagate_guide(module, guide, method=method)
+            try:
+                guide = guides[name] = propagate_guide(
+                    module, guide, method=method, allow_empty=allow_empty
+                )
+            except RuntimeError as error:
+                # TODO: customize error message to better reflect which layer causes
+                #       the problem
+                raise error
+
         return tuple([guides[name] for name in layers])
