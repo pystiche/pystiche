@@ -143,9 +143,17 @@ class MultiLayerEncoder(pystiche.Module):
             del self[name]
 
     def propagate_guide(
-        self, guide: torch.Tensor, layers: Sequence[str], method: str = "simple"
+        self,
+        guide: torch.Tensor,
+        layers: Sequence[str],
+        method: str = "simple",
+        raise_on_empty=True,
     ) -> Tuple[torch.Tensor, ...]:
         guides = {}
         for name, module in self.named_children_up_to(layers):
             guide = guides[name] = propagate_guide(module, guide, method=method)
+            if raise_on_empty and not torch.any(guide.bool()):
+                # FIXME: add message
+                raise RuntimeError
+
         return tuple([guides[name] for name in layers])
