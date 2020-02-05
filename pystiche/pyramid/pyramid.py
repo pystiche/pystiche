@@ -49,6 +49,8 @@ class ImagePyramid(Object):
             try:
                 self._resize(level)
                 yield level
+            except Exception as exc:
+                raise exc
             finally:
                 image_storage.restore()
 
