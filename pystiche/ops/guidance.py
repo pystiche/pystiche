@@ -27,6 +27,8 @@ __all__ = [
 class Guidance:
     @staticmethod
     def apply_guide(image: torch.Tensor, guide: torch.Tensor) -> torch.Tensor:
+        if image.size()[2:] != guide.size()[2:]:
+            print()
         return image * guide
 
 

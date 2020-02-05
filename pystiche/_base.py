@@ -1,12 +1,13 @@
+from typing import Any, Optional, Sequence, Tuple, Dict, Iterator, NoReturn, Union
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Sequence, Tuple, Dict, Iterator, NoReturn
+from copy import copy
 from collections import OrderedDict
 import torch
 from torch import nn
-from .misc import build_obj_str
+from .misc import build_obj_str, build_fmtstr, format_dict
 
 
-__all__ = ["Object", "Module", "TensorStorage"]
+__all__ = ["Object", "Module", "TensorStorage", "LossDict"]
 
 
 class Object(ABC):
@@ -85,3 +86,65 @@ class TensorStorage(nn.Module, Object):
             "for storage and cannot be called."
         )
         raise RuntimeError(msg)
+
+
+class LossDict(OrderedDict):
+    def __init__(
+        self,
+        losses: Optional[Sequence[Tuple[str, Union[torch.Tensor, "LossDict"]]]] = None,
+    ):
+        unrolled_losses = []
+        for name, loss in losses:
+            if isinstance(loss, torch.Tensor):
+                unrolled_losses.append((name, loss))
+            else:
+                for child_name, child_loss in loss.items():
+                    unrolled_losses.append((f"{name}.{child_name}", child_loss))
+        super().__init__(unrolled_losses)
+
+    def aggregate(self, max_depth):
+        if max_depth == 0:
+            return sum(self.values())
+
+        splits = [name.split(".") for name in self.keys()]
+        if not any([len(split) >= max_depth for split in splits]):
+            return copy(self)
+
+        agg_names = [".".join(split[:max_depth]) for split in splits]
+        key_map = dict(zip(self.keys(), agg_names))
+        agg_losses = {name: [] for name in set(agg_names)}
+        for name, loss in self.items():
+            agg_losses[key_map[name]].append(loss)
+
+        return LossDict([(name, sum(agg_losses[name])) for name in agg_names])
+
+    def __setitem__(self, key, value):
+        return super().__setitem__(key, value)
+
+    def total(self) -> torch.Tensor:
+        return self.aggregate(0)
+
+    def backward(self, *args, **kwargs) -> None:
+        self.total().backward(*args, **kwargs)
+
+    def item(self):
+        return self.total().item()
+
+    def __float__(self):
+        return self.item()
+
+    def __mul__(self, other):
+        return LossDict([(name, loss * other) for name, loss in self.items()])
+
+    def format(self, max_depth=None, **format_dict_kwargs):
+        if max_depth is not None:
+            dct = self.aggregate(max_depth)
+        else:
+            dct = self
+
+        fmt = build_fmtstr(precision=3, type="e")
+        values = [fmt.format(value.item()) for value in dct.values()]
+        return format_dict(OrderedDict(zip(dct.keys(), values)), **format_dict_kwargs)
+
+    def __str__(self):
+        return self.format()

@@ -5,6 +5,7 @@ import torch
 import pystiche
 from pystiche.misc import to_engstr, is_almost
 from pystiche.enc import Encoder
+from pystiche._base import LossDict
 
 __all__ = [
     "Operator",
@@ -24,7 +25,7 @@ class Operator(pystiche.Module):
         super().__init__()
         self.score_weight = score_weight
 
-    def forward(self, input_image: torch.Tensor) -> torch.Tensor:
+    def forward(self, input_image: torch.Tensor) -> Union[torch.Tensor, LossDict]:
         return self.process_input_image(input_image) * self.score_weight
 
     @abstractmethod
