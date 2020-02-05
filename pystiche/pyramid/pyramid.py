@@ -3,13 +3,7 @@ import itertools
 import numpy as np
 from pystiche import Object
 from pystiche.misc import zip_equal
-from pystiche.ops import (
-    Operator,
-    ComparisonOperator,
-    EncodingOperator,
-    Guidance,
-    ComparisonGuidance,
-)
+from pystiche.ops import Operator, ComparisonOperator, Guidance, ComparisonGuidance
 from .level import PyramidLevel
 from .storage import ImageStorage
 
