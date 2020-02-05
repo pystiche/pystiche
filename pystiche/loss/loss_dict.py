@@ -16,6 +16,9 @@ class LossDict(OrderedDict):
     def __float__(self):
         return self.total_loss.item()
 
+    def item(self):
+        return float(self)
+
     def __str__(self):
         fmtstr = build_fmtstr(precision=3, type="e")
         values = [fmtstr.format(value.item()) for value in self.values()]
