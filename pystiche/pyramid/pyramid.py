@@ -3,7 +3,13 @@ import itertools
 import numpy as np
 from pystiche import Object
 from pystiche.misc import zip_equal
-from pystiche.ops import Operator, ComparisonOperator, Guidance, ComparisonGuidance
+from pystiche.ops import (
+    Operator,
+    ComparisonOperator,
+    EncodingOperator,
+    Guidance,
+    ComparisonGuidance,
+)
 from .level import PyramidLevel
 from .storage import ImageStorage
 
@@ -49,6 +55,8 @@ class ImagePyramid(Object):
             try:
                 self._resize(level)
                 yield level
+            except Exception as exc:
+                raise exc
             finally:
                 image_storage.restore()
 
