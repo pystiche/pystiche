@@ -16,21 +16,12 @@ class Container(Operator):
             self.add_module(name, op)
 
     def process_input_image(self, input_image: torch.Tensor) -> pystiche.LossDict:
-        losses = []
-        for name, op in self.named_children():
-            loss = op(input_image) * self.score_weight
-            losses.append((name, loss))
-        return pystiche.LossDict(losses)
-        # return pystiche.LossDict(
-        #     [
-        #         (name, op(input_image) * self.score_weight)
-        #         for name, op in self.named_children()
-        #     ]
-        # )
-
-    #
-    # def process_input_image(self, input_image: torch.Tensor) -> torch.Tensor:
-    #     return self.score_weight * sum([op(input_image) for op in self.children()])
+        return pystiche.LossDict(
+            [
+                (name, op(input_image) * self.score_weight)
+                for name, op in self.named_children()
+            ]
+        )
 
     def __getitem__(self, name):
         return self._modules[name]

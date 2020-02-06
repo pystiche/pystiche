@@ -118,9 +118,6 @@ class LossDict(OrderedDict):
 
         return LossDict([(name, sum(agg_losses[name])) for name in agg_names])
 
-    def __setitem__(self, key, value):
-        return super().__setitem__(key, value)
-
     def total(self) -> torch.Tensor:
         return self.aggregate(0)
 
