@@ -43,7 +43,7 @@ class PyramidLevel(Object):
         return self._resize(guide, aspect_ratio, interpolation_mode="nearest")
 
     def __iter__(self):
-        for step in range(self.num_steps):
+        for step in range(1, self.num_steps + 1):
             yield step
 
     def _properties(self):
