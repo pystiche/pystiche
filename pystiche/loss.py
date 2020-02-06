@@ -4,8 +4,6 @@ import torch
 import pystiche
 from pystiche.enc import SingleLayerEncoder, MultiLayerEncoder
 from pystiche.ops import Operator, EncodingOperator
-from .loss_dict import LossDict
-
 
 __all__ = ["MultiOperatorLoss"]
 
@@ -42,11 +40,13 @@ class MultiOperatorLoss(pystiche.Module):
 
         return tuple(multi_layer_encoders)
 
-    def forward(self, input_image: torch.Tensor) -> LossDict:
+    def forward(self, input_image: torch.Tensor) -> pystiche.LossDict:
         for encoder in self._multi_layer_encoders:
             encoder.encode(input_image)
 
-        loss = LossDict([(name, op(input_image)) for name, op in self.named_children()])
+        loss = pystiche.LossDict(
+            [(name, op(input_image)) for name, op in self.named_children()]
+        )
 
         for encoder in self._multi_layer_encoders:
             encoder.clear_storage()
