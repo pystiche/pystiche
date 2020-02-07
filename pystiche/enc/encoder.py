@@ -43,6 +43,15 @@ class SingleLayerEncoder(Encoder):
         )
 
 
+class SequentialEncoder(SequentialModule):
+    pass
+
+    # def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
+    #     for module in self.children():
+    #         guide = propagate_guide(module, guide)
+    #     return guide
+
+
 class MultiLayerEncoder(pystiche.Module):
     def __init__(self, *args: Union[nn.Module, Dict[str, nn.Module]]) -> None:
         super().__init__()
