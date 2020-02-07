@@ -57,9 +57,9 @@ class SameOperatorContainer(Container):
 class MultiLayerEncodingOperator(SameOperatorContainer):
     def __init__(
         self,
+        multi_layer_encoder: MultiLayerEncoder,
         layers: Sequence[str],
         get_encoding_op: Callable[[Encoder, float], EncodingOperator],
-        multi_layer_encoder: MultiLayerEncoder,
         layer_weights: Union[str, Sequence[float]] = "mean",
         score_weight: float = 1e0,
     ):
