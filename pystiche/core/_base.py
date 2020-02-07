@@ -1,13 +1,13 @@
 from typing import Any, Optional, Sequence, Tuple, Dict, Iterator, NoReturn, Union
-from abc import ABC, abstractmethod
+from abc import ABC
 from copy import copy
 from collections import OrderedDict
 import torch
 from torch import nn
-from .misc import build_obj_str, build_fmtstr, format_dict
+from pystiche.misc import build_obj_str, build_fmtstr, format_dict
 
 
-__all__ = ["Object", "Module", "TensorStorage", "LossDict"]
+__all__ = ["Object", "TensorStorage", "LossDict"]
 
 
 class Object(ABC):
@@ -60,15 +60,6 @@ class Object(ABC):
 
     def __str__(self) -> str:
         return self._build_str()
-
-
-class Module(nn.Module, Object):
-    @abstractmethod
-    def forward(self, *args: Any, **kwargs: Dict[str, Any]) -> Any:
-        pass
-
-    def extra_repr(self) -> str:
-        return ", ".join([f"{key}={value}" for key, value in self.properties().items()])
 
 
 class TensorStorage(nn.Module, Object):
