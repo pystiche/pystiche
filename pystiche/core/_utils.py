@@ -7,7 +7,7 @@ from pystiche.typing import (
     PoolModule,
     PoolModuleMeta,
 )
-from .misc import prod, to_1d_arg, to_2d_arg, to_3d_arg, zip_equal
+from pystiche.misc import prod, to_1d_arg, to_2d_arg, to_3d_arg, zip_equal
 
 
 __all__ = [
