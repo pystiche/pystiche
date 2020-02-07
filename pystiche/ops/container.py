@@ -17,10 +17,7 @@ class Container(Operator):
 
     def process_input_image(self, input_image: torch.Tensor) -> pystiche.LossDict:
         return pystiche.LossDict(
-            [
-                (name, op(input_image) * self.score_weight)
-                for name, op in self.named_children()
-            ]
+            [(name, op(input_image)) for name, op in self.named_children()]
         )
 
     def __getitem__(self, name):
