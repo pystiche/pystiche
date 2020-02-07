@@ -7,7 +7,7 @@ from torch import nn
 import pystiche
 from .guides import propagate_guide
 
-__all__ = ["Encoder", "SingleLayerEncoder", "MultiLayerEncoder"]
+__all__ = ["Encoder", "SequentialEncoder", "SingleLayerEncoder", "MultiLayerEncoder"]
 
 
 class Encoder(pystiche.Module):
@@ -18,6 +18,23 @@ class Encoder(pystiche.Module):
     @abstractmethod
     def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
         pass
+
+
+class SequentialEncoder(Encoder):
+    def __init__(self, modules: Dict[str, nn.Module]) -> None:
+        super().__init__()
+        for name, module in modules.items():
+            self.add_module(name, module)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        for module in self.children():
+            x = module(x)
+        return x
+
+    def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
+        for module in self.children():
+            guide = propagate_guide(module, guide)
+        return guide
 
 
 class SingleLayerEncoder(Encoder):
@@ -43,16 +60,9 @@ class SingleLayerEncoder(Encoder):
         )
 
 
-class MultiLayerEncoder(pystiche.Module):
+class MultiLayerEncoder(pystiche.ContainerModule):
     def __init__(self, *args: Union[nn.Module, Dict[str, nn.Module]]) -> None:
-        super().__init__()
-        if len(args) == 1 and isinstance(args[0], OrderedDict):
-            for key, module in args[0].items():
-                self.add_module(key, module)
-        else:
-            for idx, module in enumerate(args):
-                self.add_module(str(idx), module)
-
+        super().__init__(*args)
         self._registered_layers = set()
         self._storage = {}
 
