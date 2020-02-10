@@ -110,6 +110,31 @@ class Tester(unittest.TestCase):
         desired = (round(edge_size * aspect_ratio), edge_size)
         self.assertTupleEqual(actual, desired)
 
+    def test_extract_batch_size(self):
+        batch_size = 3
+
+        batched_image = torch.zeros(batch_size, 1, 1, 1)
+        actual = utils.extract_batch_size(batched_image)
+        desired = batch_size
+        self.assertEqual(actual, desired)
+
+        single_image = torch.zeros(1, 1, 1)
+        with self.assertRaises(RuntimeError):
+            utils.extract_batch_size(single_image)
+
+    def test_extract_num_channels(self):
+        num_channels = 3
+
+        single_image = torch.zeros(num_channels, 1, 1)
+        actual = utils.extract_num_channels(single_image)
+        desired = num_channels
+        self.assertEqual(actual, desired)
+
+        batched_image = single_image.unsqueeze(0)
+        actual = utils.extract_num_channels(batched_image)
+        desired = num_channels
+        self.assertEqual(actual, desired)
+
     def test_extract_image_size(self):
         height = 2
         width = 3

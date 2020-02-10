@@ -12,6 +12,8 @@ __all__ = [
     "calculate_aspect_ratio",
     "image_to_edge_size",
     "edge_to_image_size",
+    "extract_batch_size",
+    "extract_num_channels",
     "extract_image_size",
     "extract_edge_size",
     "extract_aspect_ratio",
@@ -91,6 +93,18 @@ def edge_to_image_size(
         return edge_size, round(edge_size * aspect_ratio)
     else:
         return round(edge_size / aspect_ratio), edge_size
+
+
+def extract_batch_size(x: torch.Tensor) -> int:
+    verify_is_image(x)
+    if not is_batched_image(x):
+        raise RuntimeError("Cannot extract a batch_size from a single image (CxHxW)")
+    return x.size()[0]
+
+
+def extract_num_channels(x: torch.Tensor) -> int:
+    verify_is_image(x)
+    return x.size()[-3]
 
 
 def extract_image_size(x: torch.Tensor) -> Tuple[int, int]:
