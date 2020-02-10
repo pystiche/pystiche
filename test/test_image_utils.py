@@ -4,6 +4,42 @@ from pystiche.image import utils
 
 
 class Tester(unittest.TestCase):
+    def test_verify_is_image(self):
+        single_image = torch.zeros(1, 1, 1)
+        utils.verify_is_image(single_image)
+        batched_image = single_image.unsqueeze(0)
+        utils.verify_is_image(batched_image)
+
+        for dtype in (torch.uint8, torch.int):
+            with self.assertRaises(TypeError):
+                image = torch.zeros(1, 1, 1, dtype=dtype)
+                utils.verify_is_image(image)
+
+        for dim in (2, 5):
+            with self.assertRaises(TypeError):
+                image = torch.tensor(*[0.0] * dim)
+                utils.verify_is_image(image)
+
+    def test_is_single_image(self):
+        single_image = torch.zeros(1, 1, 1)
+        self.assertTrue(utils.is_single_image(single_image))
+        self.assertFalse(utils.is_single_image(single_image.byte()))
+        self.assertFalse(utils.is_single_image(single_image.unsqueeze(0)))
+
+    def test_is_batched_image(self):
+        batched_image = torch.zeros(1, 1, 1, 1)
+        self.assertTrue(utils.is_batched_image(batched_image))
+        self.assertFalse(utils.is_batched_image(batched_image.byte()))
+        self.assertFalse(utils.is_batched_image(batched_image.squeeze(0)))
+
+    def test_is_image(self):
+        single_image = torch.zeros(1, 1, 1)
+        batched_image = single_image.unsqueeze(0)
+        self.assertTrue(utils.is_image(single_image))
+        self.assertTrue(utils.is_image(batched_image))
+        self.assertFalse(utils.is_image(single_image.byte()))
+        self.assertFalse(utils.is_image(batched_image.byte()))
+
     def test_is_image_size(self):
         image_size = [1, 1]
         self.assertTrue(utils.is_image_size(image_size))

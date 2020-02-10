@@ -3,6 +3,10 @@ import torch
 from pystiche.misc import verify_str_arg
 
 __all__ = [
+    "verify_is_image",
+    "is_single_image",
+    "is_batched_image",
+    "is_image",
     "is_image_size",
     "is_edge_size",
     "calculate_aspect_ratio",
@@ -12,6 +16,34 @@ __all__ = [
     "extract_edge_size",
     "extract_aspect_ratio",
 ]
+
+
+def verify_is_image(x: Any):
+    if not isinstance(x, torch.FloatTensor):
+        msg = (
+            f"pystiche uses torch.FloatTensor as native image type, but got input of "
+            f"type {type(x)} instead."
+        )
+        raise TypeError(msg)
+
+    if not x.dim() in (3, 4):
+        msg = (
+            f"pystiche uses CxHxW tensors for single and BxCxHxW tensors for batched "
+            f"images, but got tensor with {x.dim()} dimensions instead."
+        )
+        raise TypeError(msg)
+
+
+def is_single_image(x: Any) -> bool:
+    return isinstance(x, torch.FloatTensor) and x.dim() == 3
+
+
+def is_batched_image(x: Any) -> bool:
+    return isinstance(x, torch.FloatTensor) and x.dim() == 4
+
+
+def is_image(x: Any) -> bool:
+    return is_single_image(x) or is_batched_image(x)
 
 
 def is_image_size(x: Any) -> bool:
@@ -62,7 +94,8 @@ def edge_to_image_size(
 
 
 def extract_image_size(x: torch.Tensor) -> Tuple[int, int]:
-    return tuple(x.size()[2:4])
+    verify_is_image(x)
+    return tuple(x.size()[-2:])
 
 
 def extract_edge_size(x: torch.Tensor, edge: str = "short") -> int:
