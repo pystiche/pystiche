@@ -1,4 +1,4 @@
-from pystiche.image.transforms.transforms import (
+from .transforms import (
     ComposedTransform,
     Normalize,
     Denormalize,
