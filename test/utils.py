@@ -44,3 +44,9 @@ class PysticheImageTestcase(pyimagetest.ImageTestcase):
         file: Optional[str] = None,
     ):
         return super().load_image(backend, file=file)
+
+    def load_batched_image(self, batch_size: int = 1, file: Optional[str] = None):
+        return self.load_image(file=file).repeat(batch_size, 1, 1, 1)
+
+    def load_single_image(self, file: Optional[str] = None):
+        return self.load_batched_image(file=file).squeeze(0)

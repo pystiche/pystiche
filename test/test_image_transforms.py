@@ -57,14 +57,14 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
         import_transform = transforms.ImportFromPIL(make_batched=False)
 
         actual = import_transform(self.load_image("PIL"))
-        desired = self.load_image("pystiche").squeeze(0)
+        desired = self.load_single_image()
         self.assertImagesAlmostEqual(actual, desired)
 
     def test_multi_image_pil_export(self):
         batch_size = 2
         export_transform = transforms.ExportToPIL()
 
-        batched_image = self.load_image("pystiche").repeat(batch_size, 1, 1, 1)
+        batched_image = self.load_batched_image(batch_size)
         actuals = export_transform(batched_image)
         desired = self.load_image("PIL")
 
