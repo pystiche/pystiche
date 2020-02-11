@@ -76,8 +76,9 @@ def normalize(x: torch.Tensor, mean: Numeric, std: Numeric) -> torch.Tensor:
     return (x - mean) / std
 
 
+@force_batched_image
 def resize(
-    x: torch.Tensor, size: Sequence[int], interpolation_mode: str = "bilinear"
+    x: torch.FloatTensor, size: Sequence[int], interpolation_mode: str = "bilinear"
 ) -> torch.Tensor:
     return interpolate(
         x,
