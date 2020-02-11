@@ -4,7 +4,6 @@ import numpy as np
 import torch
 from pystiche.image import (
     is_single_image,
-    is_batched_image,
     calculate_aspect_ratio,
     edge_to_image_size,
     make_single_image,
