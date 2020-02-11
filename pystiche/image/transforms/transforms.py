@@ -12,7 +12,7 @@ from . import functional as F
 
 __all__ = [
     "Transform",
-    "Compose",
+    "ComposedTransform",
     "ImportFromPIL",
     "ExportToPIL",
     "FloatToUint8Range",
@@ -44,27 +44,33 @@ class Transform(nn.Module):
     def forward(self, *input):
         pass
 
-    def __add__(self, other: Union["Transform", "Compose"]) -> "Compose":
+    def __add__(
+        self, other: Union["Transform", "ComposedTransform"]
+    ) -> "ComposedTransform":
         return _compose_transforms(self, other)
 
 
-class Compose(nn.Sequential):
-    def __add__(self, other: Union["Transform", "Compose"]) -> "Compose":
+class ComposedTransform(nn.Sequential):
+    def __add__(
+        self, other: Union["Transform", "ComposedTransform"]
+    ) -> "ComposedTransform":
         return _compose_transforms(self, other)
 
 
-def _compose_transforms(*transforms: Tuple[Union[Transform, Compose], ...]) -> Compose:
+def _compose_transforms(
+    *transforms: Union[Transform, ComposedTransform]
+) -> ComposedTransform:
     def unroll(
-        transform: Union[Transform, Compose]
-    ) -> Iterable[Union[Transform, Compose]]:
+        transform: Union[Transform, ComposedTransform]
+    ) -> Iterable[Union[Transform, ComposedTransform]]:
         if isinstance(transform, Transform):
             return (transform,)
-        elif isinstance(transform, Compose):
+        elif isinstance(transform, ComposedTransform):
             return transform.children()
         else:
             raise RuntimeError
 
-    return Compose(*itertools.chain(*map(unroll, transforms)))
+    return ComposedTransform(*itertools.chain(*map(unroll, transforms)))
 
 
 class ImportFromPIL(Transform):

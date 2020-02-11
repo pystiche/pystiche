@@ -1,5 +1,5 @@
 from pystiche.image.transforms.transforms import (
-    Compose,
+    ComposedTransform,
     Normalize,
     Denormalize,
     FloatToUint8Range,
@@ -22,33 +22,33 @@ __all__ = [
 ]
 
 
-class TorchPreprocessing(Compose):
+class TorchPreprocessing(ComposedTransform):
     def __init__(self) -> None:
-        transforms = [Normalize(TORCH_MEAN, TORCH_STD)]
+        transforms = (Normalize(TORCH_MEAN, TORCH_STD),)
         super().__init__(*transforms)
 
 
-class TorchPostprocessing(Compose):
+class TorchPostprocessing(ComposedTransform):
     def __init__(self) -> None:
-        transforms = [Denormalize(TORCH_MEAN, TORCH_STD)]
+        transforms = (Denormalize(TORCH_MEAN, TORCH_STD),)
         super().__init__(*transforms)
 
 
-class CaffePreprocessing(Compose):
+class CaffePreprocessing(ComposedTransform):
     def __init__(self) -> None:
-        transforms = [
+        transforms = (
             Normalize(CAFFE_MEAN, CAFFE_STD),
             FloatToUint8Range(),
             ReverseChannelOrder(),
-        ]
+        )
         super().__init__(*transforms)
 
 
-class CaffePostprocessing(Compose):
+class CaffePostprocessing(ComposedTransform):
     def __init__(self) -> None:
-        transforms = [
+        transforms = (
             ReverseChannelOrder(),
             Uint8ToFloatRange(),
             Denormalize(CAFFE_MEAN, CAFFE_STD),
-        ]
+        )
         super().__init__(*transforms)
