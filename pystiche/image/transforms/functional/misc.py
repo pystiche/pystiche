@@ -1,4 +1,4 @@
-from typing import Union, Optional, Sequence, Tuple
+from typing import Any, Union, Optional, Sequence, Tuple
 from PIL import Image
 import torch
 from torch.nn.functional import interpolate
@@ -12,13 +12,14 @@ from pystiche.image.utils import (
     verify_is_image,
     apply_imagewise,
     extract_batch_size,
+    make_batched_image,
+    force_image,
+    force_batched_image,
 )
 from pystiche.typing import Numeric
 from ._utils import get_align_corners
 
 __all__ = [
-    "add_batch_dim",
-    "remove_batch_dim",
     "import_from_pil",
     "export_to_pil",
     "normalize",
@@ -32,19 +33,6 @@ __all__ = [
 ]
 
 
-def add_batch_dim(x: torch.Tensor) -> torch.Tensor:
-    verify_is_single_image(x)
-    return x.unsqueeze(0)
-
-
-def remove_batch_dim(x: torch.Tensor) -> torch.Tensor:
-    batch_size = extract_batch_size(x)
-    if batch_size != 1:
-        msg = "ADDME"  # FIXME
-        raise RuntimeError(msg)
-    return x.squeeze(0)
-
-
 def import_from_pil(
     image: Image.Image,
     device: Union[torch.device, str] = "cpu",
@@ -54,10 +42,11 @@ def import_from_pil(
         device = torch.device(device)
     image = _to_tensor(image).to(device)
     if make_batched:
-        image = add_batch_dim(image)
+        image = make_batched_image(image)
     return image
 
 
+@force_image
 def export_to_pil(
     image: torch.Tensor, mode: Optional[str] = None
 ) -> Union[Image.Image, Tuple[Image.Image, ...]]:

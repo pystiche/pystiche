@@ -13,8 +13,6 @@ from . import functional as F
 __all__ = [
     "Transform",
     "Compose",
-    "AddBatchDim",
-    "RemoveBatchDim",
     "ImportFromPIL",
     "ExportToPIL",
     "FloatToUint8Range",
@@ -67,16 +65,6 @@ def _compose_transforms(*transforms: Tuple[Union[Transform, Compose], ...]) -> C
             raise RuntimeError
 
     return Compose(*itertools.chain(*map(unroll, transforms)))
-
-
-class AddBatchDim(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.add_batch_dim(x)
-
-
-class RemoveBatchDim(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.remove_batch_dim(x)
 
 
 class ImportFromPIL(Transform):

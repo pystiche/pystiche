@@ -19,6 +19,11 @@ __all__ = [
     "extract_image_size",
     "extract_edge_size",
     "extract_aspect_ratio",
+    "make_batched_image",
+    "make_single_image",
+    "force_image",
+    "force_single_image",
+    "force_batched_image",
     "apply_imagewise",
 ]
 
@@ -169,6 +174,61 @@ def extract_edge_size(x: torch.Tensor, edge: str = "short") -> int:
 
 def extract_aspect_ratio(x: torch.Tensor) -> float:
     return calculate_aspect_ratio(extract_image_size(x))
+
+
+def make_batched_image(x: torch.Tensor) -> torch.Tensor:
+    verify_is_single_image(x)
+    return x.unsqueeze(0)
+
+
+def make_single_image(x: torch.Tensor) -> torch.Tensor:
+    batch_size = extract_batch_size(x)
+    if batch_size != 1:
+        msg = "ADDME"  # FIXME
+        raise RuntimeError(msg)
+    return x.squeeze(0)
+
+
+def force_image(fn):
+    def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
+        verify_is_image(x)
+        return fn(x, *args, **kwargs)
+
+    return wrapper
+
+
+def force_single_image(fn):
+    def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
+        verify_is_image(x)
+        is_batched = is_batched_image(x)
+        if is_batched:
+            x = make_single_image(x)
+
+        x = fn(x, *args, **kwargs)
+
+        if is_batched:
+            x = make_batched_image(x)
+
+        return x
+
+    return wrapper
+
+
+def force_batched_image(fn):
+    def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
+        verify_is_image(x)
+        is_single = is_single_image(x)
+        if is_single:
+            x = make_batched_image(x)
+
+        x = fn(x, *args, **kwargs)
+
+        if is_single:
+            x = make_single_image(x)
+
+        return x
+
+    return wrapper
 
 
 T = TypeVar("T")
