@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Union, Optional, Sequence, Tuple
 from PIL import Image
 import torch
 from torch.nn.functional import interpolate
@@ -6,6 +6,7 @@ from torchvision.transforms.functional import (
     to_tensor as _to_tensor,
     to_pil_image as _to_pil_image,
 )
+from pystiche.image.utils import apply_imagewise
 from pystiche.typing import Numeric
 from ._utils import get_align_corners
 
@@ -23,12 +24,26 @@ __all__ = [
 ]
 
 
-def import_from_pil(image: Image, device: torch.device) -> torch.Tensor:
-    return _to_tensor(image).unsqueeze(0).to(device)
+def import_from_pil(
+    image: Image.Image,
+    device: Union[torch.device, str] = "cpu",
+    add_batch_dim: bool = True,
+) -> torch.FloatTensor:
+    if isinstance(device, str):
+        device = torch.device(device)
+    image = _to_tensor(image).to(device)
+    if add_batch_dim:
+        image = image.unsqueeze(0)
+    return image
 
 
-def export_to_pil(tensor: torch.Tensor, mode: Optional[str] = None) -> Image:
-    return _to_pil_image(tensor.detach().cpu().squeeze(0).clamp(0.0, 1.0), mode)
+def export_to_pil(
+    image: torch.Tensor, mode: Optional[str] = None
+) -> Union[Image.Image, Tuple[Image.Image, ...]]:
+    def fn(image: torch.Tensor) -> Image.Image:
+        return _to_pil_image(image.detach().cpu().clamp(0.0, 1.0), mode)
+
+    return apply_imagewise(fn, image)
 
 
 def float_to_uint8_range(x: torch.Tensor) -> torch.Tensor:

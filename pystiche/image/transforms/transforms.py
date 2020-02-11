@@ -68,14 +68,17 @@ def _compose_transforms(*transforms: Tuple[Union[Transform, Compose], ...]) -> C
 
 
 class ImportFromPIL(Transform):
-    def __init__(self, device: Optional[torch.device] = None):
+    def __init__(
+        self, device: Optional[torch.device] = None, add_batch_dim: bool = True
+    ):
         super().__init__()
         if device is None:
             device = torch.device("cpu")
         self.device = device
+        self.add_batch_dim = add_batch_dim
 
-    def forward(self, x: Image) -> torch.Tensor:
-        return F.import_from_pil(x, self.device)
+    def forward(self, x: Image.Image) -> torch.Tensor:
+        return F.import_from_pil(x, self.device, add_batch_dim=self.add_batch_dim)
 
 
 class ExportToPIL(Transform):
@@ -83,7 +86,7 @@ class ExportToPIL(Transform):
         super().__init__()
         self.mode: Optional[str] = mode
 
-    def forward(self, x: torch.Tensor) -> Image:
+    def forward(self, x: torch.Tensor) -> Union[Image.Image, Tuple[Image.Image, ...]]:
         return F.export_to_pil(x, mode=self.mode)
 
     def extra_repr(self) -> str:

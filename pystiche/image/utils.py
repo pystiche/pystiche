@@ -166,3 +166,20 @@ def extract_edge_size(x: torch.Tensor, edge: str = "short") -> int:
 
 def extract_aspect_ratio(x: torch.Tensor) -> float:
     return calculate_aspect_ratio(extract_image_size(x))
+
+
+T = TypeVar("T")
+
+
+def apply_imagewise(
+    fn: Callable[[torch.Tensor], T], x: torch.Tensor
+) -> Union[T, Tuple[T, ...]]:
+    verify_is_image(x)
+    if is_batched_image(x):
+        batch_size = extract_batch_size(x)
+        if batch_size == 1:
+            return fn(x.squeeze(0))
+        else:
+            return tuple([fn(single_image) for single_image in x])
+
+    return fn(x)
