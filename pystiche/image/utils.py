@@ -28,11 +28,11 @@ __all__ = [
 ]
 
 
-def _verify_image_type(x: torch.Tensor) -> None:
-    if not isinstance(x, torch.FloatTensor):
+def _verify_image_dtype(x: torch.Tensor) -> None:
+    if x.dtype != torch.float32:
         msg = (
-            f"pystiche uses torch.FloatTensor as native image type, but got input of "
-            f"type {type(x)} instead."
+            f"pystiche uses torch.float32 as native image dtype, but got input with "
+            f"dtype {x.dtype} instead."
         )
         raise TypeError(msg)
 
@@ -65,7 +65,7 @@ def _verify_image_dims(x: Any) -> None:
 
 
 def verify_is_single_image(x: torch.Tensor) -> None:
-    _verify_image_type(x)
+    _verify_image_dtype(x)
     _verify_single_image_dims(x)
 
 
@@ -79,7 +79,7 @@ def is_single_image(x: torch.Tensor) -> bool:
 
 
 def verify_is_batched_image(x: torch.Tensor) -> None:
-    _verify_image_type(x)
+    _verify_image_dtype(x)
     _verify_batched_image_dims(x)
 
 
@@ -93,7 +93,7 @@ def is_batched_image(x: torch.Tensor) -> bool:
 
 
 def verify_is_image(x: torch.Tensor) -> None:
-    _verify_image_type(x)
+    _verify_image_dtype(x)
     _verify_image_dims(x)
 
 
