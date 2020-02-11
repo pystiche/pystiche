@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Union, Optional
 import pyimagetest
 from os import path
 import numpy as np
@@ -14,7 +14,7 @@ class PysticheImageBackend(pyimagetest.ImageBackend):
     def import_image(self, file: str) -> torch.FloatTensor:
         pil_image = Image.open(file)
         np_image = np.array(pil_image, dtype=np.float32) / 255.0
-        pystiche_image = torch.from_numpy(np_image).permute((2, 1, 0)).unsqueeze(0)
+        pystiche_image = torch.from_numpy(np_image).permute((2, 0, 1)).unsqueeze(0)
         return pystiche_image
 
     def export_image(self, image: torch.FloatTensor) -> np.ndarray:
