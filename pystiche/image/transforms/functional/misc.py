@@ -1,10 +1,18 @@
-from typing import Optional, Sequence
+from typing import Union, Optional, Sequence, Tuple
 from PIL import Image
 import torch
 from torch.nn.functional import interpolate
 from torchvision.transforms.functional import (
     to_tensor as _to_tensor,
     to_pil_image as _to_pil_image,
+)
+from pystiche.image.utils import (
+    is_batched_image,
+    extract_batch_size,
+    make_batched_image,
+    make_single_image,
+    force_image,
+    force_batched_image,
 )
 from pystiche.typing import Numeric
 from ._utils import get_align_corners
@@ -23,12 +31,35 @@ __all__ = [
 ]
 
 
-def import_from_pil(image: Image, device: torch.device) -> torch.Tensor:
-    return _to_tensor(image).unsqueeze(0).to(device)
+def import_from_pil(
+    image: Image.Image,
+    device: Union[torch.device, str] = "cpu",
+    make_batched: bool = True,
+) -> torch.Tensor:
+    if isinstance(device, str):
+        device = torch.device(device)
+    image = _to_tensor(image).to(device)
+    if make_batched:
+        image = make_batched_image(image)
+    return image
 
 
-def export_to_pil(tensor: torch.Tensor, mode: Optional[str] = None) -> Image:
-    return _to_pil_image(tensor.detach().cpu().squeeze(0).clamp(0.0, 1.0), mode)
+@force_image
+def export_to_pil(
+    image: torch.Tensor, mode: Optional[str] = None
+) -> Union[Image.Image, Tuple[Image.Image, ...]]:
+    def fn(image: torch.Tensor) -> Image.Image:
+        return _to_pil_image(image.detach().cpu().clamp(0.0, 1.0), mode)
+
+    if is_batched_image(image):
+        batched_image = image
+        batch_size = extract_batch_size(batched_image)
+        if batch_size == 1:
+            return fn(make_single_image(batched_image))
+        else:
+            return tuple([fn(single_image) for single_image in batched_image])
+
+    return fn(image)
 
 
 def float_to_uint8_range(x: torch.Tensor) -> torch.Tensor:
@@ -51,6 +82,7 @@ def normalize(x: torch.Tensor, mean: Numeric, std: Numeric) -> torch.Tensor:
     return (x - mean) / std
 
 
+@force_batched_image
 def resize(
     x: torch.Tensor, size: Sequence[int], interpolation_mode: str = "bilinear"
 ) -> torch.Tensor:
@@ -67,6 +99,7 @@ def transform_channels_linearly(x: torch.Tensor, matrix: torch.Tensor) -> torch.
     return transform_channels_affinely(x, matrix, bias=None)
 
 
+@force_batched_image
 def transform_channels_affinely(
     x: torch.Tensor, matrix: torch.Tensor, bias: Optional[torch.tensor] = None
 ) -> torch.Tensor:

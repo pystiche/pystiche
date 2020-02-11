@@ -2,12 +2,20 @@ import unittest
 from PIL import Image
 import numpy as np
 import torch
-from pystiche.image import calculate_aspect_ratio, edge_to_image_size, transforms
+from pystiche.image import (
+    is_single_image,
+    is_batched_image,
+    calculate_aspect_ratio,
+    edge_to_image_size,
+    make_single_image,
+    make_batched_image,
+    transforms,
+)
 from pystiche.image.transforms import functional as F
-from utils import PysticheImageTestscae
+from utils import PysticheImageTestcase
 
 
-class Tester(PysticheImageTestscae, unittest.TestCase):
+class Tester(PysticheImageTestcase, unittest.TestCase):
     def assertTransformEqualsPIL(
         self,
         pystiche_transform,
@@ -16,19 +24,43 @@ class Tester(PysticheImageTestscae, unittest.TestCase):
         pil_image=None,
         mean_abs_tolerance=1e-2,
     ):
-        if pil_image is None and pystiche_image is None:
-            pil_image = self.load_image("PIL")
-            pystiche_image = self.load_image("pystiche")
-        elif pil_image is None:
-            pil_image = F.export_to_pil(pystiche_image)
-        elif pystiche_image is None:
-            pystiche_image = F.import_from_pil(pil_image, torch.device("cpu"))
+        def parse_images(pystiche_image, pil_image):
+            if pystiche_image is None and pil_image is None:
+                pystiche_image = self.load_image("pystiche")
+                pil_image = self.load_image("PIL")
+            elif pystiche_image is None:
+                pystiche_image = F.import_from_pil(pil_image)
+            elif pil_image is None:
+                pil_image = F.export_to_pil(pystiche_image)
 
-        actual = pystiche_transform(pystiche_image)
-        desired = pil_transform(pil_image)
-        self.assertImagesAlmostEqual(
-            actual, desired, mean_abs_tolerance=mean_abs_tolerance
-        )
+            return pystiche_image, pil_image
+
+        def get_single_and_batched_pystiche_images(pystiche_image):
+            if is_single_image(pystiche_image):
+                pystiche_single_image = pystiche_image
+                pystiche_batched_image = make_batched_image(pystiche_single_image)
+            else:
+                pystiche_batched_image = pystiche_image
+                pystiche_single_image = make_single_image(pystiche_batched_image)
+
+            return pystiche_single_image, pystiche_batched_image
+
+        def assert_transform_equality(pystiche_image, pil_image):
+            actual = pystiche_transform(pystiche_image)
+            desired = pil_transform(pil_image)
+            self.assertImagesAlmostEqual(
+                actual, desired, mean_abs_tolerance=mean_abs_tolerance
+            )
+
+        pystiche_image, pil_image = parse_images(pystiche_image, pil_image)
+
+        (
+            pystiche_single_image,
+            pystiche_batched_image,
+        ) = get_single_and_batched_pystiche_images(pystiche_image)
+
+        assert_transform_equality(pystiche_single_image, pil_image)
+        assert_transform_equality(pystiche_batched_image, pil_image)
 
     def assertIdentityTransform(self, transform, image, mean_abs_tolerance=1e-2):
         actual = image
@@ -52,6 +84,27 @@ class Tester(PysticheImageTestscae, unittest.TestCase):
         self.assertIdentityTransform(
             export_import_transform, self.load_image("pystiche")
         )
+
+    def test_single_image_pil_import(self):
+        import_transform = transforms.ImportFromPIL(make_batched=False)
+
+        actual = import_transform(self.load_image("PIL"))
+        desired = self.load_single_image()
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_multi_image_pil_export(self):
+        batch_size = 2
+        export_transform = transforms.ExportToPIL()
+
+        batched_image = self.load_batched_image(batch_size)
+        actuals = export_transform(batched_image)
+        desired = self.load_image("PIL")
+
+        self.assertTrue(isinstance(actuals, tuple))
+        self.assertTrue(len(actuals) == batch_size)
+
+        for actual in actuals:
+            self.assertImagesAlmostEqual(actual, desired)
 
     def test_resize(self):
         def PILResizeTransform(image_size):
@@ -283,7 +336,7 @@ class Tester(PysticheImageTestscae, unittest.TestCase):
                 matrix = (
                      0.299,  0.587,  0.114, 0.0,
                     -0.147, -0.289,  0.436, 0.0,
-                     0.615, -0.515, -0.100, 0.0
+                     0.615, -0.515, -0.100, 0.0,
                 )
                 # fmt: on
                 return image.convert("RGB", matrix)
