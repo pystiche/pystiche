@@ -18,7 +18,10 @@ class PysticheImageBackend(pyimagetest.ImageBackend):
         return pystiche_image
 
     def export_image(self, image: torch.FloatTensor) -> np.ndarray:
-        return image.detach().cpu().squeeze(0).permute((1, 2, 0)).numpy()
+        image = image.detach().cpu()
+        if image.dim() == 4 and image.size()[0] == 1:
+            image = image.squeeze(0)
+        return image.permute((1, 2, 0)).numpy()
 
 
 class PysticheImageTestcase(pyimagetest.ImageTestcase):
@@ -38,15 +41,8 @@ class PysticheImageTestcase(pyimagetest.ImageTestcase):
         # and is cleared for unrestricted usage
         return path.join(path.dirname(__file__), "test_image.png")
 
-    def load_image(
-        self,
-        backend: Union[pyimagetest.ImageBackend, str] = "pystiche",
-        file: Optional[str] = None,
-    ):
-        return super().load_image(backend, file=file)
-
     def load_batched_image(self, batch_size: int = 1, file: Optional[str] = None):
-        return self.load_image(file=file).repeat(batch_size, 1, 1, 1)
+        return self.load_image("pystiche", file=file).repeat(batch_size, 1, 1, 1)
 
     def load_single_image(self, file: Optional[str] = None):
         return self.load_batched_image(file=file).squeeze(0)
