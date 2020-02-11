@@ -1,246 +1,20 @@
+from typing import Union, Optional, Tuple
 from abc import abstractmethod
-from typing import Optional, Union, Iterable, Sequence, Tuple
-from copy import copy
-import itertools
-from PIL import Image
 import torch
-from torch import nn
 from pystiche.typing import Numeric
-from pystiche.misc import to_2d_arg, to_engstr, to_engtuplestr
-from .. import utils as U
-from . import functional as F
+from pystiche.misc import to_2d_arg
+from pystiche.image import extract_image_size
+from .. import functional as F
+from .core import Transform
 
 __all__ = [
-    "Transform",
-    "ComposedTransform",
-    "ImportFromPIL",
-    "ExportToPIL",
-    "FloatToUint8Range",
-    "Uint8ToFloatRange",
-    "ReverseChannelOrder",
-    "Normalize",
-    "Denormalize",
-    "ResizeTransform",
-    "Resize",
-    "FixedAspectRatioResize",
-    "Rescale",
+    "GridSampleTransform",
     "TransformMotifAffinely",
     "ShearMotif",
     "RotateMotif",
     "ScaleMotif",
     "TranslateMotif",
-    "RGBToGrayscale",
-    "GrayscaleToFakegrayscale",
-    "RGBToFakegrayscale",
-    "GrayscaleToBinary",
-    "RGBToBinary",
-    "RGBToYUV",
-    "YUVToRGB",
 ]
-
-
-class Transform(nn.Module):
-    @abstractmethod
-    def forward(self, *input):
-        pass
-
-    def __add__(
-        self, other: Union["Transform", "ComposedTransform"]
-    ) -> "ComposedTransform":
-        return _compose_transforms(self, other)
-
-
-class ComposedTransform(nn.Sequential):
-    def __add__(
-        self, other: Union["Transform", "ComposedTransform"]
-    ) -> "ComposedTransform":
-        return _compose_transforms(self, other)
-
-
-def _compose_transforms(
-    *transforms: Union[Transform, ComposedTransform]
-) -> ComposedTransform:
-    def unroll(
-        transform: Union[Transform, ComposedTransform]
-    ) -> Iterable[Union[Transform, ComposedTransform]]:
-        if isinstance(transform, Transform):
-            return (transform,)
-        elif isinstance(transform, ComposedTransform):
-            return transform.children()
-        else:
-            raise RuntimeError
-
-    return ComposedTransform(*itertools.chain(*map(unroll, transforms)))
-
-
-class ImportFromPIL(Transform):
-    def __init__(
-        self, device: Optional[torch.device] = None, make_batched: bool = True
-    ):
-        super().__init__()
-        if device is None:
-            device = torch.device("cpu")
-        self.device = device
-        self.add_batch_dim = make_batched
-
-    def forward(self, x: Image.Image) -> torch.Tensor:
-        return F.import_from_pil(x, self.device, make_batched=self.add_batch_dim)
-
-
-class ExportToPIL(Transform):
-    def __init__(self, mode: Optional[str] = None):
-        super().__init__()
-        self.mode: Optional[str] = mode
-
-    def forward(self, x: torch.Tensor) -> Union[Image.Image, Tuple[Image.Image, ...]]:
-        return F.export_to_pil(x, mode=self.mode)
-
-    def extra_repr(self) -> str:
-        return "mode={mode}".format(**self.__dict__)
-
-
-class FloatToUint8Range(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.float_to_uint8_range(x)
-
-
-class Uint8ToFloatRange(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.uint8_to_float_range(x)
-
-
-class ReverseChannelOrder(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.reverse_channel_order(x)
-
-
-class Normalize(Transform):
-    def __init__(self, mean: Sequence[Numeric], std: Sequence[Numeric]) -> None:
-        super().__init__()
-        self.mean = mean
-        self.std = std
-
-        self.register_buffer("_mean", torch.tensor(mean).view(1, -1, 1, 1))
-        self.register_buffer("_std", torch.tensor(std).view(1, -1, 1, 1))
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.normalize(x, self._mean, self._std)
-
-    def extra_repr(self) -> str:
-        mean = to_engtuplestr(self.mean)
-        std = to_engtuplestr(self.std)
-        return f"mean={mean}, std={std}"
-
-
-class Denormalize(Normalize):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.denormalize(x, self._mean, self._std)
-
-
-class ResizeTransform(Transform):
-    def __init__(self, interpolation_mode: str = "bilinear") -> None:
-        super().__init__()
-        self.interpolation_mode: str = interpolation_mode
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        image_size = self.calculate_image_size(x)
-        return F.resize(x, image_size, interpolation_mode=self.interpolation_mode)
-
-    @abstractmethod
-    def calculate_image_size(self, x: torch.Tensor) -> Tuple[int, int]:
-        pass
-
-    @property
-    @abstractmethod
-    def has_fixed_size(self) -> bool:
-        pass
-
-    def extra_repr(self) -> str:
-        extras = []
-        resize_transform_extras = self.extra_resize_transform_repr()
-        if resize_transform_extras:
-            extras.append(resize_transform_extras)
-        if self.interpolation_mode != "bilinear":
-            extras.append(", interpolation_mode={interpolation_mode}")
-        return ", ".join(extras).format(**self.__dict__)
-
-    def extra_resize_transform_repr(self) -> str:
-        return ""
-
-
-class Resize(ResizeTransform):
-    def __init__(self, image_size: Tuple[int, int], **kwargs):
-        super().__init__(**kwargs)
-        self.image_size: Tuple[int, int] = image_size
-
-    def calculate_image_size(self, x: torch.Tensor) -> Tuple[int, int]:
-        return self.image_size
-
-    @property
-    def has_fixed_size(self) -> bool:
-        return True
-
-    def extra_resize_transform_repr(self):
-        return "image_size={image_size}".format(**self.__dict__)
-
-
-class FixedAspectRatioResize(ResizeTransform):
-    def __init__(
-        self,
-        edge_size: int,
-        edge: str = "short",
-        aspect_ratio: Optional[Numeric] = None,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-        self.edge_size: int = edge_size
-        self.edge: str = edge
-
-        self.aspect_ratio: Optional[Numeric] = aspect_ratio
-        if aspect_ratio is not None:
-            self.image_size = U.edge_to_image_size(edge_size, aspect_ratio, edge)
-        else:
-            self.image_size = None
-
-    def calculate_image_size(self, x: torch.Tensor) -> Tuple[int, int]:
-        if self.has_fixed_size:
-            return self.image_size
-        else:
-            aspect_ratio = U.extract_aspect_ratio(x)
-            return U.edge_to_image_size(self.edge_size, aspect_ratio, self.edge)
-
-    @property
-    def has_fixed_size(self) -> bool:
-        return self.image_size is not None
-
-    def extra_resize_transform_repr(self) -> str:
-        if self.has_fixed_size:
-            return "size={size}".format(**self.__dict__)
-        else:
-            dct = copy(self.__dict__)
-            dct["aspect_ratio"] = to_engstr(dct["aspect_ratio"])
-            extras = (
-                "edge_size={edge_size}",
-                "aspect_ratio={aspect_ratio}",
-                "edge={edge}",
-            )
-            return ", ".join(extras).format(**dct)
-
-
-class Rescale(ResizeTransform):
-    def __init__(self, factor: Numeric, **kwargs):
-        super().__init__(**kwargs)
-        self.factor: Numeric = factor
-
-    def calculate_image_size(self, x):
-        return [round(edge_size * self.factor) for edge_size in U.extract_image_size(x)]
-
-    @property
-    def has_fixed_size(self) -> bool:
-        return False
-
-    def extra_resize_transform_repr(self) -> str:
-        return "factor={factor}".format(**self.__dict__)
 
 
 class GridSampleTransform(Transform):
@@ -301,7 +75,7 @@ class AffineTransform(GridSampleTransform):
             output_image_size = self.output_image_size
             transformation_matrix = self.transformation_matrix
         else:
-            input_image_size = U.extract_image_size(x)
+            input_image_size = extract_image_size(x)
             transformation_matrix = self.create_transformation_matrix(input_image_size)
             transformation_matrix, output_image_size = F.resize_canvas(
                 transformation_matrix, input_image_size, method=self.canvas
@@ -528,38 +302,3 @@ class TranslateMotif(AffineTransform):
         if self.inverse:
             extras.append(["inverse={inverse}"])
         return ", ".join(extras).format(**self.__dict__)
-
-
-class RGBToGrayscale(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.rgb_to_grayscale(x)
-
-
-class GrayscaleToFakegrayscale(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.grayscale_to_fakegrayscale(x)
-
-
-class RGBToFakegrayscale(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.rgb_to_fakegrayscale(x)
-
-
-class GrayscaleToBinary(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.grayscale_to_binary(x)
-
-
-class RGBToBinary(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.rgb_to_binary(x)
-
-
-class RGBToYUV(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.rgb_to_yuv(x)
-
-
-class YUVToRGB(Transform):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.yuv_to_rgb(x)
