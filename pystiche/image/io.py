@@ -11,19 +11,23 @@ __all__ = ["read_image", "write_image", "show_image"]
 
 def read_image(
     file: str,
-    device=torch.device("cpu"),
+    device: Union[torch.device, str] = "cpu",
+    make_batched: bool = True,
     size: Optional[Union[int, Sequence[int]]] = None,
-    **kwargs: Any,
+    **resize_kwargs: Any,
 ) -> torch.Tensor:
-    image = import_from_pil(Image.open(file), device)
+    if isinstance(device, str):
+        device = torch.device(device)
+
+    image = import_from_pil(Image.open(file), device=device, make_batched=make_batched)
 
     if size is None:
         return image
 
     if is_image_size(size):
-        resize_transform = Resize(size, **kwargs)
+        resize_transform = Resize(size, **resize_kwargs)
     elif is_edge_size(size):
-        resize_transform = FixedAspectRatioResize(size, **kwargs)
+        resize_transform = FixedAspectRatioResize(size, **resize_kwargs)
     else:
         raise ValueError
     return resize_transform(image)
