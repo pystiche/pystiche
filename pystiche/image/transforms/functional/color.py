@@ -1,5 +1,6 @@
 import torch
 import pystiche
+from pystiche.image.utils import force_batched_image
 from .misc import transform_channels_linearly
 
 __all__ = [
@@ -20,6 +21,7 @@ def rgb_to_grayscale(x: torch.Tensor) -> torch.Tensor:
     return transform_channels_linearly(x, transformation_matrix)
 
 
+@force_batched_image
 def grayscale_to_fakegrayscale(x: torch.Tensor) -> torch.Tensor:
     return x.repeat(1, 3, 1, 1)
 

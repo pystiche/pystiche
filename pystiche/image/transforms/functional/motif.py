@@ -4,7 +4,7 @@ import torch
 from torch.nn.functional import affine_grid, grid_sample
 from pystiche.typing import Numeric
 from pystiche.misc import verify_str_arg
-from pystiche.image.utils import extract_image_size
+from pystiche.image.utils import extract_image_size, force_batched_image
 from ._utils import get_align_corners
 
 __all__ = [
@@ -130,6 +130,7 @@ def create_affine_transformation_matrix(
     return torch.chain_matmul(*reversed(transformation_matrices))
 
 
+@force_batched_image
 def transform_motif_affinely(
     x: torch.Tensor,
     transformation_matrix: torch.Tensor,

@@ -93,6 +93,7 @@ def transform_channels_linearly(x: torch.Tensor, matrix: torch.Tensor) -> torch.
     return transform_channels_affinely(x, matrix, bias=None)
 
 
+@force_batched_image
 def transform_channels_affinely(
     x: torch.Tensor, matrix: torch.Tensor, bias: Optional[torch.tensor] = None
 ) -> torch.Tensor:
