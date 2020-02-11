@@ -1,4 +1,4 @@
-from typing import Any, Union, Optional, Sequence, Tuple
+from typing import Union, Optional, Sequence, Tuple
 from PIL import Image
 import torch
 from torch.nn.functional import interpolate
@@ -7,12 +7,10 @@ from torchvision.transforms.functional import (
     to_pil_image as _to_pil_image,
 )
 from pystiche.image.utils import (
-    verify_is_single_image,
-    is_single_image,
-    verify_is_image,
-    apply_imagewise,
+    is_batched_image,
     extract_batch_size,
     make_batched_image,
+    make_single_image,
     force_image,
     force_batched_image,
 )
@@ -37,7 +35,7 @@ def import_from_pil(
     image: Image.Image,
     device: Union[torch.device, str] = "cpu",
     make_batched: bool = True,
-) -> torch.FloatTensor:
+) -> torch.Tensor:
     if isinstance(device, str):
         device = torch.device(device)
     image = _to_tensor(image).to(device)
@@ -53,7 +51,14 @@ def export_to_pil(
     def fn(image: torch.Tensor) -> Image.Image:
         return _to_pil_image(image.detach().cpu().clamp(0.0, 1.0), mode)
 
-    return apply_imagewise(fn, image)
+    if is_batched_image(image):
+        batch_size = extract_batch_size(image)
+        if batch_size == 1:
+            return fn(make_single_image(image))
+        else:
+            return tuple([fn(single_image) for single_image in x])
+
+    return fn(image)
 
 
 def float_to_uint8_range(x: torch.Tensor) -> torch.Tensor:
@@ -78,7 +83,7 @@ def normalize(x: torch.Tensor, mean: Numeric, std: Numeric) -> torch.Tensor:
 
 @force_batched_image
 def resize(
-    x: torch.FloatTensor, size: Sequence[int], interpolation_mode: str = "bilinear"
+    x: torch.Tensor, size: Sequence[int], interpolation_mode: str = "bilinear"
 ) -> torch.Tensor:
     return interpolate(
         x,

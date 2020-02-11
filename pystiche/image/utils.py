@@ -1,4 +1,4 @@
-from typing import Any, TypeVar, Union, Sequence, Tuple, Callable
+from typing import Any, Sequence, Tuple
 import torch
 from pystiche.misc import verify_str_arg
 
@@ -24,7 +24,6 @@ __all__ = [
     "force_image",
     "force_single_image",
     "force_batched_image",
-    "apply_imagewise",
 ]
 
 
@@ -229,20 +228,3 @@ def force_batched_image(fn):
         return x
 
     return wrapper
-
-
-T = TypeVar("T")
-
-
-def apply_imagewise(
-    fn: Callable[[torch.Tensor], T], x: torch.Tensor
-) -> Union[T, Tuple[T, ...]]:
-    verify_is_image(x)
-    if is_batched_image(x):
-        batch_size = extract_batch_size(x)
-        if batch_size == 1:
-            return fn(x.squeeze(0))
-        else:
-            return tuple([fn(single_image) for single_image in x])
-
-    return fn(x)
