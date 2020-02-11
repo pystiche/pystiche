@@ -37,3 +37,10 @@ class PysticheImageTestscae(pyimagetest.ImageTestcase):
         # http://www.r0k.us/graphics/kodak/kodim15.html
         # and is cleared for unrestricted usage
         return path.join(path.dirname(__file__), "test_image.png")
+
+    def load_image(
+        self,
+        backend: Union[pyimagetest.ImageBackend, str] = "pystiche",
+        file: Optional[str] = None,
+    ):
+        return super().load_image(backend, file=file)
