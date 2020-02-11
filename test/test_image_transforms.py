@@ -4,10 +4,10 @@ import numpy as np
 import torch
 from pystiche.image import calculate_aspect_ratio, edge_to_image_size, transforms
 from pystiche.image.transforms import functional as F
-from utils import PysticheImageTestscae
+from utils import PysticheImageTestcase
 
 
-class Tester(PysticheImageTestscae, unittest.TestCase):
+class Tester(PysticheImageTestcase, unittest.TestCase):
     def assertTransformEqualsPIL(
         self,
         pystiche_transform,
