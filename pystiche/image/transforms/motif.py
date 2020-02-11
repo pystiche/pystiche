@@ -3,7 +3,7 @@ from abc import abstractmethod
 import torch
 from pystiche.typing import Numeric
 from pystiche.misc import to_2d_arg
-from pystiche.image import extract_image_size
+from pystiche.image.utils import extract_image_size
 from .core import Transform
 from . import functional as F
 
