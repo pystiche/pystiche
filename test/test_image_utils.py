@@ -4,6 +4,46 @@ from pystiche.image import utils
 
 
 class Tester(unittest.TestCase):
+    def test_verify_is_single_image(self):
+        single_image = torch.zeros(1, 1, 1)
+        utils.verify_is_single_image(single_image)
+
+        for dtype in (torch.uint8, torch.int):
+            with self.assertRaises(TypeError):
+                image = single_image.clone().to(dtype)
+                utils.verify_is_single_image(image)
+
+        for dim in (2, 4):
+            with self.assertRaises(TypeError):
+                image = torch.tensor(*[0.0] * dim)
+                utils.verify_is_single_image(image)
+
+    def test_is_single_image(self):
+        single_image = torch.zeros(1, 1, 1)
+        self.assertTrue(utils.is_single_image(single_image))
+        self.assertFalse(utils.is_single_image(single_image.byte()))
+        self.assertFalse(utils.is_single_image(single_image.unsqueeze(0)))
+
+    def test_verify_is_batched_image(self):
+        batched_image = torch.zeros(1, 1, 1, 1)
+        utils.verify_is_batched_image(batched_image)
+
+        for dtype in (torch.uint8, torch.int):
+            with self.assertRaises(TypeError):
+                image = batched_image.clone().to(dtype)
+                utils.verify_is_batched_image(image)
+
+        for dim in (3, 5):
+            with self.assertRaises(TypeError):
+                image = torch.tensor(*[0.0] * dim)
+                utils.verify_is_batched_image(image)
+
+    def test_is_batched_image(self):
+        batched_image = torch.zeros(1, 1, 1, 1)
+        self.assertTrue(utils.is_batched_image(batched_image))
+        self.assertFalse(utils.is_batched_image(batched_image.byte()))
+        self.assertFalse(utils.is_batched_image(batched_image.squeeze(0)))
+
     def test_verify_is_image(self):
         single_image = torch.zeros(1, 1, 1)
         utils.verify_is_image(single_image)
@@ -19,18 +59,6 @@ class Tester(unittest.TestCase):
             with self.assertRaises(TypeError):
                 image = torch.tensor(*[0.0] * dim)
                 utils.verify_is_image(image)
-
-    def test_is_single_image(self):
-        single_image = torch.zeros(1, 1, 1)
-        self.assertTrue(utils.is_single_image(single_image))
-        self.assertFalse(utils.is_single_image(single_image.byte()))
-        self.assertFalse(utils.is_single_image(single_image.unsqueeze(0)))
-
-    def test_is_batched_image(self):
-        batched_image = torch.zeros(1, 1, 1, 1)
-        self.assertTrue(utils.is_batched_image(batched_image))
-        self.assertFalse(utils.is_batched_image(batched_image.byte()))
-        self.assertFalse(utils.is_batched_image(batched_image.squeeze(0)))
 
     def test_is_image(self):
         single_image = torch.zeros(1, 1, 1)
@@ -119,7 +147,7 @@ class Tester(unittest.TestCase):
         self.assertEqual(actual, desired)
 
         single_image = torch.zeros(1, 1, 1)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             utils.extract_batch_size(single_image)
 
     def test_extract_num_channels(self):

@@ -1,4 +1,4 @@
-from typing import Any, Sequence, Tuple
+from typing import Any, TypeVar, Union, Sequence, Tuple, Callable
 import torch
 from pystiche.misc import verify_str_arg
 
@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 
-def verify_is_image(x: Any):
+def _verify_image_type(x: torch.Tensor) -> None:
     if not isinstance(x, torch.FloatTensor):
         msg = (
             f"pystiche uses torch.FloatTensor as native image type, but got input of "
@@ -28,6 +28,26 @@ def verify_is_image(x: Any):
         )
         raise TypeError(msg)
 
+
+def _verify_single_image_dims(x: torch.Tensor) -> None:
+    if x.dim() != 3:
+        msg = (
+            f"pystiche uses CxHxW tensors for single images, but got tensor with "
+            f"{x.dim()} dimensions instead."
+        )
+        raise TypeError(msg)
+
+
+def _verify_batched_image_dims(x: torch.Tensor) -> None:
+    if x.dim() != 4:
+        msg = (
+            f"pystiche uses BxCxHxW tensors for batched images, but got tensor with "
+            f"{x.dim()} dimensions instead."
+        )
+        raise TypeError(msg)
+
+
+def _verify_image_dims(x: Any) -> None:
     if not x.dim() in (3, 4):
         msg = (
             f"pystiche uses CxHxW tensors for single and BxCxHxW tensors for batched "
@@ -36,16 +56,46 @@ def verify_is_image(x: Any):
         raise TypeError(msg)
 
 
-def is_single_image(x: Any) -> bool:
-    return isinstance(x, torch.FloatTensor) and x.dim() == 3
+def verify_is_single_image(x: torch.Tensor) -> None:
+    _verify_image_type(x)
+    _verify_single_image_dims(x)
 
 
-def is_batched_image(x: Any) -> bool:
-    return isinstance(x, torch.FloatTensor) and x.dim() == 4
+def is_single_image(x: torch.Tensor) -> bool:
+    try:
+        verify_is_single_image(x)
+    except TypeError:
+        return False
+    else:
+        return True
 
 
-def is_image(x: Any) -> bool:
-    return is_single_image(x) or is_batched_image(x)
+def verify_is_batched_image(x: torch.Tensor) -> None:
+    _verify_image_type(x)
+    _verify_batched_image_dims(x)
+
+
+def is_batched_image(x: torch.Tensor) -> bool:
+    try:
+        verify_is_batched_image(x)
+    except TypeError:
+        return False
+    else:
+        return True
+
+
+def verify_is_image(x: torch.Tensor) -> None:
+    _verify_image_type(x)
+    _verify_image_dims(x)
+
+
+def is_image(x: torch.Tensor) -> bool:
+    try:
+        verify_is_image(x)
+    except TypeError:
+        return False
+    else:
+        return True
 
 
 def is_image_size(x: Any) -> bool:
@@ -96,9 +146,7 @@ def edge_to_image_size(
 
 
 def extract_batch_size(x: torch.Tensor) -> int:
-    verify_is_image(x)
-    if not is_batched_image(x):
-        raise RuntimeError("Cannot extract a batch_size from a single image (CxHxW)")
+    verify_is_batched_image(x)
     return x.size()[0]
 
 
