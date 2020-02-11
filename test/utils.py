@@ -4,7 +4,6 @@ from os import path
 import numpy as np
 import torch
 from PIL import Image
-from pystiche.image.transforms import ImportFromPIL
 
 
 class PysticheImageBackend(pyimagetest.ImageBackend):
@@ -13,9 +12,10 @@ class PysticheImageBackend(pyimagetest.ImageBackend):
         return torch.FloatTensor
 
     def import_image(self, file: str) -> torch.FloatTensor:
-        image = Image.open(file)
-        transform = ImportFromPIL()
-        return transform(image)
+        pil_image = Image.open(file)
+        np_image = np.array(pil_image, dtype=np.float32) / 255.0
+        pystiche_image = torch.from_numpy(np_image).permute((2, 1, 0)).unsqueeze(0)
+        return pystiche_image
 
     def export_image(self, image: torch.FloatTensor) -> np.ndarray:
         return image.detach().cpu().squeeze(0).permute((1, 2, 0)).numpy()
