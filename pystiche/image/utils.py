@@ -3,9 +3,11 @@ import torch
 from pystiche.misc import verify_str_arg
 
 __all__ = [
-    "verify_is_image",
+    "verify_is_single_image",
     "is_single_image",
+    "verify_is_batched_image",
     "is_batched_image",
+    "verify_is_image",
     "is_image",
     "is_image_size",
     "is_edge_size",
