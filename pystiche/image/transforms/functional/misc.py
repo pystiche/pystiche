@@ -52,11 +52,12 @@ def export_to_pil(
         return _to_pil_image(image.detach().cpu().clamp(0.0, 1.0), mode)
 
     if is_batched_image(image):
-        batch_size = extract_batch_size(image)
+        batched_image = image
+        batch_size = extract_batch_size(batched_image)
         if batch_size == 1:
-            return fn(make_single_image(image))
+            return fn(make_single_image(batched_image))
         else:
-            return tuple([fn(single_image) for single_image in x])
+            return tuple([fn(single_image) for single_image in batched_image])
 
     return fn(image)
 
