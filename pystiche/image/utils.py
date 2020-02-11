@@ -19,6 +19,7 @@ __all__ = [
     "extract_image_size",
     "extract_edge_size",
     "extract_aspect_ratio",
+    "apply_imagewise",
 ]
 
 
