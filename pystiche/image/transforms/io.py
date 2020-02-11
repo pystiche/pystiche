@@ -2,7 +2,7 @@ from typing import Any, Union, Optional, Tuple, Dict
 from PIL import Image
 import torch
 from .core import Transform
-from .. import functional as F
+from . import functional as F
 
 __all__ = ["ImportFromPIL", "ExportToPIL"]
 

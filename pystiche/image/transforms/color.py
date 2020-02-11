@@ -1,6 +1,6 @@
 import torch
-from .. import functional as F
 from .core import Transform
+from . import functional as F
 
 __all__ = [
     "RGBToGrayscale",

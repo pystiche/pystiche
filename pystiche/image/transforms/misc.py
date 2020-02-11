@@ -2,8 +2,8 @@ from typing import Any, Sequence, Dict
 import torch
 from pystiche.misc import to_engtuplestr
 from pystiche.typing import Numeric
-from .. import functional as F
 from .core import Transform
+from . import functional as F
 
 __all__ = [
     "FloatToUint8Range",

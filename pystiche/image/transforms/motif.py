@@ -4,8 +4,8 @@ import torch
 from pystiche.typing import Numeric
 from pystiche.misc import to_2d_arg
 from pystiche.image import extract_image_size
-from .. import functional as F
 from .core import Transform
+from . import functional as F
 
 __all__ = [
     "GridSampleTransform",

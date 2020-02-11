@@ -5,8 +5,8 @@ import torch
 from pystiche.typing import Numeric
 from pystiche.misc import to_engstr
 from pystiche.image import edge_to_image_size, extract_image_size, extract_aspect_ratio
-from .. import functional as F
 from .core import Transform
+from . import functional as F
 
 __all__ = ["ResizeTransform", "Resize", "FixedAspectRatioResize", "Rescale"]
 
