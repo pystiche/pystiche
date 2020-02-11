@@ -54,7 +54,7 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
         )
 
     def test_single_image_pil_import(self):
-        import_transform = transforms.ImportFromPIL(add_batch_dim=False)
+        import_transform = transforms.ImportFromPIL(make_batched=False)
 
         actual = import_transform(self.load_image("PIL"))
         desired = self.load_image("pystiche").squeeze(0)

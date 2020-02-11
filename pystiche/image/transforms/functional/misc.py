@@ -6,11 +6,19 @@ from torchvision.transforms.functional import (
     to_tensor as _to_tensor,
     to_pil_image as _to_pil_image,
 )
-from pystiche.image.utils import apply_imagewise
+from pystiche.image.utils import (
+    verify_is_single_image,
+    is_single_image,
+    verify_is_image,
+    apply_imagewise,
+    extract_batch_size,
+)
 from pystiche.typing import Numeric
 from ._utils import get_align_corners
 
 __all__ = [
+    "add_batch_dim",
+    "remove_batch_dim",
     "import_from_pil",
     "export_to_pil",
     "normalize",
@@ -24,16 +32,29 @@ __all__ = [
 ]
 
 
+def add_batch_dim(x: torch.Tensor) -> torch.Tensor:
+    verify_is_single_image(x)
+    return x.unsqueeze(0)
+
+
+def remove_batch_dim(x: torch.Tensor) -> torch.Tensor:
+    batch_size = extract_batch_size(x)
+    if batch_size != 1:
+        msg = "ADDME"  # FIXME
+        raise RuntimeError(msg)
+    return x.squeeze(0)
+
+
 def import_from_pil(
     image: Image.Image,
     device: Union[torch.device, str] = "cpu",
-    add_batch_dim: bool = True,
+    make_batched: bool = True,
 ) -> torch.FloatTensor:
     if isinstance(device, str):
         device = torch.device(device)
     image = _to_tensor(image).to(device)
-    if add_batch_dim:
-        image = image.unsqueeze(0)
+    if make_batched:
+        image = add_batch_dim(image)
     return image
 
 
