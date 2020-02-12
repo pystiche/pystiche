@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Union, Optional, Tuple
 import torch
 from torch.nn.functional import (
     interpolate as _interpolate,
@@ -21,7 +21,7 @@ def _get_align_corners(interpolation_mode: str) -> Optional[bool]:
 
 def interpolate(
     image: torch.Tensor,
-    size: Optional[int, Tuple[int, int]] = None,
+    size: Optional[Union[int, Tuple[int, int]]] = None,
     scale_factor: Optional[float] = None,
     mode: str = "nearest",
 ) -> torch.Tensor:
