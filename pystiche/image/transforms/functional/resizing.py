@@ -1,6 +1,5 @@
 from typing import Union, Optional, Tuple
 import torch
-from torch.nn.functional import interpolate
 from pystiche.misc import to_2d_arg
 from pystiche.image.utils import (
     is_image_size,
@@ -10,7 +9,7 @@ from pystiche.image.utils import (
     extract_aspect_ratio,
     force_batched_image,
 )
-from ._utils import get_align_corners
+from ._utils import interpolate
 
 __all__ = ["resize", "rescale"]
 
@@ -35,11 +34,7 @@ def resize(
         raise RuntimeError
 
     return interpolate(
-        image,
-        size=image_size,
-        scale_factor=None,
-        mode=interpolation_mode,
-        align_corners=get_align_corners(interpolation_mode),
+        image, size=image_size, scale_factor=None, mode=interpolation_mode,
     )
 
 

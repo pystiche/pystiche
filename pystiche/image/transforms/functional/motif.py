@@ -1,11 +1,10 @@
 from typing import Optional, Tuple, List
 import numpy as np
 import torch
-from torch.nn.functional import affine_grid, grid_sample
 from pystiche.typing import Numeric
 from pystiche.misc import verify_str_arg
 from pystiche.image.utils import extract_image_size, force_batched_image
-from ._utils import get_align_corners
+from ._utils import affine_grid, grid_sample
 
 __all__ = [
     "create_affine_transformation_matrix",
@@ -148,14 +147,9 @@ def transform_motif_affinely(
         output_image_size = input_image_size
     output_size = [batch_size, num_channels] + list(output_image_size)
 
-    align_corners = get_align_corners(interpolation_mode)
-    grid = _calculate_affine_grid(transformation_matrix, output_size, align_corners)
+    grid = _calculate_affine_grid(transformation_matrix, output_size)
     return grid_sample(
-        x,
-        grid.to(x.device),
-        mode=interpolation_mode,
-        padding_mode=padding_mode,
-        align_corners=align_corners,
+        x, grid.to(x.device), mode=interpolation_mode, padding_mode=padding_mode,
     )
 
 
@@ -177,11 +171,11 @@ def _transform_coordinates(
 
 
 def _calculate_affine_grid(
-    transformation_matrix: torch.Tensor, size: List[int], align_corners: Optional[bool]
+    transformation_matrix: torch.Tensor, size: List[int]
 ) -> torch.Tensor:
     inv_transformation_matrix = torch.inverse(transformation_matrix)
     theta = inv_transformation_matrix[:-1, :].unsqueeze(0)
-    return affine_grid(theta, size, align_corners=align_corners)
+    return affine_grid(theta, size)
 
 
 def shear_motif(
