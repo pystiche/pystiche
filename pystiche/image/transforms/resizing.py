@@ -1,121 +1,69 @@
-from typing import Optional, Tuple
-from abc import abstractmethod
-from copy import copy
+from typing import Any, Union, Optional, Tuple, Dict
 import torch
-from pystiche.typing import Numeric
-from pystiche.misc import to_engstr
 from pystiche.image.utils import (
-    edge_to_image_size,
-    extract_image_size,
-    extract_aspect_ratio,
+    is_image_size,
+    is_edge_size,
 )
 from .core import Transform
 from . import functional as F
 
-__all__ = ["ResizeTransform", "Resize", "FixedAspectRatioResize", "Rescale"]
+__all__ = ["Resize", "Rescale"]
 
 
-class ResizeTransform(Transform):
-    def __init__(self, interpolation_mode: str = "bilinear") -> None:
-        super().__init__()
-        self.interpolation_mode: str = interpolation_mode
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        image_size = self.calculate_image_size(x)
-        return F.resize(x, image_size, interpolation_mode=self.interpolation_mode)
-
-    @abstractmethod
-    def calculate_image_size(self, x: torch.Tensor) -> Tuple[int, int]:
-        pass
-
-    @property
-    @abstractmethod
-    def has_fixed_size(self) -> bool:
-        pass
-
-    def extra_repr(self) -> str:
-        extras = []
-        resize_transform_extras = self.extra_resize_transform_repr()
-        if resize_transform_extras:
-            extras.append(resize_transform_extras)
-        if self.interpolation_mode != "bilinear":
-            extras.append(", interpolation_mode={interpolation_mode}")
-        return ", ".join(extras).format(**self.__dict__)
-
-    def extra_resize_transform_repr(self) -> str:
-        return ""
-
-
-class Resize(ResizeTransform):
-    def __init__(self, image_size: Tuple[int, int], **kwargs):
-        super().__init__(**kwargs)
-        self.image_size: Tuple[int, int] = image_size
-
-    def calculate_image_size(self, x: torch.Tensor) -> Tuple[int, int]:
-        return self.image_size
-
-    @property
-    def has_fixed_size(self) -> bool:
-        return True
-
-    def extra_resize_transform_repr(self):
-        return "image_size={image_size}".format(**self.__dict__)
-
-
-class FixedAspectRatioResize(ResizeTransform):
+class Resize(Transform):
     def __init__(
         self,
-        edge_size: int,
+        size: Union[int, Tuple[int, int]],
         edge: str = "short",
-        aspect_ratio: Optional[Numeric] = None,
-        **kwargs,
+        aspect_ratio: Optional[float] = None,
+        interpolation_mode: str = "bilinear",
     ):
-        super().__init__(**kwargs)
-        self.edge_size: int = edge_size
-        self.edge: str = edge
+        super().__init__()
+        self.size = size
+        self.edge = edge
+        self.aspect_ratio = aspect_ratio
+        self.interpolation_mode = interpolation_mode
 
-        self.aspect_ratio: Optional[Numeric] = aspect_ratio
-        if aspect_ratio is not None:
-            self.image_size = edge_to_image_size(edge_size, aspect_ratio, edge)
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
+        return F.resize(
+            image,
+            self.size,
+            edge=self.edge,
+            aspect_ratio=self.aspect_ratio,
+            interpolation_mode=self.interpolation_mode,
+        )
+
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
+        if is_image_size(self.size):
+            dct["image_size"] = self.size
         else:
-            self.image_size = None
-
-    def calculate_image_size(self, x: torch.Tensor) -> Tuple[int, int]:
-        if self.has_fixed_size:
-            return self.image_size
-        else:
-            aspect_ratio = extract_aspect_ratio(x)
-            return edge_to_image_size(self.edge_size, aspect_ratio, self.edge)
-
-    @property
-    def has_fixed_size(self) -> bool:
-        return self.image_size is not None
-
-    def extra_resize_transform_repr(self) -> str:
-        if self.has_fixed_size:
-            return "size={size}".format(**self.__dict__)
-        else:
-            dct = copy(self.__dict__)
-            dct["aspect_ratio"] = to_engstr(dct["aspect_ratio"])
-            extras = (
-                "edge_size={edge_size}",
-                "aspect_ratio={aspect_ratio}",
-                "edge={edge}",
-            )
-            return ", ".join(extras).format(**dct)
+            key = "edge_size" if is_edge_size(self.size) else "size"
+            dct[key] = self.size
+            dct["edge"] = self.edge
+            if self.aspect_ratio is not None:
+                dct["aspect_ratio"] = self.aspect_ratio
+        if self.interpolation_mode != "bilinear":
+            dct["interpolation_mode"] = self.interpolation_mode
+        return dct
 
 
-class Rescale(ResizeTransform):
-    def __init__(self, factor: Numeric, **kwargs):
-        super().__init__(**kwargs)
-        self.factor: Numeric = factor
+class Rescale(Transform):
+    def __init__(
+        self,
+        factor: Union[float, Tuple[float, float]],
+        interpolation_mode: str = "bilinear",
+    ):
+        super().__init__()
+        self.factor = factor
+        self.interpolation_mode = interpolation_mode
 
-    def calculate_image_size(self, x):
-        return [round(edge_size * self.factor) for edge_size in extract_image_size(x)]
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
+        return F.rescale(image, self.factor, self.interpolation_mode)
 
-    @property
-    def has_fixed_size(self) -> bool:
-        return False
-
-    def extra_resize_transform_repr(self) -> str:
-        return "factor={factor}".format(**self.__dict__)
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
+        dct["factor"] = self.factor
+        if self.interpolation_mode != "bilinear":
+            dct["interpolation_mode"] = self.interpolation_mode
+        return dct

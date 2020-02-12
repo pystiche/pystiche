@@ -98,7 +98,7 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
         for actual in actuals:
             self.assertImagesAlmostEqual(actual, desired)
 
-    def test_resize(self):
+    def test_resize_with_image_size(self):
         def PILResizeTransform(image_size):
             size = image_size[::-1]
             return lambda image: image.resize(size, resample=Image.BILINEAR)
@@ -112,7 +112,7 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
             mean_abs_tolerance=3e-2,
         )
 
-    def test_fixed_aspect_ratio_resize(self):
+    def test_resize_with_edge_size(self):
         def PILFixedAspectRatioResizeTransform(edge_size, edge):
             def transform(image):
                 aspect_ratio = calculate_aspect_ratio(image.size[::-1])
@@ -124,7 +124,7 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
 
         edge_size = 100
         for edge in ("short", "long", "vert", "horz"):
-            pystiche_transform = transforms.FixedAspectRatioResize(edge_size, edge=edge)
+            pystiche_transform = transforms.Resize(edge_size, edge=edge)
             pil_transform = PILFixedAspectRatioResizeTransform(edge_size, edge=edge)
             self.assertTransformEqualsPIL(
                 pystiche_transform=pystiche_transform,
