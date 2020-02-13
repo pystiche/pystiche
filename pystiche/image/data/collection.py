@@ -4,7 +4,7 @@ from urllib.request import urlretrieve
 import torch
 import pystiche
 from pystiche.image import read_image
-from torchvision.datasets.utils import check_integrity
+from torchvision.datasets.utils import check_md5
 
 __all__ = ["DownloadableImage", "DownloadableImageCollection"]
 
@@ -45,12 +45,24 @@ class DownloadableImage(pystiche.Object):
     def download(self, root: Optional[str] = None, force: bool = False):
         if root is None:
             root = pystiche.home()
-
         file = path.join(root, self.file)
-        if not force and check_integrity(file, md5=self.md5):
+
+        if not path.isfile(file):
+            urlretrieve(self.url, file)
             return
 
-        urlretrieve(self.url, file)
+        if self.md5 is None or check_md5(file, self.md5):
+            return
+
+        if force:
+            urlretrieve(self.url, file)
+            return
+
+        msg = (
+            f"{file} with a different MD5 hash is already present in {root}."
+            f"If you want to overwrite it, set force=True."
+        )
+        raise RuntimeError(msg)
 
     def read(
         self, root: Optional[str] = None, download=True, **read_image_kwargs: Any
