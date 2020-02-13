@@ -2,7 +2,6 @@ from typing import Any, Optional, Sequence, Tuple, Dict, Iterator, NoReturn, Uni
 from abc import ABC
 from copy import copy
 from collections import OrderedDict
-
 import torch
 from torch import nn
 from pystiche.misc import build_obj_str, build_fmtstr, format_dict

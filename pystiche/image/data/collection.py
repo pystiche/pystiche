@@ -6,7 +6,6 @@ import pystiche
 from pystiche.image import read_image
 from torchvision.datasets.utils import check_integrity
 
-
 __all__ = ["DownloadableImage", "DownloadableImageCollection"]
 
 
