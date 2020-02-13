@@ -11,13 +11,11 @@ from pystiche.image.utils import (
 from ._utils import affine_grid, grid_sample
 
 __all__ = [
-    "_create_affine_transform_matrix",
     "transform_motif_affinely",
     "shear_motif",
     "rotate_motif",
     "scale_motif",
     "translate_motif",
-    "resize_canvas",
 ]
 
 
@@ -152,9 +150,7 @@ def _create_affine_transform_matrix(
         )
         transform_matrices.append(transform_matrix)
 
-    transform_matrix = torch.chain_matmul(*reversed(transform_matrices))
-
-    return _transform_coordinates(transform_matrix, image_size)
+    return torch.chain_matmul(*reversed(transform_matrices))
 
 
 def _calculate_full_bounding_box_size(vertices: torch.Tensor) -> Tuple[int, int]:
@@ -167,7 +163,7 @@ def _calculate_valid_bounding_box_size(vertices):
     raise RuntimeError
 
 
-def resize_canvas(
+def _resize_canvas(
     transform_matrix: torch.Tensor, image_size: Tuple[int, int], method: str = "same",
 ) -> Tuple[torch.Tensor, Tuple[int, int]]:
     verify_str_arg(method, "method", ("same", "full", "valid"))
@@ -276,11 +272,13 @@ def transform_motif_affinely(
     )
     transform_matrix = transform_matrix.to(device)
 
-    transform_matrix, image_size = resize_canvas(
+    transform_matrix, resized_image_size = _resize_canvas(
         transform_matrix, image_size, method=canvas
     )
 
-    grid = _calculate_affine_grid(image, transform_matrix, image_size)
+    transform_matrix = _transform_coordinates(transform_matrix, image_size)
+
+    grid = _calculate_affine_grid(image, transform_matrix, resized_image_size)
     grid = grid.to(device)
 
     return grid_sample(image, grid, mode=interpolation_mode, padding_mode=padding_mode,)
