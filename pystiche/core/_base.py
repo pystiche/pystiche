@@ -2,12 +2,21 @@ from typing import Any, Optional, Sequence, Tuple, Dict, Iterator, NoReturn, Uni
 from abc import ABC
 from copy import copy
 from collections import OrderedDict
+import os
 import torch
 from torch import nn
 from pystiche.misc import build_obj_str, build_fmtstr, format_dict
 
 
-__all__ = ["Object", "TensorStorage", "LossDict"]
+__all__ = ["home", "Object", "TensorStorage", "LossDict"]
+
+
+def home():
+    root = os.getenv(
+        "PYSTICHE_HOME", os.path.expanduser(os.path.join("~", ".cache", "pystiche"))
+    )
+    os.makedirs(root, exist_ok=True)
+    return root
 
 
 class Object(ABC):
