@@ -9,6 +9,7 @@ from pystiche.image import (
     make_single_image,
     make_batched_image,
     transforms,
+    processing,
 )
 from pystiche.image.transforms import functional as F
 from image_testcase import PysticheImageTestcase
@@ -348,6 +349,50 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
             return yuv_to_rgb(rgb_to_yuv(image))
 
         self.assertIdentityTransform(transform, self.load_image("pystiche"))
+
+    def test_torch_processing(self):
+        preprocessing_transform = processing.TorchPreprocessing()
+        postprocessing_transform = processing.TorchPostprocessing()
+
+        image = self.load_image("pystiche")
+
+        def pre_post_processing_transform(image):
+            return postprocessing_transform(preprocessing_transform(image))
+
+        self.assertIdentityTransform(pre_post_processing_transform, image)
+
+        def post_pre_processing_transform(image):
+            return preprocessing_transform(postprocessing_transform(image))
+
+        self.assertIdentityTransform(post_pre_processing_transform, image)
+
+        @processing.torch_processing
+        def identity(x):
+            return x
+
+        self.assertIdentityTransform(identity, image)
+
+    def test_caffe_processing(self):
+        preprocessing_transform = processing.CaffePreprocessing()
+        postprocessing_transform = processing.CaffePostprocessing()
+
+        image = self.load_image("pystiche")
+
+        def pre_post_processing_transform(image):
+            return postprocessing_transform(preprocessing_transform(image))
+
+        self.assertIdentityTransform(pre_post_processing_transform, image)
+
+        def post_pre_processing_transform(image):
+            return preprocessing_transform(postprocessing_transform(image))
+
+        self.assertIdentityTransform(post_pre_processing_transform, image)
+
+        @processing.caffe_processing
+        def identity(x):
+            return x
+
+        self.assertIdentityTransform(identity, image)
 
 
 if __name__ == "__main__":

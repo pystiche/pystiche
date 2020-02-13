@@ -17,9 +17,29 @@ CAFFE_STD = (1.0, 1.0, 1.0)
 __all__ = [
     "TorchPreprocessing",
     "TorchPostprocessing",
+    "torch_processing",
     "CaffePreprocessing",
     "CaffePostprocessing",
+    "caffe_processing",
 ]
+
+
+def _processing(preprocessor=None, postprocessor=None):
+    def outer_wrapper(fn):
+        def inner_wrapper(input, *args, **kwargs):
+            if preprocessor is not None:
+                input = preprocessor(input)
+
+            output = fn(input, *args, **kwargs)
+
+            if postprocessor is not None:
+                output = postprocessor(output)
+
+            return output
+
+        return inner_wrapper
+
+    return outer_wrapper
 
 
 class TorchPreprocessing(ComposedTransform):
@@ -32,6 +52,14 @@ class TorchPostprocessing(ComposedTransform):
     def __init__(self) -> None:
         transforms = (Denormalize(TORCH_MEAN, TORCH_STD),)
         super().__init__(*transforms)
+
+
+def torch_processing(fn):
+    preprocessor = TorchPreprocessing()
+    postprocessor = TorchPostprocessing()
+
+    processing = _processing(preprocessor, postprocessor)
+    return processing(fn)
 
 
 class CaffePreprocessing(ComposedTransform):
@@ -52,3 +80,11 @@ class CaffePostprocessing(ComposedTransform):
             Denormalize(CAFFE_MEAN, CAFFE_STD),
         )
         super().__init__(*transforms)
+
+
+def caffe_processing(fn):
+    preprocessor = CaffePreprocessing()
+    postprocessor = CaffePostprocessing()
+
+    processing = _processing(preprocessor, postprocessor)
+    return processing(fn)
