@@ -65,12 +65,16 @@ class DownloadableImage(pystiche.Object):
         raise RuntimeError(msg)
 
     def read(
-        self, root: Optional[str] = None, download=True, **read_image_kwargs: Any
+        self,
+        root: Optional[str] = None,
+        download: bool = True,
+        force: bool = False,
+        **read_image_kwargs: Any,
     ) -> torch.Tensor:
         if root is None:
             root = pystiche.home()
         if download:
-            self.download(root=root)
+            self.download(root=root, force=force)
         return read_image(path.join(root, self.file), **read_image_kwargs)
 
     def _properties(self) -> Dict[str, Any]:
@@ -85,15 +89,23 @@ class DownloadableImage(pystiche.Object):
 
 class DownloadableImageCollection:
     def __init__(
-        self, images: Dict[str, DownloadableImage], download: bool = True,
+        self,
+        images: Dict[str, DownloadableImage],
+        root: Optional[str] = None,
+        download: bool = True,
+        force: bool = False,
     ):
         self.images = images
-        if download:
-            self.download()
+        if root is None:
+            root = pystiche.home()
+        self.root = root
 
-    def download(self, root: Optional[str] = None, force: bool = False):
+        if download:
+            self.download(force=force)
+
+    def download(self, force: bool = False):
         for image in self.images.values():
-            image.download(root=root, force=force)
+            image.download(root=self.root, force=force)
 
     def __len__(self) -> int:
         return len(self.images)
