@@ -1,7 +1,6 @@
-from typing import Optional
+from typing import Optional, Sequence, Tuple
 import torch
-from pystiche.image.utils import force_batched_image
-from pystiche.typing import Numeric
+from pystiche.image.utils import extract_num_channels, force_batched_image
 
 __all__ = [
     "normalize",
@@ -28,12 +27,32 @@ def reverse_channel_order(x: torch.Tensor) -> torch.Tensor:
 
 
 @force_batched_image
-def normalize(x: torch.Tensor, mean: Numeric, std: Numeric) -> torch.Tensor:
+def _channel_stats_to_tensor(
+    image: torch.Tensor, mean: Sequence[float], std: Sequence[float]
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    num_channels = extract_num_channels(image)
+
+    def to_tensor(seq: Sequence[float]) -> torch.Tensor:
+        if len(seq) != num_channels:
+            raise RuntimeError
+        return torch.tensor(seq, device=image.device).view(1, -1, 1, 1)
+
+    mean = to_tensor(mean)
+    std = to_tensor(std)
+    return mean, std
+
+
+def normalize(
+    x: torch.Tensor, mean: Sequence[float], std: Sequence[float]
+) -> torch.Tensor:
+    mean, std = _channel_stats_to_tensor(x, mean, std)
     return (x - mean) / std
 
 
-@force_batched_image
-def denormalize(x: torch.Tensor, mean: Numeric, std: Numeric) -> torch.Tensor:
+def denormalize(
+    x: torch.Tensor, mean: Sequence[float], std: Sequence[float]
+) -> torch.Tensor:
+    mean, std = _channel_stats_to_tensor(x, mean, std)
     return x * std + mean
 
 

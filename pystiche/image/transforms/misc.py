@@ -1,7 +1,6 @@
 from typing import Any, Sequence, Dict
 import torch
 from pystiche.misc import to_engtuplestr
-from pystiche.typing import Numeric
 from .core import Transform
 from . import functional as F
 
@@ -30,13 +29,10 @@ class ReverseChannelOrder(Transform):
 
 
 class Normalize(Transform):
-    def __init__(self, mean: Sequence[Numeric], std: Sequence[Numeric]) -> None:
+    def __init__(self, mean: Sequence[float], std: Sequence[float]) -> None:
         super().__init__()
         self.mean = mean
         self.std = std
-
-        self.register_buffer("_mean", torch.tensor(mean).view(1, -1, 1, 1))
-        self.register_buffer("_std", torch.tensor(std).view(1, -1, 1, 1))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return F.normalize(x, self._mean, self._std)
@@ -49,5 +45,16 @@ class Normalize(Transform):
 
 
 class Denormalize(Normalize):
+    def __init__(self, mean: Sequence[float], std: Sequence[float]) -> None:
+        super().__init__()
+        self.mean = mean
+        self.std = std
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return F.denormalize(x, self._mean, self._std)
+
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
+        dct["mean"] = to_engtuplestr(self.mean)
+        dct["std"] = to_engtuplestr(self.std)
+        return dct
