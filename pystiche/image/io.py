@@ -1,7 +1,11 @@
 from typing import Any, Union, Optional, Sequence
 from PIL import Image
 import torch
-from .utils import is_image_size, is_edge_size, verify_is_single_image
+from .utils import (
+    is_image_size,
+    is_edge_size,
+    force_single_image,
+)
 from .transforms.functional import import_from_pil, export_to_pil
 from .transforms import Resize, FixedAspectRatioResize
 
@@ -33,15 +37,15 @@ def read_image(
     return resize_transform(image)
 
 
+@force_single_image
 def write_image(
     image: torch.Tensor, file: str, mode: Optional[str] = None, **kwargs: Any
 ):
-    verify_is_single_image(image)
     export_to_pil(image, mode=mode).save(file, **kwargs)
 
 
+@force_single_image
 def show_image(
     image: torch.Tensor, mode: Optional[str] = None, title: Optional[str] = None
 ):
-    verify_is_single_image(image)
     export_to_pil(image, mode=mode).show(title=title)
