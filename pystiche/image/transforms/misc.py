@@ -35,7 +35,7 @@ class Normalize(Transform):
         self.std = std
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.normalize(x, self._mean, self._std)
+        return F.normalize(x, self.mean, self.std)
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
@@ -44,14 +44,14 @@ class Normalize(Transform):
         return dct
 
 
-class Denormalize(Normalize):
+class Denormalize(Transform):
     def __init__(self, mean: Sequence[float], std: Sequence[float]) -> None:
         super().__init__()
         self.mean = mean
         self.std = std
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.denormalize(x, self._mean, self._std)
+        return F.denormalize(x, self.mean, self.std)
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
