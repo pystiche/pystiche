@@ -12,7 +12,7 @@ from pystiche.image import (
     transforms,
 )
 from pystiche.image.transforms import functional as F
-from utils import PysticheImageTestcase
+from image_testcase import PysticheImageTestcase
 
 
 class Tester(PysticheImageTestcase, unittest.TestCase):
@@ -61,13 +61,6 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
 
         assert_transform_equality(pystiche_single_image, pil_image)
         assert_transform_equality(pystiche_batched_image, pil_image)
-
-    def assertIdentityTransform(self, transform, image, mean_abs_tolerance=1e-2):
-        actual = image
-        desired = transform(image)
-        self.assertImagesAlmostEqual(
-            actual, desired, mean_abs_tolerance=mean_abs_tolerance
-        )
 
     def test_pil_import_export(self):
         import_transform = transforms.ImportFromPIL()
