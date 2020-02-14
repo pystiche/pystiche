@@ -25,13 +25,6 @@ class Module(nn.Module, Object):
         elif indexed_children is not None:
             self.add_indexed_modules(indexed_children)
 
-    @abstractmethod
-    def forward(self, *args: Any, **kwargs: Any) -> Any:
-        pass
-
-    def extra_repr(self) -> str:
-        return ", ".join([f"{key}={value}" for key, value in self.properties().items()])
-
     def add_named_modules(self, modules: Dict[str, nn.Module]) -> None:
         for name, module in modules.items():
             self.add_module(name, module)
@@ -40,6 +33,13 @@ class Module(nn.Module, Object):
         self.add_named_modules(
             OrderedDict([(str(idx), module) for idx, module in enumerate(modules)])
         )
+
+    @abstractmethod
+    def forward(self, *args: Any, **kwargs: Any) -> Any:
+        pass
+
+    def extra_repr(self) -> str:
+        return ", ".join([f"{key}={value}" for key, value in self.properties().items()])
 
 
 class SequentialModule(Module):
