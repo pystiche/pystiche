@@ -6,10 +6,10 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from .op import Operator, EncodingOperator, ComparisonOperator
 from .guidance import Guidance, ComparisonGuidance
 
-__all__ = ["Container", "MultiLayerEncodingOperator", "MultiRegionOperator"]
+__all__ = ["OperatorContainer", "MultiLayerEncodingOperator", "MultiRegionOperator"]
 
 
-class Container(Operator):
+class OperatorContainer(Operator):
     def __init__(self, named_ops: Dict[str, Operator], score_weight=1e0):
         super().__init__(score_weight=score_weight)
         for name, op in named_ops.items():
@@ -24,7 +24,7 @@ class Container(Operator):
         return self._modules[name]
 
 
-class SameOperatorContainer(Container):
+class SameOperatorContainer(OperatorContainer):
     def __init__(
         self,
         names: Sequence[str],
