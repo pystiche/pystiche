@@ -12,8 +12,7 @@ __all__ = ["OperatorContainer", "MultiLayerEncodingOperator", "MultiRegionOperat
 class OperatorContainer(Operator):
     def __init__(self, named_ops: Dict[str, Operator], score_weight=1e0):
         super().__init__(score_weight=score_weight)
-        for name, op in named_ops.items():
-            self.add_module(name, op)
+        self.add_named_modules(named_ops)
 
     def process_input_image(self, input_image: torch.Tensor) -> pystiche.LossDict:
         return pystiche.LossDict(
