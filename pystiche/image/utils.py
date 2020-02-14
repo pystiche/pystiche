@@ -205,7 +205,7 @@ def force_single_image(fn):
 
         x = fn(x, *args, **kwargs)
 
-        if is_batched:
+        if is_batched and verify_is_image(x):
             x = make_batched_image(x)
 
         return x
@@ -222,7 +222,7 @@ def force_batched_image(fn):
 
         x = fn(x, *args, **kwargs)
 
-        if is_single:
+        if is_single and verify_is_image(x):
             x = make_single_image(x)
 
         return x
