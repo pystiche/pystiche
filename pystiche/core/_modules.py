@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Sequence, Dict
+from typing import Any, Optional, Sequence, Dict
 from collections import OrderedDict
 import torch
 from torch import nn
@@ -9,6 +9,22 @@ __all__ = ["Module", "SequentialModule"]
 
 
 class Module(nn.Module, Object):
+    def __init__(
+        self,
+        named_children: Optional[Dict[str, nn.Module]] = None,
+        indexed_children: Optional[Sequence[nn.Module]] = None,
+    ):
+        if named_children is not None and indexed_children is not None:
+            msg = (
+                "named_children and indexed_children "
+                "are mutually exclusive parameters."
+            )
+            raise RuntimeError(msg)
+        elif named_children is not None:
+            self.add_named_modules(named_children)
+        elif indexed_children is not None:
+            self.add_indexed_modules(indexed_children)
+
     @abstractmethod
     def forward(self, *args: Any, **kwargs: Any) -> Any:
         pass
