@@ -70,14 +70,17 @@ def uint8_to_float_range(x: torch.Tensor) -> torch.Tensor:
     return x / 255.0
 
 
+@force_batched_image
 def reverse_channel_order(x: torch.Tensor) -> torch.Tensor:
     return x.flip((1,))
 
 
+@force_batched_image
 def denormalize(x: torch.Tensor, mean: Numeric, std: Numeric) -> torch.Tensor:
     return x * std + mean
 
 
+@force_batched_image
 def normalize(x: torch.Tensor, mean: Numeric, std: Numeric) -> torch.Tensor:
     return (x - mean) / std
 
