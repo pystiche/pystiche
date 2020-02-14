@@ -1,11 +1,11 @@
 from abc import abstractmethod
-from typing import Any, Union, Dict
+from typing import Any, Sequence, Dict
 from collections import OrderedDict
 import torch
 from torch import nn
 from ._base import Object
 
-__all__ = ["Module", "ContainerModule", "SequentialModule"]
+__all__ = ["Module", "SequentialModule"]
 
 
 class Module(nn.Module, Object):
@@ -16,23 +16,17 @@ class Module(nn.Module, Object):
     def extra_repr(self) -> str:
         return ", ".join([f"{key}={value}" for key, value in self.properties().items()])
 
+    def add_named_modules(self, modules: Dict[str, nn.Module]) -> None:
+        for name, module in modules.items():
+            self.add_module(name, module)
 
-class ContainerModule(Module):
-    def __init__(self, *args: Union[nn.Module, Dict[str, nn.Module]]) -> None:
-        super().__init__()
-        if len(args) == 1 and isinstance(args[0], OrderedDict):
-            for key, module in args[0].items():
-                self.add_module(key, module)
-        else:
-            for idx, module in enumerate(args):
-                self.add_module(str(idx), module)
-
-    @abstractmethod
-    def forward(self, *args: Any, **kwargs: Any) -> Any:
-        pass
+    def add_indexed_modules(self, modules: Sequence[nn.Module]) -> None:
+        self.add_named_modules(
+            OrderedDict([(str(idx), module) for idx, module in enumerate(modules)])
+        )
 
 
-class SequentialModule(ContainerModule):
+class SequentialModule(Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for module in self.children():
             x = module(x)
