@@ -27,12 +27,16 @@ __all__ = [
 ]
 
 
-def _verify_image_dtype(x: torch.Tensor) -> None:
-    if x.dtype != torch.float32:
-        msg = (
-            f"pystiche uses torch.float32 as native image dtype, but got input with "
-            f"dtype {x.dtype} instead."
-        )
+def _verify_image_type(x: Any) -> None:
+    msg = (
+        "pystiche uses a torch.Tensor with dtype==torch.float32 "
+        "as native image data type, but got input "
+    )
+    if not isinstance(x, torch.Tensor):
+        msg += f"of type {type(x)} instead."
+        raise TypeError(msg)
+    elif x.dtype != torch.float32:
+        msg = f" with dtype=={x.dtype} instead."
         raise TypeError(msg)
 
 
@@ -54,7 +58,7 @@ def _verify_batched_image_dims(x: torch.Tensor) -> None:
         raise TypeError(msg)
 
 
-def _verify_image_dims(x: Any) -> None:
+def _verify_image_dims(x: torch.Tensor) -> None:
     if not x.dim() in (3, 4):
         msg = (
             f"pystiche uses CxHxW tensors for single and BxCxHxW tensors for batched "
@@ -63,12 +67,12 @@ def _verify_image_dims(x: Any) -> None:
         raise TypeError(msg)
 
 
-def verify_is_single_image(x: torch.Tensor) -> None:
-    _verify_image_dtype(x)
+def verify_is_single_image(x: Any) -> None:
+    _verify_image_type(x)
     _verify_single_image_dims(x)
 
 
-def is_single_image(x: torch.Tensor) -> bool:
+def is_single_image(x: Any) -> bool:
     try:
         verify_is_single_image(x)
     except TypeError:
@@ -77,12 +81,12 @@ def is_single_image(x: torch.Tensor) -> bool:
         return True
 
 
-def verify_is_batched_image(x: torch.Tensor) -> None:
-    _verify_image_dtype(x)
+def verify_is_batched_image(x: Any) -> None:
+    _verify_image_type(x)
     _verify_batched_image_dims(x)
 
 
-def is_batched_image(x: torch.Tensor) -> bool:
+def is_batched_image(x: Any) -> bool:
     try:
         verify_is_batched_image(x)
     except TypeError:
@@ -91,12 +95,12 @@ def is_batched_image(x: torch.Tensor) -> bool:
         return True
 
 
-def verify_is_image(x: torch.Tensor) -> None:
-    _verify_image_dtype(x)
+def verify_is_image(x: Any) -> None:
+    _verify_image_type(x)
     _verify_image_dims(x)
 
 
-def is_image(x: torch.Tensor) -> bool:
+def is_image(x: Any) -> bool:
     try:
         verify_is_image(x)
     except TypeError:
