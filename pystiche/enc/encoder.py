@@ -21,10 +21,8 @@ class Encoder(pystiche.Module):
 
 
 class SequentialEncoder(Encoder):
-    def __init__(self, modules: Dict[str, nn.Module]) -> None:
-        super().__init__()
-        for name, module in modules.items():
-            self.add_module(name, module)
+    def __init__(self, modules: Sequence[nn.Module]) -> None:
+        super().__init__(indexed_children=modules)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for module in self.children():
@@ -60,9 +58,9 @@ class SingleLayerEncoder(Encoder):
         )
 
 
-class MultiLayerEncoder(pystiche.ContainerModule):
-    def __init__(self, *args: Union[nn.Module, Dict[str, nn.Module]]) -> None:
-        super().__init__(*args)
+class MultiLayerEncoder(pystiche.Module):
+    def __init__(self, modules: Dict[str, nn.Module]) -> None:
+        super().__init__(named_children=modules)
         self._registered_layers = set()
         self._storage = {}
 
