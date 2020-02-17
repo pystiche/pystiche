@@ -26,7 +26,6 @@ def reverse_channel_order(x: torch.Tensor) -> torch.Tensor:
     return x.flip((1,))
 
 
-@force_batched_image
 def _channel_stats_to_tensor(
     image: torch.Tensor, mean: Sequence[float], std: Sequence[float]
 ) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -42,6 +41,7 @@ def _channel_stats_to_tensor(
     return mean, std
 
 
+@force_batched_image
 def normalize(
     x: torch.Tensor, mean: Sequence[float], std: Sequence[float]
 ) -> torch.Tensor:
@@ -49,6 +49,7 @@ def normalize(
     return (x - mean) / std
 
 
+@force_batched_image
 def denormalize(
     x: torch.Tensor, mean: Sequence[float], std: Sequence[float]
 ) -> torch.Tensor:
