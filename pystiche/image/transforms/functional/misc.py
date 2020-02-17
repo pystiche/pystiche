@@ -52,6 +52,7 @@ def normalize(
 def denormalize(
     x: torch.Tensor, mean: Sequence[float], std: Sequence[float]
 ) -> torch.Tensor:
+
     mean, std = _channel_stats_to_tensor(x, mean, std)
     return x * std + mean
 
