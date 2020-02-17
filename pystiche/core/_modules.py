@@ -26,6 +26,7 @@ class Module(nn.Module, Object):
             self.add_indexed_modules(indexed_children)
 
     def add_named_modules(self, modules: Dict[str, nn.Module]) -> None:
+
         for name, module in modules.items():
             self.add_module(name, module)
 
