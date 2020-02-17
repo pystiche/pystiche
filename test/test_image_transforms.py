@@ -484,6 +484,51 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
 
         self.assertIdentityTransform(identity, image)
 
+    def test_top_left_crop(self):
+        image = self.load_image("pystiche")
+        size = 200
+
+        transform = transforms.TopLeftCrop(size)
+        actual = transform(image)
+        desired = image[:, :, :size, :size]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_bottom_left_crop(self):
+        image = self.load_image("pystiche")
+        size = 200
+
+        transform = transforms.BottomLeftCrop(size)
+        actual = transform(image)
+        desired = image[:, :, -size:, :size]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_top_right_crop(self):
+        image = self.load_image("pystiche")
+        size = 200
+
+        transform = transforms.TopRightCrop(size)
+        actual = transform(image)
+        desired = image[:, :, :size, -size:]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_bottom_right_crop(self):
+        image = self.load_image("pystiche")
+        size = 200
+
+        transform = transforms.BottomRightCrop(size)
+        actual = transform(image)
+        desired = image[:, :, -size:, -size:]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_center_crop(self):
+        image = torch.rand(1, 1, 100, 100)
+        size = 50
+
+        transform = transforms.CenterCrop(size)
+        actual = transform(image)
+        desired = image[:, :, size // 2 : -size // 2, size // 2 : -size // 2]
+        self.assertImagesAlmostEqual(actual, desired)
+
 
 if __name__ == "__main__":
     unittest.main()
