@@ -14,8 +14,11 @@ with open(path.join(here, "README.md"), "r") as fh:
 install_requires = ("numpy", "torch>=1.4.0", "pillow", "torchvision>=0.5.0")
 
 extras_require = {
-    # FIXME: move to a released version
-    "testing": ("pyimagetest@https://github.com/pmeier/pyimagetest/archive/master.zip",)
+    # FIXME: move to a released versions
+    "testing": (
+        "pyimagetest@https://github.com/pmeier/pyimagetest/archive/master.zip",
+        "pillow_affine@https://github.com/pmeier/pillow_affine/archive/master.zip",
+    )
 }
 
 classifiers = (

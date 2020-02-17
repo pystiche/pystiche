@@ -2,7 +2,7 @@ from typing import Optional
 import torch
 from pystiche import Object
 from pystiche.misc import verify_str_arg
-from pystiche.image.transforms import FixedAspectRatioResize
+from pystiche.image.transforms.functional import resize
 
 __all__ = ["PyramidLevel"]
 
@@ -19,15 +19,16 @@ class PyramidLevel(Object):
         aspect_ratio: Optional[float],
         interpolation_mode: str,
     ) -> torch.Tensor:
-        transform = FixedAspectRatioResize(
-            edge_size=self.edge_size,
-            edge=self.edge,
-            aspect_ratio=aspect_ratio,
-            interpolation_mode=interpolation_mode,
-        )
+
         with torch.no_grad():
-            resized_image = transform(image)
-        return resized_image.detach()
+            image = resize(
+                image,
+                self.edge_size,
+                edge=self.edge,
+                aspect_ratio=aspect_ratio,
+                interpolation_mode=interpolation_mode,
+            )
+        return image.detach()
 
     def resize_image(
         self,
@@ -38,9 +39,12 @@ class PyramidLevel(Object):
         return self._resize(image, aspect_ratio, interpolation_mode)
 
     def resize_guide(
-        self, guide: torch.Tensor, aspect_ratio: Optional[float] = None
+        self,
+        guide: torch.Tensor,
+        aspect_ratio: Optional[float] = None,
+        interpolation_mode: str = "nearest",
     ) -> torch.Tensor:
-        return self._resize(guide, aspect_ratio, interpolation_mode="nearest")
+        return self._resize(guide, aspect_ratio, interpolation_mode)
 
     def __iter__(self):
         for step in range(1, self.num_steps + 1):

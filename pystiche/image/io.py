@@ -1,13 +1,8 @@
-from typing import Any, Union, Optional, Sequence
+from typing import Any, Union, Optional, Tuple
 from PIL import Image
 import torch
-from .utils import (
-    is_image_size,
-    is_edge_size,
-    force_single_image,
-)
-from .transforms.functional import import_from_pil, export_to_pil
-from .transforms import Resize, FixedAspectRatioResize
+from .utils import force_single_image
+from .transforms.functional import import_from_pil, export_to_pil, resize
 
 
 __all__ = ["read_image", "write_image", "show_image"]
@@ -17,7 +12,7 @@ def read_image(
     file: str,
     device: Union[torch.device, str] = "cpu",
     make_batched: bool = True,
-    size: Optional[Union[int, Sequence[int]]] = None,
+    size: Optional[Union[int, Tuple[int, int]]] = None,
     **resize_kwargs: Any,
 ) -> torch.Tensor:
     if isinstance(device, str):
@@ -25,16 +20,10 @@ def read_image(
 
     image = import_from_pil(Image.open(file), device=device, make_batched=make_batched)
 
-    if size is None:
-        return image
+    if size is not None:
+        image = resize(image, size, **resize_kwargs)
 
-    if is_image_size(size):
-        resize_transform = Resize(size, **resize_kwargs)
-    elif is_edge_size(size):
-        resize_transform = FixedAspectRatioResize(size, **resize_kwargs)
-    else:
-        raise ValueError
-    return resize_transform(image)
+    return image
 
 
 @force_single_image

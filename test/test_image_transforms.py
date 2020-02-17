@@ -4,15 +4,26 @@ import numpy as np
 import torch
 from pystiche.image import (
     is_single_image,
-    is_batched_image,
     calculate_aspect_ratio,
     edge_to_image_size,
     make_single_image,
     make_batched_image,
     transforms,
+    processing,
 )
+import pillow_affine as pa
 from pystiche.image.transforms import functional as F
 from image_testcase import PysticheImageTestcase
+
+
+def PILTransform(affine_transform, expand=False):
+    def transform(image):
+        transform_params = affine_transform.extract_transform_params(
+            image.size, expand=expand
+        )
+        return image.transform(*transform_params, resample=Image.BILINEAR)
+
+    return transform
 
 
 class Tester(PysticheImageTestcase, unittest.TestCase):
@@ -99,7 +110,7 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
         for actual in actuals:
             self.assertImagesAlmostEqual(actual, desired)
 
-    def test_resize(self):
+    def test_resize_with_image_size(self):
         def PILResizeTransform(image_size):
             size = image_size[::-1]
             return lambda image: image.resize(size, resample=Image.BILINEAR)
@@ -113,7 +124,7 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
             mean_abs_tolerance=3e-2,
         )
 
-    def test_fixed_aspect_ratio_resize(self):
+    def test_resize_with_edge_size(self):
         def PILFixedAspectRatioResizeTransform(edge_size, edge):
             def transform(image):
                 aspect_ratio = calculate_aspect_ratio(image.size[::-1])
@@ -125,7 +136,7 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
 
         edge_size = 100
         for edge in ("short", "long", "vert", "horz"):
-            pystiche_transform = transforms.FixedAspectRatioResize(edge_size, edge=edge)
+            pystiche_transform = transforms.Resize(edge_size, edge=edge)
             pil_transform = PILFixedAspectRatioResizeTransform(edge_size, edge=edge)
             self.assertTransformEqualsPIL(
                 pystiche_transform=pystiche_transform,
@@ -150,14 +161,99 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
             mean_abs_tolerance=2e-2,
         )
 
+    def test_shear_motif(self):
+        def PILShearMotif(angle, clockwise=False, center=None):
+            if center is not None:
+                center = tuple(center[::-1])
+            affine_transform = pa.Shear(angle, clockwise=clockwise, center=center)
+            return PILTransform(affine_transform)
+
+        angle = 30
+        pystiche_transform = transforms.ShearMotif(angle)
+        pil_transform = PILShearMotif(angle)
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform,
+        )
+
+        clockwise = True
+        pystiche_transform = transforms.ShearMotif(angle, clockwise=clockwise)
+        pil_transform = PILShearMotif(angle, clockwise=clockwise)
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform,
+        )
+
+        center = (100.0, 50.0)
+        pystiche_transform = transforms.ShearMotif(angle, center=center)
+        pil_transform = PILShearMotif(angle, center=center)
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform,
+        )
+
+    def test_rotate_motif(self):
+        def PILRotateMotif(angle, clockwise=False, center=None):
+            if center is not None:
+                center = tuple(center[::-1])
+            affine_transform = pa.Rotate(angle, clockwise=clockwise, center=center)
+            return PILTransform(affine_transform)
+
+        angle = 30
+        pystiche_transform = transforms.RotateMotif(angle)
+        pil_transform = PILRotateMotif(angle)
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform,
+        )
+
+        clockwise = True
+        pystiche_transform = transforms.RotateMotif(angle, clockwise=clockwise)
+        pil_transform = PILRotateMotif(angle, clockwise=clockwise)
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform,
+        )
+
+        center = (100.0, 50.0)
+        pystiche_transform = transforms.RotateMotif(angle, center=center)
+        pil_transform = PILRotateMotif(angle, center=center)
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform,
+        )
+
+    def test_scale_motif(self):
+        def PILScaleMotif(factor, center=None):
+            if not isinstance(factor, float):
+                factor = tuple(factor[::-1])
+            if center is not None:
+                center = tuple(center[::-1])
+            affine_transform = pa.Scale(factor, center=center)
+            return PILTransform(affine_transform)
+
+        factor = 2.0
+        pystiche_transform = transforms.ScaleMotif(factor)
+        pil_transform = PILScaleMotif(factor)
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform,
+        )
+
+        factor = (0.3, 0.7)
+        pystiche_transform = transforms.ScaleMotif(factor)
+        pil_transform = PILScaleMotif(factor)
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform,
+        )
+
+        factor = 0.5
+        center = (100.0, 50.0)
+        pystiche_transform = transforms.ScaleMotif(factor, center=center)
+        pil_transform = PILScaleMotif(factor, center=center)
+        pystiche_transform(torch.rand(1, 100, 100))
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform,
+        )
+
     def test_translate_motif(self):
         def PILTranslateMotif(translation, inverse=False):
-            if inverse:
-                translation = [-val for val in translation]
-            translate = (translation[0], -translation[1])
-            return lambda image: image.rotate(
-                0.0, translate=translate, resample=Image.BILINEAR
-            )
+            translation = tuple(translation[::-1])
+            affine_transform = pa.Translate(translation, inverse=inverse)
+            return PILTransform(affine_transform)
 
         translation = (100.0, 100.0)
         pystiche_transform = transforms.TranslateMotif(translation)
@@ -173,87 +269,81 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
             pystiche_transform=pystiche_transform, pil_transform=pil_transform
         )
 
-    def test_rotate_motif(self):
-        pil_image = self.load_image("PIL")
-
-        def PILRotateMotif(angle, clockwise=False, center=None):
-            if clockwise:
-                angle *= -1.0
-            if center is not None:
-                center = (center[0], pil_image.height - center[1])
-            return lambda image: image.rotate(
-                angle, center=center, resample=Image.BILINEAR
+    def test_transform_motif_affinely_same_canvas(self):
+        def PILTransformMotifAffinely(
+            shearing_angle=0.0,
+            clockwise_shearing=False,
+            shearing_center=None,
+            rotation_angle=0.0,
+            clockwise_rotation=False,
+            rotation_center=None,
+            scaling_factor=1.0,
+            scaling_center=None,
+            translation=(0.0, 0.0),
+            inverse_translation=False,
+        ):
+            if shearing_center is not None:
+                shearing_center = tuple(shearing_center[::-1])
+            if rotation_center is not None:
+                rotation_center = tuple(rotation_center[::-1])
+            if scaling_center is not None:
+                scaling_center = tuple(scaling_center[::-1])
+            if not isinstance(scaling_factor, float):
+                scaling_factor = tuple(scaling_factor[::-1])
+            translation = tuple(translation[::-1])
+            affine_transform = pa.ComposedTransform(
+                pa.Shear(
+                    shearing_angle, clockwise=clockwise_shearing, center=shearing_center
+                ),
+                pa.Rotate(
+                    rotation_angle, clockwise=clockwise_rotation, center=rotation_center
+                ),
+                pa.Scale(scaling_factor, center=scaling_center),
+                pa.Translate(translation, inverse=inverse_translation),
             )
+            return PILTransform(affine_transform)
 
-        angle = 30
-        pystiche_transform = transforms.RotateMotif(angle)
-        pil_transform = PILRotateMotif(angle)
+        transform_kwargs = {
+            "shearing_angle": 10.0,
+            "clockwise_shearing": True,
+            "shearing_center": None,
+            "rotation_angle": 20.0,
+            "clockwise_rotation": True,
+            "rotation_center": (0.0, 0.0),
+            "scaling_factor": (0.6, 0.7),
+            "scaling_center": (300.0, 200.0),
+            "translation": (-20.0, 50.0),
+            "inverse_translation": False,
+        }
+
+        pystiche_transform = transforms.TransformMotifAffinely(**transform_kwargs)
+        pil_transform = PILTransformMotifAffinely(**transform_kwargs)
+        pystiche_transform(torch.rand(1, 100, 100))
         self.assertTransformEqualsPIL(
-            pystiche_transform=pystiche_transform,
-            pil_transform=pil_transform,
-            pil_image=pil_image,
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform
         )
 
-        clockwise = True
-        pystiche_transform = transforms.RotateMotif(angle, clockwise=clockwise)
-        pil_transform = PILRotateMotif(angle, clockwise=clockwise)
+    def test_transform_motif_affinely_full_canvas(self):
+        def PILRotateMotif(angle, expand=False):
+            affine_transform = pa.Rotate(angle)
+            return PILTransform(affine_transform, expand=expand)
+
+        angle = 30.0
+        pystiche_transform = transforms.RotateMotif(angle=angle, canvas="full")
+        pil_transform = PILRotateMotif(angle=angle, expand=True)
+
         self.assertTransformEqualsPIL(
-            pystiche_transform=pystiche_transform,
-            pil_transform=pil_transform,
-            pil_image=pil_image,
+            pystiche_transform=pystiche_transform, pil_transform=pil_transform,
         )
 
-        center = (0, 0)
-        pystiche_transform = transforms.RotateMotif(angle, center=center)
-        pil_transform = PILRotateMotif(angle, center=center)
-        self.assertTransformEqualsPIL(
-            pystiche_transform=pystiche_transform,
-            pil_transform=pil_transform,
-            pil_image=pil_image,
-        )
-
-    # FIXME: rename
-    def test_transform_motif_affinely_crop(self):
-        def PILRotateMotif(angle, canvas):
-            if canvas == "same":
-                expand = False
-            elif canvas == "full":
-                expand = True
-            else:
-                raise ValueError
-            return lambda image: image.rotate(
-                angle, expand=expand, resample=Image.BILINEAR
-            )
-
-        # The PIL transform calculates the output image size differently than pystiche
-        # so an off-by-one error might occur for different angles
-        angle = 45.0
-        canvas = "full"
-        pystiche_transform = transforms.RotateMotif(angle=angle, canvas=canvas)
-        pil_transform = PILRotateMotif(angle=angle, canvas=canvas)
-
+    def test_transform_motif_affinely_valid_canvas(self):
         pystiche_image = torch.ones(1, 1, 100, 100)
-        pil_image = transforms.ExportToPIL()(pystiche_image)
-
-        self.assertTransformEqualsPIL(
-            pystiche_transform=pystiche_transform,
-            pil_transform=pil_transform,
-            pystiche_image=pystiche_image,
-            pil_image=pil_image,
-        )
-
-        actual = pystiche_transform(pystiche_image)
-        desired = pil_transform(pil_image)
-        self.assertImagesAlmostEqual(actual, desired)
-
-    # FIXME: rename
-    def test_transform_motif_affinely(self):
-        pynst_image = torch.ones(1, 1, 100, 100)
 
         angle = 45.0
         canvas = "valid"
-        pynst_transform = transforms.RotateMotif(angle=angle, canvas=canvas)
-        self.assertRaises(RuntimeError, pynst_transform, pynst_image)
+        pystiche_transform = transforms.RotateMotif(angle=angle, canvas=canvas)
+        with self.assertRaises(RuntimeError):
+            pystiche_transform(pystiche_image)
 
     def test_rgb_to_grayscale(self):
         def PILRGBToGrayscale():
@@ -349,6 +439,50 @@ class Tester(PysticheImageTestcase, unittest.TestCase):
             return yuv_to_rgb(rgb_to_yuv(image))
 
         self.assertIdentityTransform(transform, self.load_image("pystiche"))
+
+    def test_torch_processing(self):
+        preprocessing_transform = processing.TorchPreprocessing()
+        postprocessing_transform = processing.TorchPostprocessing()
+
+        image = self.load_image("pystiche")
+
+        def pre_post_processing_transform(image):
+            return postprocessing_transform(preprocessing_transform(image))
+
+        self.assertIdentityTransform(pre_post_processing_transform, image)
+
+        def post_pre_processing_transform(image):
+            return preprocessing_transform(postprocessing_transform(image))
+
+        self.assertIdentityTransform(post_pre_processing_transform, image)
+
+        @processing.torch_processing
+        def identity(x):
+            return x
+
+        self.assertIdentityTransform(identity, image)
+
+    def test_caffe_processing(self):
+        preprocessing_transform = processing.CaffePreprocessing()
+        postprocessing_transform = processing.CaffePostprocessing()
+
+        image = self.load_image("pystiche")
+
+        def pre_post_processing_transform(image):
+            return postprocessing_transform(preprocessing_transform(image))
+
+        self.assertIdentityTransform(pre_post_processing_transform, image)
+
+        def post_pre_processing_transform(image):
+            return preprocessing_transform(postprocessing_transform(image))
+
+        self.assertIdentityTransform(post_pre_processing_transform, image)
+
+        @processing.caffe_processing
+        def identity(x):
+            return x
+
+        self.assertIdentityTransform(identity, image)
 
 
 if __name__ == "__main__":

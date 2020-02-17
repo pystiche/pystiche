@@ -14,6 +14,7 @@ class Module(nn.Module, Object):
         named_children: Optional[Dict[str, nn.Module]] = None,
         indexed_children: Optional[Sequence[nn.Module]] = None,
     ):
+        super().__init__()
         if named_children is not None and indexed_children is not None:
             msg = (
                 "named_children and indexed_children "
@@ -43,6 +44,9 @@ class Module(nn.Module, Object):
 
 
 class SequentialModule(Module):
+    def __init__(self, *modules: nn.Module):
+        super().__init__(indexed_children=modules)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for module in self.children():
             x = module(x)
