@@ -1,6 +1,7 @@
 from typing import Union, Iterable
 from abc import abstractmethod
 import itertools
+import torch
 import pystiche
 
 __all__ = ["Transform", "ComposedTransform"]
@@ -17,7 +18,15 @@ class Transform(pystiche.Module):
         return compose_transforms(self, other)
 
 
-class ComposedTransform(pystiche.SequentialModule):
+class ComposedTransform(Transform):
+    def __init__(self, *transforms: Transform):
+        super().__init__(indexed_children=transforms)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        for module in self.children():
+            x = module(x)
+        return x
+
     def __add__(
         self, other: Union["Transform", "ComposedTransform"]
     ) -> "ComposedTransform":
