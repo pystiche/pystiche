@@ -1,5 +1,5 @@
 from torch import nn
-from pystiche.image.transforms import TorchPreprocessing, CaffePreprocessing
+from pystiche.image import TorchPreprocessing, CaffePreprocessing
 
 PREPROCESSORS = {"torch": TorchPreprocessing(), "caffe": CaffePreprocessing()}
 
