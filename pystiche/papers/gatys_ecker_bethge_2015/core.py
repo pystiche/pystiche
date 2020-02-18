@@ -3,13 +3,13 @@ import logging
 import torch
 from torch import nn
 from pystiche.optim import default_image_optim_loop
+from ..common_utils import get_input_image
+from .loss import gatys_ecker_bethge_2015_perceptual_loss
 from .utils import (
     gatys_ecker_bethge_2015_preprocessor,
     gatys_ecker_bethge_2015_postprocessor,
     gatys_ecker_bethge_2015_optimizer,
 )
-from ..common_utils import get_input_image
-from .loss import gatys_ecker_bethge_2015_perceptual_loss
 
 
 __all__ = [
