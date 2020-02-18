@@ -117,7 +117,7 @@ class MRFOperator(EncodingComparisonOperator):
         for transform_params in itertools.product(scaling_factors, rotation_angles):
             scaling_factor, rotation_angle = transform_params
             transform = TransformMotifAffinely(
-                scaling_factors=scaling_factor,
+                scaling_factor=scaling_factor,
                 rotation_angle=rotation_angle,
                 canvas="same",  # FIXME: this should be valid after it is implemented
             )
