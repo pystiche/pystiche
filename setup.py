@@ -1,12 +1,10 @@
 from os import path
 from setuptools import setup, find_packages
 
+about = {}
 here = path.abspath(path.dirname(__file__))
-
 with open(path.join(here, "pystiche", "__version__.py"), "r") as fh:
-    content = {}
-    exec(fh.read(), content)
-    version = content["__version__"]
+    exec(fh.read(), about)
 
 with open(path.join(here, "README.md"), "r") as fh:
     long_description = fh.read()
@@ -29,13 +27,13 @@ classifiers = (
 )
 
 setup(
-    name="pystiche",
-    description="pystiche is a framework for Neural Style Transfer (NST) algorithms built upon PyTorch",
-    version=version,
-    url="https://github.com/pmeier/pystiche",
-    license="BSD-3",
-    author="Philip Meier",
-    author_email="github.pmeier@posteo.de",
+    name=about["__name__"],
+    description=about["__description__"],
+    version=about["__version__"],
+    url=about["__url__"],
+    license=about["__license__"],
+    author=about["__author__"],
+    author_email=about["__author_email__"],
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=("test",)),
