@@ -5,6 +5,7 @@ from torch import nn
 from pystiche.pyramid import ImagePyramid
 from pystiche.optim import default_image_pyramid_optim_loop
 from ..common_utils import get_input_image
+from .data import li_wand_2016_images
 from .loss import li_wand_2016_perceptual_loss
 from .pyramid import li_wand_2016_image_pyramid
 from .utils import (
@@ -15,6 +16,7 @@ from .utils import (
 
 
 __all__ = [
+    "li_wand_2016_images",
     "li_wand_2016_perceptual_loss",
     "li_wand_2016_image_pyramid",
     "li_wand_2016_nst",
