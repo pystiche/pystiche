@@ -6,7 +6,7 @@ import torch
 import pystiche
 from pystiche.image import read_image
 from torchvision.datasets.utils import check_md5
-from .license import License, UnknownLicense
+from pystiche.data.license import License, UnknownLicense
 
 __all__ = ["DownloadableImage", "DownloadableImageCollection"]
 

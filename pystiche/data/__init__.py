@@ -1,4 +1,4 @@
 from .license import *
-from .collection import *
+from .collections import *
 from .datasets import *
 from .sampler import *
