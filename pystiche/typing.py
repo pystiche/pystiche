@@ -3,7 +3,6 @@ import torch
 from torch import nn
 
 __all__ = [
-    "Numeric",
     "TensorMeta",
     "ConvModule",
     "is_conv_module",

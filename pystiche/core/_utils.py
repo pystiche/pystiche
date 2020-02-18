@@ -1,51 +1,13 @@
-from typing import Any, Union, Sequence, Dict
+from typing import Union, Sequence
 import torch
-from pystiche.typing import (
-    TensorMeta,
-    ConvModule,
-    ConvModuleMeta,
-    PoolModule,
-    PoolModuleMeta,
-)
 from pystiche.misc import prod, to_1d_arg, to_2d_arg, to_3d_arg, zip_equal
 
 
 __all__ = [
-    "tensor_meta",
-    "conv_module_meta",
-    "pool_module_meta",
     "extract_patches1d",
     "extract_patches2d",
     "extract_patches3d",
 ]
-
-
-def _extract_meta_attrs(
-    obj: Any, attrs: Sequence[str], **kwargs: Any
-) -> Dict[str, Any]:
-    for attr in attrs:
-        if attr not in kwargs:
-            kwargs[attr] = getattr(obj, attr)
-    return kwargs
-
-
-def tensor_meta(x: torch.Tensor, **kwargs: TensorMeta) -> Dict[str, TensorMeta]:
-    attrs = ("dtype", "device")
-    return _extract_meta_attrs(x, attrs, **kwargs)
-
-
-def conv_module_meta(
-    x: ConvModule, **kwargs: ConvModuleMeta
-) -> Dict[str, ConvModuleMeta]:
-    attrs = ("kernel_size", "stride", "padding", "dilation")
-    return _extract_meta_attrs(x, attrs, **kwargs)
-
-
-def pool_module_meta(
-    x: PoolModule, **kwargs: PoolModuleMeta
-) -> Dict[str, PoolModuleMeta]:
-    attrs = ("kernel_size", "stride", "padding")
-    return _extract_meta_attrs(x, attrs, **kwargs)
 
 
 def _extract_patchesnd(
