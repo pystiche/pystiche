@@ -270,13 +270,11 @@ def transform_motif_affinely(
         translation=translation,
         inverse_translation=inverse_translation,
     )
-    transform_matrix = transform_matrix.to(device)
-
     transform_matrix, resized_image_size = _resize_canvas(
         transform_matrix, image_size, method=canvas
     )
-
     transform_matrix = _transform_coordinates(transform_matrix, image_size)
+    transform_matrix = transform_matrix.to(device)
 
     grid = _calculate_affine_grid(image, transform_matrix, resized_image_size)
     grid = grid.to(device)
