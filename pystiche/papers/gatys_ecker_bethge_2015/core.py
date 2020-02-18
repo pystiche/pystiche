@@ -4,6 +4,7 @@ import torch
 from torch import nn
 from pystiche.optim import default_image_optim_loop
 from ..common_utils import get_input_image
+from .data import gatys_ecker_bethge_2015_images
 from .loss import gatys_ecker_bethge_2015_perceptual_loss
 from .utils import (
     gatys_ecker_bethge_2015_preprocessor,
@@ -13,6 +14,7 @@ from .utils import (
 
 
 __all__ = [
+    "gatys_ecker_bethge_2015_images",
     "gatys_ecker_bethge_2015_perceptual_loss",
     "gatys_ecker_bethge_2015_nst",
 ]
