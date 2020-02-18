@@ -5,6 +5,7 @@ from torch import nn
 from pystiche.pyramid import ImagePyramid
 from pystiche.optim import default_image_pyramid_optim_loop
 from ..common_utils import get_input_image
+from .data import gatys_et_al_2017_images
 from .loss import (
     gatys_et_al_2017_perceptual_loss,
     gatys_et_al_2017_guided_perceptual_loss,
@@ -17,6 +18,7 @@ from .utils import (
 )
 
 __all__ = [
+    "gatys_et_al_2017_images",
     "gatys_et_al_2017_perceptual_loss",
     "gatys_et_al_2017_guided_perceptual_loss",
     "gatys_et_al_2017_image_pyramid",
