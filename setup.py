@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 about = {}
 here = path.abspath(path.dirname(__file__))
-with open(path.join(here, "pystiche", "__version__.py"), "r") as fh:
+with open(path.join(here, "pystiche", "__about__.py"), "r") as fh:
     exec(fh.read(), about)
 
 with open(path.join(here, "README.md"), "r") as fh:
