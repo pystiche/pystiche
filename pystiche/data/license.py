@@ -75,11 +75,9 @@ class CreativeCommonsLicense(License):
             "-".join([self.TYPE_DICT[type] for type in self.types]), self.version
         )
         if self.variant is not None:
-            long += " {0}".format(self.variant)
-        short = "(CC {0} {1})".format(
-            "-".join([type.upper() for type in self.types]), self.version
-        )
+            long += f" {self.variant}"
+        short = f"(CC {'-'.join([type.upper() for type in self.types])} {self.version})"
         url = "https://creativecommons.org/licenses/{0}/{1}".format(
             "-".join(self.types), self.version
         )
-        return "{0} {1} {2}".format(long, short, url)
+        return f"{long} {short} {url}"
