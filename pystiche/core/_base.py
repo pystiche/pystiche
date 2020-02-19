@@ -81,19 +81,23 @@ class TensorStorage(nn.Module, Object):
 
 class LossDict(OrderedDict):
     def __init__(
-        self,
-        losses: Optional[Sequence[Tuple[str, Union[torch.Tensor, "LossDict"]]]] = None,
-    ):
-        unrolled_losses = []
+        self, losses: Sequence[Tuple[str, Union[torch.Tensor, "LossDict"]]] = (),
+    ) -> None:
+        super().__init__()
         for name, loss in losses:
-            if isinstance(loss, torch.Tensor):
-                unrolled_losses.append((name, loss))
-            else:
-                for child_name, child_loss in loss.items():
-                    unrolled_losses.append((f"{name}.{child_name}", child_loss))
-        super().__init__(unrolled_losses)
+            self[name] = loss
 
-    def aggregate(self, max_depth):
+    def __setitem__(self, name: str, loss: Union[torch.Tensor, "LossDict"]) -> None:
+        if isinstance(loss, torch.Tensor):
+            super().__setitem__(name, loss)
+        elif isinstance(loss, LossDict):
+            for child_name, child_loss in loss.items():
+                super().__setitem__(f"{name}.{child_name}", child_loss)
+
+        # FIXME
+        raise TypeError
+
+    def aggregate(self, max_depth: int) -> Union[float, "LossDict"]:
         if max_depth == 0:
             return sum(self.values())
 
@@ -115,16 +119,17 @@ class LossDict(OrderedDict):
     def backward(self, *args, **kwargs) -> None:
         self.total().backward(*args, **kwargs)
 
-    def item(self):
+    def item(self) -> float:
         return self.total().item()
 
-    def __float__(self):
+    def __float__(self) -> float:
         return self.item()
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> "LossDict":
+        other = float(other)
         return LossDict([(name, loss * other) for name, loss in self.items()])
 
-    def format(self, max_depth=None, **format_dict_kwargs):
+    def format(self, max_depth: Optional[int] = None, **format_dict_kwargs: Any) -> str:
         if max_depth is not None:
             dct = self.aggregate(max_depth)
         else:
@@ -134,5 +139,5 @@ class LossDict(OrderedDict):
         values = [fmt.format(value.item()) for value in dct.values()]
         return format_dict(OrderedDict(zip(dct.keys(), values)), **format_dict_kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.format()
