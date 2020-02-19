@@ -125,21 +125,27 @@ class MultiLayerEncoder(pystiche.Module):
         self, x: torch.Tensor, layers: Sequence[str], store=False
     ) -> Tuple[torch.Tensor, ...]:
         storage = copy(self._storage)
-        diff_layers = set(layers) - set(storage.keys())
+        x_key = pystiche.TensorKey(x)
+        stored_layers = [
+            name for (name, tensor_key) in storage.keys() if tensor_key == x_key
+        ]
+        diff_layers = set(layers) - set(stored_layers)
         for name, module in self.named_children_up_to(diff_layers, include_last=True):
-            x = storage[name] = module(x)
+            x = storage[(name, x_key)] = module(x)
 
         if store:
             self._storage.update(storage)
 
-        return tuple([storage[name] for name in layers])
+        return tuple([storage[(name, x_key)] for name in layers])
 
     def encode(self, image: torch.Tensor):
         if not self._registered_layers:
             return
 
+        image_key = pystiche.TensorKey(image)
+        keys = [(layer, image_key) for layer in self._registered_layers]
         encs = self(image, layers=self._registered_layers, store=True)
-        self._storage = dict(zip(self._registered_layers, encs))
+        self._storage = dict(zip(keys, encs))
 
     def clear_storage(self):
         self._storage = {}

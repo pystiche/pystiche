@@ -1,4 +1,15 @@
-from typing import Any, Optional, Sequence, Tuple, Dict, Iterator, NoReturn, Union
+from typing import (
+    Any,
+    Optional,
+    Sequence,
+    Tuple,
+    List,
+    Dict,
+    Hashable,
+    Iterator,
+    NoReturn,
+    Union,
+)
 from abc import ABC
 from copy import copy
 from collections import OrderedDict
@@ -7,7 +18,7 @@ from torch import nn
 from pystiche.misc import build_obj_str, build_fmtstr, format_dict
 
 
-__all__ = ["Object", "TensorStorage", "LossDict"]
+__all__ = ["Object", "TensorStorage", "LossDict", "TensorKey"]
 
 
 class Object(ABC):
@@ -143,3 +154,30 @@ class LossDict(OrderedDict):
 
     def __str__(self) -> str:
         return self.format()
+
+
+class TensorKey:
+    def __init__(self, x: torch.Tensor) -> None:
+        x = x.detach()
+        self._key = (*self.extract_meta(x), *self.calculate_stats(x))
+
+    def extract_meta(self, x: torch.Tensor) -> Tuple[Hashable, ...]:
+        return (x.device, x.dtype, x.size())
+
+    def calculate_stats(self, x: torch.Tensor) -> List[str]:
+        stat_fns = (torch.min, torch.max, torch.norm)
+        return [f"{stat_fn(x):.4e}" for stat_fn in stat_fns]
+
+    @property
+    def key(self) -> Tuple[Hashable, ...]:
+        return self.key
+
+    def __eq__(self, other) -> bool:
+        try:
+            return self.key == other.key
+        except AttributeError:
+            # FIXME
+            raise TypeError
+
+    def __hash__(self) -> int:
+        return hash(self.key)
