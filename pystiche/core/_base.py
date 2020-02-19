@@ -90,9 +90,14 @@ class LossDict(OrderedDict):
     def __setitem__(self, name: str, loss: Union[torch.Tensor, "LossDict"]) -> None:
         if isinstance(loss, torch.Tensor):
             super().__setitem__(name, loss)
-        elif isinstance(loss, LossDict):
+            return
+        if isinstance(loss, LossDict):
             for child_name, child_loss in loss.items():
                 super().__setitem__(f"{name}.{child_name}", child_loss)
+            return
+
+        # FIXME
+        raise TypeError
 
     def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
         if max_depth == 0:
