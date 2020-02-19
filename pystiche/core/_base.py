@@ -94,10 +94,7 @@ class LossDict(OrderedDict):
             for child_name, child_loss in loss.items():
                 super().__setitem__(f"{name}.{child_name}", child_loss)
 
-        # FIXME
-        raise TypeError
-
-    def aggregate(self, max_depth: int) -> Union[float, "LossDict"]:
+    def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
         if max_depth == 0:
             return sum(self.values())
 
@@ -123,7 +120,7 @@ class LossDict(OrderedDict):
         return self.total().item()
 
     def __float__(self) -> float:
-        return self.item()
+        return float(self.item())
 
     def __mul__(self, other) -> "LossDict":
         other = float(other)
