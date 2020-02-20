@@ -9,7 +9,7 @@ from typing import (
     ContextManager,
     overload,
 )
-from collections import Collection, OrderedDict
+from collections import Sequence, OrderedDict
 import contextlib
 from os import path
 import shutil
@@ -20,6 +20,7 @@ from torch import nn
 from torch.hub import _get_torch_home
 from torch.utils.data.dataloader import DataLoader
 from pystiche.image import is_single_image, make_batched_image, extract_batch_size
+from pystiche.optim import OptimLogger
 
 __all__ = [
     "same_size_padding",
@@ -28,6 +29,7 @@ __all__ = [
     "get_tmp_dir",
     "get_sha256_hash",
     "save_state_dict",
+    "paper_replication",
 ]
 
 In = TypeVar("In")
@@ -47,7 +49,7 @@ def elementwise(fn: Callable[[In], Out], input: SequenceType[In]) -> Tuple[Out, 
 def elementwise(
     fn: Callable[[In], Out], inputs: Union[In, SequenceType[In]]
 ) -> Union[Out, Tuple[Out, ...]]:
-    if isinstance(inputs, Collection):
+    if isinstance(inputs, Sequence):
         return tuple([fn(input) for input in inputs])
     return fn(inputs)
 
@@ -155,3 +157,21 @@ def save_state_dict(
         shutil.move(tmp_file, file)
 
     return file
+
+
+@contextlib.contextmanager
+def paper_replication(
+    optim_logger: OptimLogger, title: str, url: str, author: str, year: Union[str, int]
+) -> ContextManager:
+    header = "\n".join(
+        (
+            "Replication of the paper",
+            f"'{title}'",
+            url,
+            "authored by",
+            author,
+            f"in {str(year)}",
+        )
+    )
+    with optim_logger.environment(header):
+        yield
