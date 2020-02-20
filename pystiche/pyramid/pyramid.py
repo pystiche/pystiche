@@ -1,4 +1,4 @@
-from typing import Union, Optional, Sequence, Collection, Iterator
+from typing import Union, Optional, Sequence, Collection, Tuple, Iterator
 import itertools
 import numpy as np
 from pystiche import Object
@@ -20,19 +20,30 @@ class ImagePyramid(Object):
         interpolation_mode: str = "bilinear",
         resize_targets: Collection[Operator] = (),
     ):
+        self._levels = self.build_levels(edge_sizes, num_steps, edge)
+        self.interpolation_mode = interpolation_mode
+        self._resize_targets = set(resize_targets)
+
+    @staticmethod
+    def build_levels(
+        edge_sizes: Sequence[int],
+        num_steps: Union[Sequence[int], int],
+        edge: Union[Sequence[str], str],
+    ) -> Tuple[PyramidLevel, ...]:
         num_levels = len(edge_sizes)
         if isinstance(num_steps, int):
             num_steps = [num_steps] * num_levels
         if isinstance(edge, str):
             edge = [edge] * num_levels
 
-        self._levels = [
-            PyramidLevel(edge_size, num_steps_, edge_)
-            for edge_size, num_steps_, edge_ in zip_equal(edge_sizes, num_steps, edge)
-        ]
-
-        self.interpolation_mode = interpolation_mode
-        self._resize_targets = set(resize_targets)
+        return tuple(
+            [
+                PyramidLevel(edge_size, num_steps_, edge_)
+                for edge_size, num_steps_, edge_ in zip_equal(
+                    edge_sizes, num_steps, edge
+                )
+            ]
+        )
 
     def add_resize_target(self, op: Operator):
         self._resize_targets.add(op)
@@ -49,8 +60,6 @@ class ImagePyramid(Object):
             try:
                 self._resize(level)
                 yield level
-            except Exception as exc:
-                raise exc
             finally:
                 image_storage.restore()
 
