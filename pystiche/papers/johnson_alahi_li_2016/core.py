@@ -12,6 +12,8 @@ from .loss import (
 )
 from .data import (
     johnson_alahi_li_2016_style_transform,
+    johnson_alahi_li_2016_dataset,
+    johnson_alahi_li_2016_image_loader,
     johnson_alahi_li_2016_images,
 )
 from .utils import (
@@ -23,6 +25,8 @@ from .utils import (
 __all__ = [
     "johnson_alahi_li_2016_transformer",
     "johnson_alahi_li_2016_perceptual_loss",
+    "johnson_alahi_li_2016_dataset",
+    "johnson_alahi_li_2016_image_loader",
     "johnson_alahi_li_2016_training",
     "johnson_alahi_li_2016_images",
     "johnson_alahi_li_2016_stylization",
@@ -36,7 +40,9 @@ def johnson_alahi_li_2016_training(
     instance_norm: bool = True,
     transformer: Optional[JohnsonAlahiLi2016Transformer] = None,
     criterion: Optional[JohnsonAlahiLi2016PerceptualLoss] = None,
-    get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
+    get_optimizer: Optional[
+        Callable[[JohnsonAlahiLi2016Transformer], Optimizer]
+    ] = None,
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
 ):
