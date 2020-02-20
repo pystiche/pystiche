@@ -6,7 +6,7 @@ import pystiche
 from pystiche.misc import to_2d_arg
 from pystiche.image.transforms import TransformMotifAffinely
 from pystiche.enc import Encoder
-from pystiche import functional as F
+from . import functional as F
 from .op import EncodingComparisonOperator
 
 __all__ = ["MSEEncodingOperator", "GramOperator", "MRFOperator"]
