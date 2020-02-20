@@ -1,7 +1,7 @@
 from typing import Optional
 from PIL import Image, ImageOps
 from typing import Tuple
-from pystiche.image.data import (
+from pystiche.data import (
     NoLicense,
     PublicDomainLicense,
     CreativeCommonsLicense,
@@ -74,7 +74,7 @@ def transforms(image: str):
 
 
 def li_wand_2016_images(
-    root: Optional[str] = None, download: bool = True, force: bool = False
+    root: Optional[str] = None, download: bool = True, overwrite: bool = False
 ):
 
     images = {
@@ -139,5 +139,5 @@ def li_wand_2016_images(
     }
 
     return DownloadableImageCollection(
-        images, root=root, download=download, force=force
+        images, root=root, download=download, overwrite=overwrite
     )

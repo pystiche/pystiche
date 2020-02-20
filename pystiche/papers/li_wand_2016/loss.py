@@ -10,7 +10,7 @@ from pystiche.ops import (
     TotalVariationOperator,
     MultiLayerEncodingOperator,
 )
-from pystiche.functional import patch_matching_loss, total_variation_loss
+import pystiche.ops.functional as F
 from pystiche.loss import MultiOperatorLoss
 from .utils import li_wand_2016_multi_layer_encoder
 
@@ -115,7 +115,7 @@ class LiWand2016MRFOperator(MRFOperator):
             return pystiche.extract_patches2d(enc, self.patch_size, self.stride)
 
     def calculate_score(self, input_repr, target_repr, ctx):
-        score = patch_matching_loss(
+        score = F.patch_matching_loss(
             input_repr, target_repr, reduction=self.loss_reduction
         )
         return score * self.score_correction_factor
@@ -182,7 +182,7 @@ class LiWand2016TotalVariationOperator(TotalVariationOperator):
         self.score_correction_factor = 1.0 / 2.0 if impl_params else 1.0
 
     def calculate_score(self, input_repr):
-        score = total_variation_loss(
+        score = F.total_variation_loss(
             input_repr, exponent=self.exponent, reduction=self.loss_reduction
         )
         return score * self.score_correction_factor

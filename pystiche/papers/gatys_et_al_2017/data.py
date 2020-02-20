@@ -1,5 +1,5 @@
 from typing import Optional
-from pystiche.image.data import (
+from pystiche.data import (
     PublicDomainLicense,
     CreativeCommonsLicense,
     DownloadableImage,
@@ -10,7 +10,7 @@ __all__ = ["gatys_et_al_2017_images"]
 
 
 def gatys_et_al_2017_images(
-    root: Optional[str] = None, download: bool = True, force: bool = False
+    root: Optional[str] = None, download: bool = True, overwrite: bool = False
 ):
     images = {
         "house": DownloadableImage(
@@ -51,5 +51,5 @@ def gatys_et_al_2017_images(
         ),
     }
     return DownloadableImageCollection(
-        images, root=root, download=download, force=force
+        images, root=root, download=download, overwrite=overwrite
     )
