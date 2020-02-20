@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from pystiche.pyramid import ImagePyramid
 from pystiche.optim import default_image_pyramid_optim_loop
-from ..common_utils import get_input_image
+from pystiche.misc import get_input_image
 from .data import li_wand_2016_images
 from .loss import li_wand_2016_perceptual_loss
 from .pyramid import li_wand_2016_image_pyramid

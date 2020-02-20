@@ -2,8 +2,8 @@ from typing import Optional, Callable
 import logging
 import torch
 from torch import nn
+from pystiche.misc import get_input_image
 from pystiche.optim import default_image_optim_loop
-from ..common_utils import get_input_image
 from .data import gatys_ecker_bethge_2015_images
 from .loss import gatys_ecker_bethge_2015_perceptual_loss
 from .utils import (
