@@ -1,7 +1,7 @@
 import torch
 import pystiche
 from pystiche.image.utils import force_batched_image
-from .misc import transform_channels_linearly
+from ._misc import transform_channels_linearly
 
 __all__ = [
     "rgb_to_grayscale",
