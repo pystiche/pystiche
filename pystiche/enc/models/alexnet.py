@@ -2,7 +2,7 @@ from collections import OrderedDict
 from torch.utils import model_zoo
 from torch import nn
 from torchvision.models import alexnet
-from ..encoder import MultiLayerEncoder
+from ..multi_layer_encoder import MultiLayerEncoder
 from ..preprocessing import get_preprocessor
 
 

@@ -55,4 +55,4 @@ class ImageStorage:
         )
 
         for multi_layer_encoder in multi_layer_encoders:
-            multi_layer_encoder.clear_storage()
+            multi_layer_encoder.clear_cache()
