@@ -8,7 +8,7 @@ from pystiche.image.utils import (
     extract_image_size,
     force_batched_image,
 )
-from ._utils import affine_grid, grid_sample
+from ._align_corners import affine_grid, grid_sample
 
 __all__ = [
     "transform_motif_affinely",

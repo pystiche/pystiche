@@ -9,7 +9,7 @@ from pystiche.image.utils import (
     extract_aspect_ratio,
     force_batched_image,
 )
-from ._utils import interpolate
+from ._align_corners import interpolate
 
 __all__ = ["resize", "rescale"]
 
