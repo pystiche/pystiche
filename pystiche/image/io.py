@@ -6,7 +6,7 @@ from .utils import force_single_image
 from .transforms.functional import import_from_pil, export_to_pil, resize
 
 
-__all__ = ["read_image", "write_image", "show_image"]
+__all__ = ["read_image", "read_guides", "write_image", "show_image"]
 
 
 def read_image(
