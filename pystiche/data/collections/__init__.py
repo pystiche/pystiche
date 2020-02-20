@@ -1,2 +1,3 @@
-from .core import *
+from .image import *
+from .collection import *
 from .nprgeneral import *

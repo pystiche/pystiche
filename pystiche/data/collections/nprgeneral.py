@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from urllib.parse import urljoin
 from ..license import UnknownLicense
-from .core import DownloadableImage, DownloadableImageCollection
+from .collection import DownloadableImage, DownloadableImageCollection
 
 __all__ = ["NPRgeneral"]
 
