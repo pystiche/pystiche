@@ -35,6 +35,11 @@ def write_image(
 
 @force_single_image
 def show_image(
-    image: torch.Tensor, mode: Optional[str] = None, title: Optional[str] = None
+    image: torch.Tensor,
+    mode: Optional[str] = None,
+    size: Optional[Union[int, Tuple[int, int]]] = None,
+    **resize_kwargs: Any,
 ):
-    export_to_pil(image, mode=mode).show(title=title)
+    if size is not None:
+        image = resize(image, size, **resize_kwargs)
+    export_to_pil(image, mode=mode).show()
