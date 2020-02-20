@@ -78,7 +78,7 @@ def li_wand_2016_images(
 ):
 
     images = {
-        "mricon": DownloadableImage(
+        "emma": DownloadableImage(
             "https://live.staticflickr.com/1/2281680_656225393e_o_d.jpg",
             author="monsieuricon (mricon)",
             title="Emma",
@@ -88,7 +88,7 @@ def li_wand_2016_images(
             note=image_note("https://www.flickr.com/photos/mricon/2281680/"),
             md5="7a10a2479864f394b4f06893b9202915",
         ),
-        "lydhode": DownloadableImage(
+        "jenny": DownloadableImage(
             "https://live.staticflickr.com/8626/16426686859_f882b3d317_o_d.jpg",
             author="Vidar Schiefloe (lydhode)",
             title="Jenny",
@@ -100,7 +100,7 @@ def li_wand_2016_images(
             ),
             md5="5b3442909ff850551c9baea433319508",
         ),
-        "cmichel67": DownloadableImage(
+        "blue_bottle": DownloadableImage(
             "https://raw.githubusercontent.com/chuanli11/CNNMRF/master/data/content/potrait1.jpg",
             title="Blue Bottle",
             author="Christopher Michel (cmichel67)",
@@ -109,7 +109,7 @@ def li_wand_2016_images(
             note=image_note("https://www.flickr.com/photos/cmichel67/15112861945"),
             md5="cb29d11ef6e1be7e074aa58700110e4f",
         ),
-        "picasso": DownloadableImage(
+        "self-portrait": DownloadableImage(
             "https://raw.githubusercontent.com/chuanli11/CNNMRF/master/data/style/picasso.jpg",
             title="Self-Portrait",
             author="Pablo Ruiz Picasso",
@@ -118,7 +118,7 @@ def li_wand_2016_images(
             note=image_note("https://www.pablo-ruiz-picasso.net/images/works/57.jpg"),
             md5="4bd9c963fd52feaa940083f07e259aea",
         ),
-        "theilr": DownloadableImage(
+        "s": DownloadableImage(
             "https://live.staticflickr.com/7409/9270411440_cdc2ee9c35_o_d.jpg",
             author="theilr",
             title="S",
@@ -128,7 +128,7 @@ def li_wand_2016_images(
             note=image_note("https://www.flickr.com/photos/theilr/9270411440/"),
             md5="5d78432b5ca703bb85647274a5e41656",
         ),
-        "kandinsky": DownloadableImage(
+        "composition_viii": DownloadableImage(
             "https://www.wassilykandinsky.net/images/works/50.jpg",
             title="Composition VIII",
             author="Wassily Kandinsky",
