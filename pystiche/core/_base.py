@@ -170,7 +170,7 @@ class TensorKey:
 
     @property
     def key(self) -> Tuple[Hashable, ...]:
-        return self.key
+        return self._key
 
     def __eq__(self, other) -> bool:
         try:
