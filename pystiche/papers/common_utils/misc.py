@@ -127,6 +127,7 @@ def get_sha256_hash(file: str, chunk_size: int = 4096) -> str:
     return hasher.hexdigest()
 
 
+# FIXME: move to pystiche.misc
 def save_state_dict(
     input: Union[Dict[str, torch.Tensor], nn.Module()],
     name: str,
