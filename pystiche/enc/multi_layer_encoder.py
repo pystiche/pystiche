@@ -60,12 +60,16 @@ class MultiLayerEncoder(pystiche.Module):
             name for (name, tensor_key) in storage.keys() if tensor_key == x_key
         ]
         diff_layers = set(layers) - set(stored_layers)
-        deepest_layer = self.extract_deepest_layer(diff_layers)
-        for name, module in self.named_children_to(deepest_layer, include_last=True):
-            x = storage[(name, x_key)] = module(x)
 
-        if store:
-            self._cache.update(storage)
+        if diff_layers:
+            deepest_layer = self.extract_deepest_layer(diff_layers)
+            for name, module in self.named_children_to(
+                deepest_layer, include_last=True
+            ):
+                x = storage[(name, x_key)] = module(x)
+
+            if store:
+                self._cache.update(storage)
 
         return tuple([storage[(name, x_key)] for name in layers])
 
