@@ -3,6 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch import nn
 from torch.optim.optimizer import Optimizer
+import pystiche
 from pystiche.optim import OptimLogger, default_transformer_optim_loop
 from ..common_utils import batch_up_image
 from .modules import JohnsonAlahiLi2016Transformer, johnson_alahi_li_2016_transformer
@@ -45,6 +46,9 @@ def johnson_alahi_li_2016_training(
     ] = None,
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
+    log_fn: Optional[
+        Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
+    ] = None,
 ):
     if isinstance(style, str):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -98,6 +102,7 @@ def johnson_alahi_li_2016_training(
         get_optimizer=get_optimizer,
         quiet=quiet,
         logger=logger,
+        log_fn=log_fn,
     )
 
     return transformer

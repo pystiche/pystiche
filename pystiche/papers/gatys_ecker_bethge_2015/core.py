@@ -1,7 +1,8 @@
-from typing import Optional, Callable
+from typing import Union, Optional, Callable
 import logging
 import torch
 from torch import nn
+import pystiche
 from pystiche.misc import get_input_image
 from pystiche.optim import default_image_optim_loop
 from .data import gatys_ecker_bethge_2015_images
@@ -28,7 +29,9 @@ def gatys_ecker_bethge_2015_nst(
     criterion: Optional[nn.Module] = None,
     quiet: bool = False,
     logger: Optional[logging.Logger] = None,
-    log_fn: Optional[Callable] = None,
+    log_fn: Optional[
+        Callable[[int, Union[torch.Tensor, pystiche.LossDict]], None]
+    ] = None,
 ) -> torch.Tensor:
     if criterion is None:
         criterion = gatys_ecker_bethge_2015_perceptual_loss(impl_params=impl_params)
@@ -56,4 +59,5 @@ def gatys_ecker_bethge_2015_nst(
         postprocessor=postprocessor,
         quiet=quiet,
         logger=logger,
+        log_fn=log_fn,
     )

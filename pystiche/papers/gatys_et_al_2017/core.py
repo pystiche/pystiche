@@ -1,7 +1,8 @@
-from typing import Optional, Tuple, Dict
+from typing import Union, Optional, Tuple, Dict, Callable
 import logging
 import torch
 from torch import nn
+import pystiche
 from pystiche.pyramid import ImagePyramid
 from pystiche.optim import default_image_pyramid_optim_loop
 from pystiche.misc import get_input_image
@@ -35,6 +36,9 @@ def gatys_et_al_2017_nst(
     pyramid: Optional[ImagePyramid] = None,
     quiet: bool = False,
     logger: Optional[logging.Logger] = None,
+    log_fn: Optional[
+        Callable[[int, Union[torch.Tensor, pystiche.LossDict]], None]
+    ] = None,
 ) -> torch.Tensor:
     if criterion is None:
         criterion = gatys_et_al_2017_perceptual_loss(impl_params=impl_params)
@@ -65,6 +69,7 @@ def gatys_et_al_2017_nst(
         postprocessor=postprocessor,
         quiet=quiet,
         logger=logger,
+        log_fn=log_fn,
     )
 
 
@@ -77,6 +82,9 @@ def gatys_et_al_2017_guided_nst(
     pyramid: Optional[ImagePyramid] = None,
     quiet: bool = False,
     logger: Optional[logging.Logger] = None,
+    log_fn: Optional[
+        Callable[[int, Union[torch.Tensor, pystiche.LossDict]], None]
+    ] = None,
 ) -> torch.Tensor:
     regions = set(content_guides.keys())
     if regions != set(style_images_and_guides.keys()):
@@ -129,4 +137,5 @@ def gatys_et_al_2017_guided_nst(
         postprocessor=postprocessor,
         quiet=quiet,
         logger=logger,
+        log_fn=log_fn,
     )
