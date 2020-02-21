@@ -101,7 +101,8 @@ class MultiLayerEncoder(pystiche.Module):
         allow_empty=False,
     ) -> Tuple[torch.Tensor, ...]:
         guides = {}
-        for name, module in self.named_children_to(layers):
+        deepest_layer = self.extract_deepest_layer(layers)
+        for name, module in self.named_children_to(deepest_layer, include_last=True):
             try:
                 guide = guides[name] = propagate_guide(
                     module, guide, method=method, allow_empty=allow_empty
