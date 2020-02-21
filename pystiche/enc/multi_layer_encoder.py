@@ -38,6 +38,7 @@ class MultiLayerEncoder(pystiche.Module):
     def named_children_to(
         self, layer: str, include_last: bool = False
     ) -> Iterator[Tuple[str, pystiche.Module]]:
+        self._verify_layer(layer)
         idx = list(self.children_names()).index(layer)
         if include_last:
             idx += 1
@@ -46,6 +47,7 @@ class MultiLayerEncoder(pystiche.Module):
     def named_children_from(
         self, layer: str, include_first: bool = True
     ) -> Iterator[Tuple[str, pystiche.Module]]:
+        self._verify_layer(layer)
         idx = list(self.children_names()).index(layer)
         if not include_first:
             idx += 1
