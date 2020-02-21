@@ -1,12 +1,12 @@
-from os import path
 from collections import OrderedDict
 import torch
 from torch import optim
-from pystiche.image import read_image, write_image, extract_aspect_ratio
+from pystiche.image import write_image, extract_aspect_ratio
 from pystiche.enc import vgg19_encoder
 from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
 from pystiche.loss import MultiOperatorLoss
 from pystiche.pyramid import ImagePyramid
+from utils import demo_images
 
 # load the encoder used to create the feature maps for the NST
 multi_layer_encoder = vgg19_encoder()
@@ -44,14 +44,10 @@ edge_sizes = (500, 700)
 num_steps = (500, 200)
 pyramid = ImagePyramid(edge_sizes, num_steps, resize_targets=(criterion,))
 
-# adapt these paths to fit your use case
-content_file = path.join("path", "to", "content", "image.jpg")
-style_file = path.join("path", "to", "style", "image.jpg")
-output_file = "pystiche_demo1.jpg"
-
 # load the content and style images and transfer them to the selected device
-content_image = read_image(content_file, device=device)
-style_image = read_image(style_file, device=device)
+images = demo_images()
+content_image = images["dancing"].read(device=device)
+style_image = images["picasso"].read(device=device)
 
 # resize the images, since the stylization is memory intensive
 resize = pyramid[-1].resize_image
@@ -69,6 +65,7 @@ input_image = content_image.clone()
 
 # extract the original aspect ratio to avoid size mismatch errors during resizing
 aspect_ratio = extract_aspect_ratio(input_image)
+
 
 # create optimizer that performs the stylization
 def get_optimizer(input_image):
@@ -96,4 +93,4 @@ for level in pyramid:
         optimizer.step(closure)
 
 # save the stylized image
-write_image(input_image, output_file)
+write_image(input_image, "pystiche_demo2.jpg")
