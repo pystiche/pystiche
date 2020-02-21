@@ -2,18 +2,18 @@ from typing import (
     Any,
     Union,
     Optional,
-    Iterator,
     Iterable,
     Sequence,
     Sized,
     Tuple,
     Dict,
 )
-from keyword import iskeyword
 from functools import reduce
 import itertools
 from operator import mul
+import random
 import numpy as np
+import torch
 
 
 def prod(iterable: Iterable) -> Any:
@@ -204,3 +204,41 @@ def build_obj_str(
 
 def is_almost(actual: float, desired: float, eps=1e-6):
     return abs(actual - desired) < eps
+
+
+def make_reproducible(seed: int = 0) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def get_input_image(
+    starting_point: Union[str, torch.Tensor] = "content",
+    content_image: Optional[torch.tensor] = None,
+    style_image: Optional[torch.tensor] = None,
+):
+    if isinstance(starting_point, torch.Tensor):
+        return starting_point
+
+    starting_point = verify_str_arg(
+        starting_point, "starting_point", ("content", "style", "random")
+    )
+
+    if starting_point == "content":
+        if content_image is not None:
+            return content_image.clone()
+        raise RuntimeError("starting_point is 'content', but no content image is given")
+    elif starting_point == "style":
+        if style_image is not None:
+            return style_image.clone()
+        raise RuntimeError("starting_point is 'style', but no style image is given")
+    elif starting_point == "random":
+        if content_image is not None:
+            return torch.rand_like(content_image)
+        elif style_image is not None:
+            return torch.rand_like(style_image)
+        raise RuntimeError("starting_point is 'random', but no image is given")
+
+    raise RuntimeError

@@ -1,11 +1,12 @@
 from typing import Any, Union, Optional, Tuple
+from os import path, listdir
 from PIL import Image
 import torch
 from .utils import force_single_image
 from .transforms.functional import import_from_pil, export_to_pil, resize
 
 
-__all__ = ["read_image", "write_image", "show_image"]
+__all__ = ["read_image", "read_guides", "write_image", "show_image"]
 
 
 def read_image(
@@ -24,6 +25,16 @@ def read_image(
         image = resize(image, size, **resize_kwargs)
 
     return image
+
+
+def read_guides(
+    dir: str, device: Union[torch.device, str] = "cpu", make_batched: bool = True,
+):
+    def import_image(file):
+        image = Image.open(path.join(dir, file)).convert("1")
+        return import_from_pil(image, device=device, make_batched=make_batched)
+
+    return {path.splitext(file)[0]: import_image(file) for file in listdir(dir)}
 
 
 @force_single_image
