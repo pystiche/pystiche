@@ -1,7 +1,7 @@
 from typing import Any, Optional, Dict, Callable
 from os import path
-from urllib.request import urlretrieve
 from PIL import Image as PILImage
+import requests
 import torch
 import pystiche
 from pystiche.image import read_image
@@ -89,7 +89,8 @@ class DownloadableImage(Image):
         file = path.join(root, self.file)
 
         def download_and_transform(file: str):
-            urlretrieve(self.url, file)
+            with open(file, "wb") as fh:
+                fh.write(requests.get(self.url).content)
 
             if self.transform is not None:
                 self.transform(PILImage.open(file)).save(file)

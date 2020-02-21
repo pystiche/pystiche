@@ -9,7 +9,7 @@ with open(path.join(here, "pystiche", "__about__.py"), "r") as fh:
 with open(path.join(here, "README.md"), "r") as fh:
     long_description = fh.read()
 
-install_requires = ("numpy", "torch>=1.4.0", "pillow", "torchvision>=0.5.0")
+install_requires = ("torch>=1.4.0", "torchvision>=0.5.0", "pillow", "numpy", "requests")
 
 extras_require = {
     # FIXME: move to a released versions
