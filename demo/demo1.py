@@ -1,11 +1,11 @@
-from os import path
 from collections import OrderedDict
 import torch
 from torch import optim
-from pystiche.image import read_image, write_image
+from pystiche.image import write_image
 from pystiche.enc import vgg19_encoder
 from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
 from pystiche.loss import MultiOperatorLoss
+from utils import demo_images
 
 # load the encoder used to create the feature maps for the NST
 multi_layer_encoder = vgg19_encoder()
@@ -38,16 +38,13 @@ criterion = MultiOperatorLoss(
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 criterion = criterion.to(device)
 
-# adapt these paths to fit your use case
-content_file = path.join("path", "to", "content", "image.jpg")
-style_file = path.join("path", "to", "style", "image.jpg")
-output_file = "pystiche_demo1.jpg"
 
 # load the content and style images and transfer them to the selected device
 # the images are resized, since the stylization is memory intensive
 size = 500
-content_image = read_image(content_file, device=device, size=size)
-style_image = read_image(style_file, device=device, size=size)
+images = demo_images()
+content_image = images["dancing"].read(size=size, device=device)
+style_image = images["picasso"].read(size=size, device=device)
 
 # set the target images for the content and style loss
 content_loss.set_target_image(content_image)
@@ -79,4 +76,4 @@ for step in range(num_steps):
     optimizer.step(closure)
 
 # save the stylized image
-write_image(input_image, output_file)
+write_image(input_image, "pystiche_demo1.jpg")
