@@ -62,7 +62,7 @@ def ulyanov_et_al_2016_regularization(
     score_weight: float = 1e-6,
     **total_variation_op_kwargs: Any,
 ):
-    score_weight = 0 if impl_params else score_weight  # TODO: right score weight
+    score_weight = 0 if impl_params else score_weight  # FIXME: right score weight
     return TotalVariationOperator(
         score_weight=score_weight, **total_variation_op_kwargs
     )

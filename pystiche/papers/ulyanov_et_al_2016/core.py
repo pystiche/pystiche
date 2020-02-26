@@ -179,3 +179,43 @@ def ulyanov_et_al_2016_training(
     )
 
     return transformer
+
+
+def ulyanov_et_al_2016_stylization(
+    input_image: torch.Tensor,
+    transformer: Union[nn.Module, str],
+    impl_params: bool = True,
+    instance_norm: bool = None,
+    weights: str = "pystiche",
+    preprocessor: Optional[nn.Module] = None,
+    postprocessor: Optional[nn.Module] = None,
+):
+    device = input_image.device
+
+    if isinstance(transformer, str):
+        style = transformer
+        transformer = ulyanov_et_al_2016_transformer(
+            style=style,
+            weights=weights,
+            impl_params=impl_params,
+            instance_norm=instance_norm,
+        )
+        transformer = transformer.eval()
+        transformer = transformer.to(device)
+
+    with torch.no_grad():
+        if preprocessor is None:
+            preprocessor = ulyanov_et_al_2016_preprocessor()
+            preprocessor = preprocessor.to(device)
+
+            input_image = preprocessor(input_image)
+
+        output_image = transformer(input_image)
+
+        if postprocessor is None:
+            postprocessor = ulyanov_et_al_2016_postprocessor()
+            postprocessor = postprocessor.to(device)
+
+            output_image = postprocessor(output_image)
+
+    return output_image.detach()
