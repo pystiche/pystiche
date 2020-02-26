@@ -1,6 +1,22 @@
-from typing import Union, Tuple, Collection
+from typing import Union, Tuple, Collection, Optional
 import torch
 from torch import nn
+from torchvision.models.utils import load_state_dict_from_url
+
+MODEL_URLS = {}
+
+# FIXME: Check this
+def select_url(style: str, weights: str, impl_params: bool, instance_norm: bool):
+    opt = style
+    if impl_params:
+        opt += "__impl_params"
+    if instance_norm:
+        opt += "__instance_norm"
+    for (valid_weights, valid_opt), url in MODEL_URLS.items():
+        if weights == valid_weights and valid_opt.startswith(opt):
+            return url
+    else:
+        raise RuntimeError
 
 
 def get_norm_module(out_channels: int, instance_norm: bool) -> nn.Module:
@@ -24,11 +40,11 @@ class UlyanovEtAl2016NoiseBlock(nn.Module):
         self.noise_channel = noise_channel
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        if self.mode == "texture":  # TODO Check this
+        if self.mode == "style":
             if self.impl_params:
                 return torch.cat((input, get_Noise(input.size(), channel=3)), 1)
-            else:
-                return get_Noise(input.size(), channel=3)
+        if self.mode == "texture":
+            return get_Noise(input.size(), channel=3)
         return input
 
 
@@ -226,22 +242,15 @@ class UlaynovEtAl2016LevelBlock(nn.Module):
 
 
 def ulyanov_et_al_2016_transformer(
+    style: Optional[str] = None,
+    weights: str = "pystiche",
     impl_params: bool = True,
     levels=5,
     instance_norm: bool = True,
     mode: str = "texture",
 ):
     levels = 6 if impl_params else levels
-    # level_block = ulyanov_et_al_2016_conv_sequence(
-    #     3, 8, impl_params=impl_params, instance_norm=instance_norm
-    # )
-    if mode == "texture":
-        if impl_params:
-            input_channel = 6
-        else:
-            input_channel = 3
-    else:
-        input_channel = 3
+    input_channel = 6 if mode == "style" and not impl_params else 3
     level_block = None
     for _ in range(levels):
         level_block = UlaynovEtAl2016LevelBlock(
@@ -258,4 +267,13 @@ def ulyanov_et_al_2016_transformer(
         level_block,
         nn.Conv2d(level_block.out_channels, 3, 1, stride=1),
     )
-    return nn.Sequential(*modules)
+    transformer = nn.Sequential(*modules)
+    if style is None:
+        return transformer
+
+    url = select_url(
+        style, weights=weights, impl_params=impl_params, instance_norm=instance_norm
+    )
+    state_dict = load_state_dict_from_url(url)
+    transformer.load_state_dict(state_dict)
+    return transformer
