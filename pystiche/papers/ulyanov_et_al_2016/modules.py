@@ -26,15 +26,20 @@ def get_norm_module(out_channels: int, instance_norm: bool) -> nn.Module:
         return nn.BatchNorm2d(out_channels)
 
 
-def get_Noise(size: Tuple[int, int, int, int], channel: int = 3):
-    return torch.rand(size[0], channel, size[2], size[3])
+def get_Noise(size: Tuple[int, int, int, int], channel: int = 3, device="cuda"):
+    return torch.rand(size[0], channel, size[2], size[3]).to(device)
 
 
 class UlyanovEtAl2016NoiseBlock(nn.Module):
     def __init__(
-        self, noise_channel: int = 3, impl_params: bool = True, mode: str = "texture",
+        self,
+        noise_channel: int = 3,
+        impl_params: bool = True,
+        mode: str = "texture",
+        device="cuda",
     ) -> None:
         super().__init__()
+        self.device = device
         self.mode = mode
         self.impl_params = impl_params
         self.noise_channel = noise_channel
@@ -42,9 +47,11 @@ class UlyanovEtAl2016NoiseBlock(nn.Module):
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         if self.mode == "style":
             if self.impl_params:
-                return torch.cat((input, get_Noise(input.size(), channel=3)), 1)
+                return torch.cat(
+                    (input, get_Noise(input.size(), channel=3, device=self.device)), 1
+                )
         if self.mode == "texture":
-            return get_Noise(input.size(), channel=3)
+            return get_Noise(input.size(), channel=3, device=self.device)
         return input
 
 
@@ -204,13 +211,14 @@ class UlaynovEtAl2016LevelBlock(nn.Module):
         instance_norm: bool = True,
         inplace: bool = True,
         mode: str = "texture",
+        device="cuda",
     ):
         super().__init__()
         self.impl_params = impl_params
         self.mode = mode
         self.downsample = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
         self.noise_block = UlyanovEtAl2016NoiseBlock(
-            noise_channel=3, impl_params=impl_params, mode=mode
+            noise_channel=3, impl_params=impl_params, mode=mode, device=device
         )
         if deep_block is not None:
             self.join = UlaynovEtAl2016JoinBlock(
@@ -248,6 +256,7 @@ def ulyanov_et_al_2016_transformer(
     levels=5,
     instance_norm: bool = True,
     mode: str = "texture",
+    device="cuda",
 ):
     levels = 6 if impl_params else levels
     input_channel = 6 if mode == "style" and not impl_params else 3
@@ -261,6 +270,7 @@ def ulyanov_et_al_2016_transformer(
             impl_params=impl_params,
             instance_norm=instance_norm,
             mode=mode,
+            device=device,
         )
 
     modules = (

@@ -12,7 +12,7 @@ from pystiche.data import (
     ImageFolderDataset,
     FiniteCycleBatchSampler,
 )
-from pystiche.image.transforms import Transform, ComposedTransform, Rescale
+from pystiche.image.transforms import Transform, ComposedTransform, Rescale, Resize
 from pystiche.image.transforms.functional import grayscale_to_fakegrayscale
 
 
@@ -38,7 +38,8 @@ def ulyanov_et_al_2016_content_transform(
                 return input_image
 
     transforms = [
-        RandomCrop((edge_size, edge_size)),  # FIXME: check this
+        # RandomCrop((edge_size, edge_size)),  # FIXME: check this
+        Resize((edge_size, edge_size)),
         OptionalGrayscaleToFakegrayscale(),
     ]
     if impl_params:
@@ -52,7 +53,7 @@ def ulyanov_et_al_2016_style_transform(
 ) -> Rescale:
     if edge_size is None:
         edge_size = 256 if impl_params else 512
-    return Rescale((edge_size, edge_size), interpolation_mode="bicubic")
+    return Resize((edge_size, edge_size), interpolation_mode="bicubic")
 
 
 def ulyanov_et_al_2016_images(
@@ -77,10 +78,6 @@ def ulyanov_et_al_2016_images(
         "tiger": DownloadableImage(
             urljoin(content_base_ulyanov, "tiger.jpg"),
             md5="e82bf374da425fb2c2e2a35a5a751989",
-        ),
-        "chicago": DownloadableImage(
-            urljoin(content_base_johnson, "chicago.jpg"),
-            md5="16ea186230a8a5131b224ddde01d0dd5",
         ),
         "neckarfront": DownloadableImage(
             "https://upload.wikimedia.org/wikipedia/commons/0/00/Tuebingen_Neckarfront.jpg",
@@ -114,36 +111,36 @@ def ulyanov_et_al_2016_images(
             author="Pieter Bruegel",
             date="1563",
             license=PublicDomainLicense(1563),
-            md5="",
+            md5="1e113716c8aad6c2ca826ae0b83ffc76",
             file="the_tower_of_babel.jpg",
         ),
     }
 
-    texture_base_ulyanov = urljoin(base_ulyanov, "readme_pics/")
-    # TODO: "https://www.cns.nyu.edu/~eero/texture/index.php#examples" licence
-    texture_base_simoncelli = "http://www.texturesynthesis.com/nonparaMRFTextureSynthesis.htm?image=Simoncelli/"
+    texture_base_ulyanov = urljoin(base_ulyanov, "textures/")
+    # TODO: "https://www.cns.nyu.edu/~eero/texture/index.php#examples" license
+    texture_base_simoncelli = "http://www.texturesynthesis.com/textures/Simoncelli/"
     texture_images = {
-        "cezanne": DownloadableImage(
-            urljoin(texture_base_ulyanov, "cezanne.jpg"),
-            md5="fab6d360c361c38c331b3ee5ef0078f5",
-        ),
-        "red-peppers256.o": DownloadableImage(
-            urljoin(texture_base_simoncelli, "red-peppers256.o.jpg"),
-            md5="16371574a10e0d10b88b807204c4f546",
-        ),
-        "stones_g1_0747": DownloadableImage(
-            urljoin(texture_base_simoncelli, "g1_0747.o.jpg"),
-            md5="25da69021ba99c81553e03c7956e68de",
-        ),
-        "jungle_d30_2076": DownloadableImage(
+        # "cezanne": DownloadableImage(
+        #     urljoin(texture_base_ulyanov, "cezanne.jpg"),
+        #     md5="6cb875b80d51f9a26eb05db7f9779011",
+        # ),
+        # "red-peppers256.o": DownloadableImage(
+        #     urljoin(texture_base_simoncelli, "red-peppers256.o.jpg"),
+        #     md5="4e6f8079baa169477983e55f6e9ad314",
+        # ),  # FIXME: Hash Problem
+        # "g1_0747.o": DownloadableImage(
+        #     urljoin(texture_base_simoncelli, "g1_0747.o.jpg"),
+        #     md5="25da69021ba99c81553e03c7956e68de",
+        # ),
+        "d30_2076.o": DownloadableImage(
             urljoin(texture_base_simoncelli, "d30_2076.o.jpg"),
             md5="1ddbaa6815b7056c65a9bf5a4df9e0eb",
         ),
-        "windowsP256": DownloadableImage(
+        "windowsP256.o": DownloadableImage(
             urljoin(texture_base_simoncelli, "windowsP256.o.jpg"),
-            md5="917d541c27467d771173852fa6447822",
+            md5="cc6bb3819e0a392eb3a6a0eae60540db",
         ),
-        "radishes256": DownloadableImage(
+        "radishes256.o": DownloadableImage(
             urljoin(texture_base_simoncelli, "radishes256.o.jpg"),
             md5="243c8d8879db9730bc5cc741437dfa6c",
         ),

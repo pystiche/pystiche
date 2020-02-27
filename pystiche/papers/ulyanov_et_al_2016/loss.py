@@ -71,19 +71,24 @@ def ulyanov_et_al_2016_regularization(
 class UlyanovEtAl2016PerceptualLoss(MultiOperatorLoss):
     def __init__(
         self,
-        content_loss: MSEEncodingOperator,
         style_loss: MultiLayerEncodingOperator,
         regularization: TotalVariationOperator,
+        content_loss: Optional[MSEEncodingOperator] = None,
+        mode: str = "texture",
     ) -> None:
-        super().__init__(
-            OrderedDict(
+        if mode == "style":
+            dict = OrderedDict(
                 [
                     ("content_loss", content_loss),
                     ("style_loss", style_loss),
                     ("regularization", regularization),
                 ]
             )
-        )
+        else:
+            dict = OrderedDict(
+                [("style_loss", style_loss), ("regularization", regularization)]
+            )
+        super().__init__(dict)
 
     def set_content_image(self, image: torch.Tensor):
         self.content_loss.set_target_image(image)
@@ -94,8 +99,7 @@ class UlyanovEtAl2016PerceptualLoss(MultiOperatorLoss):
 
 def ulyanov_et_al_2016_perceptual_loss(
     impl_params: bool = True,
-    instance_norm: bool = True,
-    style: Optional[str] = None,
+    mode: str = "texture",
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
     content_loss_kwargs: Optional[Dict[str, Any]] = None,
     style_loss_kwargs: Optional[Dict[str, Any]] = None,
@@ -104,28 +108,27 @@ def ulyanov_et_al_2016_perceptual_loss(
     if multi_layer_encoder is None:
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()
 
-    if content_loss_kwargs is None:
-        content_loss_kwargs = {}
-    content_loss = ulyanov_et_al_2016_content_loss(
-        impl_params=impl_params,
-        multi_layer_encoder=multi_layer_encoder,
-        **content_loss_kwargs,
-    )
-
     if style_loss_kwargs is None:
         style_loss_kwargs = {}
     style_loss = ulyanov_et_al_2016_style_loss(
         impl_params=impl_params,
-        instance_norm=instance_norm,
-        style=style,
         multi_layer_encoder=multi_layer_encoder,
         **style_loss_kwargs,
     )
 
     if total_variation_kwargs is None:
         total_variation_kwargs = {}
-    regularization = ulyanov_et_al_2016_regularization(
-        instance_norm=instance_norm, style=style, **total_variation_kwargs
-    )
+    regularization = ulyanov_et_al_2016_regularization(**total_variation_kwargs)
 
-    return UlyanovEtAl2016PerceptualLoss(content_loss, style_loss, regularization)
+    if mode == "style":
+        if content_loss_kwargs is None:
+            content_loss_kwargs = {}
+        content_loss = ulyanov_et_al_2016_content_loss(
+            impl_params=impl_params,
+            multi_layer_encoder=multi_layer_encoder,
+            **content_loss_kwargs,
+        )
+        return UlyanovEtAl2016PerceptualLoss(
+            content_loss, style_loss, regularization, mode=mode
+        )
+    return UlyanovEtAl2016PerceptualLoss(style_loss, regularization, mode=mode)
