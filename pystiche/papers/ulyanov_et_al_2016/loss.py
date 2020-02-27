@@ -129,6 +129,6 @@ def ulyanov_et_al_2016_perceptual_loss(
             **content_loss_kwargs,
         )
         return UlyanovEtAl2016PerceptualLoss(
-            content_loss, style_loss, regularization, mode=mode
+            style_loss, regularization, content_loss=content_loss, mode=mode
         )
     return UlyanovEtAl2016PerceptualLoss(style_loss, regularization, mode=mode)

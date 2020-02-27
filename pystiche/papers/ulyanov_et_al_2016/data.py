@@ -120,18 +120,18 @@ def ulyanov_et_al_2016_images(
     # TODO: "https://www.cns.nyu.edu/~eero/texture/index.php#examples" license
     texture_base_simoncelli = "http://www.texturesynthesis.com/textures/Simoncelli/"
     texture_images = {
-        # "cezanne": DownloadableImage(
-        #     urljoin(texture_base_ulyanov, "cezanne.jpg"),
-        #     md5="6cb875b80d51f9a26eb05db7f9779011",
-        # ),
-        # "red-peppers256.o": DownloadableImage(
-        #     urljoin(texture_base_simoncelli, "red-peppers256.o.jpg"),
-        #     md5="4e6f8079baa169477983e55f6e9ad314",
-        # ),  # FIXME: Hash Problem
-        # "g1_0747.o": DownloadableImage(
-        #     urljoin(texture_base_simoncelli, "g1_0747.o.jpg"),
-        #     md5="25da69021ba99c81553e03c7956e68de",
-        # ),
+        "cezanne": DownloadableImage(
+            urljoin(texture_base_ulyanov, "cezanne.jpg"),
+            md5="fab6d360c361c38c331b3ee5ef0078f5",
+        ),
+        "red-peppers256.o": DownloadableImage(  # FIXME: MD5 problem
+            urljoin(texture_base_simoncelli, "red-peppers256.o.jpg"),
+            md5="16371574a10e0d10b88b807204c4f546",
+        ),
+        "g1_0747.o": DownloadableImage(  # FIXME: MD5 problem
+            urljoin(texture_base_simoncelli, "g1_0747.o.jpg"),
+            md5="25da69021ba99c81553e03c7956e68de",
+        ),
         "d30_2076.o": DownloadableImage(
             urljoin(texture_base_simoncelli, "d30_2076.o.jpg"),
             md5="1ddbaa6815b7056c65a9bf5a4df9e0eb",
