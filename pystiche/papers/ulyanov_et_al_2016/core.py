@@ -7,7 +7,6 @@ from torch.optim.optimizer import Optimizer
 import pystiche
 from pystiche.optim import (
     OptimLogger,
-    default_transformer_optim_loop,
     default_transformer_optim_log_fn,
 )
 from ..common_utils import batch_up_image
@@ -37,6 +36,7 @@ __all__ = [
     "ulyanov_et_al_2016_image_loader",
     "ulyanov_et_al_2016_training",
     "ulyanov_et_al_2016_images",
+    "ulyanov_et_al_2016_stylization",
 ]
 
 
@@ -48,6 +48,7 @@ def ulyanov_et_al_2016_transformer_optim_loop(
     criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
     get_optimizer: ulyanov_et_al_2016_optimizer,
     impl_params: bool = True,
+    mode: str = "texture",
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
     log_fn: Optional[
@@ -67,7 +68,8 @@ def ulyanov_et_al_2016_transformer_optim_loop(
     for batch, input_image in enumerate(image_loader, 1):
         input_image = input_image.to(device)
 
-        criterion_update_fn(input_image, criterion)
+        if mode == "style":
+            criterion_update_fn(input_image, criterion)
 
         loading_time = time.time() - loading_time_start
 
@@ -77,8 +79,7 @@ def ulyanov_et_al_2016_transformer_optim_loop(
             optimizer.zero_grad()
 
             output_image = transformer(input_image)
-            loss = criterion(output_image)
-            loss /= input_image.size[0]  # TODO: div batch_size (right position?)
+            loss = criterion(output_image)  # FIXME: div batch_size
             loss.backward()
 
             processing_time = time.time() - processing_time_start
@@ -131,7 +132,6 @@ def ulyanov_et_al_2016_training(
     else:
         style_image = style
         device = style_image.device
-        style = None
 
     if impl_params:
         preprocessor = ulyanov_et_al_2016_preprocessor()
@@ -140,20 +140,23 @@ def ulyanov_et_al_2016_training(
 
     if transformer is None:
         transformer = ulyanov_et_al_2016_transformer(
-            impl_params=impl_params, instance_norm=instance_norm, mode=mode
+            impl_params=impl_params,
+            instance_norm=instance_norm,
+            mode=mode,
+            device=device,
         )
         transformer = transformer.train()
     transformer = transformer.to(device)
 
     if criterion is None:
         criterion = ulyanov_et_al_2016_perceptual_loss(
-            impl_params=impl_params, instance_norm=instance_norm, style=style
+            impl_params=impl_params, mode=mode
         )
         criterion = criterion.eval()
     criterion = criterion.to(device)
 
     if get_optimizer is None:
-        get_optimizer = ulyanov_et_al_2016_optimizer(impl_params=impl_params)
+        get_optimizer = ulyanov_et_al_2016_optimizer
 
     style_transform = ulyanov_et_al_2016_style_transform(impl_params=impl_params)
     style_transform = style_transform.to(device)
@@ -173,6 +176,7 @@ def ulyanov_et_al_2016_training(
         criterion_update_fn,
         get_optimizer=get_optimizer,
         impl_params=impl_params,
+        mode=mode,
         quiet=quiet,
         logger=logger,
         log_fn=log_fn,
