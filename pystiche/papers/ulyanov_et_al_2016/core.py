@@ -18,6 +18,7 @@ from .loss import (
 
 from .data import (
     ulyanov_et_al_2016_style_transform,
+    ulyanov_et_al_2016_content_transform,
     ulyanov_et_al_2016_dataset,
     ulyanov_et_al_2016_image_loader,
     ulyanov_et_al_2016_images,
@@ -211,8 +212,14 @@ def ulyanov_et_al_2016_stylization(
         if preprocessor is None:
             preprocessor = ulyanov_et_al_2016_preprocessor()
             preprocessor = preprocessor.to(device)
-
             input_image = preprocessor(input_image)
+
+        # transform to 256x256 -> paper same
+        content_transform = ulyanov_et_al_2016_content_transform(
+            impl_params=impl_params
+        )
+        content_transform = content_transform.to(device)
+        input_image = content_transform(input_image)
 
         output_image = transformer(input_image)
 

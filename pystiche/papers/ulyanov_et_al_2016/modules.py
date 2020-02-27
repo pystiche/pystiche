@@ -46,7 +46,7 @@ class UlyanovEtAl2016NoiseBlock(nn.Module):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         if self.mode == "style":
-            if self.impl_params:
+            if not self.impl_params:
                 return torch.cat(
                     (input, get_Noise(input.size(), channel=3, device=self.device)), 1
                 )
@@ -97,26 +97,6 @@ class UlyanovEtAl2016ConvBlock(nn.Sequential):
         modules.append(activation)
 
         super().__init__(*modules)
-
-
-# def ulyanov_et_al_2016_conv_block(
-#     in_channels: int,
-#     out_channels: int,
-#     impl_params: bool = True,
-#     kernel_size: Union[Tuple[int, int], int] = 3,
-#     stride: Union[Tuple[int, int], int] = 1,
-#     instance_norm: bool = True,
-#     inplace: bool = True,
-# ) -> UlyanovEtAl2016ConvBlock:
-#     return UlyanovEtAl2016ConvBlock(
-#         in_channels,
-#         out_channels,
-#         impl_params=impl_params,
-#         kernel_size=kernel_size,
-#         stride=stride,
-#         instance_norm=instance_norm,
-#         inplace=inplace,
-#     )
 
 
 class UlyanovEtAl2016ConvSequence(nn.Sequential):
@@ -259,7 +239,7 @@ def ulyanov_et_al_2016_transformer(
     device="cuda",
 ):
     levels = 6 if impl_params else levels
-    input_channel = 6 if mode == "style" and not impl_params else 3
+    input_channel = 6 if (mode == "style" and not impl_params) else 3
     level_block = None
     for _ in range(levels):
         level_block = UlaynovEtAl2016LevelBlock(
