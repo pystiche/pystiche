@@ -46,6 +46,7 @@ def ulyanov_et_al_2016_transformer_optim_loop(
     device: torch.device,
     transformer: nn.Module,
     criterion: nn.Module,
+    preprocess_Criterion: ulyanov_et_al_2016_preprocessor,
     criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
     get_optimizer: ulyanov_et_al_2016_optimizer,
     impl_params: bool = True,
@@ -63,7 +64,7 @@ def ulyanov_et_al_2016_transformer_optim_loop(
     if log_fn is None:
         log_fn = default_transformer_optim_log_fn(logger, len(image_loader))
 
-    optimizer = get_optimizer(transformer)
+    optimizer = get_optimizer(transformer, impl_params=impl_params)
 
     loading_time_start = time.time()
     for batch, input_image in enumerate(image_loader, 1):
@@ -80,7 +81,12 @@ def ulyanov_et_al_2016_transformer_optim_loop(
             optimizer.zero_grad()
 
             output_image = transformer(input_image)
-            loss = criterion(output_image)  # FIXME: div batch_size
+            output_image = preprocess_Criterion(output_image)
+            loss = criterion(output_image)
+            print(loss)
+            for key in loss.keys():
+                loss[key] = loss[key] / output_image.size()[0]
+            print(loss)
             loss.backward()
 
             processing_time = time.time() - processing_time_start
@@ -134,10 +140,9 @@ def ulyanov_et_al_2016_training(
         style_image = style
         device = style_image.device
 
-    if impl_params:
-        preprocessor = ulyanov_et_al_2016_preprocessor()
-        preprocessor = preprocessor.to(device)
-        style_image = preprocessor(style_image)
+    preprocessor = ulyanov_et_al_2016_preprocessor()
+    preprocessor = preprocessor.to(device)
+    style_image = preprocessor(style_image)
 
     if transformer is None:
         transformer = ulyanov_et_al_2016_transformer(
@@ -174,6 +179,7 @@ def ulyanov_et_al_2016_training(
         device,
         transformer,
         criterion,
+        preprocessor,
         criterion_update_fn,
         get_optimizer=get_optimizer,
         impl_params=impl_params,
