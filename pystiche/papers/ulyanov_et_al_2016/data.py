@@ -205,10 +205,10 @@ def ulyanov_et_al_2016_dataset(
     return ImageFolderDataset(root, transform=transform)
 
 
-def ulyanov_et_al_2016_batch_sampler(  # FIXME:batch_size=16
+def ulyanov_et_al_2016_batch_sampler(  # FIXME:batch_size=16 see also utils learning rate
     data_source: Sized, impl_params: bool = True, num_batches=2000, batch_size=4
 ) -> FiniteCycleBatchSampler:
-    num_batches = 50000 if impl_params else num_batches
+    num_batches = 10000 if impl_params else num_batches
     batch_size = 1 if impl_params else batch_size
 
     return FiniteCycleBatchSampler(

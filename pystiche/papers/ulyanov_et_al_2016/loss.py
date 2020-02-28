@@ -76,6 +76,8 @@ def ulyanov_et_al_2016_regularization(
     **total_variation_op_kwargs: Any,
 ):
     score_weight = 0 if impl_params else score_weight  # FIXME: right score weight
+    if score_weight == 0:
+        return None
     return TotalVariationOperator(
         score_weight=score_weight, **total_variation_op_kwargs
     )
@@ -85,22 +87,17 @@ class UlyanovEtAl2016PerceptualLoss(MultiOperatorLoss):
     def __init__(
         self,
         style_loss: MultiLayerEncodingOperator,
-        regularization: TotalVariationOperator,
-        content_loss: Optional[MSEEncodingOperator] = None,
+        regularization: TotalVariationOperator = None,
+        content_loss: MSEEncodingOperator = None,
         mode: str = "texture",
     ) -> None:
+
+        dict = OrderedDict([("style_loss", style_loss)])
         if mode == "style":
-            dict = OrderedDict(
-                [
-                    ("content_loss", content_loss),
-                    ("style_loss", style_loss),
-                    ("regularization", regularization),
-                ]
-            )
-        else:
-            dict = OrderedDict(
-                [("style_loss", style_loss), ("regularization", regularization)]
-            )
+            dict["content_loss"] = content_loss
+        if regularization is not None:
+            dict["regularization"] = regularization
+
         super().__init__(dict)
 
     def set_content_image(self, image: torch.Tensor):
