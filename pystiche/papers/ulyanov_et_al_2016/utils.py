@@ -23,5 +23,5 @@ def ulyanov_et_al_2016_multi_layer_encoder() -> MultiLayerEncoder:
 def ulyanov_et_al_2016_optimizer(
     transformer: nn.Module, impl_params: bool = True
 ) -> Optimizer:
-    lr = 1e-3 if impl_params else 0.1
+    lr = 1e-3 if impl_params else 0.01  # FIXME: when right batch_size (lr=0.1)
     return optim.Adam(transformer.parameters(), lr=lr)

@@ -46,9 +46,9 @@ def ulyanov_et_al_2016_transformer_optim_loop(
     device: torch.device,
     transformer: nn.Module,
     criterion: nn.Module,
-    preprocess_Criterion: ulyanov_et_al_2016_preprocessor,
     criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
     get_optimizer: ulyanov_et_al_2016_optimizer,
+    preprocess_Criterion: ulyanov_et_al_2016_preprocessor = None,
     impl_params: bool = True,
     mode: str = "texture",
     quiet: bool = False,
@@ -81,12 +81,11 @@ def ulyanov_et_al_2016_transformer_optim_loop(
             optimizer.zero_grad()
 
             output_image = transformer(input_image)
-            output_image = preprocess_Criterion(output_image)
+            if preprocess_Criterion is not None:
+                output_image = preprocess_Criterion(output_image)
             loss = criterion(output_image)
-            print(loss)
             for key in loss.keys():
                 loss[key] = loss[key] / output_image.size()[0]
-            print(loss)
             loss.backward()
 
             processing_time = time.time() - processing_time_start
@@ -179,9 +178,9 @@ def ulyanov_et_al_2016_training(
         device,
         transformer,
         criterion,
-        preprocessor,
         criterion_update_fn,
         get_optimizer=get_optimizer,
+        preprocess_Criterion=preprocessor,
         impl_params=impl_params,
         mode=mode,
         quiet=quiet,
