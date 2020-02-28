@@ -26,11 +26,21 @@ def ulyanov_et_al_2016_content_loss(
     return MSEEncodingOperator(encoder, score_weight=score_weight)
 
 
+def get_default_layer_weights(  # FIXME: right position fo style_loss_layer_weight calculation
+    multi_layer_encoder: MultiLayerEncoder, layers: Sequence[str]
+) -> Sequence[float]:
+    nums_channels = []
+    for layer in layers:
+        module = multi_layer_encoder._modules[layer.replace("relu", "conv")]
+        nums_channels.append(module.out_channels)
+    return [1.0 / num_channels for num_channels in nums_channels]
+
+
 def ulyanov_et_al_2016_style_loss(
     impl_params: bool = True,
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
     layers: Optional[Sequence[str]] = None,
-    layer_weights: Union[str, Sequence[float]] = "sum",
+    layer_weights: Union[str, Sequence[float]] = None,
     score_weight: float = 1e0,
     **gram_op_kwargs,
 ):
@@ -44,6 +54,9 @@ def ulyanov_et_al_2016_style_loss(
             if impl_params
             else ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
         )
+
+    if layer_weights is None:
+        layer_weights = get_default_layer_weights(multi_layer_encoder, layers)
 
     def get_encoding_op(encoder, layer_weight):
         return GramOperator(encoder, score_weight=layer_weight, **gram_op_kwargs)

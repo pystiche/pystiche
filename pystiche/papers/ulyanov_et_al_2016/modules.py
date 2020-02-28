@@ -255,7 +255,14 @@ def ulyanov_et_al_2016_transformer(
 
     modules = (
         level_block,
-        nn.Conv2d(level_block.out_channels, 3, 1, stride=1),
+        UlyanovEtAl2016ConvBlock(
+            level_block.out_channels,
+            3,
+            1,
+            impl_params=impl_params,
+            instance_norm=instance_norm,
+            inplace=True,
+        ),
     )
     transformer = nn.Sequential(*modules)
     if style is None:

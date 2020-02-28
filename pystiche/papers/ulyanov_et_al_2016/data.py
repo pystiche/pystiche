@@ -205,8 +205,8 @@ def ulyanov_et_al_2016_dataset(
     return ImageFolderDataset(root, transform=transform)
 
 
-def ulyanov_et_al_2016_batch_sampler(
-    data_source: Sized, impl_params: bool = True, num_batches=2000, batch_size=16
+def ulyanov_et_al_2016_batch_sampler(  # FIXME:batch_size=16
+    data_source: Sized, impl_params: bool = True, num_batches=2000, batch_size=4
 ) -> FiniteCycleBatchSampler:
     num_batches = 50000 if impl_params else num_batches
     batch_size = 1 if impl_params else batch_size
@@ -218,12 +218,15 @@ def ulyanov_et_al_2016_batch_sampler(
 
 def ulyanov_et_al_2016_image_loader(
     dataset: Dataset,
+    impl_params: bool = True,
     batch_sampler: Optional[Sampler] = None,
     num_workers: int = 4,
     pin_memory: bool = True,
 ):
     if batch_sampler is None:
-        batch_sampler = ulyanov_et_al_2016_batch_sampler(dataset)
+        batch_sampler = ulyanov_et_al_2016_batch_sampler(
+            dataset, impl_params=impl_params
+        )
 
     return DataLoader(
         dataset,
