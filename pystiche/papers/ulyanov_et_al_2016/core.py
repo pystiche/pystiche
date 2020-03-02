@@ -24,8 +24,7 @@ from .data import (
     ulyanov_et_al_2016_images,
 )
 from .utils import (
-    ulyanov_et_al_2016_preprocessor,
-    ulyanov_et_al_2016_postprocessor,
+    ulyanov_et_al_2016_preprocessor_Criterion,
     ulyanov_et_al_2016_optimizer,
 )
 
@@ -48,7 +47,7 @@ def ulyanov_et_al_2016_transformer_optim_loop(
     criterion: nn.Module,
     criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
     get_optimizer: ulyanov_et_al_2016_optimizer,
-    preprocess_Criterion: ulyanov_et_al_2016_preprocessor = None,
+    preprocess_Criterion: ulyanov_et_al_2016_preprocessor_Criterion = None,
     impl_params: bool = True,
     mode: str = "texture",
     quiet: bool = False,
@@ -139,9 +138,9 @@ def ulyanov_et_al_2016_training(
         style_image = style
         device = style_image.device
 
-    preprocessor = ulyanov_et_al_2016_preprocessor()
-    preprocessor = preprocessor.to(device)
-    style_image = preprocessor(style_image)
+    preprocessor_Criterion = ulyanov_et_al_2016_preprocessor_Criterion()
+    preprocessor_Criterion = preprocessor_Criterion.to(device)
+    style_image = preprocessor_Criterion(style_image)
 
     if transformer is None:
         transformer = ulyanov_et_al_2016_transformer(
@@ -180,7 +179,7 @@ def ulyanov_et_al_2016_training(
         criterion,
         criterion_update_fn,
         get_optimizer=get_optimizer,
-        preprocess_Criterion=preprocessor,
+        preprocess_Criterion=preprocessor_Criterion,
         impl_params=impl_params,
         mode=mode,
         quiet=quiet,
@@ -197,8 +196,6 @@ def ulyanov_et_al_2016_stylization(
     impl_params: bool = True,
     instance_norm: bool = None,
     weights: str = "pystiche",
-    preprocessor: Optional[nn.Module] = None,
-    postprocessor: Optional[nn.Module] = None,
 ):
     device = input_image.device
 
@@ -214,11 +211,6 @@ def ulyanov_et_al_2016_stylization(
         transformer = transformer.to(device)
 
     with torch.no_grad():
-        if preprocessor is None:
-            preprocessor = ulyanov_et_al_2016_preprocessor()
-            preprocessor = preprocessor.to(device)
-            input_image = preprocessor(input_image)
-
         # transform to 256x256 -> paper same
         content_transform = ulyanov_et_al_2016_content_transform(
             impl_params=impl_params
@@ -227,11 +219,5 @@ def ulyanov_et_al_2016_stylization(
         input_image = content_transform(input_image)
 
         output_image = transformer(input_image)
-
-        if postprocessor is None:
-            postprocessor = ulyanov_et_al_2016_postprocessor()
-            postprocessor = postprocessor.to(device)
-
-            output_image = postprocessor(output_image)
 
     return output_image.detach()

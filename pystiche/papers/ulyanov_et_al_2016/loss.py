@@ -18,7 +18,7 @@ def ulyanov_et_al_2016_content_loss(
     layer: str = "relu_4_2",
     score_weight=1e0,
 ):
-    score_weight = 1e0 if impl_params else score_weight  # FIXME: paper only alpha
+    score_weight = 1e3 if impl_params else score_weight  # FIXME: paper only alpha
     if multi_layer_encoder is None:
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()
     encoder = multi_layer_encoder[layer]
@@ -26,7 +26,7 @@ def ulyanov_et_al_2016_content_loss(
     return MSEEncodingOperator(encoder, score_weight=score_weight)
 
 
-def get_default_layer_weights(  # FIXME: right position fo style_loss_layer_weight calculation
+def get_default_layer_weights(  # FIXME: right position - style_loss_layer_weight calculation
     multi_layer_encoder: MultiLayerEncoder, layers: Sequence[str]
 ) -> Sequence[float]:
     nums_channels = []
