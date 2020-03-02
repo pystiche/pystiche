@@ -1,19 +1,12 @@
 from torch import nn, optim
 from torch.optim.optimizer import Optimizer
-from pystiche.image import (
-    CaffePreprocessing,
-    CaffePostprocessing,
-)
+from pystiche.image import CaffePreprocessing
 
 from pystiche.enc import MultiLayerEncoder, vgg19_encoder
 
 
-def ulyanov_et_al_2016_preprocessor() -> CaffePreprocessing:
+def ulyanov_et_al_2016_preprocessor_Criterion() -> CaffePreprocessing:
     return CaffePreprocessing()
-
-
-def ulyanov_et_al_2016_postprocessor() -> CaffePostprocessing:
-    return CaffePostprocessing()
 
 
 def ulyanov_et_al_2016_multi_layer_encoder() -> MultiLayerEncoder:
