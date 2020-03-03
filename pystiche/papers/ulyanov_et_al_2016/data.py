@@ -53,7 +53,7 @@ def ulyanov_et_al_2016_style_transform(
 ) -> Rescale:
     if edge_size is None:
         edge_size = 256 if impl_params else 512
-    return Resize((edge_size, edge_size), interpolation_mode="bicubic")
+    return Resize(edge_size, edge="long", interpolation_mode="bicubic")
 
 
 def ulyanov_et_al_2016_images(

@@ -25,6 +25,7 @@ from .data import (
 )
 from .utils import (
     ulyanov_et_al_2016_preprocessor_Criterion,
+    ulyanov_et_al_2016_postprocessor,
     ulyanov_et_al_2016_optimizer,
 )
 
@@ -80,8 +81,8 @@ def ulyanov_et_al_2016_transformer_optim_loop(
             optimizer.zero_grad()
 
             output_image = transformer(input_image)
-            if preprocess_Criterion is not None:
-                output_image = preprocess_Criterion(output_image)
+            # if preprocess_Criterion is not None: # FIXME?
+            #     output_image = preprocess_Criterion(output_image)
             loss = criterion(output_image)
             for key in loss.keys():
                 loss[key] = loss[key] / output_image.size()[0]
@@ -219,5 +220,8 @@ def ulyanov_et_al_2016_stylization(
         input_image = content_transform(input_image)
 
         output_image = transformer(input_image)
+        postprocessor = ulyanov_et_al_2016_postprocessor()
+        postprocessor = postprocessor.to(device)
+        output_image = torch.clamp(postprocessor(output_image), 0, 1)
 
     return output_image.detach()
