@@ -1,7 +1,7 @@
 from typing import Union, Optional, Sequence, Any, Dict
 from collections import OrderedDict
 import torch
-from pystiche.enc import MultiLayerEncoder
+from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.ops import (
     MSEEncodingOperator,
     GramOperator,
@@ -36,11 +36,27 @@ def get_default_layer_weights(  # FIXME: right position - style_loss_layer_weigh
     return [1.0 / num_channels for num_channels in nums_channels]
 
 
+class UlyanovEtAl2016GramOperator(GramOperator):
+    def __init__(
+        self, encoder: Encoder, impl_params: bool = True, **gram_op_kwargs: Any,
+    ):
+        super().__init__(encoder, **gram_op_kwargs)
+        self.normalize_by_num_channels = impl_params
+
+    def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
+        gram_matrix = super().enc_to_repr(enc)
+        if not self.normalize_by_num_channels:
+            return gram_matrix
+
+        num_channels = gram_matrix.size()[-1]
+        return gram_matrix / num_channels
+
+
 def ulyanov_et_al_2016_style_loss(
     impl_params: bool = True,
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
     layers: Optional[Sequence[str]] = None,
-    layer_weights: Union[str, Sequence[float]] = None,
+    layer_weights: Union[str, Sequence[float]] = "mean",
     score_weight: float = 1e0,
     **gram_op_kwargs,
 ):
@@ -55,11 +71,10 @@ def ulyanov_et_al_2016_style_loss(
             else ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
         )
 
-    if layer_weights is None:
-        layer_weights = get_default_layer_weights(multi_layer_encoder, layers)
-
     def get_encoding_op(encoder, layer_weight):
-        return GramOperator(encoder, score_weight=layer_weight, **gram_op_kwargs)
+        return UlyanovEtAl2016GramOperator(
+            encoder, score_weight=layer_weight, **gram_op_kwargs
+        )
 
     return MultiLayerEncodingOperator(
         multi_layer_encoder,
@@ -71,9 +86,7 @@ def ulyanov_et_al_2016_style_loss(
 
 
 def ulyanov_et_al_2016_regularization(
-    impl_params: bool = True,
-    score_weight: float = 1e-6,
-    **total_variation_op_kwargs: Any,
+    impl_params: bool = True, score_weight: float = 0, **total_variation_op_kwargs: Any,
 ):
     score_weight = 0 if impl_params else score_weight  # FIXME: right score weight
     if score_weight == 0:
