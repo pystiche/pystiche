@@ -24,7 +24,6 @@ from .data import (
     ulyanov_et_al_2016_images,
 )
 from .utils import (
-    ulyanov_et_al_2016_preprocessor_Criterion,
     ulyanov_et_al_2016_postprocessor,
     ulyanov_et_al_2016_optimizer,
 )
@@ -48,8 +47,8 @@ def ulyanov_et_al_2016_transformer_optim_loop(
     criterion: nn.Module,
     criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
     get_optimizer: ulyanov_et_al_2016_optimizer,
-    preprocess_Criterion: ulyanov_et_al_2016_preprocessor_Criterion = None,
     impl_params: bool = True,
+    instance_norm: bool = False,
     mode: str = "texture",
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
@@ -64,7 +63,9 @@ def ulyanov_et_al_2016_transformer_optim_loop(
     if log_fn is None:
         log_fn = default_transformer_optim_log_fn(logger, len(image_loader))
 
-    optimizer = get_optimizer(transformer, impl_params=impl_params)
+    optimizer = get_optimizer(
+        transformer, impl_params=impl_params, instance_norm=instance_norm
+    )
 
     loading_time_start = time.time()
     for batch, input_image in enumerate(image_loader, 1):
@@ -81,8 +82,6 @@ def ulyanov_et_al_2016_transformer_optim_loop(
             optimizer.zero_grad()
 
             output_image = transformer(input_image)
-            # if preprocess_Criterion is not None: # FIXME?
-            #     output_image = preprocess_Criterion(output_image)
             loss = criterion(output_image)
             for key in loss.keys():
                 loss[key] = loss[key] / output_image.size()[0]
@@ -102,14 +101,19 @@ def ulyanov_et_al_2016_transformer_optim_loop(
         loading_time_start = time.time()
 
         # change learning rate during training
-        if impl_params:
-            if batch % 2000 == 0:
+        if instance_norm:
+            if batch % 300 == 0:
                 for param_group in optimizer.param_groups:
                     param_group["lr"] = param_group["lr"] * 0.8
         else:
-            if batch % 200 == 0 and batch >= 1000:
-                for param_group in optimizer.param_groups:
-                    param_group["lr"] = param_group["lr"] * 0.7
+            if impl_params:
+                if batch % 2000 == 0:
+                    for param_group in optimizer.param_groups:
+                        param_group["lr"] = param_group["lr"] * 0.8
+            else:
+                if batch % 200 == 0 and batch >= 1000:
+                    for param_group in optimizer.param_groups:
+                        param_group["lr"] = param_group["lr"] * 0.7
 
     return transformer
 
@@ -139,10 +143,6 @@ def ulyanov_et_al_2016_training(
         style_image = style
         device = style_image.device
 
-    preprocessor_Criterion = ulyanov_et_al_2016_preprocessor_Criterion()
-    preprocessor_Criterion = preprocessor_Criterion.to(device)
-    style_image = preprocessor_Criterion(style_image)
-
     if transformer is None:
         transformer = ulyanov_et_al_2016_transformer(
             impl_params=impl_params,
@@ -155,7 +155,7 @@ def ulyanov_et_al_2016_training(
 
     if criterion is None:
         criterion = ulyanov_et_al_2016_perceptual_loss(
-            impl_params=impl_params, mode=mode
+            impl_params=impl_params, instance_norm=instance_norm, mode=mode
         )
         criterion = criterion.eval()
     criterion = criterion.to(device)
@@ -163,7 +163,9 @@ def ulyanov_et_al_2016_training(
     if get_optimizer is None:
         get_optimizer = ulyanov_et_al_2016_optimizer
 
-    style_transform = ulyanov_et_al_2016_style_transform(impl_params=impl_params)
+    style_transform = ulyanov_et_al_2016_style_transform(
+        impl_params=impl_params, instance_norm=instance_norm
+    )
     style_transform = style_transform.to(device)
     style_image = style_transform(style_image)
     style_image = batch_up_image(style_image, loader=content_image_loader)
@@ -180,8 +182,8 @@ def ulyanov_et_al_2016_training(
         criterion,
         criterion_update_fn,
         get_optimizer=get_optimizer,
-        preprocess_Criterion=preprocessor_Criterion,
         impl_params=impl_params,
+        instance_norm=instance_norm,
         mode=mode,
         quiet=quiet,
         logger=logger,
@@ -214,7 +216,7 @@ def ulyanov_et_al_2016_stylization(
     with torch.no_grad():
         # transform to 256x256 -> paper same
         content_transform = ulyanov_et_al_2016_content_transform(
-            impl_params=impl_params
+            impl_params=impl_params, instance_norm=instance_norm
         )
         content_transform = content_transform.to(device)
         input_image = content_transform(input_image)
