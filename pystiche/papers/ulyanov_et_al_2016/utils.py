@@ -5,10 +5,6 @@ from pystiche.image import CaffePreprocessing, CaffePostprocessing
 from pystiche.enc import MultiLayerEncoder, vgg19_encoder
 
 
-def ulyanov_et_al_2016_preprocessor_Criterion() -> CaffePreprocessing:
-    return CaffePreprocessing()
-
-
 def ulyanov_et_al_2016_multi_layer_encoder() -> MultiLayerEncoder:
     return vgg19_encoder(weights="caffe", allow_inplace=True)
 
@@ -18,7 +14,10 @@ def ulyanov_et_al_2016_postprocessor() -> CaffePostprocessing:
 
 
 def ulyanov_et_al_2016_optimizer(
-    transformer: nn.Module, impl_params: bool = True
+    transformer: nn.Module, impl_params: bool = True, instance_norm: bool = False
 ) -> Optimizer:
-    lr = 1e-3 if impl_params else 0.01  # FIXME: when right batch_size (lr=0.1)
+    if instance_norm:
+        lr = 1e-3
+    else:
+        lr = 0.1 if impl_params else 0.1
     return optim.Adam(transformer.parameters(), lr=lr)

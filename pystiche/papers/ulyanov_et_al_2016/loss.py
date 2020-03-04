@@ -14,26 +14,22 @@ from .utils import ulyanov_et_al_2016_multi_layer_encoder
 
 def ulyanov_et_al_2016_content_loss(
     impl_params: bool = True,
+    instance_norm: bool = False,
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
     layer: str = "relu_4_2",
-    score_weight=1e0,
+    score_weight=None,
 ):
-    score_weight = 1e3 if impl_params else score_weight  # FIXME: paper only alpha
+    if score_weight is None:
+        if instance_norm:
+            score_weight = 6e-1
+        else:
+            score_weight = 1e0 if impl_params else 1e0  # FIXME paper only alpha
+
     if multi_layer_encoder is None:
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()
     encoder = multi_layer_encoder[layer]
 
     return MSEEncodingOperator(encoder, score_weight=score_weight)
-
-
-def get_default_layer_weights(  # FIXME: right position - style_loss_layer_weight calculation
-    multi_layer_encoder: MultiLayerEncoder, layers: Sequence[str]
-) -> Sequence[float]:
-    nums_channels = []
-    for layer in layers:
-        module = multi_layer_encoder._modules[layer.replace("relu", "conv")]
-        nums_channels.append(module.out_channels)
-    return [1.0 / num_channels for num_channels in nums_channels]
 
 
 class UlyanovEtAl2016GramOperator(GramOperator):
@@ -54,22 +50,34 @@ class UlyanovEtAl2016GramOperator(GramOperator):
 
 def ulyanov_et_al_2016_style_loss(
     impl_params: bool = True,
+    instance_norm: bool = False,
+    mode: str = "texture",
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
     layers: Optional[Sequence[str]] = None,
-    layer_weights: Union[str, Sequence[float]] = "mean",
-    score_weight: float = 1e0,
+    layer_weights: Union[str, Sequence[float]] = "sum",
+    score_weight: float = None,
     **gram_op_kwargs,
 ):
-    score_weight = 1e0 if impl_params else score_weight
+    if score_weight is None:
+        if instance_norm:
+            score_weight = 1e0
+        else:
+            if impl_params:
+                score_weight = 1e3 if mode == "style" else 1e0
+            else:
+                score_weight = 1e0
     if multi_layer_encoder is None:
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()
 
     if layers is None:
-        layers = (
-            ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1")
-            if impl_params
-            else ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
-        )
+        if instance_norm:
+            layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1")
+        else:
+            layers = (
+                ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
+                if impl_params
+                else ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
+            )
 
     def get_encoding_op(encoder, layer_weight):
         return UlyanovEtAl2016GramOperator(
@@ -86,9 +94,16 @@ def ulyanov_et_al_2016_style_loss(
 
 
 def ulyanov_et_al_2016_regularization(
-    impl_params: bool = True, score_weight: float = 0, **total_variation_op_kwargs: Any,
+    impl_params: bool = True,
+    instance_norm: bool = False,
+    score_weight: float = None,
+    **total_variation_op_kwargs: Any,
 ):
-    score_weight = 0 if impl_params else score_weight  # FIXME: right score weight
+    if score_weight is None:
+        if instance_norm:
+            score_weight = 0  # FIXME: tvLoss only in master but weight 0
+        else:
+            return None
     if score_weight == 0:
         return None
     return TotalVariationOperator(
@@ -122,6 +137,7 @@ class UlyanovEtAl2016PerceptualLoss(MultiOperatorLoss):
 
 def ulyanov_et_al_2016_perceptual_loss(
     impl_params: bool = True,
+    instance_norm: bool = False,
     mode: str = "texture",
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
     content_loss_kwargs: Optional[Dict[str, Any]] = None,
@@ -135,19 +151,24 @@ def ulyanov_et_al_2016_perceptual_loss(
         style_loss_kwargs = {}
     style_loss = ulyanov_et_al_2016_style_loss(
         impl_params=impl_params,
+        instance_norm=instance_norm,
+        mode=mode,
         multi_layer_encoder=multi_layer_encoder,
         **style_loss_kwargs,
     )
 
     if total_variation_kwargs is None:
         total_variation_kwargs = {}
-    regularization = ulyanov_et_al_2016_regularization(**total_variation_kwargs)
+    regularization = ulyanov_et_al_2016_regularization(
+        impl_params=impl_params, instance_norm=instance_norm, **total_variation_kwargs
+    )
 
     if mode == "style":
         if content_loss_kwargs is None:
             content_loss_kwargs = {}
         content_loss = ulyanov_et_al_2016_content_loss(
             impl_params=impl_params,
+            instance_norm=instance_norm,
             multi_layer_encoder=multi_layer_encoder,
             **content_loss_kwargs,
         )
