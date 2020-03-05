@@ -21,9 +21,9 @@ def ulyanov_et_al_2016_content_loss(
 ):
     if score_weight is None:
         if instance_norm:
-            score_weight = 6e-1
+            score_weight = 1e0
         else:
-            score_weight = 1e0 if impl_params else 1e0  # FIXME paper only alpha
+            score_weight = 6e-1 if impl_params else 1e0  # FIXME paper only alpha
 
     if multi_layer_encoder is None:
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()
@@ -73,11 +73,7 @@ def ulyanov_et_al_2016_style_loss(
         if instance_norm:
             layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1")
         else:
-            layers = (
-                ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
-                if impl_params
-                else ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
-            )
+            layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
 
     def get_encoding_op(encoder, layer_weight):
         return UlyanovEtAl2016GramOperator(
