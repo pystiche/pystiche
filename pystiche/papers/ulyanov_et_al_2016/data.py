@@ -84,6 +84,7 @@ def ulyanov_et_al_2016_images(
         "https://raw.githubusercontent.com/DmitryUlyanov/texture_nets/master/data/"
     )
     base_ulyanov_suppl = "https://raw.githubusercontent.com/DmitryUlyanov/texture_nets/texture_nets_v1/supplementary/"
+    readme_ulyanov = "https://raw.githubusercontent.com/DmitryUlyanov/texture_nets/texture_nets_v1/data/readme_pics/"
     content_base_ulyanov = urljoin(base_ulyanov, "readme_pics/")
     content_images = {
         "karya": DownloadableImage(
@@ -132,6 +133,10 @@ def ulyanov_et_al_2016_images(
         "bird": DownloadableImage(
             urljoin(base_ulyanov_suppl, "bird.jpg"),
             md5="74dde9fad4749e7ff3cd4eca6cb43d0d",
+        ),
+        "kitty": DownloadableImage(
+            urljoin(readme_ulyanov, "kitty.jpg"),
+            md5="98262bd8f5ae25f8329158d2c2c66ad0",
         ),
     }
 
