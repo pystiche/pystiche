@@ -129,7 +129,10 @@ def ulyanov_et_al_2016_images(
             md5="1e113716c8aad6c2ca826ae0b83ffc76",
             file="the_tower_of_babel.jpg",
         ),
-        # "bird": DownloadableImage(urljoin(base_ulyanov_suppl, "bird.jpg"), md5="",),
+        "bird": DownloadableImage(
+            urljoin(base_ulyanov_suppl, "bird.jpg"),
+            md5="74dde9fad4749e7ff3cd4eca6cb43d0d",
+        ),
     }
 
     texture_base_ulyanov = urljoin(base_ulyanov, "textures/")
@@ -153,18 +156,22 @@ def ulyanov_et_al_2016_images(
             urljoin(texture_base_simoncelli, "radishes256.o.jpg"),
             md5="243c8d8879db9730bc5cc741437dfa6c",
         ),
-        # "bricks": DownloadableImage(
-        #     urljoin(base_ulyanov_suppl_texture, "bricks.png"), md5="",
-        # ),
-        # "pebble": DownloadableImage(
-        #     urljoin(base_ulyanov_suppl_texture, "pebble.png"), md5="",
-        # ),
-        # "pixelcity_windows2": DownloadableImage(
-        #     urljoin(base_ulyanov_suppl_texture, "pixelcity_windows2.jpg"), md5="",
-        # ),
-        # "red-peppers256.o": DownloadableImage(
-        #     urljoin(base_ulyanov_suppl_texture, "red-peppers256.o.jpg"), md5="",
-        # ),
+        "bricks": DownloadableImage(
+            urljoin(base_ulyanov_suppl_texture, "bricks.png"),
+            md5="1e13818e1fbefbd22f110a1c2f781d40",
+        ),
+        "pebble": DownloadableImage(
+            urljoin(base_ulyanov_suppl_texture, "pebble.png"),
+            md5="5b5e5aa6c579e42e268058a94d683a6c",
+        ),
+        "pixelcity_windows2": DownloadableImage(
+            urljoin(base_ulyanov_suppl_texture, "pixelcity_windows2.jpg"),
+            md5="53026a8411e7c26e959e36d3223f3b8f",
+        ),
+        "red-peppers256.o": DownloadableImage(
+            urljoin(base_ulyanov_suppl_texture, "red-peppers256.o.jpg"),
+            md5="16371574a10e0d10b88b807204c4f546",
+        ),
     }
     base_johnson = (
         "https://raw.githubusercontent.com/jcjohnson/fast-neural-style/master/images/"
@@ -190,18 +197,22 @@ def ulyanov_et_al_2016_images(
             md5="3539d50d2808b8eec5b05f892d8cf1e1",
             file="jean_metzinger.jpg",
         ),
-        # "mosaic": DownloadableImage(
-        #     urljoin(base_ulyanov_suppl_style, "mosaic.jpg"), md5="",
-        # ),
-        # "pleades": DownloadableImage(
-        #     urljoin(base_ulyanov_suppl_style, "pleades.jpg"), md5="",
-        # ),
-        # "starry": DownloadableImage(
-        #     urljoin(base_ulyanov_suppl_style, "starry.jpg"), md5="",
-        # ),
-        # "turner": DownloadableImage(
-        #     urljoin(base_ulyanov_suppl_style, "turner.jpg"), md5="",
-        # ),
+        "mosaic": DownloadableImage(
+            urljoin(base_ulyanov_suppl_style, "mosaic.jpg"),
+            md5="4f05f1e12961cebf41bd372d909342b3",
+        ),
+        "pleades": DownloadableImage(
+            urljoin(base_ulyanov_suppl_style, "pleades.jpg"),
+            md5="6fc41ac30c2852a5454a0ead2f479dc9",
+        ),
+        "starry": DownloadableImage(
+            urljoin(base_ulyanov_suppl_style, "starry.jpg"),
+            md5="c6d94f7962466b2e80a64ae82523242a",
+        ),
+        "turner": DownloadableImage(
+            urljoin(base_ulyanov_suppl_style, "turner.jpg"),
+            md5="7fdd9603a5182dcef23d7fb1c5217888",
+        ),
     }
     return DownloadableImageCollection(
         {**texture_images, **content_images, **style_images},
