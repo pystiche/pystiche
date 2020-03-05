@@ -36,17 +36,19 @@ def ulyanov_et_al_2016_content_transform(
             else:
                 return input_image
 
+    transforms = []
     if instance_norm:
         # FIXME: RandomCrop here
-        transforms = [Resize((edge_size, edge_size), interpolation_mode="bicubic")]
+        transforms.append(Resize((edge_size, edge_size), interpolation_mode="bicubic"))
     else:
         if impl_params:
-            transforms = [Resize((edge_size, edge_size), interpolation_mode="bilinear")]
-        else:
-            transforms = [
+            transforms.append(
                 Resize((edge_size, edge_size), interpolation_mode="bilinear")
-            ]  # FIXME: paper?
-
+            )
+        else:
+            transforms.append(
+                Resize((edge_size, edge_size), interpolation_mode="bilinear")
+            )  # FIXME: paper?
     transforms.append(OptionalGrayscaleToFakegrayscale())
     return ComposedTransform(*transforms)
 
@@ -68,8 +70,8 @@ def ulyanov_et_al_2016_style_transform(
         interpolation_mode = "bilinear" if impl_params else "bicubic"  # FIXME: paper?
 
     transforms = [
-        CaffePreprocessing(),
         Resize(edge_size, edge="long", interpolation_mode=interpolation_mode),
+        CaffePreprocessing(),
     ]
     return ComposedTransform(*transforms)
 
@@ -245,9 +247,11 @@ def ulyanov_et_al_2016_batch_sampler(
             batch_size = 1
         else:
             if impl_params:
-                batch_size = 4 if mode == "style" else 16
+                batch_size = (
+                    4 if mode == "style" else 4
+                )  # FIXME change to 16 second entry
             else:
-                batch_size = 16
+                batch_size = 4  # FIXME change to 16
 
     return FiniteCycleBatchSampler(
         data_source, num_batches=num_batches, batch_size=batch_size

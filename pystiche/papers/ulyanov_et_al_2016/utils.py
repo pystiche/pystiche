@@ -9,6 +9,10 @@ def ulyanov_et_al_2016_multi_layer_encoder() -> MultiLayerEncoder:
     return vgg19_encoder(weights="caffe", allow_inplace=True)
 
 
+def ulyanov_et_al_2016_preprocessor() -> CaffePreprocessing:
+    return CaffePreprocessing()
+
+
 def ulyanov_et_al_2016_postprocessor() -> CaffePostprocessing:
     return CaffePostprocessing()
 

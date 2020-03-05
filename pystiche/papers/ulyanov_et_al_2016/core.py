@@ -24,6 +24,7 @@ from .data import (
     ulyanov_et_al_2016_images,
 )
 from .utils import (
+    ulyanov_et_al_2016_preprocessor,
     ulyanov_et_al_2016_postprocessor,
     ulyanov_et_al_2016_optimizer,
 )
@@ -102,12 +103,12 @@ def ulyanov_et_al_2016_transformer_optim_loop(
 
         # change learning rate during training
         if instance_norm:
-            if batch % 300 == 0:
+            if batch % 2000 == 0:
                 for param_group in optimizer.param_groups:
                     param_group["lr"] = param_group["lr"] * 0.8
         else:
             if impl_params:
-                if batch % 2000 == 0:
+                if batch % 300 == 0:
                     for param_group in optimizer.param_groups:
                         param_group["lr"] = param_group["lr"] * 0.8
             else:
@@ -172,8 +173,11 @@ def ulyanov_et_al_2016_training(
 
     criterion.set_style_image(style_image)
 
-    def criterion_update_fn(input_image, criterion):
-        criterion.set_content_image(input_image)
+    def criterion_update_fn(
+        input_image, criterion, preprocessor=ulyanov_et_al_2016_preprocessor()
+    ):
+        preprocessor = preprocessor.to(device)
+        criterion.set_content_image(preprocessor(input_image))
 
     ulyanov_et_al_2016_transformer_optim_loop(
         content_image_loader,
