@@ -62,7 +62,7 @@ def ulyanov_et_al_2016_transformer_optim_loop(
         logger = OptimLogger()
 
     if log_fn is None:
-        log_fn = default_transformer_optim_log_fn(logger, len(image_loader))
+        log_fn = default_transformer_optim_log_fn(logger, len(image_loader), log_freq=1)
 
     optimizer = get_optimizer(
         transformer, impl_params=impl_params, instance_norm=instance_norm
@@ -203,9 +203,10 @@ def ulyanov_et_al_2016_stylization(
     impl_params: bool = True,
     instance_norm: bool = None,
     weights: str = "pystiche",
+    sample_size: int = 256,
+    postprocessor: ulyanov_et_al_2016_postprocessor = ulyanov_et_al_2016_postprocessor(),
 ):
     device = input_image.device
-
     if isinstance(transformer, str):
         style = transformer
         transformer = ulyanov_et_al_2016_transformer(
@@ -218,16 +219,13 @@ def ulyanov_et_al_2016_stylization(
         transformer = transformer.to(device)
 
     with torch.no_grad():
-        # transform to 256x256 -> paper same
         content_transform = ulyanov_et_al_2016_content_transform(
-            impl_params=impl_params, instance_norm=instance_norm
+            edge_size=sample_size, impl_params=impl_params, instance_norm=instance_norm
         )
         content_transform = content_transform.to(device)
-        input_image = content_transform(input_image)
-
-        output_image = transformer(input_image)
-        postprocessor = ulyanov_et_al_2016_postprocessor()
         postprocessor = postprocessor.to(device)
+        input_image = content_transform(input_image)
+        output_image = transformer(input_image)
         output_image = torch.clamp(postprocessor(output_image), 0, 1)
 
     return output_image.detach()
