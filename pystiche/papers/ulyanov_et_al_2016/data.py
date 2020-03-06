@@ -263,11 +263,9 @@ def ulyanov_et_al_2016_batch_sampler(
             batch_size = 1
         else:
             if impl_params:
-                batch_size = (
-                    4 if mode == "style" else 4
-                )  # FIXME change to 16 second entry
+                batch_size = 4 if mode == "style" else 16
             else:
-                batch_size = 4  # FIXME change to 16
+                batch_size = 16
 
     return FiniteCycleBatchSampler(
         data_source, num_batches=num_batches, batch_size=batch_size
