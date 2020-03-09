@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-__all__ = ["PysticheImageBackend", "PysticheImageTestcase"]
+__all__ = ["PysticheImageBackend", "PysticheImageTestCase"]
 
 
 class PysticheImageBackend(pyimagetest.ImageBackend):
@@ -26,7 +26,7 @@ class PysticheImageBackend(pyimagetest.ImageBackend):
         return image.permute((1, 2, 0)).numpy()
 
 
-class PysticheImageTestcase(pyimagetest.ImageTestCase):
+class PysticheImageTestCase(pyimagetest.ImageTestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -43,9 +43,6 @@ class PysticheImageTestcase(pyimagetest.ImageTestCase):
         # and is cleared for unrestricted usage
         here = path.abspath(path.dirname(__file__))
         return path.join(here, "test_image.png")
-
-    def load_image(self, backend="pystiche", file=None):
-        return super().load_image(backend, file=file)
 
     def load_batched_image(self, batch_size: int = 1, file: Optional[str] = None):
         return self.load_image(file=file).repeat(batch_size, 1, 1, 1)
