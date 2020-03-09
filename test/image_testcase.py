@@ -26,7 +26,7 @@ class PysticheImageBackend(pyimagetest.ImageBackend):
         return image.permute((1, 2, 0)).numpy()
 
 
-class PysticheImageTestcase(pyimagetest.ImageTestcase):
+class PysticheImageTestcase(pyimagetest.ImageTestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
