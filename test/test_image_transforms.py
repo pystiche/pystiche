@@ -13,7 +13,7 @@ from pystiche.image import (
 )
 import pillow_affine as pa
 from pystiche.image.transforms import functional as F
-from image_testcase import PysticheImageTestcase
+from image_test_case import PysticheImageTestCase
 
 
 def PILTransform(affine_transform, expand=False):
@@ -26,7 +26,7 @@ def PILTransform(affine_transform, expand=False):
     return transform
 
 
-class Tester(PysticheImageTestcase, unittest.TestCase):
+class Tester(PysticheImageTestCase, unittest.TestCase):
     def assertTransformEqualsPIL(
         self,
         pystiche_transform,

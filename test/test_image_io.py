@@ -2,13 +2,13 @@ from os import path
 import unittest
 import torch
 from pystiche.image import io
-from image_testcase import PysticheImageTestcase
+from image_test_case import PysticheImageTestCase
 from utils import get_tmp_dir
 
 
-class Tester(PysticheImageTestcase, unittest.TestCase):
+class Tester(PysticheImageTestCase, unittest.TestCase):
     def test_read_image(self):
-        actual = io.read_image(self.default_test_image_file)
+        actual = io.read_image(self.default_image_file)
         desired = self.load_image("pystiche")
         self.assertImagesAlmostEqual(actual, desired)
 
