@@ -54,7 +54,7 @@ def johnson_alahi_li_2016_content_loss(
     return MSEEncodingOperator(encoder, score_weight=score_weight)
 
 
-class JohnsonAlahiLi2016MRFOperator(GramOperator):
+class JohnsonAlahiLi2016GramOperator(GramOperator):
     def __init__(
         self, encoder: Encoder, impl_params: bool = True, **gram_op_kwargs: Any,
     ):
@@ -110,7 +110,7 @@ def johnson_alahi_li_2016_style_loss(
         score_weight = get_style_score_weight(impl_params, instance_norm, style=style)
 
     def get_encoding_op(encoder, layer_weight):
-        return JohnsonAlahiLi2016MRFOperator(
+        return JohnsonAlahiLi2016GramOperator(
             encoder, score_weight=layer_weight, **gram_op_kwargs
         )
 
