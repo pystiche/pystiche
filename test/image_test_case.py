@@ -36,8 +36,10 @@ class PysticheImageTestCase(pyimagetest.ImageTestCase):
         self.remove_image_backend("torchvision")
         self.add_image_backend("pystiche", PysticheImageBackend())
 
-    @property
-    def default_test_image_file(self) -> str:
+    def default_image_backend(self) -> str:
+        return "pystiche"
+
+    def default_image_file(self) -> str:
         # The test image was downloaded from
         # http://www.r0k.us/graphics/kodak/kodim15.html
         # and is cleared for unrestricted usage

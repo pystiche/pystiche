@@ -37,8 +37,8 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
     ):
         def parse_images(pystiche_image, pil_image):
             if pystiche_image is None and pil_image is None:
-                pystiche_image = self.load_image("pystiche")
-                pil_image = self.load_image("PIL")
+                pystiche_image = self.load_image(backend="pystiche")
+                pil_image = self.load_image(backend="PIL")
             elif pystiche_image is None:
                 pystiche_image = F.import_from_pil(pil_image)
             elif pil_image is None:
@@ -80,19 +80,21 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         def import_export_transform(image):
             return export_transform(import_transform(image))
 
-        self.assertIdentityTransform(import_export_transform, self.load_image("PIL"))
+        self.assertIdentityTransform(
+            import_export_transform, self.load_image(backend="PIL")
+        )
 
         def export_import_transform(image):
             return import_transform(export_transform(image))
 
         self.assertIdentityTransform(
-            export_import_transform, self.load_image("pystiche")
+            export_import_transform, self.load_image(backend="pystiche")
         )
 
     def test_single_image_pil_import(self):
         import_transform = transforms.ImportFromPIL(make_batched=False)
 
-        actual = import_transform(self.load_image("PIL"))
+        actual = import_transform(self.load_image(backend="PIL"))
         desired = self.load_single_image()
         self.assertImagesAlmostEqual(actual, desired)
 
@@ -102,7 +104,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
 
         batched_image = self.load_batched_image(batch_size)
         actuals = export_transform(batched_image)
-        desired = self.load_image("PIL")
+        desired = self.load_image(backend="PIL")
 
         self.assertTrue(isinstance(actuals, tuple))
         self.assertTrue(len(actuals) == batch_size)
@@ -369,7 +371,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         self.assertTransformEqualsPIL(
             pystiche_transform=transforms.GrayscaleToFakegrayscale(),
             pil_transform=PILGrayscaleToFakegrayscale(),
-            pil_image=self.load_image("PIL").convert("L"),
+            pil_image=self.load_image(backend="PIL").convert("L"),
         )
 
     def test_rgb_to_fakegrayscale(self):
@@ -396,7 +398,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         self.assertTransformEqualsPIL(
             pystiche_transform=transforms.GrayscaleToBinary(),
             pil_transform=PILGrayscaleToBinary(),
-            pil_image=self.load_image("PIL").convert("L"),
+            pil_image=self.load_image(backend="PIL").convert("L"),
         )
 
     def test_rgb_to_binary(self):
@@ -438,13 +440,13 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
             yuv_to_rgb = transforms.YUVToRGB()
             return yuv_to_rgb(rgb_to_yuv(image))
 
-        self.assertIdentityTransform(transform, self.load_image("pystiche"))
+        self.assertIdentityTransform(transform, self.load_image())
 
     def test_torch_processing(self):
         preprocessing_transform = processing.TorchPreprocessing()
         postprocessing_transform = processing.TorchPostprocessing()
 
-        image = self.load_image("pystiche")
+        image = self.load_image()
 
         def pre_post_processing_transform(image):
             return postprocessing_transform(preprocessing_transform(image))
@@ -466,7 +468,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         preprocessing_transform = processing.CaffePreprocessing()
         postprocessing_transform = processing.CaffePostprocessing()
 
-        image = self.load_image("pystiche")
+        image = self.load_image()
 
         def pre_post_processing_transform(image):
             return postprocessing_transform(preprocessing_transform(image))
@@ -485,7 +487,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         self.assertIdentityTransform(identity, image)
 
     def test_top_left_crop(self):
-        image = self.load_image("pystiche")
+        image = self.load_image()
         size = 200
 
         transform = transforms.TopLeftCrop(size)
@@ -494,7 +496,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         self.assertImagesAlmostEqual(actual, desired)
 
     def test_bottom_left_crop(self):
-        image = self.load_image("pystiche")
+        image = self.load_image()
         size = 200
 
         transform = transforms.BottomLeftCrop(size)
@@ -503,7 +505,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         self.assertImagesAlmostEqual(actual, desired)
 
     def test_top_right_crop(self):
-        image = self.load_image("pystiche")
+        image = self.load_image()
         size = 200
 
         transform = transforms.TopRightCrop(size)
@@ -512,7 +514,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         self.assertImagesAlmostEqual(actual, desired)
 
     def test_bottom_right_crop(self):
-        image = self.load_image("pystiche")
+        image = self.load_image()
         size = 200
 
         transform = transforms.BottomRightCrop(size)
