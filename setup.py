@@ -18,6 +18,10 @@ install_requires = (
     "typing_extensions",
 )
 
+test_requires = ("pytest", "pyimagetest", "pillow_affine")
+
+dev_requires = (*test_requires, "pre-commit")
+
 extras_require = {
     "test": test_requires,
     "doc": doc_requires,
