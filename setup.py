@@ -9,21 +9,14 @@ with open(path.join(here, "pystiche", "__about__.py"), "r") as fh:
 with open(path.join(here, "README.md"), "r") as fh:
     long_description = fh.read()
 
-install_requires = ("torch>=1.4.0", "torchvision>=0.5.0", "Pillow", "numpy", "requests")
-
-test_requires = ("pytest", "pyimagetest", "pillow_affine")
-
-doc_requires = (
-    "sphinx",
-    "sphinx_autodoc_typehints",
-    "sphinx_rtd_theme",
-    "sphinx-gallery",
-    # Install additional sphinx-gallery dependencies
-    # https://sphinx-gallery.github.io/stable/index.html#install-via-pip
-    "matplotlib",
+install_requires = (
+    "torch>=1.4.0",
+    "torchvision>=0.5.0",
+    "pillow",
+    "numpy",
+    "requests",
+    "typing_extensions",
 )
-
-dev_requires = (*test_requires, *doc_requires, "pre-commit", "BeautifulSoup4", "pyyaml")
 
 extras_require = {
     "test": test_requires,
