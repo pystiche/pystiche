@@ -7,13 +7,23 @@ from typing import (
     Sized,
     Tuple,
     Dict,
+    ContextManager,
 )
+import contextlib
+from collections import OrderedDict
 from functools import reduce
-import itertools
 from operator import mul
+import itertools
+from os import path
+import shutil
+import hashlib
+import tempfile
 import random
 import numpy as np
 import torch
+from torch import nn
+from torch.hub import _get_torch_home
+
 
 __all__ = [
     "prod",
@@ -32,6 +42,9 @@ __all__ = [
     "is_almost",
     "make_reproducible",
     "get_input_image",
+    "get_tmp_dir",
+    "get_sha256_hash",
+    "save_state_dict",
 ]
 
 
@@ -261,3 +274,52 @@ def get_input_image(
         raise RuntimeError("starting_point is 'random', but no image is given")
 
     raise RuntimeError
+
+
+@contextlib.contextmanager
+def get_tmp_dir(**mkdtemp_kwargs) -> ContextManager[str]:
+    tmp_dir = tempfile.mkdtemp(**mkdtemp_kwargs)
+    try:
+        yield tmp_dir
+    finally:
+        shutil.rmtree(tmp_dir)
+
+
+def get_sha256_hash(file: str, chunk_size: int = 4096) -> str:
+    hasher = hashlib.sha256()
+    with open(file, "rb") as fh:
+        for chunk in iter(lambda: fh.read(chunk_size), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def save_state_dict(
+    input: Union[Dict[str, torch.Tensor], nn.Module()],
+    name: str,
+    root: Optional[str] = None,
+    ext=".pth",
+    to_cpu: bool = True,
+    hash_len: int = 8,
+) -> str:
+    if isinstance(input, nn.Module):
+        state_dict = input.state_dict()
+    else:
+        state_dict = input
+
+    if to_cpu:
+        state_dict = OrderedDict(
+            [(key, tensor.detach().cpu()) for key, tensor in state_dict.items()]
+        )
+
+    if root is None:
+        root = _get_torch_home()
+
+    with get_tmp_dir() as tmp_dir:
+        tmp_file = path.join(tmp_dir, "tmp")
+        torch.save(state_dict, tmp_file)
+        sha256 = get_sha256_hash(tmp_file)
+
+        file = path.join(root, f"{name}-{sha256[:hash_len]}{ext}")
+        shutil.move(tmp_file, file)
+
+    return file
