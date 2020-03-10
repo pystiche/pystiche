@@ -1,4 +1,4 @@
-from typing import Any, Union, Tuple, Collection, Sequence, Optional
+from typing import Any, Union, Optional, Sequence, Tuple, Dict
 from typing_extensions import Protocol
 from collections import OrderedDict
 from math import sqrt
@@ -6,7 +6,9 @@ import torch
 from torch import nn
 from torchvision.models.utils import load_state_dict_from_url
 import pystiche
+from pystiche.image import extract_image_size
 from pystiche.misc import zip_equal
+from ..common_utils import same_size_padding, is_valid_padding
 
 MODEL_URLS = {}
 
@@ -41,9 +43,9 @@ def get_norm_module(
         return nn.BatchNorm2d(in_channels, **norm_kwargs)
 
 
-def get_activation_module(impl_params: bool, inplace: bool = True):
-    if impl_params:
-        return nn.LeakyReLU(negative_slope=0.01, inplace=inplace)
+def get_activation_module(impl_params: bool, instance_norm: bool, inplace: bool = True):
+    if impl_params and instance_norm:
+        return nn.ReLU(inplace=inplace)
     else:
         return nn.LeakyReLU(negative_slope=0.01, inplace=inplace)
 
@@ -56,20 +58,28 @@ class UlyanovEtAl2016JoinBlock(nn.Module):
     def __init__(
         self,
         branch_in_channels: Sequence[int],
+        names: Optional[Sequence[str]] = None,
         instance_norm: bool = True,
         channel_dim: int = 1,
     ) -> None:
         super().__init__()
 
-        # FIXME: make name optional
-        name_fmt = "join" + r"{:0" + str(len(str(len(branch_in_channels)))) + r"}"
-        norm_modules = []
-        for idx, in_channels in enumerate(branch_in_channels):
-            norm_module = get_norm_module(in_channels, instance_norm)
-            self.add_module(name_fmt.format(idx), norm_module)
-            norm_modules.append(norm_module)
-        self.norm_modules = norm_modules
+        num_branches = len(branch_in_channels)
+        if names is None:
+            names = [str(idx) for idx in range(num_branches)]
+        else:
+            if len(names) != num_branches:
+                raise RuntimeError
 
+        norm_modules = [
+            get_norm_module(in_channels, instance_norm)
+            for in_channels in branch_in_channels
+        ]
+
+        for name, module in zip(names, norm_modules):
+            self.add_module(name, module)
+
+        self.norm_modules = norm_modules
         self.channel_dim = channel_dim
 
     @property
@@ -130,30 +140,29 @@ class UlyanovEtAl2016StylizationNoise(UlyanovEtAl2016NoiseModule):
         return join_channelwise(input, noise)
 
 
-# class UlyanovEtAl2016TextureNoiseGeneration(UlyanovEtAl2016NoiseModule):
-#     def forward(
-#         self,
-#         input: Union[Tuple[int, int], torch.Tensor],
-#         batch_size: int = 1,
-#         **meta: Any
-#     ) -> torch.Tensor:
-#         def get_size(input: Union[Tuple[int, int], torch.Tensor]) -> torch.Size:
-#             # FIXME: downsample
-#             if isinstance(input, torch.Tensor):
-#                 image_size = extract_image_size(input)
-#             else:
-#                 image_size = input
-#             return torch.Size((batch_size, self.num_noise_channels, *image_size))
-#
-#         def get_meta(input: Union[Tuple[int, int], torch.Tensor]) -> Dict[str, Any]:
-#             if isinstance(input, torch.Tensor):
-#                 return pystiche.tensor_meta(input, **meta)
-#             else:
-#                 return meta
-#
-#         size = get_size(input)
-#         meta = get_meta(input)
-#         return self.noise_fn(size, **meta)
+class UlyanovEtAl2016TextureNoise(UlyanovEtAl2016NoiseModule):
+    def forward(
+        self,
+        input: Union[Tuple[int, int], torch.Tensor],
+        batch_size: int = 1,
+        **meta: Any
+    ) -> torch.Tensor:
+        def get_size(input: Union[Tuple[int, int], torch.Tensor]) -> torch.Size:
+            if isinstance(input, torch.Tensor):
+                image_size = extract_image_size(input)
+            else:
+                image_size = input
+            return torch.Size((batch_size, self.num_noise_channels, *image_size))
+
+        def get_meta(input: Union[Tuple[int, int], torch.Tensor]) -> Dict[str, Any]:
+            if isinstance(input, torch.Tensor):
+                return pystiche.tensor_meta(input, **meta)
+            else:
+                return meta
+
+        size = get_size(input)
+        meta = get_meta(input)
+        return self.noise_fn(size, **meta)
 
 
 def ulyanov_et_al_2016_noise(
@@ -163,27 +172,40 @@ def ulyanov_et_al_2016_noise(
     noise_fn: Optional[NoiseFn] = None,
 ) -> UlyanovEtAl2016NoiseModule:
     if stylization:
-        return UlyanovEtAl2016StylizationNoise(
-            in_channels, num_noise_channels=num_noise_channels, noise_fn=noise_fn
-        )
+        noise_class = UlyanovEtAl2016StylizationNoise
     else:
-        raise RuntimeError
+        noise_class = UlyanovEtAl2016TextureNoise
+    return noise_class(
+        in_channels, num_noise_channels=num_noise_channels, noise_fn=noise_fn
+    )
 
 
 class UlyanovEtAl2016StylizationDownsample(nn.AvgPool2d):
-    def __init__(self, in_channels: int, kernel_size=2, stride=2, padding=0):
+    def __init__(self, kernel_size=2, stride=2, padding=0):
         super().__init__(kernel_size, stride=stride, padding=padding)
 
-        self.in_channels = self.out_channels = in_channels
+
+class UlyanovEtAl2016TextureDownsample(nn.Module):
+    def forward(
+        self,
+        input: Union[Tuple[int, int], torch.Tensor],
+        batch_size: int = 1,
+        **meta: Any
+    ) -> Tuple[int, int]:
+        if isinstance(input, torch.Tensor):
+            image_size = extract_image_size(input)
+        else:
+            image_size = input
+        height, width = image_size
+
+        return height // 2, width // 2
 
 
-def ulyanov_et_al_2016_downsample(
-    stylization: bool = True, in_channels: int = 3
-) -> nn.Module:
+def ulyanov_et_al_2016_downsample(stylization: bool = True) -> nn.Module:
     if stylization:
-        return UlyanovEtAl2016StylizationDownsample(in_channels)
+        return UlyanovEtAl2016StylizationDownsample()
     else:
-        raise RuntimeError
+        return UlyanovEtAl2016TextureDownsample()
 
 
 def ulyanov_et_al_2016_upsample() -> nn.Upsample:
@@ -192,15 +214,10 @@ def ulyanov_et_al_2016_upsample() -> nn.Upsample:
 
 class UlyanovEtAl2016HourGlassBlock(SequentialWithOutChannels):
     def __init__(
-        self, in_channels: int, intermediate: nn.Module, stylization: bool = True,
+        self, intermediate: nn.Module, stylization: bool = True,
     ):
         modules = (
-            (
-                "down",
-                ulyanov_et_al_2016_downsample(
-                    stylization=stylization, in_channels=in_channels
-                ),
-            ),
+            ("down", ulyanov_et_al_2016_downsample(stylization=stylization),),
             ("intermediate", intermediate),
             ("up", ulyanov_et_al_2016_upsample()),
         )
@@ -218,21 +235,11 @@ class UlyanovEtAl2016ConvBlock(SequentialWithOutChannels):
         instance_norm: bool = True,
         inplace: bool = True,
     ) -> None:
-        # FIXME: use from commmon utils
-        def elementwise(fn, inputs):
-            if isinstance(inputs, Collection):
-                return tuple([fn(input) for input in inputs])
-            return fn(inputs)
-
-        def same_size_padding(kernel_size):
-            return elementwise(lambda x: (x - 1) // 2, kernel_size)
-
         padding = same_size_padding(kernel_size)
 
         modules = []
 
-        # FIXME: is_valid_padding
-        if padding:
+        if is_valid_padding(padding):
             modules.append(("pad", nn.ReflectionPad2d(padding)))
 
         modules.append(
@@ -244,7 +251,9 @@ class UlyanovEtAl2016ConvBlock(SequentialWithOutChannels):
             )
         )
         modules.append(("norm", get_norm_module(out_channels, instance_norm)))
-        modules.append(("act", get_activation_module(impl_params, inplace=inplace)))
+        modules.append(
+            ("act", get_activation_module(impl_params, instance_norm, inplace=inplace))
+        )
 
         super().__init__(OrderedDict(modules), out_channel_name="conv")
 
@@ -270,15 +279,11 @@ class UlyanovEtAl2016ConvSequence(SequentialWithOutChannels):
                 inplace=inplace,
             )
 
-        modules = [
+        modules = (
             ("conv_block1", conv_block(in_channels, out_channels, kernel_size=3)),
             ("conv_block2", conv_block(out_channels, out_channels, kernel_size=3)),
-        ]
-
-        if not impl_params:
-            modules.append(
-                ("conv_block3", conv_block(out_channels, out_channels, kernel_size=1))
-            )
+            ("conv_block3", conv_block(out_channels, out_channels, kernel_size=1)),
+        )
 
         super().__init__(OrderedDict(modules))
 
@@ -295,6 +300,7 @@ class UlyanovEtAl2016BranchBlock(nn.Module):
         self.shallow = shallow_branch
         self.join = UlyanovEtAl2016JoinBlock(
             (deep_branch.out_channels, shallow_branch.out_channels),
+            ("deep", "shallow"),
             instance_norm=instance_norm,
         )
 
@@ -345,13 +351,14 @@ def ulyanov_et_al_2016_level(
         modules.append(("conv_seq", conv_seq))
         return SequentialWithOutChannels(OrderedDict(modules))
 
-    shallow_brach = conv_sequence(in_channels, out_channels=8, noise=True)
+    noise = not impl_params or not stylization
+    shallow_brach = conv_sequence(in_channels, out_channels=8, noise=noise)
 
     if prev_level_block is None:
         return shallow_brach
 
     deep_branch = UlyanovEtAl2016HourGlassBlock(
-        in_channels, prev_level_block, stylization=stylization,
+        prev_level_block, stylization=stylization,
     )
     branch_block = UlyanovEtAl2016BranchBlock(
         deep_branch, shallow_brach, instance_norm=instance_norm
@@ -384,8 +391,12 @@ class UlyanovEtAl2016Transformer(nn.Sequential):
                 stylization=stylization,
             )
 
-        output_conv = nn.Conv2d(
-            pyramid.out_channels, out_channels=3, kernel_size=1, stride=1, padding=0
+        if impl_params:
+            output_conv_class = nn.Conv2d
+        else:
+            output_conv_class = UlyanovEtAl2016ConvBlock
+        output_conv = output_conv_class(
+            pyramid.out_channels, out_channels=3, kernel_size=1, stride=1,
         )
 
         super().__init__(
@@ -418,8 +429,10 @@ def ulyanov_et_al_2016_transformer(
     levels: Optional[int] = None,
 ):
     if levels is None:
-        if stylization:
-            levels = 5 if impl_params else 6
+        if not impl_params:
+            levels = 6 if stylization else 5
+        else:
+            levels = 6
 
     init_weights = style is None
     transformer = UlyanovEtAl2016Transformer(

@@ -18,6 +18,7 @@ from pystiche.optim import OptimLogger
 __all__ = [
     "same_size_padding",
     "same_size_output_padding",
+    "is_valid_padding",
     "batch_up_image",
     "paper_replication",
 ]
@@ -72,6 +73,16 @@ def same_size_output_padding(stride: SequenceType[int]) -> Tuple[int, ...]:
 
 def same_size_output_padding(stride: Union[int, SequenceType[int]]) -> Tuple[int, ...]:
     return elementwise(lambda x: x - 1, stride)
+
+
+def is_valid_padding(padding: Union[int, SequenceType[int]]) -> bool:
+    def is_valid(x):
+        return x > 0
+
+    if isinstance(padding, int):
+        return is_valid(padding)
+    else:
+        return all(elementwise(is_valid, padding))
 
 
 def batch_up_image(
