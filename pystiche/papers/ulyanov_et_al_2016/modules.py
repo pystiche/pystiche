@@ -28,71 +28,6 @@ def select_url(style: str, impl_params: bool, instance_norm: bool) -> str:
     #     raise RuntimeError
 
 
-def get_norm_module(
-    in_channels: int, instance_norm: bool
-) -> Union[nn.BatchNorm2d, nn.InstanceNorm2d]:
-    norm_kwargs = {
-        "eps": 1e-5,
-        "momentum": 1e-1,
-        "affine": True,
-        "track_running_stats": True,
-    }
-    if instance_norm:
-        return nn.InstanceNorm2d(in_channels, **norm_kwargs)
-    else:
-        return nn.BatchNorm2d(in_channels, **norm_kwargs)
-
-
-def get_activation_module(impl_params: bool, instance_norm: bool, inplace: bool = True):
-    if impl_params and instance_norm:
-        return nn.ReLU(inplace=inplace)
-    else:
-        return nn.LeakyReLU(negative_slope=0.01, inplace=inplace)
-
-
-def join_channelwise(*inputs: torch.Tensor, channel_dim: int = 1) -> torch.Tensor:
-    return torch.cat(inputs, dim=channel_dim)
-
-
-class UlyanovEtAl2016JoinBlock(nn.Module):
-    def __init__(
-        self,
-        branch_in_channels: Sequence[int],
-        names: Optional[Sequence[str]] = None,
-        instance_norm: bool = True,
-        channel_dim: int = 1,
-    ) -> None:
-        super().__init__()
-
-        num_branches = len(branch_in_channels)
-        if names is None:
-            names = [str(idx) for idx in range(num_branches)]
-        else:
-            if len(names) != num_branches:
-                raise RuntimeError
-
-        norm_modules = [
-            get_norm_module(in_channels, instance_norm)
-            for in_channels in branch_in_channels
-        ]
-
-        for name, module in zip(names, norm_modules):
-            self.add_module(name, module)
-
-        self.norm_modules = norm_modules
-        self.channel_dim = channel_dim
-
-    @property
-    def out_channels(self) -> int:
-        return sum([norm.num_features for norm in self.norm_modules])
-
-    def forward(self, *inputs: torch.Tensor) -> torch.Tensor:
-        return join_channelwise(
-            *[norm(input) for norm, input in zip_equal(self.norm_modules, inputs)],
-            channel_dim=self.channel_dim
-        )
-
-
 class SequentialWithOutChannels(nn.Sequential):
     def __init__(self, *args, out_channel_name: Optional[Union[str, int]] = None):
         super().__init__(*args)
@@ -102,6 +37,10 @@ class SequentialWithOutChannels(nn.Sequential):
             out_channel_name = str(out_channel_name)
 
         self.out_channels = self._modules[out_channel_name].out_channels
+
+
+def join_channelwise(*inputs: torch.Tensor, channel_dim: int = 1) -> torch.Tensor:
+    return torch.cat(inputs, dim=channel_dim)
 
 
 class NoiseFn(Protocol):
@@ -224,6 +163,28 @@ class UlyanovEtAl2016HourGlassBlock(SequentialWithOutChannels):
         super().__init__(OrderedDict(modules), out_channel_name="intermediate")
 
 
+def get_norm_module(
+    in_channels: int, instance_norm: bool
+) -> Union[nn.BatchNorm2d, nn.InstanceNorm2d]:
+    norm_kwargs = {
+        "eps": 1e-5,
+        "momentum": 1e-1,
+        "affine": True,
+        "track_running_stats": True,
+    }
+    if instance_norm:
+        return nn.InstanceNorm2d(in_channels, **norm_kwargs)
+    else:
+        return nn.BatchNorm2d(in_channels, **norm_kwargs)
+
+
+def get_activation_module(impl_params: bool, instance_norm: bool, inplace: bool = True):
+    if impl_params and instance_norm:
+        return nn.ReLU(inplace=inplace)
+    else:
+        return nn.LeakyReLU(negative_slope=0.01, inplace=inplace)
+
+
 class UlyanovEtAl2016ConvBlock(SequentialWithOutChannels):
     def __init__(
         self,
@@ -286,6 +247,45 @@ class UlyanovEtAl2016ConvSequence(SequentialWithOutChannels):
         )
 
         super().__init__(OrderedDict(modules))
+
+
+class UlyanovEtAl2016JoinBlock(nn.Module):
+    def __init__(
+        self,
+        branch_in_channels: Sequence[int],
+        names: Optional[Sequence[str]] = None,
+        instance_norm: bool = True,
+        channel_dim: int = 1,
+    ) -> None:
+        super().__init__()
+
+        num_branches = len(branch_in_channels)
+        if names is None:
+            names = [str(idx) for idx in range(num_branches)]
+        else:
+            if len(names) != num_branches:
+                raise RuntimeError
+
+        norm_modules = [
+            get_norm_module(in_channels, instance_norm)
+            for in_channels in branch_in_channels
+        ]
+
+        for name, module in zip(names, norm_modules):
+            self.add_module(name, module)
+
+        self.norm_modules = norm_modules
+        self.channel_dim = channel_dim
+
+    @property
+    def out_channels(self) -> int:
+        return sum([norm.num_features for norm in self.norm_modules])
+
+    def forward(self, *inputs: torch.Tensor) -> torch.Tensor:
+        return join_channelwise(
+            *[norm(input) for norm, input in zip_equal(self.norm_modules, inputs)],
+            channel_dim=self.channel_dim
+        )
 
 
 class UlyanovEtAl2016BranchBlock(nn.Module):
