@@ -130,19 +130,21 @@ def johnson_alahi_li_2016_stylization(
         transformer = transformer.eval()
         transformer = transformer.to(device)
 
-    with torch.no_grad():
-        if preprocessor is None:
-            preprocessor = johnson_alahi_li_2016_preprocessor()
-            preprocessor = preprocessor.to(device)
+    if preprocessor is None:
+        preprocessor = johnson_alahi_li_2016_preprocessor()
+        preprocessor = preprocessor.to(device)
 
+    if postprocessor is None:
+        postprocessor = johnson_alahi_li_2016_postprocessor()
+        postprocessor = postprocessor.to(device)
+
+    with torch.no_grad():
+        if impl_params:
             input_image = preprocessor(input_image)
 
         output_image = transformer(input_image)
 
-        if postprocessor is None:
-            postprocessor = johnson_alahi_li_2016_postprocessor()
-            postprocessor = postprocessor.to(device)
-
+        if impl_params:
             output_image = postprocessor(output_image)
 
     return output_image.detach()
