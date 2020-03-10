@@ -55,7 +55,7 @@ class ImageFolderDataset(Dataset):
         self.importer = importer
 
     def _collect_image_files(self, depth: Optional[int]):
-        return tuple(
+        image_files = tuple(
             [
                 os.path.join(root, file)
                 for root, _, files in walkupto(self.root, depth=depth)
@@ -63,6 +63,14 @@ class ImageFolderDataset(Dataset):
                 if is_image_file(file)
             ]
         )
+        if len(image_files) == 0:
+            msg = f"The directory {self.root} does not contain any image files"
+            if depth is not None:
+                msg += f" up to a depth of {depth}"
+            msg += "."
+            raise RuntimeError(msg)
+
+        return image_files
 
     def __len__(self):
         return len(self.image_files)
