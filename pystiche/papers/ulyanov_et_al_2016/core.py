@@ -147,10 +147,7 @@ def ulyanov_et_al_2016_training(
 
     if transformer is None:
         transformer = ulyanov_et_al_2016_transformer(
-            impl_params=impl_params,
-            instance_norm=instance_norm,
-            mode=mode,
-            device=device,
+            impl_mode=impl_mode, instance_norm=instance_norm, mode=mode, device=device,
         )
         transformer = transformer.train()
     transformer = transformer.to(device)
@@ -210,7 +207,7 @@ def ulyanov_et_al_2016_stylization(
         transformer = ulyanov_et_al_2016_transformer(
             style=style,
             weights=weights,
-            impl_params=impl_params,
+            impl_mode=impl_mode,
             instance_norm=instance_norm,
         )
         transformer = transformer.eval()
