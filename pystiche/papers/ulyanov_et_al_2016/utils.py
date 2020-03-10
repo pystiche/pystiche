@@ -18,10 +18,15 @@ def ulyanov_et_al_2016_postprocessor() -> CaffePostprocessing:
 
 
 def ulyanov_et_al_2016_optimizer(
-    transformer: nn.Module, impl_params: bool = True, instance_norm: bool = False
+    transformer: nn.Module, impl_mode: str = "paper",
 ) -> Optimizer:
-    if instance_norm:
+
+    if impl_mode == "texturenetsv1":
+        lr = 1e-1
+    elif impl_mode == "paper":
+        lr = 1e-1
+    elif impl_mode == "master":
         lr = 1e-3
     else:
-        lr = 0.1 if impl_params else 0.1
+        raise NotImplementedError
     return optim.Adam(transformer.parameters(), lr=lr)
