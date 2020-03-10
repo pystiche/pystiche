@@ -48,8 +48,7 @@ def ulyanov_et_al_2016_transformer_optim_loop(
     criterion: nn.Module,
     criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
     get_optimizer: ulyanov_et_al_2016_optimizer,
-    impl_params: bool = True,
-    instance_norm: bool = False,
+    impl_mode: str = "paper",
     mode: str = "texture",
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
@@ -62,11 +61,9 @@ def ulyanov_et_al_2016_transformer_optim_loop(
         logger = OptimLogger()
 
     if log_fn is None:
-        log_fn = default_transformer_optim_log_fn(logger, len(image_loader), log_freq=1)
+        log_fn = default_transformer_optim_log_fn(logger, len(image_loader))
 
-    optimizer = get_optimizer(
-        transformer, impl_params=impl_params, instance_norm=instance_norm
-    )
+    optimizer = get_optimizer(transformer, impl_mode=impl_mode)
 
     loading_time_start = time.time()
     for batch, input_image in enumerate(image_loader, 1):
@@ -102,19 +99,23 @@ def ulyanov_et_al_2016_transformer_optim_loop(
         loading_time_start = time.time()
 
         # change learning rate during training
-        if instance_norm:
+
+        if impl_mode == "texturenetsv1":
+            if batch % 300 == 0:
+                for param_group in optimizer.param_groups:
+                    param_group["lr"] = param_group["lr"] * 0.8
+
+        elif impl_mode == "paper":
+            if batch % 200 == 0 and batch >= 1000:
+                for param_group in optimizer.param_groups:
+                    param_group["lr"] = param_group["lr"] * 0.7
+
+        elif impl_mode == "master":
             if batch % 2000 == 0:
                 for param_group in optimizer.param_groups:
                     param_group["lr"] = param_group["lr"] * 0.8
         else:
-            if impl_params:
-                if batch % 300 == 0:
-                    for param_group in optimizer.param_groups:
-                        param_group["lr"] = param_group["lr"] * 0.8
-            else:
-                if batch % 200 == 0 and batch >= 1000:
-                    for param_group in optimizer.param_groups:
-                        param_group["lr"] = param_group["lr"] * 0.7
+            raise NotImplementedError
 
     return transformer
 
@@ -122,7 +123,7 @@ def ulyanov_et_al_2016_transformer_optim_loop(
 def ulyanov_et_al_2016_training(
     content_image_loader: DataLoader,
     style: Union[str, torch.Tensor],
-    impl_params=True,
+    impl_mode: str = "paper",
     instance_norm: bool = True,
     mode: str = "texture",
     transformer: Optional[ulyanov_et_al_2016_transformer] = None,
@@ -156,7 +157,7 @@ def ulyanov_et_al_2016_training(
 
     if criterion is None:
         criterion = ulyanov_et_al_2016_perceptual_loss(
-            impl_params=impl_params, instance_norm=instance_norm, mode=mode
+            impl_mode=impl_mode, instance_norm=instance_norm, mode=mode
         )
         criterion = criterion.eval()
     criterion = criterion.to(device)
@@ -164,9 +165,7 @@ def ulyanov_et_al_2016_training(
     if get_optimizer is None:
         get_optimizer = ulyanov_et_al_2016_optimizer
 
-    style_transform = ulyanov_et_al_2016_style_transform(
-        impl_params=impl_params, instance_norm=instance_norm
-    )
+    style_transform = ulyanov_et_al_2016_style_transform(impl_mode=impl_mode)
     style_transform = style_transform.to(device)
     style_image = style_transform(style_image)
     style_image = batch_up_image(style_image, loader=content_image_loader)
@@ -186,8 +185,7 @@ def ulyanov_et_al_2016_training(
         criterion,
         criterion_update_fn,
         get_optimizer=get_optimizer,
-        impl_params=impl_params,
-        instance_norm=instance_norm,
+        impl_mode=impl_mode,
         mode=mode,
         quiet=quiet,
         logger=logger,
@@ -200,7 +198,7 @@ def ulyanov_et_al_2016_training(
 def ulyanov_et_al_2016_stylization(
     input_image: torch.Tensor,
     transformer: Union[nn.Module, str],
-    impl_params: bool = True,
+    impl_mode: str = "paper",
     instance_norm: bool = None,
     weights: str = "pystiche",
     sample_size: int = 256,
@@ -220,7 +218,7 @@ def ulyanov_et_al_2016_stylization(
 
     with torch.no_grad():
         content_transform = ulyanov_et_al_2016_content_transform(
-            edge_size=sample_size, impl_params=impl_params, instance_norm=instance_norm
+            edge_size=sample_size, impl_mode=impl_mode
         )
         content_transform = content_transform.to(device)
         postprocessor = postprocessor.to(device)
