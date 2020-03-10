@@ -232,12 +232,13 @@ class UlaynovEtAl2016LevelBlock(nn.Module):
 def ulyanov_et_al_2016_transformer(
     style: Optional[str] = None,
     weights: str = "pystiche",
-    impl_params: bool = True,
+    impl_mode: str = "paper",
     levels=5,
     instance_norm: bool = True,
     mode: str = "texture",
     device="cuda",
 ):
+    impl_params = True
     levels = 6 if impl_params else levels
     input_channel = 6 if (mode == "style" and not impl_params) else 3
     level_block = None

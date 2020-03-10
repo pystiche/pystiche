@@ -144,7 +144,6 @@ class UlyanovEtAl2016PerceptualLoss(MultiOperatorLoss):
 
 def ulyanov_et_al_2016_perceptual_loss(
     impl_mode: str = "paper",
-    instance_norm: bool = False,
     mode: str = "texture",
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
     content_loss_kwargs: Optional[Dict[str, Any]] = None,
@@ -158,7 +157,6 @@ def ulyanov_et_al_2016_perceptual_loss(
         style_loss_kwargs = {}
     style_loss = ulyanov_et_al_2016_style_loss(
         impl_mode=impl_mode,
-        instance_norm=instance_norm,
         mode=mode,
         multi_layer_encoder=multi_layer_encoder,
         **style_loss_kwargs,
