@@ -99,7 +99,7 @@ def johnson_alahi_li_2016_training(
         transformer,
         criterion,
         criterion_update_fn,
-        get_optimizer=get_optimizer,
+        optimizer=get_optimizer,
         quiet=quiet,
         logger=logger,
         log_fn=log_fn,
