@@ -39,13 +39,13 @@ class FloatMeter:
         vals = tuple(self.window)
         return sum(vals) / len(vals)
 
-    def update(self, val: float):
-        self.count += 1
-        self.val = val
-        self.sum += val
-        self.window.append(val)
-        self.min = min(val, self.min)
-        self.max = max(val, self.max)
+    def update(self, *vals: float):
+        self.count += len(vals)
+        self.val = vals[-1]
+        self.sum += sum(vals)
+        self.window.extend(vals)
+        self.min = min(*vals, self.min)
+        self.max = max(*vals, self.max)
 
     def __str__(self):
         val = self.fmt.format(self.val)
