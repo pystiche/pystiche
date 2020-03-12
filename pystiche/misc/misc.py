@@ -13,6 +13,7 @@ import contextlib
 from collections import OrderedDict
 from functools import reduce
 from operator import mul
+import warnings
 import itertools
 from os import path
 import shutil
@@ -45,6 +46,7 @@ __all__ = [
     "get_tmp_dir",
     "get_sha256_hash",
     "save_state_dict",
+    "warn_deprecation",
 ]
 
 
@@ -323,3 +325,21 @@ def save_state_dict(
         shutil.move(tmp_file, file)
 
     return file
+
+
+def warn_deprecation(
+    type: str,
+    name: str,
+    version: str,
+    info: Optional[str] = None,
+    url: Optional[str] = None,
+):
+    msg = (
+        f"The {type} {name} is deprecated since pystiche=={version} and will be "
+        "removed in a future release."
+    )
+    if info is not None:
+        msg += f" {info.strip()}"
+    if url is not None:
+        msg += f" See {url} for further details."
+    warnings.warn(msg, UserWarning)

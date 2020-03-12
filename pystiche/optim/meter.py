@@ -1,6 +1,5 @@
-import warnings
 from collections import deque, OrderedDict
-from pystiche.misc import build_fmtstr
+from pystiche.misc import build_fmtstr, warn_deprecation
 
 
 __all__ = ["FloatMeter", "LossMeter", "TimeMeter", "ProgressMeter"]
@@ -60,11 +59,9 @@ class FloatMeter:
 
 class AverageMeter(FloatMeter):
     def __init__(self, *args, **kwargs):
-        msg = (
-            "AverageMeter is deprecated since pystiche==0.4. It was renamed to "
-            "FloatMeter and will be removed in a future release."
+        warn_deprecation(
+            "class", "AverageMeter", "0.4", info="Please use FloatMeter instead."
         )
-        warnings.warn(msg, UserWarning)
         super().__init__(*args, **kwargs)
 
 
