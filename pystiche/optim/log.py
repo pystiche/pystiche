@@ -3,6 +3,8 @@ import contextlib
 import sys
 import logging
 import torch
+from torch.optim.optimizer import Optimizer
+from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 import pystiche
 from pystiche.pyramid.level import PyramidLevel
 from .meter import AverageMeter, LossMeter, ProgressMeter
@@ -167,3 +169,9 @@ def default_transformer_optim_log_fn(
             optim_logger.message(str(progress_meter))
 
     return log_fn
+
+
+def default_epoch_header_fn(
+    epoch: int, optimizer: Optimizer, lr_scheduler: Optional[LRScheduler]
+):
+    return f"Epoch {epoch}"

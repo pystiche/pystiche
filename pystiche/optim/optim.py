@@ -4,6 +4,7 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torch.optim.optimizer import Optimizer
+from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 import pystiche
 from pystiche.image import extract_aspect_ratio, extract_image_size
 from pystiche.pyramid import ImagePyramid
@@ -13,6 +14,7 @@ from .log import (
     default_image_optim_log_fn,
     default_pyramid_level_header,
     default_transformer_optim_log_fn,
+    default_epoch_header_fn,
 )
 
 
@@ -135,27 +137,26 @@ def default_transformer_optimizer(transformer: nn.Module) -> Optimizer:
 
 def default_transformer_optim_loop(
     image_loader: DataLoader,
+    # FIXME: make device optional and extract from transformer if not given
     device: torch.device,
     transformer: nn.Module,
     criterion: nn.Module,
     criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
-    get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
+    optimizer: Optional[Optimizer] = None,
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
     log_fn: Optional[
         Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
     ] = None,
 ) -> nn.Module:
-    if get_optimizer is None:
-        get_optimizer = default_transformer_optimizer
+    if optimizer is None:
+        optimizer = default_transformer_optimizer(transformer)
 
     if logger is None:
         logger = OptimLogger()
 
     if log_fn is None:
         log_fn = default_transformer_optim_log_fn(logger, len(image_loader))
-
-    optimizer = get_optimizer(transformer)
 
     loading_time_start = time.time()
     for batch, input_image in enumerate(image_loader, 1):
@@ -186,5 +187,62 @@ def default_transformer_optim_loop(
 
         optimizer.step(closure)
         loading_time_start = time.time()
+
+    return transformer
+
+
+def default_transformer_epoch_optim_loop(
+    image_loader: DataLoader,
+    transformer: nn.Module,
+    criterion: nn.Module,
+    criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
+    epochs: int,
+    device: Optional[torch.device] = None,
+    optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
+    lr_scheduler: Optional[LRScheduler] = None,
+    quiet: bool = False,
+    logger: Optional[OptimLogger] = None,
+    get_epoch_header: Optional[
+        Callable[[int, Optimizer, Optional[LRScheduler]], str]
+    ] = None,
+    log_fn: Optional[
+        Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
+    ] = None,
+) -> nn.Module:
+    if device is None:
+        device = next(transformer.params()).device
+
+    if optimizer is None:
+        if lr_scheduler is None:
+            optimizer = default_transformer_optimizer(transformer)
+        else:
+            optimizer = lr_scheduler.optimizer
+
+    if get_epoch_header is None:
+        get_epoch_header = default_epoch_header_fn
+
+    def transformer_optim_loop(transformer: nn.Module) -> nn.Module:
+        return default_transformer_optim_loop(
+            image_loader,
+            device,
+            transformer,
+            criterion,
+            criterion_update_fn,
+            optimizer,
+            quiet=quiet,
+            logger=logger,
+            log_fn=log_fn,
+        )
+
+    for epoch in range(epochs):
+        if quiet:
+            transformer = transformer_optim_loop(transformer)
+        else:
+            header = get_epoch_header(epoch, optimizer, lr_scheduler)
+            with logger.environment(header):
+                transformer = transformer_optim_loop(transformer)
+
+        if lr_scheduler is not None:
+            lr_scheduler.step(epoch)
 
     return transformer
