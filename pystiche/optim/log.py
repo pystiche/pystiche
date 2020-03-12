@@ -7,7 +7,7 @@ from torch.optim.optimizer import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 import pystiche
 from pystiche.pyramid.level import PyramidLevel
-from .meter import AverageMeter, LossMeter, ProgressMeter
+from .meter import FloatMeter, LossMeter, ProgressMeter
 
 __all__ = [
     "default_logger",
@@ -138,7 +138,7 @@ def default_transformer_optim_log_fn(
     meters = [LossMeter(show_avg=show_running_means, window_size=window_size)]
     if show_loading_velocity:
         meters.append(
-            AverageMeter(
+            FloatMeter(
                 name="loading_velocity",
                 fmt="{:3.1f} img/s",
                 show_avg=show_running_means,
@@ -147,7 +147,7 @@ def default_transformer_optim_log_fn(
         )
     if show_processing_velocity:
         meters.append(
-            AverageMeter(
+            FloatMeter(
                 name="processing_velocity",
                 fmt="{:3.1f} img/s",
                 show_avg=show_running_means,

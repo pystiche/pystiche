@@ -1,11 +1,12 @@
+import warnings
 from collections import deque, OrderedDict
 from pystiche.misc import build_fmtstr
 
 
-__all__ = ["AverageMeter", "LossMeter", "TimeMeter", "ProgressMeter"]
+__all__ = ["FloatMeter", "LossMeter", "TimeMeter", "ProgressMeter"]
 
 
-class AverageMeter:
+class FloatMeter:
     def __init__(
         self,
         name: str,
@@ -24,23 +25,27 @@ class AverageMeter:
     def reset(self):
         self.count = 0
         self.val = 0.0
-        self.avg = 0.0
+        self.sum = 0.0
         self.window = deque(maxlen=self.window_size)
         self.min = 0.0
         self.max = 0.0
+
+    @property
+    def avg(self):
+        return self.sum / self.count
 
     @property
     def running_avg(self):
         vals = tuple(self.window)
         return sum(vals) / len(vals)
 
-    def update(self, val: float):
-        self.count += 1
-        self.val = val
-        self.avg += val  # FIXME
-        self.window.append(val)
-        self.min = min(val, self.min)
-        self.max = max(val, self.max)
+    def update(self, *vals: float):
+        self.count += len(vals)
+        self.val = vals[-1]
+        self.sum += sum(vals)
+        self.window.extend(vals)
+        self.min = min(*vals, self.min)
+        self.max = max(*vals, self.max)
 
     def __str__(self):
         val = self.fmt.format(self.val)
@@ -53,7 +58,17 @@ class AverageMeter:
         return str
 
 
-class LossMeter(AverageMeter):
+class AverageMeter(FloatMeter):
+    def __init__(self, *args, **kwargs):
+        msg = (
+            "AverageMeter is deprecated since pystiche==0.4. It was renamed to "
+            "FloatMeter and will be removed in a future release."
+        )
+        warnings.warn(msg, UserWarning)
+        super().__init__(*args, **kwargs)
+
+
+class LossMeter(FloatMeter):
     def __init__(self, name="loss", fmt="{:.3e}", **kwargs):
         super().__init__(name, fmt=fmt, **kwargs)
 
@@ -61,7 +76,7 @@ class LossMeter(AverageMeter):
         super().update(float(val))
 
 
-class TimeMeter(AverageMeter):
+class TimeMeter(FloatMeter):
     def __init__(self, name="time", fmt="{:3.1f}", **kwargs):
         super().__init__(name, fmt=fmt, **kwargs)
 
