@@ -10,6 +10,7 @@ import pystiche
 from pystiche.image import extract_aspect_ratio, extract_image_size
 from pystiche.pyramid import ImagePyramid
 from pystiche.pyramid.level import PyramidLevel
+from pystiche.misc import warn_deprecation
 from .log import (
     OptimLogger,
     default_image_optim_log_fn,
@@ -152,13 +153,13 @@ def default_transformer_optim_loop(
     ] = None,
 ) -> nn.Module:
     if get_optimizer is not None:
-        msg = (
-            "The parameter get_optimizer is deprecated since pystiche==0.4. "
-            "You can achieve the same functionality by passing "
-            "optimizer=get_optimizer(transformer). See "
-            "https://github.com/pmeier/pystiche/pull/96 for details."
+        warn_deprecation(
+            "parameter",
+            "get_optimizer",
+            "0.4",
+            info="You can achieve the same functionality by passing optimizer=get_optimizer(transformer).",
+            url="https://github.com/pmeier/pystiche/pull/96",
         )
-        warnings.warn(msg, UserWarning)
         optimizer = get_optimizer(transformer)
 
     if optimizer is None:
