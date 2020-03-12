@@ -1,3 +1,4 @@
+from typing import Union, Optional, Collection
 from collections import deque, OrderedDict
 from pystiche.misc import build_fmtstr, warn_deprecation
 
@@ -38,7 +39,10 @@ class FloatMeter:
         vals = tuple(self.window)
         return sum(vals) / len(vals)
 
-    def update(self, *vals: float):
+    def update(self, vals: Union[Collection[float], float]):
+        if isinstance(vals, float):
+            vals = (vals,)
+
         self.count += len(vals)
         self.val = vals[-1]
         self.sum += sum(vals)
@@ -79,11 +83,11 @@ class TimeMeter(FloatMeter):
 
 
 class ProgressMeter(object):
-    def __init__(self, num_batches, *meters):
+    def __init__(self, num_batches: int, *meters: FloatMeter) -> None:
         self.meters = OrderedDict([(meter.name, meter) for meter in meters])
         self.reset(num_batches=num_batches)
 
-    def reset(self, num_batches=None):
+    def reset(self, num_batches: Optional[int] = None) -> None:
         if num_batches is not None:
             fmt = build_fmtstr(field_len=len(str(num_batches)), type="d")
             self._progess_fmt = f"[{fmt}/{num_batches}]"
@@ -92,16 +96,19 @@ class ProgressMeter(object):
             meter.reset()
 
     @property
-    def progress(self):
+    def progress(self) -> str:
         return self._progess_fmt.format(self.batch)
 
-    def update(self, batch, **kwargs):
+    def update(self, batch: int, **kwargs: Union[Collection[float], float]):
         self.batch = batch
-        for name, val in kwargs.items():
+        for name, vals in kwargs.items():
             if name in self.meters:
-                self.meters[name].update(val)
+                self.meters[name].update(vals)
 
     def __str__(self):
+        if not self.meters:
+            return self.progress
+
         return "\t".join(
             [self.progress] + [str(meter) for meter in self.meters.values()]
         )
