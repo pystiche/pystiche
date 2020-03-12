@@ -26,7 +26,7 @@ __all__ = [
 
 
 def ulyanov_et_al_2016_content_transform(
-    edge_size: int = 256, impl_mode: str = "paper"
+    edge_size: int = 256, impl_params: bool = True, instance_norm: bool = True,
 ) -> ComposedTransform:
     class OptionalGrayscaleToFakegrayscale(Transform):
         def forward(self, input_image: torch.Tensor) -> torch.Tensor:
@@ -37,42 +37,37 @@ def ulyanov_et_al_2016_content_transform(
                 return input_image
 
     transforms = []
-    if impl_mode == "texturenetsv1":
-        transforms.append(Resize((edge_size, edge_size), interpolation_mode="bilinear"))
-    elif impl_mode == "paper":
+    if impl_params:
+        if instance_norm:
+            # FIXME: RandomCrop here
+            transforms.append(
+                Resize((edge_size, edge_size), interpolation_mode="bicubic")
+            )
+        else:
+            transforms.append(
+                Resize((edge_size, edge_size), interpolation_mode="bilinear")
+            )
+    else:
         transforms.append(
             Resize((edge_size, edge_size), interpolation_mode="bilinear")
         )  # FIXME: paper?
-    elif impl_mode == "master":
-        # FIXME: RandomCrop here
-        transforms.append(Resize((edge_size, edge_size), interpolation_mode="bicubic"))
-    else:
-        raise NotImplementedError
+
     transforms.append(OptionalGrayscaleToFakegrayscale())
     return ComposedTransform(*transforms)
 
 
 def ulyanov_et_al_2016_style_transform(
-    impl_mode: str = "paper", edge_size: Optional[int] = None,
+    impl_params: bool = True,
+    instance_norm: bool = True,
+    edge_size: Optional[int] = None,
 ) -> ComposedTransform:
     if edge_size is None:
-        if impl_mode == "texturenetsv1":
-            edge_size = 256
-        elif impl_mode == "paper":
-            edge_size = 256
-        elif impl_mode == "master":
-            edge_size = 256
-        else:
-            raise NotImplementedError
+        edge_size = 256
 
-    if impl_mode == "texturenetsv1":
-        interpolation_mode = "bilinear"
-    elif impl_mode == "paper":
-        interpolation_mode = "bilinear"
-    elif impl_mode == "master":
-        interpolation_mode = "bicubic"
+    if impl_params:
+        interpolation_mode = "bicubic" if instance_norm else "bilinear"
     else:
-        raise NotImplementedError
+        interpolation_mode = "bilinear"  # FIXME: paper?
 
     transforms = [
         Resize(edge_size, edge="long", interpolation_mode=interpolation_mode),
@@ -233,39 +228,44 @@ def ulyanov_et_al_2016_images(
 
 
 def ulyanov_et_al_2016_dataset(
-    root: str, impl_mode: str = "paper", transform: Optional[Transform] = None,
+    root: str,
+    impl_params: bool = True,
+    instance_norm: bool = True,
+    transform: Optional[Transform] = None,
 ):
     if transform is None:
-        transform = ulyanov_et_al_2016_content_transform(impl_mode=impl_mode)
+        transform = ulyanov_et_al_2016_content_transform(
+            impl_params=impl_params, instance_norm=instance_norm
+        )
     return ImageFolderDataset(root, transform=transform)
 
 
 def ulyanov_et_al_2016_batch_sampler(
     data_source: Sized,
-    impl_mode: str = "paper",
-    mode: str = "texture",
+    impl_params: bool = True,
+    instance_norm: bool = True,
+    stylization: bool = True,
     num_batches=None,
     batch_size=None,
 ) -> FiniteCycleBatchSampler:
+
     if num_batches is None:
-        if impl_mode == "texturenetsv1":
-            num_batches = 3000 if mode == "style" else 1500
-        elif impl_mode == "paper":
-            num_batches = 2000
-        elif impl_mode == "master":
-            num_batches = 50000
+        if impl_params:
+            if instance_norm:
+                num_batches = 2000
+            else:
+                num_batches = 300 if stylization else 150
         else:
-            raise NotImplementedError
+            num_batches = 200
 
     if batch_size is None:
-        if impl_mode == "texturenetsv1":
-            batch_size = 4 if mode == "style" else 16
-        elif impl_mode == "paper":
-            batch_size = 16
-        elif impl_mode == "master":
-            batch_size = 1
+        if impl_params:
+            if instance_norm:
+                batch_size = 1
+            else:
+                batch_size = 4 if stylization else 16
         else:
-            raise NotImplementedError
+            batch_size = 16
 
     return FiniteCycleBatchSampler(
         data_source, num_batches=num_batches, batch_size=batch_size
@@ -274,15 +274,19 @@ def ulyanov_et_al_2016_batch_sampler(
 
 def ulyanov_et_al_2016_image_loader(
     dataset: Dataset,
-    impl_mode: str = "paper",
-    mode: str = "texture",
+    impl_params: bool = True,
+    instance_norm: bool = True,
+    stylization: bool = True,
     batch_sampler: Optional[Sampler] = None,
     num_workers: int = 4,
     pin_memory: bool = True,
 ):
     if batch_sampler is None:
         batch_sampler = ulyanov_et_al_2016_batch_sampler(
-            dataset, impl_mode=impl_mode, mode=mode
+            dataset,
+            impl_params=impl_params,
+            instance_norm=instance_norm,
+            stylization=stylization,
         )
 
     return DataLoader(
