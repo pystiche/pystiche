@@ -144,7 +144,7 @@ def default_transformer_optim_loop(
     criterion: nn.Module,
     criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
     optimizer: Optional[Optimizer] = None,
-    get_optimizer: Optional[Callable[nn.Module], Optimizer] = None,
+    get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
     log_fn: Optional[
