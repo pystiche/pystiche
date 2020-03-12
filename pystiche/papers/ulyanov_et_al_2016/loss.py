@@ -23,7 +23,7 @@ def ulyanov_et_al_2016_content_loss(
         if impl_params:
             score_weight = 1e0 if instance_norm else 6e-1
         else:
-            score_weight = 1e0  # FIXME paper only alpha
+            score_weight = 1e0
 
     if multi_layer_encoder is None:
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()

@@ -48,9 +48,7 @@ def ulyanov_et_al_2016_content_transform(
                 Resize((edge_size, edge_size), interpolation_mode="bilinear")
             )
     else:
-        transforms.append(
-            Resize((edge_size, edge_size), interpolation_mode="bilinear")
-        )  # FIXME: paper?
+        transforms.append(Resize((edge_size, edge_size), interpolation_mode="bilinear"))
 
     transforms.append(OptionalGrayscaleToFakegrayscale())
     return ComposedTransform(*transforms)
@@ -67,7 +65,7 @@ def ulyanov_et_al_2016_style_transform(
     if impl_params:
         interpolation_mode = "bicubic" if instance_norm else "bilinear"
     else:
-        interpolation_mode = "bilinear"  # FIXME: paper?
+        interpolation_mode = "bilinear"
 
     transforms = [
         Resize(edge_size, edge="long", interpolation_mode=interpolation_mode),
@@ -103,15 +101,6 @@ def ulyanov_et_al_2016_images(
             md5="dc9ad203263f34352e18bc29b03e1066",
             file="tuebingen_neckarfront__andreas_praefcke.jpg",
         ),
-        "Lena": DownloadableImage(
-            "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png",
-            title="Lenna (test_image)",
-            author="Dwight Hooker",
-            date="1972",
-            license="TODO",  # TODO
-            md5="814a0034f5549e957ee61360d87457e5",
-            file="Lenna_(test_image).png",
-        ),
         "CheHigh": DownloadableImage(
             "https://upload.wikimedia.org/wikipedia/commons/5/58/CheHigh.jpg",
             title="CheHigh",
@@ -142,24 +131,11 @@ def ulyanov_et_al_2016_images(
 
     texture_base_ulyanov = urljoin(base_ulyanov, "textures/")
     base_ulyanov_suppl_texture = "https://raw.githubusercontent.com/DmitryUlyanov/texture_nets/texture_nets_v1/supplementary//texture_models/"
-    # TODO: "https://www.cns.nyu.edu/~eero/texture/index.php#examples" license
-    texture_base_simoncelli = "http://www.texturesynthesis.com/textures/Simoncelli/"
+
     texture_images = {
         "cezanne": DownloadableImage(
             urljoin(texture_base_ulyanov, "cezanne.jpg"),
             md5="fab6d360c361c38c331b3ee5ef0078f5",
-        ),
-        "d30_2076.o": DownloadableImage(
-            urljoin(texture_base_simoncelli, "d30_2076.o.jpg"),
-            md5="1ddbaa6815b7056c65a9bf5a4df9e0eb",
-        ),
-        "windowsP256.o": DownloadableImage(
-            urljoin(texture_base_simoncelli, "windowsP256.o.jpg"),
-            md5="cc6bb3819e0a392eb3a6a0eae60540db",
-        ),
-        "radishes256.o": DownloadableImage(
-            urljoin(texture_base_simoncelli, "radishes256.o.jpg"),
-            md5="243c8d8879db9730bc5cc741437dfa6c",
         ),
         "bricks": DownloadableImage(
             urljoin(base_ulyanov_suppl_texture, "bricks.png"),
