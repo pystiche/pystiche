@@ -1,4 +1,5 @@
 from typing import Union, Optional, Iterable, Tuple, Callable
+import warnings
 import time
 import torch
 from torch import nn, optim
@@ -143,12 +144,23 @@ def default_transformer_optim_loop(
     criterion: nn.Module,
     criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
     optimizer: Optional[Optimizer] = None,
+    get_optimizer: Optional[Callable[nn.Module], Optimizer] = None,
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
     log_fn: Optional[
         Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
     ] = None,
 ) -> nn.Module:
+    if get_optimizer is not None:
+        msg = (
+            "The parameter get_optimizer is deprecated since pystiche==0.4. "
+            "You can achieve the same functionality by passing "
+            "optimizer=get_optimizer(transformer). See "
+            "https://github.com/pmeier/pystiche/pull/96 for details."
+        )
+        warnings.warn(msg, UserWarning)
+        optimizer = get_optimizer(transformer)
+
     if optimizer is None:
         optimizer = default_transformer_optimizer(transformer)
 
