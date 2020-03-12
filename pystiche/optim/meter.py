@@ -25,10 +25,14 @@ class FloatMeter:
     def reset(self):
         self.count = 0
         self.val = 0.0
-        self.avg = 0.0
+        self.sum = 0.0
         self.window = deque(maxlen=self.window_size)
         self.min = 0.0
         self.max = 0.0
+
+    @property
+    def avg(self):
+        return self.sum / self.count
 
     @property
     def running_avg(self):
@@ -38,7 +42,7 @@ class FloatMeter:
     def update(self, val: float):
         self.count += 1
         self.val = val
-        self.avg += val  # FIXME
+        self.sum += val
         self.window.append(val)
         self.min = min(val, self.min)
         self.max = max(val, self.max)
