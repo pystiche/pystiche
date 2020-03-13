@@ -1,13 +1,13 @@
-from typing import Union, Optional, Callable
+from typing import Union, Optional, Callable, Any, List
 import torch
 from torch.utils.data import DataLoader
 from torch import nn
 from torch.optim.optimizer import Optimizer
-from torch.optim import lr_scheduler
+from torch.optim.lr_scheduler import ExponentialLR
 import pystiche
 from pystiche.optim import (
     OptimLogger,
-    default_transformer_optim_loop,
+    default_transformer_epoch_optim_loop,
 )
 from ..common_utils import batch_up_image
 from .modules import ulyanov_et_al_2016_transformer
@@ -29,6 +29,7 @@ from .utils import (
     ulyanov_et_al_2016_optimizer,
 )
 
+
 __all__ = [
     "ulyanov_et_al_2016_transformer",
     "ulyanov_et_al_2016_perceptual_loss",
@@ -40,57 +41,29 @@ __all__ = [
 ]
 
 
-def ulyanov_et_al_2016_transformer_epoch_optim_loop(
-    image_loader: DataLoader,
-    device: torch.device,
-    transformer: nn.Module,
-    criterion: nn.Module,
-    criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
-    get_optimizer: ulyanov_et_al_2016_optimizer,
-    impl_params: bool = True,
-    instance_norm: bool = True,
-    stylization: bool = True,
-    quiet: bool = False,
-    logger: Optional[OptimLogger] = None,
-    log_fn: Optional[
-        Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
-    ] = None,
-) -> None:
+class DelayedExponentialLR(ExponentialLR):
+    def __init__(
+        self, optimizer: Optimizer, gamma: float, delay: int, **kwargs: Any
+    ) -> None:
+        self.delay = delay
+        super().__init__(optimizer, gamma, **kwargs)
 
+    def get_lr(self) -> List[float]:
+        exp = self.last_epoch - self.delay + 1
+        if exp > 0:
+            return [base_lr * self.gamma ** exp for base_lr in self.base_lrs]
+        else:
+            return self.base_lrs
+
+
+def ulyanov_et_al_2018_lr_scheduler(
+    optimizer: Optional[Optimizer] = None, impl_params: bool = True,
+) -> ExponentialLR:
     if impl_params:
-        if instance_norm:
-            num_epoch = 25
-        else:
-            num_epoch = 10 if stylization else 5
-        gamma = 0.8
+        lr_scheduler = ExponentialLR(optimizer, 0.8)
     else:
-        num_epoch = 10
-        gamma = 0.7
-
-    if get_optimizer is None:
-        get_optimizer = ulyanov_et_al_2016_optimizer(
-            transformer, impl_params=impl_params, instance_norm=instance_norm
-        )
-    optimizer = get_optimizer(transformer)
-    scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
-
-    for epoch in range(num_epoch):
-        default_transformer_optim_loop(
-            image_loader,
-            device,
-            transformer,
-            criterion,
-            criterion_update_fn,
-            get_optimizer=optimizer,
-            quiet=quiet,
-            logger=logger,
-            log_fn=log_fn,
-        )
-        if not impl_params:
-            if epoch >= 5:  # start to reduce lr after 1000 steps
-                scheduler.step()  # TODO: check this
-        else:
-            scheduler.step()
+        lr_scheduler = DelayedExponentialLR(optimizer, 0.7, 5)
+    return lr_scheduler
 
 
 def ulyanov_et_al_2016_training(
@@ -101,6 +74,8 @@ def ulyanov_et_al_2016_training(
     stylization: bool = True,
     transformer: Optional[ulyanov_et_al_2016_transformer] = None,
     criterion: Optional[UlyanovEtAl2016PerceptualLoss] = None,
+    lr_scheduler: Optional[ulyanov_et_al_2018_lr_scheduler] = None,
+    num_epochs: Optional[int] = None,
     get_optimizer: Optional[
         Callable[[ulyanov_et_al_2016_transformer], Optimizer]
     ] = None,
@@ -136,8 +111,22 @@ def ulyanov_et_al_2016_training(
         criterion = criterion.eval()
     criterion = criterion.to(device)
 
-    if get_optimizer is None:
-        get_optimizer = ulyanov_et_al_2016_optimizer
+    if lr_scheduler is None:
+        if get_optimizer is None:
+            get_optimizer = ulyanov_et_al_2016_optimizer
+        optimizer = get_optimizer(transformer)
+        lr_scheduler = ulyanov_et_al_2018_lr_scheduler(
+            optimizer, impl_params=impl_params,
+        )
+
+    if num_epochs is None:
+        if impl_params:
+            if instance_norm:
+                num_epochs = 25
+            else:
+                num_epochs = 10 if stylization else 5
+        else:
+            num_epochs = 10
 
     style_transform = ulyanov_et_al_2016_style_transform(
         impl_params=impl_params, instance_norm=instance_norm
@@ -155,16 +144,14 @@ def ulyanov_et_al_2016_training(
             preprocessor = preprocessor.to(device)
             criterion.set_content_image(preprocessor(input_image))
 
-    ulyanov_et_al_2016_transformer_epoch_optim_loop(
+    default_transformer_epoch_optim_loop(
         content_image_loader,
-        device,
         transformer,
         criterion,
         criterion_update_fn,
-        get_optimizer=get_optimizer,
-        impl_params=impl_params,
-        instance_norm=instance_norm,
-        stylization=stylization,
+        num_epochs,
+        device=device,
+        lr_scheduler=lr_scheduler,
         quiet=quiet,
         logger=logger,
         log_fn=log_fn,
