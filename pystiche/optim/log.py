@@ -131,7 +131,7 @@ def default_transformer_optim_log_fn(
     show_running_means: bool = True,
 ):
     if log_freq is None:
-        log_freq = min(round(1e-3 * num_batches) * 10, 50)
+        log_freq = max(min(round(1e-3 * num_batches) * 10, 50), 1)
 
     window_size = min(10 * log_freq, 1000)
 
