@@ -1,20 +1,39 @@
-from typing import Union, Optional, Collection
-from collections import deque, OrderedDict
+from typing import Any, Union, Optional, Collection as CollectionType
+from abc import ABC, abstractmethod
+from collections import deque, OrderedDict, Collection
+import pystiche
 from pystiche.misc import build_fmtstr, warn_deprecation
 
-
 __all__ = ["FloatMeter", "LossMeter", "TimeMeter", "ProgressMeter"]
+
+
+class Meter(ABC):
+    @abstractmethod
+    def reset(self) -> None:
+        pass
+
+    @abstractmethod
+    def update(self, arg: Any) -> None:
+        pass
+
+
+# float meter: single float base for average meter / eta meter
+# maybe ABC, build ETA first
+
+# average meter: single or multiple floats
+
+# class ProgressMeter(Meter):
 
 
 class FloatMeter:
     def __init__(
         self,
         name: str,
-        fmt="{}",
-        show_avg=True,
-        use_running_avg=True,
+        fmt: str = "{}",
+        show_avg: bool = True,
+        use_running_avg: bool = True,
         window_size: int = 10,
-    ):
+    ) -> None:
         self.name = name
         self.fmt = fmt
         self.show_avg = show_avg
@@ -22,26 +41,28 @@ class FloatMeter:
         self.window_size = window_size
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         self.count = 0
         self.val = 0.0
         self.sum = 0.0
-        self.window = deque(maxlen=self.window_size)
         self.min = 0.0
         self.max = 0.0
+        self.window = deque(maxlen=self.window_size)
 
     @property
-    def avg(self):
+    def avg(self) -> float:
         return self.sum / self.count
 
     @property
-    def running_avg(self):
+    def running_avg(self) -> float:
         vals = tuple(self.window)
         return sum(vals) / len(vals)
 
-    def update(self, vals: Union[Collection[float], float]):
-        if isinstance(vals, float):
-            vals = (vals,)
+    def update(self, vals: Union[CollectionType[float], float]) -> None:
+        if isinstance(vals, Collection):
+            vals = [float(val) for val in vals]
+        else:
+            vals = (float(vals),)
 
         self.count += len(vals)
         self.val = vals[-1]
@@ -50,7 +71,7 @@ class FloatMeter:
         self.min = min(*vals, self.min)
         self.max = max(*vals, self.max)
 
-    def __str__(self):
+    def __str__(self) -> str:
         val = self.fmt.format(self.val)
         str = f"{self.name} {val}"
         if self.show_avg:
@@ -62,7 +83,7 @@ class FloatMeter:
 
 
 class AverageMeter(FloatMeter):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         warn_deprecation(
             "class", "AverageMeter", "0.4", info="Please use FloatMeter instead."
         )
@@ -70,16 +91,26 @@ class AverageMeter(FloatMeter):
 
 
 class LossMeter(FloatMeter):
-    def __init__(self, name="loss", fmt="{:.3e}", **kwargs):
+    def __init__(self, name: str = "loss", fmt: str = "{:.3e}", **kwargs: Any) -> None:
         super().__init__(name, fmt=fmt, **kwargs)
-
-    def update(self, val: float):
-        super().update(float(val))
 
 
 class TimeMeter(FloatMeter):
-    def __init__(self, name="time", fmt="{:3.1f}", **kwargs):
+    def __init__(self, name: str = "time", fmt: str = "{:3.1f}", **kwargs: Any) -> None:
+        warn_deprecation(
+            "class", "TimeMeter", "0.4", info="Please use FloatMeter instead."
+        )
         super().__init__(name, fmt=fmt, **kwargs)
+
+
+class ETAMeter(FloatMeter):
+    def __init__(self, num_batches: int, name: str = "ETA") -> None:
+
+        pass
+
+    def update(self, val: float) -> None:
+
+        pass
 
 
 class ProgressMeter(object):
