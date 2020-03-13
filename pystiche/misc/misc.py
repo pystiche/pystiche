@@ -46,6 +46,7 @@ __all__ = [
     "get_tmp_dir",
     "get_sha256_hash",
     "save_state_dict",
+    "build_deprecation_message",
     "warn_deprecation",
 ]
 
@@ -327,13 +328,13 @@ def save_state_dict(
     return file
 
 
-def warn_deprecation(
+def build_deprecation_message(
     type: str,
     name: str,
     version: str,
     info: Optional[str] = None,
     url: Optional[str] = None,
-):
+) -> str:
     msg = (
         f"The {type} {name} is deprecated since pystiche=={version} and will be "
         "removed in a future release."
@@ -342,4 +343,12 @@ def warn_deprecation(
         msg += f" {info.strip()}"
     if url is not None:
         msg += f" See {url} for further details."
+    return msg
+
+
+def warn_deprecation(*args: str, **kwargs: Optional[str]):
+    if len(args) == 1 and not kwargs:
+        msg = args[0]
+    else:
+        msg = build_deprecation_message(*args, **kwargs)
     warnings.warn(msg, UserWarning)

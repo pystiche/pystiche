@@ -1,10 +1,17 @@
-from typing import Any, Union, Optional, Collection as CollectionType, Callable
+from typing import Any, Union, Optional, Collection, Callable
 from abc import ABC, abstractmethod
-from collections import deque, OrderedDict, Collection
+from collections import deque, OrderedDict
 from datetime import datetime, timedelta
-from pystiche.misc import build_fmtstr, warn_deprecation
+from pystiche.misc import build_fmtstr, build_deprecation_message, warn_deprecation
 
-__all__ = ["FloatMeter", "LossMeter", "TimeMeter", "ProgressMeter"]
+__all__ = [
+    "Meter",
+    "FloatMeter",
+    "AverageMeter",
+    "LossMeter",
+    "ETAMeter",
+    "ProgressMeter",
+]
 
 
 class Meter(ABC):
@@ -46,7 +53,7 @@ class FloatMeter(Meter):
         self.global_max = 0.0
         self.window = deque(maxlen=self.window_size)
 
-    def update(self, vals: Union[CollectionType[float], float]) -> None:
+    def update(self, vals: Union[Collection[float], float]) -> None:
         if isinstance(vals, float):
             vals = (vals,)
 
@@ -72,8 +79,32 @@ class FloatMeter(Meter):
 
 
 class AverageMeter(FloatMeter):
-    # FIXME: deprecation for use_avg
-    def __init__(self, name: str, show_local_avg: bool = True, fmt: str = "{:f}"):
+    def __init__(
+        self,
+        name: str,
+        show_local_avg: bool = True,
+        fmt: str = "{:f}",
+        show_avg: Optional[bool] = None,
+        use_running_avg: Optional[bool] = None,
+    ):
+        if show_avg is not None:
+            msg = build_deprecation_message(
+                "parameter", "show_avg", "0.4", info="The average is now always shown."
+            )
+            if show_avg:
+                warn_deprecation(msg)
+            else:
+                raise RuntimeError(msg)
+
+        if use_running_avg is not None:
+            warn_deprecation(
+                "parameter",
+                "use_running_avg",
+                "0.4",
+                info="It was renamed to show_local_avg.",
+            )
+            show_local_avg = use_running_avg
+
         super().__init__(name=name)
         self.show_local_avg = show_local_avg
         self.fmt = fmt
@@ -85,6 +116,33 @@ class AverageMeter(FloatMeter):
         val = format(self.last_val)
         avg = format(self.local_avg if self.show_local_avg else self.global_avg)
         return f"{self.name} {val} ({avg})"
+
+    @property
+    def val(self) -> float:
+        warn_deprecation("attribute", "val", "0.4", info="It was renamed to last_val")
+        return self.global_avg
+
+    @property
+    def avg(self) -> float:
+        warn_deprecation("attribute", "avg", "0.4", info="It was renamed to global_avg")
+        return self.global_avg
+
+    @property
+    def min(self) -> float:
+        warn_deprecation("attribute", "min", "0.4", info="It was renamed to global_min")
+        return self.global_avg
+
+    @property
+    def max(self) -> float:
+        warn_deprecation("attribute", "max", "0.4", info="It was renamed to global_max")
+        return self.global_avg
+
+    @property
+    def running_avg(self) -> float:
+        warn_deprecation(
+            "attribute", "running_avg", "0.4", info="It was renamed to local_avg"
+        )
+        return self.local_avg
 
 
 class LossMeter(AverageMeter):
@@ -172,7 +230,15 @@ class ProgressMeter(Meter):
         self.progress_fmt = None
         self.reset(total_count=total_count)
 
-    def reset(self, total_count: Optional[int] = None) -> None:
+    def reset(
+        self, total_count: Optional[int] = None, num_batches: Optional[int] = None
+    ) -> None:
+        if num_batches is not None:
+            warn_deprecation(
+                "parameter", "num_batches", "0.4", info="It was renamed to total_count"
+            )
+            total_count = num_batches
+
         self.count = 0
 
         if total_count is not None:
@@ -181,7 +247,7 @@ class ProgressMeter(Meter):
         for meter in self.meters.values():
             meter.reset()
 
-    def update(self, **kwargs: Union[Collection[float], float]):
+    def update(self, **kwargs: Any) -> None:
         self.count += 1
 
         for name, args in kwargs.items():
