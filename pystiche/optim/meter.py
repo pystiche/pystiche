@@ -82,6 +82,7 @@ class AverageMeter(FloatMeter):
     def __init__(
         self,
         name: str,
+        window_size: int = 50,
         show_local_avg: bool = True,
         fmt: str = "{:f}",
         show_avg: Optional[bool] = None,
@@ -105,7 +106,7 @@ class AverageMeter(FloatMeter):
             )
             show_local_avg = use_running_avg
 
-        super().__init__(name=name)
+        super().__init__(name=name, window_size=window_size)
         self.show_local_avg = show_local_avg
         self.fmt = fmt
 
