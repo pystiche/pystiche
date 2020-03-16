@@ -185,7 +185,7 @@ class ETAMeter(FloatMeter):
         super().update(time_diff)
 
     def calculate_eta(self, time_diff: float) -> datetime:
-        count_diff = min(self.total_count - self.count, 0)
+        count_diff = max(self.total_count - self.count, 0)
         now = datetime.now()
         if count_diff <= 0:
             return now
@@ -235,7 +235,7 @@ class ProgressMeter(Meter):
     ) -> None:
         if num_batches is not None:
             warn_deprecation(
-                "parameter", "num_batches", "0.4", info="It was renamed to total_count"
+                "parameter", "num_batches", "0.4", info="It was renamed to total_count."
             )
             total_count = num_batches
 
