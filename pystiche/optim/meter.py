@@ -163,7 +163,7 @@ class ETAMeter(FloatMeter):
         self,
         total_count: int,
         name: str = "ETA",
-        window_size: int = 50,
+        window_size: int = 500,
         show_local_eta: bool = True,
         fmt: str = "%d.%m.%Y %H:%M",
     ):
