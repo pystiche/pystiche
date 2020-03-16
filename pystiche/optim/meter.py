@@ -17,7 +17,6 @@ __all__ = [
 class Meter(ABC):
     def __init__(self, name: Optional[str] = None):
         self.name = name
-        self.reset()
 
     @abstractmethod
     def reset(self) -> None:
