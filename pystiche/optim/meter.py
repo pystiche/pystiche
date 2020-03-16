@@ -252,8 +252,8 @@ class ProgressMeter(Meter):
     def update(self, **kwargs: Any) -> None:
         self.count += 1
 
-        for name, args in kwargs.items():
-            self.meters[name].update(*args)
+        for name, vals in kwargs.items():
+            self.meters[name].update(vals)
 
     @property
     def progress(self) -> str:
