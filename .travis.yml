@@ -3,11 +3,7 @@ python: "3.6"
 
 matrix:
   include:
-    - name: "Formatting"
-      before_install: pip install black
-      install: skip
-      script: black --check .
-    - name: "Testing"
+    - name: "Tests"
       before_install: pip install pytest
       install: pip install .[testing]
       script: pytest test
