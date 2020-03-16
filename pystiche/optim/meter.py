@@ -2,6 +2,7 @@ from typing import Any, Union, Optional, Collection, Callable
 from abc import ABC, abstractmethod
 from collections import deque, OrderedDict
 from datetime import datetime, timedelta
+import torch
 from pystiche.misc import build_fmtstr, build_deprecation_message, warn_deprecation
 
 __all__ = [
@@ -108,6 +109,14 @@ class AverageMeter(FloatMeter):
         super().__init__(name=name, window_size=window_size)
         self.show_local_avg = show_local_avg
         self.fmt = fmt
+
+    def update(
+        self, vals: Union[Collection[float], float, torch.Tensor],
+    ):
+        if isinstance(vals, torch.Tensor):
+            vals = vals.detach().cpu().flatten().tolist()
+
+        super().update(vals)
 
     def __str__(self) -> str:
         def format(val: float) -> str:
