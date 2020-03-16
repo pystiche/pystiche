@@ -172,17 +172,21 @@ class ETAMeter(FloatMeter):
         self.show_local_eta = show_local_eta
         self.fmt = fmt
 
+        self.last_time = None
+        self.reset()
+
     def reset(self):
         super().reset()
-        self.last_val = None
+        self.last_time = None
 
     def update(self, time: float):
-        if self.last_val is None:
-            self.last_val = time
+        if self.last_time is None:
+            self.last_time = time
             return
 
-        time_diff = time - self.last_val
+        time_diff = time - self.last_time
         super().update(time_diff)
+        self.last_time = time
 
     def calculate_eta(self, time_diff: float) -> datetime:
         count_diff = max(self.total_count - self.count, 0)
