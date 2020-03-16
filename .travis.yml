@@ -9,5 +9,5 @@ matrix:
       script: black --check .
     - name: "Tests"
       before_install: pip install pytest
-      install: pip install .[testing]
+      install: pip install .[dev]
       script: pytest test
