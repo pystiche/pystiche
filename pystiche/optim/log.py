@@ -1,13 +1,14 @@
 from typing import Union, Optional, Tuple, Callable
 import contextlib
 import sys
+import time
 import logging
 import torch
 from torch.optim.optimizer import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 import pystiche
 from pystiche.pyramid.level import PyramidLevel
-from .meter import FloatMeter, LossMeter, ProgressMeter
+from .meter import AverageMeter, LossMeter, ETAMeter, ProgressMeter
 
 __all__ = [
     "default_logger",
@@ -135,23 +136,28 @@ def default_transformer_optim_log_fn(
 
     window_size = min(10 * log_freq, 1000)
 
-    meters = [LossMeter(show_avg=show_running_means, window_size=window_size)]
+    meters = [
+        ETAMeter(
+            num_batches, window_size=window_size, show_local_eta=show_running_means
+        ),
+        LossMeter(window_size=window_size, show_local_avg=show_running_means),
+    ]
     if show_loading_velocity:
         meters.append(
-            FloatMeter(
-                name="loading_velocity",
-                fmt="{:3.1f} img/s",
-                show_avg=show_running_means,
+            AverageMeter(
+                name="loading",
                 window_size=window_size,
+                show_local_avg=show_running_means,
+                fmt="{:4.0f} img/s",
             )
         )
     if show_processing_velocity:
         meters.append(
-            FloatMeter(
-                name="processing_velocity",
-                fmt="{:3.1f} img/s",
-                show_avg=show_running_means,
+            AverageMeter(
+                name="processing",
                 window_size=window_size,
+                show_local_avg=show_running_means,
+                fmt="{:4.0f} img/s",
             )
         )
 
@@ -159,10 +165,10 @@ def default_transformer_optim_log_fn(
 
     def log_fn(batch, loss, loading_velocity, processing_velocity):
         progress_meter.update(
-            batch,
+            ETA=time.time(),
             loss=loss,
-            loading_velocity=loading_velocity,
-            processing_velocity=processing_velocity,
+            loading=loading_velocity,
+            processing=processing_velocity,
         )
 
         if batch % log_freq == 0:
