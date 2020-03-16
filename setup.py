@@ -13,7 +13,8 @@ install_requires = ("torch>=1.4.0", "torchvision>=0.5.0", "pillow", "numpy", "re
 
 extras_require = {
     # FIXME: move to a released versions
-    "testing": (
+    "dev": (
+        "pre-commit",
         "pyimagetest@https://github.com/pmeier/pyimagetest/archive/master.zip",
         "pillow_affine@https://github.com/pmeier/pillow_affine/archive/master.zip",
     )
