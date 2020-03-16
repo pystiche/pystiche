@@ -7,6 +7,11 @@ matrix:
       before_install: pip install black
       install: skip
       script: black --check .
+    - name: "Type checks"
+      before install:
+        pip install mypy \numpy git+https://github.com/numpy/numpy-stubs torch torchvision
+      install: pip install .
+      script: mypy --config-file=mypy.ini pystiche/
     - name: "Tests"
       before_install: pip install pytest
       install: pip install .[dev]

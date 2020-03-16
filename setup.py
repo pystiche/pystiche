@@ -15,6 +15,7 @@ extras_require = {
     # FIXME: move to a released versions
     "dev": (
         "pre-commit",
+        "mypy",
         "pyimagetest@https://github.com/pmeier/pyimagetest/archive/master.zip",
         "pillow_affine@https://github.com/pmeier/pillow_affine/archive/master.zip",
     )
