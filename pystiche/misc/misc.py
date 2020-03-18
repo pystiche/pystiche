@@ -9,7 +9,6 @@ from typing import (
     Dict,
     Callable,
     TypeVar,
-    cast,
 )
 import contextlib
 from collections import OrderedDict
@@ -322,7 +321,7 @@ def save_state_dict(
     if isinstance(input, nn.Module):
         state_dict = input.state_dict()
     else:
-        state_dict = input
+        state_dict = OrderedDict(input)
 
     if to_cpu:
         state_dict = OrderedDict(
