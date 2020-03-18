@@ -71,12 +71,8 @@ def ulyanov_et_al_2016_style_loss(
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()
 
     if layers is None:
-        if impl_params:
-            layers = (
-                ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1")
-                if instance_norm
-                else ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
-            )
+        if impl_params and instance_norm:
+            layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1")
         else:
             layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
 
@@ -99,11 +95,10 @@ class UlyanovEtAl2016PerceptualLoss(MultiOperatorLoss):
         self,
         style_loss: MultiLayerEncodingOperator,
         content_loss: MSEEncodingOperator = None,
-        stylization: bool = True,
     ) -> None:
 
         dict = OrderedDict([("style_loss", style_loss)])
-        if stylization:
+        if content_loss is not None:
             dict["content_loss"] = content_loss
 
         super().__init__(dict)
@@ -161,7 +156,6 @@ def ulyanov_et_al_2016_perceptual_loss(
             multi_layer_encoder=multi_layer_encoder,
             **content_loss_kwargs,
         )
-        return UlyanovEtAl2016PerceptualLoss(
-            style_loss, content_loss=content_loss, stylization=stylization
-        )
-    return UlyanovEtAl2016PerceptualLoss(style_loss, stylization=stylization)
+    else:
+        content_loss = None
+    return UlyanovEtAl2016PerceptualLoss(style_loss, content_loss=content_loss)
