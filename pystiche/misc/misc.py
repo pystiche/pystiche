@@ -7,8 +7,8 @@ from typing import (
     Sequence,
     Tuple,
     Dict,
+    Callable,
     TypeVar,
-    cast,
 )
 import contextlib
 from collections import OrderedDict
@@ -52,39 +52,37 @@ __all__ = [
     "warn_deprecation",
 ]
 
+T = TypeVar("T")
+
 
 def prod(iterable: Iterable) -> Any:
     return reduce(mul, iterable)
 
 
-T = TypeVar("T")
+def _to_nd_arg(dims: int) -> Callable[[Union[T, Sequence[T]]], Tuple[T, ...]]:
+    def to_nd_arg(x: Union[T, Sequence[T]]) -> Tuple[T, ...]:
+        if x is None:
+            warn_deprecation(
+                "argument",
+                "None",
+                "0.4",
+                info="If you need this behavior, please implement it in the caller.",
+            )
+            return None
+
+        if isinstance(x, Sequence):
+            if len(x) != dims:
+                raise RuntimeError
+            return tuple(x)
+        else:
+            return tuple(itertools.repeat(x, dims))
+
+    return to_nd_arg
 
 
-def _to_nd_arg(x: Union[T, Sequence[T]], dims: int) -> Tuple[T, ...]:
-    if isinstance(x, Sequence):
-        if len(x) != dims:
-            raise RuntimeError
-        return tuple(x)
-    else:
-        return tuple(itertools.repeat(x, dims))
-
-
-def to_1d_arg(x: Optional[Union[T, Sequence[T]]]) -> Optional[Tuple[T]]:
-    if x is None:
-        return None
-    return cast(Tuple[T], _to_nd_arg(x, 1))
-
-
-def to_2d_arg(x: Optional[Union[T, Sequence[T]]]) -> Optional[Tuple[T, T]]:
-    if x is None:
-        return None
-    return cast(Tuple[T, T], _to_nd_arg(x, 2))
-
-
-def to_3d_arg(x: Optional[Union[T, Sequence[T]]]) -> Optional[Tuple[T, T, T]]:
-    if x is None:
-        return None
-    return cast(Tuple[T, T, T], _to_nd_arg(x, 3))
+to_1d_arg = _to_nd_arg(1)
+to_2d_arg = _to_nd_arg(2)
+to_3d_arg = _to_nd_arg(3)
 
 
 def zip_equal(*sequences: Sequence) -> Iterable:
