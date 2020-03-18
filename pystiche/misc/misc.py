@@ -2,12 +2,13 @@ from typing import (
     Any,
     Union,
     Optional,
+    Iterator,
     Iterable,
     Sequence,
-    Sized,
     Tuple,
     Dict,
-    ContextManager,
+    TypeVar,
+    cast,
 )
 import contextlib
 from collections import OrderedDict
@@ -22,6 +23,7 @@ import tempfile
 import random
 import numpy as np
 import torch
+from torch.backends import cudnn
 from torch import nn
 from torch.hub import _get_torch_home
 
@@ -55,28 +57,34 @@ def prod(iterable: Iterable) -> Any:
     return reduce(mul, iterable)
 
 
-def _to_nd_arg(x: Any, dims: int) -> Any:
+T = TypeVar("T")
+
+
+def _to_nd_arg(x: Union[T, Sequence[T]], dims: int) -> Tuple[T, ...]:
+    if isinstance(x, Sequence):
+        if len(x) != dims:
+            raise RuntimeError
+        return tuple(x)
+    else:
+        return tuple(itertools.repeat(x, dims))
+
+
+def to_1d_arg(x: Optional[Union[T, Sequence[T]]]) -> Optional[Tuple[T]]:
     if x is None:
         return None
-
-    if isinstance(x, Sized):
-        assert len(x) == dims
-        y = x
-    else:
-        y = itertools.repeat(x, dims)
-    return tuple(y)
+    return cast(Tuple[T], _to_nd_arg(x, 1))
 
 
-def to_1d_arg(x: Any) -> Any:
-    return _to_nd_arg(x, 1)
+def to_2d_arg(x: Optional[Union[T, Sequence[T]]]) -> Optional[Tuple[T, T]]:
+    if x is None:
+        return None
+    return cast(Tuple[T, T], _to_nd_arg(x, 2))
 
 
-def to_2d_arg(x: Any) -> Any:
-    return _to_nd_arg(x, 2)
-
-
-def to_3d_arg(x: Any) -> Any:
-    return _to_nd_arg(x, 3)
+def to_3d_arg(x: Optional[Union[T, Sequence[T]]]) -> Optional[Tuple[T, T, T]]:
+    if x is None:
+        return None
+    return cast(Tuple[T, T, T], _to_nd_arg(x, 3))
 
 
 def zip_equal(*sequences: Sequence) -> Iterable:
@@ -199,7 +207,7 @@ def verify_str_arg(
 
 def build_obj_str(
     name: str,
-    properties: Dict[str, Any] = None,
+    properties: Optional[Dict[str, Any]] = None,
     named_children: Sequence[Tuple[str, Any]] = (),
     properties_threshold: int = 4,
     num_indent: int = 2,
@@ -215,13 +223,16 @@ def build_obj_str(
         [len(str(value).splitlines()) > 1 for value in properties.values()]
     )
 
+    def join_properties(sep: str) -> str:
+        return sep.join([f"{key}={value}" for key, value in properties.items()])
+
     if not multiline_properties and num_properties < properties_threshold:
-        properties = ", ".join([f"{key}={value}" for key, value in properties.items()])
+        properties = join_properties(", ")
 
         if not named_children:
             return prefix + properties + postfix
     else:
-        properties = ",\n".join([f"{key}={value}" for key, value in properties.items()])
+        properties = join_properties(",\n")
 
     def indent(line):
         return " " * num_indent + line
@@ -245,14 +256,19 @@ def make_reproducible(seed: int = 0) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    if torch.backends.cudnn.is_available():
+        # Both attributes are dynamically assigned. See
+        # https://github.com/pytorch/pytorch/blob/a1eaaea288cf51abcd69eb9b0993b1aa9c0ce41f/torch/backends/cudnn/__init__.py#L115-L129
+        # The type errors are ignored, since this is still the recommended practice.
+        # https://pytorch.org/docs/stable/notes/randomness.html#cudnn
+        torch.backends.cudnn.deterministic = True  # type: ignore
+        torch.backends.cudnn.benchmark = False  # type: ignore
 
 
 def get_input_image(
     starting_point: Union[str, torch.Tensor] = "content",
-    content_image: Optional[torch.tensor] = None,
-    style_image: Optional[torch.tensor] = None,
+    content_image: Optional[torch.Tensor] = None,
+    style_image: Optional[torch.Tensor] = None,
 ):
     if isinstance(starting_point, torch.Tensor):
         return starting_point
@@ -280,7 +296,7 @@ def get_input_image(
 
 
 @contextlib.contextmanager
-def get_tmp_dir(**mkdtemp_kwargs) -> ContextManager[str]:
+def get_tmp_dir(**mkdtemp_kwargs: Any) -> Iterator[str]:
     tmp_dir = tempfile.mkdtemp(**mkdtemp_kwargs)
     try:
         yield tmp_dir
@@ -297,7 +313,7 @@ def get_sha256_hash(file: str, chunk_size: int = 4096) -> str:
 
 
 def save_state_dict(
-    input: Union[Dict[str, torch.Tensor], nn.Module()],
+    input: Union[Dict[str, torch.Tensor], nn.Module],
     name: str,
     root: Optional[str] = None,
     ext=".pth",
@@ -346,9 +362,12 @@ def build_deprecation_message(
     return msg
 
 
-def warn_deprecation(*args: str, **kwargs: Optional[str]):
-    if len(args) == 1 and not kwargs:
-        msg = args[0]
+def warn_deprecation(msg_or_type: str, *args: str, **kwargs: Optional[str]):
+    if args:
+        type = msg_or_type
+        name, version = args
+        msg = build_deprecation_message(type, name, version, **kwargs)
     else:
-        msg = build_deprecation_message(*args, **kwargs)
+        msg = msg_or_type
+
     warnings.warn(msg, UserWarning)
