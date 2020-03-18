@@ -9,6 +9,7 @@ from typing import (
     Dict,
     Callable,
     TypeVar,
+    cast,
 )
 import contextlib
 from collections import OrderedDict
@@ -63,7 +64,7 @@ def _to_nd_arg(dims: int) -> Callable[[Union[T, Sequence[T]]], Tuple[T, ...]]:
     def to_nd_arg(x: Union[T, Sequence[T]]) -> Tuple[T, ...]:
         if x is None:
             warn_deprecation(
-                "argument",
+                "argument value",
                 "None",
                 "0.4",
                 info="If you need this behavior, please implement it in the caller.",
@@ -225,17 +226,17 @@ def build_obj_str(
         return sep.join([f"{key}={value}" for key, value in properties.items()])
 
     if not multiline_properties and num_properties < properties_threshold:
-        properties = join_properties(", ")
+        properties_str = join_properties(", ")
 
         if not named_children:
-            return prefix + properties + postfix
+            return prefix + properties_str + postfix
     else:
-        properties = join_properties(",\n")
+        properties_str = join_properties(",\n")
 
     def indent(line):
         return " " * num_indent + line
 
-    body = [indent(line) for line in properties.splitlines()]
+    body = [indent(line) for line in properties_str.splitlines()]
 
     for name, module in named_children:
         lines = str(module).splitlines()
@@ -255,7 +256,7 @@ def make_reproducible(seed: int = 0) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
     if torch.backends.cudnn.is_available():
-        # Both attributes are dynamically assigned. See
+        # Both attributes are dynamically assigned to the module. See
         # https://github.com/pytorch/pytorch/blob/a1eaaea288cf51abcd69eb9b0993b1aa9c0ce41f/torch/backends/cudnn/__init__.py#L115-L129
         # The type errors are ignored, since this is still the recommended practice.
         # https://pytorch.org/docs/stable/notes/randomness.html#cudnn

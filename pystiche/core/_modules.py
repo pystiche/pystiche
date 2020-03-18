@@ -47,7 +47,7 @@ class SequentialModule(Module):
     def __init__(self, *modules: nn.Module):
         super().__init__(indexed_children=modules)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore  # FIXME
         for module in self.children():
             x = module(x)
         return x

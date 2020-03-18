@@ -9,12 +9,16 @@ from typing import (
     Iterator,
     NoReturn,
     Union,
+    Callable,
+    cast,
+    Iterable,
 )
 from abc import ABC
 from copy import copy
 from collections import OrderedDict
 import torch
 from torch import nn
+from ._meta import tensor_meta
 from pystiche.misc import build_obj_str, build_fmtstr, format_dict
 
 
@@ -82,7 +86,7 @@ class TensorStorage(nn.Module, Object):
             else:
                 setattr(self, name, attr)
 
-    def forward(self) -> NoReturn:
+    def forward(self, *args: Any, **kwargs: Any) -> NoReturn:
         msg = (
             f"{self.__class__.__name__} objects are only used "
             "for storage and cannot be called."
@@ -101,16 +105,18 @@ class LossDict(OrderedDict):
     def __setitem__(self, name: str, loss: Union[torch.Tensor, "LossDict"]) -> None:
         if isinstance(loss, torch.Tensor):
             super().__setitem__(name, loss)
-            return
-        if isinstance(loss, LossDict):
+        elif isinstance(loss, LossDict):
             for child_name, child_loss in loss.items():
                 super().__setitem__(f"{name}.{child_name}", child_loss)
-            return
-
-        # FIXME
-        raise TypeError
+        else:
+            # FIXME
+            raise TypeError
 
     def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
+        def sum(values: Iterable[torch.Tensor]) -> torch.Tensor:
+            cast(Sequence[torch.Tensor], values)
+            return torch.sum(torch.cat(tuple(values)))
+
         if max_depth == 0:
             return sum(self.values())
 
@@ -120,14 +126,16 @@ class LossDict(OrderedDict):
 
         agg_names = [".".join(split[:max_depth]) for split in splits]
         key_map = dict(zip(self.keys(), agg_names))
-        agg_losses = {name: [] for name in set(agg_names)}
+        agg_losses: Dict[str, List[torch.Tensor]] = {
+            name: [] for name in set(agg_names)
+        }
         for name, loss in self.items():
             agg_losses[key_map[name]].append(loss)
 
         return LossDict([(name, sum(agg_losses[name])) for name in agg_names])
 
     def total(self) -> torch.Tensor:
-        return self.aggregate(0)
+        return cast(torch.Tensor, self.aggregate(0))
 
     def backward(self, *args, **kwargs) -> None:
         self.total().backward(*args, **kwargs)
@@ -144,7 +152,9 @@ class LossDict(OrderedDict):
 
     def format(self, max_depth: Optional[int] = None, **format_dict_kwargs: Any) -> str:
         if max_depth is not None:
-            dct = self.aggregate(max_depth)
+            if max_depth == 0:
+                return str(self.total())
+            dct = cast(LossDict, self.aggregate(max_depth))
         else:
             dct = self
 
@@ -162,11 +172,16 @@ class TensorKey:
         self._key = (*self.extract_meta(x), *self.calculate_stats(x))
 
     def extract_meta(self, x: torch.Tensor) -> Tuple[Hashable, ...]:
+        # TODO: can this be handled by pystiche.tensor_meta()?
         return (x.device, x.dtype, x.size())
 
     def calculate_stats(self, x: torch.Tensor) -> List[str]:
-        stat_fns = (torch.min, torch.max, torch.norm)
-        return [f"{stat_fn(x):.4e}" for stat_fn in stat_fns]
+        stat_fns: Sequence[Callable[[torch.Tensor], torch.Tensor]] = (
+            torch.min,
+            torch.max,
+            torch.norm,
+        )
+        return [f"{stat_fn(x).item():.4e}" for stat_fn in stat_fns]
 
     @property
     def key(self) -> Tuple[Hashable, ...]:
