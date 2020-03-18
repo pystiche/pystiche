@@ -427,7 +427,7 @@ def ulyanov_et_al_2016_transformer(
     instance_norm: bool = True,
     stylization: bool = True,
     levels: Optional[int] = None,
-):
+) -> UlyanovEtAl2016Transformer:
     if levels is None:
         if not impl_params:
             levels = 6 if stylization else 5

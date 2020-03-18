@@ -1,16 +1,17 @@
-from typing import Union, Optional, Callable, Any, List
+from typing import Union, Optional, Callable
 import torch
+from pystiche.image import CaffePostprocessing
 from torch.utils.data import DataLoader
 from torch import nn
 from torch.optim.optimizer import Optimizer
-from torch.optim.lr_scheduler import ExponentialLR
 import pystiche
+from torch.optim.lr_scheduler import ExponentialLR
 from pystiche.optim import (
     OptimLogger,
     default_transformer_epoch_optim_loop,
 )
 from ..common_utils import batch_up_image
-from .modules import ulyanov_et_al_2016_transformer
+from .modules import ulyanov_et_al_2016_transformer, UlyanovEtAl2016Transformer
 from .loss import (
     UlyanovEtAl2016PerceptualLoss,
     ulyanov_et_al_2016_perceptual_loss,
@@ -27,6 +28,7 @@ from .utils import (
     ulyanov_et_al_2016_preprocessor,
     ulyanov_et_al_2016_postprocessor,
     ulyanov_et_al_2016_optimizer,
+    ulyanov_et_al_2016_lr_scheduler,
 )
 
 
@@ -41,44 +43,17 @@ __all__ = [
 ]
 
 
-class DelayedExponentialLR(ExponentialLR):
-    def __init__(
-        self, optimizer: Optimizer, gamma: float, delay: int, **kwargs: Any
-    ) -> None:
-        self.delay = delay
-        super().__init__(optimizer, gamma, **kwargs)
-
-    def get_lr(self) -> List[float]:
-        exp = self.last_epoch - self.delay + 1
-        if exp > 0:
-            return [base_lr * self.gamma ** exp for base_lr in self.base_lrs]
-        else:
-            return self.base_lrs
-
-
-def ulyanov_et_al_2018_lr_scheduler(
-    optimizer: Optional[Optimizer] = None, impl_params: bool = True,
-) -> ExponentialLR:
-    if impl_params:
-        lr_scheduler = ExponentialLR(optimizer, 0.8)
-    else:
-        lr_scheduler = DelayedExponentialLR(optimizer, 0.7, 5)
-    return lr_scheduler
-
-
 def ulyanov_et_al_2016_training(
     content_image_loader: DataLoader,
     style: Union[str, torch.Tensor],
     impl_params: bool = True,
     instance_norm: bool = True,
     stylization: bool = True,
-    transformer: Optional[ulyanov_et_al_2016_transformer] = None,
+    transformer: Optional[UlyanovEtAl2016Transformer] = None,
     criterion: Optional[UlyanovEtAl2016PerceptualLoss] = None,
-    lr_scheduler: Optional[ulyanov_et_al_2018_lr_scheduler] = None,
+    lr_scheduler: Optional[ExponentialLR, None] = None,
     num_epochs: Optional[int] = None,
-    get_optimizer: Optional[
-        Callable[[ulyanov_et_al_2016_transformer], Optimizer]
-    ] = None,
+    get_optimizer: Optional[Callable[[UlyanovEtAl2016Transformer], Optimizer]] = None,
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
     log_fn: Optional[
@@ -111,11 +86,12 @@ def ulyanov_et_al_2016_training(
         criterion = criterion.eval()
     criterion = criterion.to(device)
 
+    if get_optimizer is None:
+        get_optimizer = ulyanov_et_al_2016_optimizer
+    optimizer = get_optimizer(transformer)
+
     if lr_scheduler is None:
-        if get_optimizer is None:
-            get_optimizer = ulyanov_et_al_2016_optimizer
-        optimizer = get_optimizer(transformer)
-        lr_scheduler = ulyanov_et_al_2018_lr_scheduler(
+        lr_scheduler = ulyanov_et_al_2016_lr_scheduler(
             optimizer, impl_params=impl_params,
         )
 
@@ -151,6 +127,7 @@ def ulyanov_et_al_2016_training(
         criterion_update_fn,
         num_epochs,
         device=device,
+        optimizer=optimizer,
         lr_scheduler=lr_scheduler,
         quiet=quiet,
         logger=logger,
@@ -166,7 +143,7 @@ def ulyanov_et_al_2016_stylization(
     impl_params: bool = True,
     instance_norm: bool = None,
     sample_size: int = 256,
-    postprocessor: ulyanov_et_al_2016_postprocessor = None,
+    postprocessor: Optional[CaffePostprocessing] = None,
 ):
     device = input_image.device
     if isinstance(transformer, str):
