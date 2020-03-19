@@ -1,4 +1,4 @@
-from typing import Any, Sequence, Tuple
+from typing import Any, Sequence, Tuple, cast
 import torch
 from pystiche.misc import verify_str_arg
 
@@ -168,7 +168,7 @@ def extract_num_channels(x: torch.Tensor) -> int:
 
 def extract_image_size(x: torch.Tensor) -> Tuple[int, int]:
     verify_is_image(x)
-    return tuple(x.size()[-2:])
+    return cast(Tuple[int, int], tuple(x.size()[-2:]))
 
 
 def extract_edge_size(x: torch.Tensor, edge: str = "short") -> int:

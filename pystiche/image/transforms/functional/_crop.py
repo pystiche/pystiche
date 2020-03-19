@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, cast
 import torch
 from pystiche.misc import verify_str_arg
 from pystiche.image.utils import (
@@ -20,9 +20,9 @@ __all__ = [
 
 def _parse_size(size: Union[Tuple[int, int], int]) -> Tuple[int, int]:
     if is_image_size(size):
-        return size
+        return cast(Tuple[int, int], size)
     elif is_edge_size(size):
-        return size, size
+        return cast(Tuple[int, int], (size, size))
     else:
         raise RuntimeError
 

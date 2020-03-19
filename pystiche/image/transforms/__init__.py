@@ -1,3 +1,4 @@
+# type: ignore  # FIXME
 from .color import *
 from .core import *
 from .crop import *

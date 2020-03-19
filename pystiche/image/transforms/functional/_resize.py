@@ -1,4 +1,4 @@
-from typing import Union, Optional, Tuple
+from typing import Union, Optional, Tuple, cast
 import torch
 from pystiche.misc import to_2d_arg
 from pystiche.image.utils import (
@@ -28,7 +28,7 @@ def resize(
     if is_image_size(size):
         image_size = size
     elif is_edge_size(size):
-        edge_size = size
+        edge_size = cast(int, size)
         image_size = edge_to_image_size(edge_size, aspect_ratio, edge)
     else:
         raise RuntimeError

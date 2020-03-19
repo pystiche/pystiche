@@ -58,9 +58,10 @@ def _create_motif_scaling_matrix(
 def _create_motif_translation_matrix(
     translation: Tuple[float, float], inverse: bool = False
 ) -> torch.Tensor:
-    if inverse:
-        translation = [-val for val in translation]
     translation_vert, translation_horz = translation
+    if inverse:
+        translation_vert = -translation_vert
+        translation_horz = -translation_horz
     translation_matrix = (
         (1.0, 0.0, translation_horz),
         (0.0, 1.0, translation_vert),
@@ -155,8 +156,9 @@ def _create_affine_transform_matrix(
 
 def _calculate_full_bounding_box_size(vertices: torch.Tensor) -> Tuple[int, int]:
     # TODO: rename x and y
-    x, y = torch.max(torch.abs(vertices), 1).values.tolist()
-    return tuple([int(np.ceil(2.0 * val)) for val in (y, x)])
+    # FIXME
+    x, y = torch.max(torch.abs(vertices), 1).values.tolist()  # type: ignore
+    return tuple([int(np.ceil(2.0 * val)) for val in (y, x)])  # type: ignore
 
 
 def _calculate_valid_bounding_box_size(vertices):
