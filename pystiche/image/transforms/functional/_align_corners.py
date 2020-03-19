@@ -9,7 +9,7 @@ from torch.nn.functional import (
 __all__ = ["interpolate", "affine_grid", "grid_sample"]
 
 # The purpose of this module is to suppress UserWarnings from interpolate(),
-# grid_sample(), and affine_grid() due to the changed default value of grid_sample
+# grid_sample(), and affine_grid() due to the changed default value of align_corners.
 
 
 def _get_align_corners(interpolation_mode: str) -> Optional[bool]:
@@ -35,7 +35,9 @@ def interpolate(
 
 
 def affine_grid(theta: torch.Tensor, size: Tuple[int, int, int, int],) -> torch.Tensor:
-    return _affine_grid(theta, size, align_corners=False)
+    # I have no idea why mypy thinks that align_corners is an unexpected keyword
+    # argument, when it clearly is one.
+    return _affine_grid(theta, list(size), align_corners=False)  # type: ignore[call-arg]
 
 
 def grid_sample(
@@ -44,7 +46,8 @@ def grid_sample(
     mode: str = "bilinear",
     padding_mode: str = "zeros",
 ) -> torch.Tensor:
-    return _grid_sample(
+    # See comment above comment in affine_grid().
+    return _grid_sample(  # type: ignore[call-arg]
         image,
         grid,
         mode=mode,
