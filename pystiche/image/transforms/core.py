@@ -9,7 +9,7 @@ __all__ = ["Transform", "ComposedTransform"]
 
 class Transform(pystiche.Module):
     @abstractmethod
-    def forward(self, *input):
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
         pass
 
     def __add__(

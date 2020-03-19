@@ -221,8 +221,10 @@ def build_obj_str(
         [len(str(value).splitlines()) > 1 for value in properties.values()]
     )
 
-    def join_properties(sep: str) -> str:
-        return sep.join([f"{key}={value}" for key, value in properties.items()])
+    # Remove the default argument after mypy is able to handle this
+    # https://github.com/python/mypy/issues/2608
+    def join_properties(sep: str, props=properties) -> str:
+        return sep.join([f"{key}={value}" for key, value in props.items()])
 
     if not multiline_properties and num_properties < properties_threshold:
         properties_str = join_properties(", ")
