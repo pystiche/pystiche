@@ -1,3 +1,4 @@
+from typing import cast
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -16,9 +17,9 @@ def propagate_guide(
 ) -> torch.Tensor:
     verify_str_arg(method, "method", ("simple", "inside", "all"))
     if is_conv_module(module):
-        guide = _conv_guide(module, guide, method)
+        guide = _conv_guide(cast(ConvModule, module), guide, method)
     elif is_pool_module(module):
-        guide = _pool_guide(module, guide)
+        guide = _pool_guide(cast(PoolModule, module), guide)
 
     if allow_empty or torch.any(guide.bool()):
         return guide

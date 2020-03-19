@@ -1,19 +1,19 @@
 from collections import OrderedDict
 from torch.utils import model_zoo
 from torch import nn
-import torchvision
+from torchvision.models import vgg
+
+# from torchvision.models.vgg import model_urls
 from ..multi_layer_encoder import MultiLayerEncoder
 from ..preprocessing import get_preprocessor
 
 MODELS = {
     name: vgg_net
-    for name, vgg_net in torchvision.models.vgg.__dict__.items()
+    for name, vgg_net in vgg.__dict__.items()
     if name.startswith("vgg") and callable(vgg_net)
 }
 
-MODEL_URLS = {
-    ("torch", arch): url for arch, url in torchvision.models.vgg.model_urls.items()
-}
+MODEL_URLS = {("torch", arch): url for arch, url in vgg.model_urls.items()}
 MODEL_URLS.update(
     {
         (

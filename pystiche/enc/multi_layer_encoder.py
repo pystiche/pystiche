@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple, Iterator, Union, Dict, Optional, Collection
+from typing import Sequence, Tuple, Iterator, Union, Dict, Optional, Collection, Set
 from collections import OrderedDict
 from copy import copy
 import torch
@@ -13,8 +13,8 @@ __all__ = ["MultiLayerEncoder", "SingleLayerEncoder"]
 class MultiLayerEncoder(pystiche.Module):
     def __init__(self, modules: Dict[str, nn.Module]) -> None:
         super().__init__(named_children=modules)
-        self._registered_layers = set()
-        self._cache = {}
+        self._registered_layers: Set[str] = set()
+        self._cache: Dict[Tuple[str, pystiche.TensorKey], torch.Tensor] = {}
 
         self.requires_grad_(False)
         self.eval()
@@ -37,7 +37,7 @@ class MultiLayerEncoder(pystiche.Module):
 
     def named_children_to(
         self, layer: str, include_last: bool = False
-    ) -> Iterator[Tuple[str, pystiche.Module]]:
+    ) -> Iterator[Tuple[str, nn.Module]]:
         self._verify_layer(layer)
         idx = list(self.children_names()).index(layer)
         if include_last:
@@ -46,7 +46,7 @@ class MultiLayerEncoder(pystiche.Module):
 
     def named_children_from(
         self, layer: str, include_first: bool = True
-    ) -> Iterator[Tuple[str, pystiche.Module]]:
+    ) -> Iterator[Tuple[str, nn.Module]]:
         self._verify_layer(layer)
         idx = list(self.children_names()).index(layer)
         if not include_first:
@@ -54,26 +54,26 @@ class MultiLayerEncoder(pystiche.Module):
         return iter(tuple(self.named_children())[idx:])
 
     def forward(
-        self, x: torch.Tensor, layers: Sequence[str], store=False
+        self, input: torch.Tensor, layers: Sequence[str], store=False
     ) -> Tuple[torch.Tensor, ...]:
-        storage = copy(self._cache)
-        x_key = pystiche.TensorKey(x)
-        stored_layers = [
-            name for (name, tensor_key) in storage.keys() if tensor_key == x_key
+        cache = copy(self._cache)
+        input_key = pystiche.TensorKey(input)
+        cached_layers = [
+            name for (name, tensor_key) in cache.keys() if tensor_key == input_key
         ]
-        diff_layers = set(layers) - set(stored_layers)
+        diff_layers = set(layers) - set(cached_layers)
 
         if diff_layers:
             deepest_layer = self.extract_deepest_layer(diff_layers)
             for name, module in self.named_children_to(
                 deepest_layer, include_last=True
             ):
-                x = storage[(name, x_key)] = module(x)
+                input = cache[(name, input_key)] = module(input)
 
             if store:
-                self._cache.update(storage)
+                self._cache.update(cache)
 
-        return tuple([storage[(name, x_key)] for name in layers])
+        return tuple([cache[(name, input_key)] for name in layers])
 
     def encode(self, image: torch.Tensor):
         if not self._registered_layers:
@@ -84,6 +84,7 @@ class MultiLayerEncoder(pystiche.Module):
         encs = self(image, layers=self._registered_layers, store=True)
         self._cache = dict(zip(keys, encs))
 
+    # FIXME: make this a function
     def __getitem__(self, layer: str) -> "SingleLayerEncoder":
         self._verify_layer(layer)
         self._registered_layers.add(layer)
