@@ -19,29 +19,16 @@ def _extract_meta_attrs(
     return kwargs
 
 
-TensorMeta = Union[torch.device, torch.dtype]
-
-
-def tensor_meta(x: torch.Tensor, **kwargs: TensorMeta) -> Dict[str, TensorMeta]:
+def tensor_meta(x: torch.Tensor, **kwargs: Any) -> Dict[str, Any]:
     attrs = ("dtype", "device")
     return _extract_meta_attrs(x, attrs, **kwargs)
 
 
-ConvModuleMeta = Union[int, Sequence[int]]
-
-
-def conv_module_meta(
-    x: ConvModule, **kwargs: ConvModuleMeta
-) -> Dict[str, ConvModuleMeta]:
+def conv_module_meta(x: ConvModule, **kwargs: Any) -> Dict[str, Any]:
     attrs = ("kernel_size", "stride", "padding", "dilation")
     return _extract_meta_attrs(x, attrs, **kwargs)
 
 
-PoolModuleMeta = Union[int, Sequence[int]]
-
-
-def pool_module_meta(
-    x: PoolModule, **kwargs: PoolModuleMeta
-) -> Dict[str, PoolModuleMeta]:
+def pool_module_meta(x: PoolModule, **kwargs: Any) -> Dict[str, Any]:
     attrs = ("kernel_size", "stride", "padding")
     return _extract_meta_attrs(x, attrs, **kwargs)
