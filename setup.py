@@ -17,6 +17,7 @@ extras_require = {
         "pre-commit",
         "mypy",
         "numpy-stubs@https://github.com/numpy/numpy-stubs/archive/master.zip",
+        "pytest",
         "pyimagetest@https://github.com/pmeier/pyimagetest/archive/master.zip",
         "pillow_affine@https://github.com/pmeier/pillow_affine/archive/master.zip",
     )
