@@ -1,0 +1,9 @@
+from typing import Union, Optional
+from PIL import Image
+import numpy as np
+import torch
+
+def to_tensor(pic: Union[Image.Image, np.ndarray]) -> torch.Tensor: ...
+def to_pil_image(
+    pic: Union[torch.Tensor, np.ndarray], mode: Optional[str] = ...
+) -> Image.Image: ...
