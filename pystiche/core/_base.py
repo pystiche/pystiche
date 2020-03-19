@@ -115,7 +115,7 @@ class LossDict(OrderedDict):
     def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
         def sum(values: Iterable[torch.Tensor]) -> torch.Tensor:
             cast(Sequence[torch.Tensor], values)
-            return torch.sum(torch.cat(tuple(values)))
+            return torch.sum(torch.stack(tuple(values)))
 
         if max_depth == 0:
             return sum(self.values())
