@@ -41,14 +41,30 @@ class Tester(unittest.TestCase):
 
     def test_is_conv_module(self):
         for module in self.default_conv_modules():
-            self.assertTrue(typing.is_conv_module(module))
+            msg = (
+                f"{module.__class__.__name__} is a conv module, but it is not "
+                f"recognized as one."
+            )
+            self.assertTrue(typing.is_conv_module(module), msg)
 
         for module in self.default_pool_modules():
-            self.assertFalse(typing.is_conv_module(module))
+            msg = (
+                f"{module.__class__.__name__} is not a conv module, but it is "
+                f"recognized as one."
+            )
+            self.assertFalse(typing.is_conv_module(module), msg)
 
     def test_is_pool_module(self):
         for module in self.default_pool_modules():
-            self.assertTrue(typing.is_pool_module(module))
+            msg = (
+                f"{module.__class__.__name__} is a pool module, but it is not "
+                f"recognized as one."
+            )
+            self.assertTrue(typing.is_pool_module(module), msg)
 
         for module in self.default_conv_modules():
-            self.assertFalse(typing.is_pool_module(module))
+            msg = (
+                f"{module.__class__.__name__} is not a pool module, but it is "
+                f"recognized as one."
+            )
+            self.assertFalse(typing.is_pool_module(module), msg)
