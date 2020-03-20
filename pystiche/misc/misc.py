@@ -116,6 +116,7 @@ def to_engstr(
     return sigstr + expstr
 
 
+# TODO: has this function any purpose?git
 def to_tuplestr(sequence: Sequence) -> str:
     sequence = [str(item) for item in sequence]
     if len(sequence) == 0:
@@ -133,6 +134,7 @@ def to_engtuplestr(sequence: Sequence, **kwargs) -> str:
 
 # FIXME: add padding
 # FIXME: add sign
+#  see https://pyformat.info/#param_align
 def build_fmtstr(
     id: Optional[Union[int, str]] = None,
     align: Optional[str] = None,
