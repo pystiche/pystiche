@@ -15,6 +15,7 @@ class Tester(unittest.TestCase):
             with cuda.use_cuda_out_of_memory_error():
                 self.create_large_cuda_tensor()
 
+    @skip_if_cuda_not_available
     def test_abort_if_cuda_memory_exausts(self):
         @cuda.abort_if_cuda_memory_exausts
         def fn():
