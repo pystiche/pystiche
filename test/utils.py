@@ -81,6 +81,11 @@ def get_tmp_dir(**mkdtemp_kwargs):
         shutil.rmtree(tmp_dir)
 
 
+try:
+    CUDA_AVAILABLE = torch.cuda.is_available()
+except AssertionError:
+    CUDA_AVAILABLE = False
+
 skip_if_cuda_not_available = unittest.skipIf(
-    not torch.cuda.is_available(), "Skipping, since CUDA is not available."
+    not CUDA_AVAILABLE, "Skipping, since CUDA is not available."
 )
