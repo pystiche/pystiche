@@ -1,5 +1,7 @@
+from os import path
+import math
 import unittest
-from math import factorial
+import torch
 from pystiche.misc import misc
 
 
@@ -9,7 +11,7 @@ class Tester(unittest.TestCase):
         iterable = range(1, n + 1)
 
         actual = misc.prod(iterable)
-        desired = factorial(n)
+        desired = math.factorial(n)
         self.assertEqual(actual, desired)
 
     def test_to_1d_arg(self):
@@ -174,4 +176,87 @@ class Tester(unittest.TestCase):
         seq = (0.0, "a")
         actual = misc.to_tuplestr(seq)
         desired = str(seq)
+        self.assertEqual(actual, desired)
+
+    def test_verify_str_arg(self):
+        arg = None
+        with self.assertRaises(ValueError):
+            misc.verify_str_arg(arg)
+
+        arg = "foo"
+        valid_args = ("bar", "baz")
+        with self.assertRaises(ValueError):
+            misc.verify_str_arg(arg, valid_args=valid_args)
+
+        arg = "foo"
+        valid_args = ("foo", "bar")
+
+        actual = misc.verify_str_arg(arg, valid_args=valid_args)
+        desired = arg
+        self.assertEqual(actual, desired)
+
+    def assertScalarTensorAlmostEqual(self, actual, desired):
+        self.assertAlmostEqual(actual.item(), desired.item())
+
+    def test_get_input_image_tensor(self):
+        image = torch.tensor(0.0)
+
+        starting_point = image
+        actual = misc.get_input_image(starting_point)
+        desired = image
+        self.assertScalarTensorAlmostEqual(actual, desired)
+
+    def test_get_input_image_tensor_content(self):
+        starting_point = "content"
+        image = torch.tensor(0.0)
+
+        actual = misc.get_input_image(starting_point, content_image=image)
+        desired = image
+        self.assertScalarTensorAlmostEqual(actual, desired)
+
+        with self.assertRaises(RuntimeError):
+            misc.get_input_image(starting_point, style_image=image)
+
+    def test_get_input_image_tensor_style(self):
+        starting_point = "style"
+        image = torch.tensor(0.0)
+
+        actual = misc.get_input_image(starting_point, style_image=image)
+        desired = image
+        self.assertScalarTensorAlmostEqual(actual, desired)
+
+        with self.assertRaises(RuntimeError):
+            misc.get_input_image(starting_point, content_image=image)
+
+    def test_get_input_image_tensor_random(self):
+        def assertTensorDtypeEqual(actual, desired):
+            self.assertEqual(actual.dtype, desired.dtype)
+
+        starting_point = "random"
+        content_image = torch.tensor(0.0, dtype=torch.float32)
+        style_image = torch.tensor(0.0, dtype=torch.float64)
+
+        actual = misc.get_input_image(starting_point, content_image=content_image)
+        desired = content_image
+        assertTensorDtypeEqual(actual, desired)
+
+        actual = misc.get_input_image(starting_point, style_image=style_image)
+        desired = style_image
+        assertTensorDtypeEqual(actual, desired)
+
+        actual = misc.get_input_image(
+            starting_point, content_image=content_image, style_image=style_image
+        )
+        desired = content_image
+        assertTensorDtypeEqual(actual, desired)
+
+        with self.assertRaises(RuntimeError):
+            misc.get_input_image(starting_point)
+
+    def test_get_sha256_hash(self):
+        here = path.abspath(path.dirname(__file__))
+        file = path.join(here, "test_image.png")
+
+        actual = misc.get_sha256_hash(file)
+        desired = "7538cbb80cb9103606c48b806eae57d56c885c7f90b9b3be70a41160f9cbb683"
         self.assertEqual(actual, desired)
