@@ -65,8 +65,7 @@ def ulyanov_et_al_2016_style_transform(
         interpolation_mode = "bilinear"
 
     transforms = [
-        Resize(edge_size, edge="long", interpolation_mode=interpolation_mode),
-        CaffePreprocessing(),
+        Resize(edge_size, edge="long", interpolation_mode=interpolation_mode)
     ]
     return ComposedTransform(*transforms)
 
