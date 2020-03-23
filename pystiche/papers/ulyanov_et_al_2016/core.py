@@ -1,4 +1,4 @@
-from typing import Union, Optional, Callable
+from typing import Union, Optional, Callable, Tuple
 import torch
 from pystiche.image import CaffePostprocessing
 from torch.utils.data import DataLoader
@@ -39,7 +39,8 @@ __all__ = [
     "ulyanov_et_al_2016_image_loader",
     "ulyanov_et_al_2016_training",
     "ulyanov_et_al_2016_images",
-    "ulyanov_et_al_2016_stylization",
+    "ulyanov_et_al_2016_style_generation",
+    "ulyanov_et_al_2016_texture_generation",
 ]
 
 
@@ -136,34 +137,65 @@ def ulyanov_et_al_2016_training(
     return transformer
 
 
-def ulyanov_et_al_2016_stylization(
+def ulyanov_et_al_2016_style_generation(
     input_image: torch.Tensor,
     transformer: Union[nn.Module, str],
     impl_params: bool = True,
     instance_norm: bool = False,
-    sample_size: int = 256,
+    stylization: bool = True,
     postprocessor: Optional[CaffePostprocessing] = None,
 ):
     device = input_image.device
     if isinstance(transformer, str):
         style = transformer
         transformer = ulyanov_et_al_2016_transformer(
-            style=style, impl_params=impl_params, instance_norm=instance_norm,
+            style=style, impl_params=impl_params, instance_norm=instance_norm, stylization=stylization
         )
         if instance_norm or not impl_params:
             transformer = transformer.eval()
         transformer = transformer.to(device)
 
     with torch.no_grad():
-        content_transform = ulyanov_et_al_2016_content_transform(
-            edge_size=sample_size, impl_params=impl_params
-        )
+        content_transform = ulyanov_et_al_2016_content_transform(impl_params=impl_params,
+                                                                 instance_norm=instance_norm)
+        content_transform = content_transform.to(device)
+        input_image = content_transform(input_image)
+
         if postprocessor is None:
             postprocessor = ulyanov_et_al_2016_postprocessor()
-        content_transform = content_transform.to(device)
         postprocessor = postprocessor.to(device)
-        input_image = content_transform(input_image)
         output_image = transformer(input_image)
+        output_image = torch.clamp(postprocessor(output_image), 0, 1)
+
+    return output_image.detach()
+
+
+def ulyanov_et_al_2016_texture_generation(
+    input: Union[Tuple[int, int], torch.Tensor],
+    transformer: Union[nn.Module, str],
+    impl_params: bool = True,
+    instance_norm: bool = False,
+    stylization: bool = True,
+    postprocessor: Optional[CaffePostprocessing] = None,
+):
+    if isinstance(input, torch.Tensor):
+        device = input.device
+    else:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    if isinstance(transformer, str):
+        style = transformer
+        transformer = ulyanov_et_al_2016_transformer(
+            style=style, impl_params=impl_params, instance_norm=instance_norm, stylization=stylization
+        )
+        if instance_norm or not impl_params:
+            transformer = transformer.eval()
+        transformer = transformer.to(device)
+
+    with torch.no_grad():
+        if postprocessor is None:
+            postprocessor = ulyanov_et_al_2016_postprocessor()
+        postprocessor = postprocessor.to(device)
+        output_image = transformer(input)
         output_image = torch.clamp(postprocessor(output_image), 0, 1)
 
     return output_image.detach()
