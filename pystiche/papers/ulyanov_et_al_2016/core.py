@@ -109,9 +109,11 @@ def ulyanov_et_al_2016_training(
         impl_params=impl_params, instance_norm=instance_norm
     )
     style_transform = style_transform.to(device)
+    preprocessor = ulyanov_et_al_2016_preprocessor()
+    preprocessor = preprocessor.to(device)
     style_image = style_transform(style_image)
+    style_image = preprocessor(style_image)
     style_image = batch_up_image(style_image, loader=content_image_loader)
-
     criterion.set_style_image(style_image)
 
     def criterion_update_fn(input_image, criterion, preprocessor=None):
