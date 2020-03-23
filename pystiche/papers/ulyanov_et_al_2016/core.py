@@ -140,7 +140,7 @@ def ulyanov_et_al_2016_stylization(
     input_image: torch.Tensor,
     transformer: Union[nn.Module, str],
     impl_params: bool = True,
-    instance_norm: bool = None,
+    instance_norm: bool = False,
     sample_size: int = 256,
     postprocessor: Optional[CaffePostprocessing] = None,
 ):
@@ -150,7 +150,8 @@ def ulyanov_et_al_2016_stylization(
         transformer = ulyanov_et_al_2016_transformer(
             style=style, impl_params=impl_params, instance_norm=instance_norm,
         )
-        transformer = transformer.eval()
+        if instance_norm or not impl_params:
+            transformer = transformer.eval()
         transformer = transformer.to(device)
 
     with torch.no_grad():
