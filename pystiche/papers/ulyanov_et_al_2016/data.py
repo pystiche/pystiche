@@ -11,7 +11,7 @@ from pystiche.data import (
     FiniteCycleBatchSampler,
 )
 from pystiche.image import extract_num_channels, CaffePreprocessing
-from pystiche.image.transforms import Transform, Resize, ComposedTransform
+from pystiche.image.transforms import Transform, Resize, ComposedTransform, CenterCrop
 from pystiche.image.transforms.functional import grayscale_to_fakegrayscale
 
 
@@ -39,16 +39,13 @@ def ulyanov_et_al_2016_content_transform(
     transforms = []
     if impl_params:
         if instance_norm:
-            # FIXME: RandomCrop here
-            transforms.append(
-                Resize((edge_size, edge_size), interpolation_mode="bicubic")
-            )
+            transforms.append(CenterCrop(edge_size))
         else:
             transforms.append(
                 Resize((edge_size, edge_size), interpolation_mode="bilinear")
             )
     else:
-        transforms.append(Resize((edge_size, edge_size), interpolation_mode="bilinear"))
+        transforms.append(CenterCrop(edge_size))
 
     transforms.append(OptionalGrayscaleToFakegrayscale())
     return ComposedTransform(*transforms)
@@ -254,7 +251,7 @@ def ulyanov_et_al_2016_image_loader(
     instance_norm: bool = True,
     stylization: bool = True,
     batch_sampler: Optional[Sampler] = None,
-    num_workers: int = 4,
+    num_workers: int = 0, # TODO: set to 4
     pin_memory: bool = True,
 ):
     if batch_sampler is None:

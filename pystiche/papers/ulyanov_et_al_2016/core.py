@@ -51,7 +51,7 @@ def ulyanov_et_al_2016_training(
     stylization: bool = True,
     transformer: Optional[UlyanovEtAl2016Transformer] = None,
     criterion: Optional[UlyanovEtAl2016PerceptualLoss] = None,
-    lr_scheduler: Optional[ExponentialLR, None] = None,
+    lr_scheduler: Optional[ExponentialLR] = None,
     num_epochs: Optional[int] = None,
     get_optimizer: Optional[Callable[[UlyanovEtAl2016Transformer], Optimizer]] = None,
     quiet: bool = False,
@@ -86,11 +86,11 @@ def ulyanov_et_al_2016_training(
         criterion = criterion.eval()
     criterion = criterion.to(device)
 
-    if get_optimizer is None:
-        get_optimizer = ulyanov_et_al_2016_optimizer
-    optimizer = get_optimizer(transformer)
-
     if lr_scheduler is None:
+        if get_optimizer is None:
+            get_optimizer = ulyanov_et_al_2016_optimizer
+        optimizer = get_optimizer(transformer)
+
         lr_scheduler = ulyanov_et_al_2016_lr_scheduler(
             optimizer, impl_params=impl_params,
         )
@@ -127,7 +127,6 @@ def ulyanov_et_al_2016_training(
         criterion_update_fn,
         num_epochs,
         device=device,
-        optimizer=optimizer,
         lr_scheduler=lr_scheduler,
         quiet=quiet,
         logger=logger,
