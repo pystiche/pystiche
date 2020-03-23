@@ -45,10 +45,8 @@ class DelayedExponentialLR(ExponentialLR):
 
 
 def ulyanov_et_al_2016_lr_scheduler(
-    optimizer: Optional[Optimizer] = None, impl_params: bool = True,
-) -> Optional[ExponentialLR, None]:
-    if optimizer is None:
-        return None
+    optimizer: Optional[Optimizer], impl_params: bool = True,
+) -> Optional[ExponentialLR]:
     if impl_params:
         lr_scheduler = ExponentialLR(optimizer, 0.8)
     else:
