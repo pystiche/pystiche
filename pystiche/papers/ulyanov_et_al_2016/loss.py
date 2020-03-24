@@ -1,15 +1,28 @@
 from typing import Union, Optional, Sequence, Any, Dict
 from collections import OrderedDict
 import torch
-import pystiche
 from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.ops import (
     MSEEncodingOperator,
     GramOperator,
     MultiLayerEncodingOperator,
 )
+from torch.nn.functional import mse_loss
 from pystiche.loss import MultiOperatorLoss
 from .utils import ulyanov_et_al_2016_multi_layer_encoder
+
+
+class UlyanovEtAl2016MSEEncodingOperator(MSEEncodingOperator):
+    def __init__(
+        self, encoder: Encoder, score_weight: float = 1e0
+    ):
+        super().__init__(encoder, score_weight=score_weight)
+        self.loss_reduction = "mean"
+
+    def calculate_score(self, input_repr, target_repr, ctx):
+        score_correction_factor = 1 / input_repr.size()[0]
+        score = mse_loss(input_repr, target_repr, reduction=self.loss_reduction)
+        return score * score_correction_factor
 
 
 def ulyanov_et_al_2016_content_loss(
@@ -29,7 +42,7 @@ def ulyanov_et_al_2016_content_loss(
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()
     encoder = multi_layer_encoder[layer]
 
-    return MSEEncodingOperator(encoder, score_weight=score_weight)
+    return UlyanovEtAl2016MSEEncodingOperator(encoder, score_weight=score_weight)
 
 
 class UlyanovEtAl2016GramOperator(GramOperator):
@@ -38,6 +51,7 @@ class UlyanovEtAl2016GramOperator(GramOperator):
     ):
         super().__init__(encoder, **gram_op_kwargs)
         self.normalize_by_num_channels = impl_params
+        self.loss_reduction = "mean"
 
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         gram_matrix = super().enc_to_repr(enc)
@@ -47,6 +61,12 @@ class UlyanovEtAl2016GramOperator(GramOperator):
         num_channels = gram_matrix.size()[-1]
         return gram_matrix / num_channels
 
+    def calculate_score(
+        self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
+    ) -> torch.Tensor:
+        score_correction_factor = 1 / input_repr.size()[0]
+        score = mse_loss(input_repr, target_repr, reduction=self.loss_reduction)
+        return score * score_correction_factor
 
 def ulyanov_et_al_2016_style_loss(
     impl_params: bool = True,
@@ -108,22 +128,6 @@ class UlyanovEtAl2016PerceptualLoss(MultiOperatorLoss):
 
     def set_style_image(self, image: torch.Tensor):
         self.style_loss.set_target_image(image)
-
-    def forward(self, input_image: torch.Tensor) -> pystiche.LossDict:
-        for encoder in self._multi_layer_encoders:
-            encoder.encode(input_image)
-
-        loss = pystiche.LossDict(
-            [(name, op(input_image)) for name, op in self.named_children()]
-        )
-
-        for key in loss.keys():
-            loss[key] = loss[key] / input_image.size()[0]
-
-        for encoder in self._multi_layer_encoders:
-            encoder.clear_cache()
-
-        return loss
 
 
 def ulyanov_et_al_2016_perceptual_loss(
