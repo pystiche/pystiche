@@ -250,7 +250,7 @@ def ulyanov_et_al_2016_image_loader(
     instance_norm: bool = True,
     stylization: bool = True,
     batch_sampler: Optional[Sampler] = None,
-    num_workers: int = 0, # TODO: set to 4
+    num_workers: int = 0,
     pin_memory: bool = True,
 ):
     if batch_sampler is None:
