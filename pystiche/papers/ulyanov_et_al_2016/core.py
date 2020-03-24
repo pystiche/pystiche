@@ -116,11 +116,8 @@ def ulyanov_et_al_2016_training(
     style_image = batch_up_image(style_image, loader=content_image_loader)
     criterion.set_style_image(style_image)
 
-    def criterion_update_fn(input_image, criterion, preprocessor=None):
+    def criterion_update_fn(input_image, criterion):
         if hasattr(criterion, "content_loss"):
-            if preprocessor is None:
-                preprocessor = ulyanov_et_al_2016_preprocessor()
-            preprocessor = preprocessor.to(device)
             criterion.set_content_image(preprocessor(input_image))
 
     default_transformer_epoch_optim_loop(
