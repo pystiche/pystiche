@@ -33,7 +33,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         pil_transform,
         pystiche_image=None,
         pil_image=None,
-        mean_abs_tolerance=1e-2,
+        tolerance=1e-2,
     ):
         def parse_images(pystiche_image, pil_image):
             if pystiche_image is None and pil_image is None:
@@ -59,9 +59,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         def assert_transform_equality(pystiche_image, pil_image):
             actual = pystiche_transform(pystiche_image)
             desired = pil_transform(pil_image)
-            self.assertImagesAlmostEqual(
-                actual, desired, mean_abs_tolerance=mean_abs_tolerance
-            )
+            self.assertImagesAlmostEqual(actual, desired, tolerance=tolerance)
 
         pystiche_image, pil_image = parse_images(pystiche_image, pil_image)
 
@@ -123,7 +121,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         self.assertTransformEqualsPIL(
             pystiche_transform=pystiche_transform,
             pil_transform=pil_transform,
-            mean_abs_tolerance=3e-2,
+            tolerance=3e-2,
         )
 
     def test_resize_with_edge_size(self):
@@ -143,7 +141,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
             self.assertTransformEqualsPIL(
                 pystiche_transform=pystiche_transform,
                 pil_transform=pil_transform,
-                mean_abs_tolerance=3e-2,
+                tolerance=3e-2,
             )
 
     def test_rescale(self):
@@ -160,7 +158,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         self.assertTransformEqualsPIL(
             pystiche_transform=pystiche_transform,
             pil_transform=pil_transform,
-            mean_abs_tolerance=2e-2,
+            tolerance=2e-2,
         )
 
     def test_shear_motif(self):
@@ -431,7 +429,7 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         self.assertTransformEqualsPIL(
             pystiche_transform=transforms.RGBToYUV(),
             pil_transform=PILRGBToYUV(),
-            mean_abs_tolerance=2e-2,
+            tolerance=2e-2,
         )
 
     def test_yuv_to_rgb(self):
