@@ -21,7 +21,7 @@ extras_require = {
 }
 
 classifiers = (
-    "Development Status :: 3 - Beta",
+    "Development Status :: 4 - Beta",
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering",
