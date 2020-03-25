@@ -37,7 +37,7 @@ setup(
     author_email=about["__author_email__"],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=find_packages(where=here, exclude=("test",)),
+    packages=find_packages(where=here, exclude=("demo", "test",)),
     install_requires=install_requires,
     extras_require=extras_require,
     python_requires=">=3.6",
