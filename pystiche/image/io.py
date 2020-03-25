@@ -6,15 +6,19 @@ from torchvision.transforms.functional import (
     to_tensor as _to_tensor,
     to_pil_image as _to_pil_image,
 )
+from pystiche.misc import warn_deprecation
 from .utils import (
+    is_image_size,
+    is_edge_size,
     extract_batch_size,
+    calculate_aspect_ratio,
+    edge_to_image_size,
     is_batched_image,
     make_single_image,
     make_batched_image,
     force_single_image,
     force_image,
 )
-from .transforms.functional import resize  # FIXME: remove
 
 
 __all__ = [
@@ -58,6 +62,27 @@ def export_to_pil(
     return fn(image)
 
 
+def _pil_resize(
+    image: Image.Image, size: Union[int, Tuple[int, int]], **kwargs: Any
+) -> Image.Image:
+    if is_image_size(size):
+        height, width = size
+    elif is_edge_size(size):
+        height, width = edge_to_image_size(size, calculate_aspect_ratio(size))
+    else:
+        raise RuntimeError
+
+    if kwargs:
+        warn_deprecation(
+            "parameter",
+            "resize_kwargs",
+            "0.4",
+            info="The keyword arguments are ignored",
+        )
+
+    return image.resize((width, height))
+
+
 def read_image(
     file: str,
     device: Union[torch.device, str] = "cpu",
@@ -68,12 +93,12 @@ def read_image(
     if isinstance(device, str):
         device = torch.device(device)
 
-    image = import_from_pil(Image.open(file), device=device, make_batched=make_batched)
+    image = Image.open(file)
 
     if size is not None:
-        image = resize(image, size, **resize_kwargs)
+        image = _pil_resize(image, size, **resize_kwargs)
 
-    return image
+    return import_from_pil(image, device=device, make_batched=make_batched)
 
 
 def read_guides(
@@ -100,6 +125,9 @@ def show_image(
     size: Optional[Union[int, Tuple[int, int]]] = None,
     **resize_kwargs: Any,
 ):
+    image = export_to_pil(image, mode=mode)
+
     if size is not None:
-        image = resize(image, size, **resize_kwargs)
-    export_to_pil(image, mode=mode).show()
+        image = _pil_resize(image, size, **resize_kwargs)
+
+    image.show()
