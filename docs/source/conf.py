@@ -20,12 +20,17 @@ from os import path
 from datetime import datetime
 
 here = path.abspath(path.dirname(__file__))
+project_root = path.abspath(path.join(here, "..", ".."))
+pkg_name = "pystiche"
 
 about = {}
-with open(path.join(here, "..", "..", "pystiche", "__about__.py"), "r") as fh:
+with open(path.join(project_root, pkg_name, "__about__.py"), "r") as fh:
     exec(fh.read(), about)
 
-project = about["__name__"]
+if about["__name__"] != pkg_name:
+    raise RuntimeError
+
+project = pkg_name
 copyright = f"2019 - {datetime.now().year}, {about['__author__']}"
 author = about["__author__"]
 
@@ -38,7 +43,12 @@ release = about["__version__"]
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx_autodoc_typehints"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx_autodoc_typehints",
+    "sphinx_gallery.gen_gallery",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -47,6 +57,18 @@ templates_path = ["_templates"]
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+
+# -- Sphinx gallery configuration --------------------------------------------
+
+import os
+
+sphinx_gallery_conf = {
+    "examples_dirs": path.join(project_root, "tutorials"),
+    "gallery_dirs": "auto_tutorials",
+    "filename_pattern": os.sep + "tutorial_",
+    "ignore_pattern": "utils.py",
+}
 
 
 # -- Options for HTML output -------------------------------------------------
