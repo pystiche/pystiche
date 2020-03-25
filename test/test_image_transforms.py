@@ -8,11 +8,11 @@ from pystiche.image import (
     edge_to_image_size,
     make_single_image,
     make_batched_image,
+    io,
     transforms,
     processing,
 )
 import pillow_affine as pa
-from pystiche.image.transforms import functional as F
 from image_test_case import PysticheImageTestCase
 
 
@@ -40,9 +40,9 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
                 pystiche_image = self.load_image(backend="pystiche")
                 pil_image = self.load_image(backend="PIL")
             elif pystiche_image is None:
-                pystiche_image = F.import_from_pil(pil_image)
+                pystiche_image = io.import_from_pil(pil_image)
             elif pil_image is None:
-                pil_image = F.export_to_pil(pystiche_image)
+                pil_image = io.export_to_pil(pystiche_image)
 
             return pystiche_image, pil_image
 
