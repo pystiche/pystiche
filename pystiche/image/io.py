@@ -20,6 +20,18 @@ from .utils import (
     force_image,
 )
 
+try:
+    import matplotlib.pyplot as plt
+
+    def _show_pil_image(image: Image.Image) -> None:
+        plt.imshow(image)
+
+
+except ImportError:
+
+    def _show_pil_image(image: Image.Image) -> None:
+        image.show()
+
 
 __all__ = [
     "import_from_pil",
@@ -132,4 +144,4 @@ def show_image(
     if size is not None:
         image = _pil_resize(image, size, **resize_kwargs)
 
-    image.show()
+    _show_pil_image(image)
