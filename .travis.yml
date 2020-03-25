@@ -9,6 +9,6 @@ matrix:
       script: black --check .
     - name: "Tests"
       before_install: pip install coverage codecov
-      install: pip install .[dev]
+      install: pip install .[test]
       script: coverage run --rcfile=.coveragerc -m pytest test/
       after success: codecov

@@ -11,17 +11,17 @@ with open(path.join(here, "README.md"), "r") as fh:
 
 install_requires = ("torch>=1.4.0", "torchvision>=0.5.0", "pillow", "numpy", "requests")
 
+test_requires = ("pytest", "pyimagetest", "pillow_affine")
+
+dev_requires = (*test_requires, "pre-commit")
+
 extras_require = {
-    # FIXME: move to a released versions
-    "dev": (
-        "pre-commit",
-        "pyimagetest@https://github.com/pmeier/pyimagetest/archive/master.zip",
-        "pillow_affine@https://github.com/pmeier/pillow_affine/archive/master.zip",
-    )
+    "test": test_requires,
+    "dev": dev_requires,
 }
 
 classifiers = (
-    "Development Status :: 3 - Beta",
+    "Development Status :: 4 - Beta",
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering",
@@ -37,7 +37,7 @@ setup(
     author_email=about["__author_email__"],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=find_packages(exclude=("test",)),
+    packages=find_packages(where=here, exclude=("demo", "test",)),
     install_requires=install_requires,
     extras_require=extras_require,
     python_requires=">=3.6",
