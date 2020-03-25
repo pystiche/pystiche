@@ -5,6 +5,7 @@ import torch
 from pystiche.image import (
     is_single_image,
     calculate_aspect_ratio,
+    extract_image_size,
     edge_to_image_size,
     make_single_image,
     make_batched_image,
@@ -527,6 +528,36 @@ class Tester(PysticheImageTestCase, unittest.TestCase):
         transform = transforms.CenterCrop(size)
         actual = transform(image)
         desired = image[:, :, size // 2 : -size // 2, size // 2 : -size // 2]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_valid_random_crop(self):
+        image_size = (100, 100)
+        crop_size = 50
+        image = torch.rand(1, 1, *image_size)
+
+        torch.manual_seed(0)
+        vert_origin, horz_origin = transforms.ValidRandomCrop.get_random_origin(
+            image_size, crop_size
+        )
+        torch.manual_seed(0)
+        transform = transforms.ValidRandomCrop(crop_size)
+
+        actual = transform(image)
+        desired = image[
+            :,
+            :,
+            vert_origin : vert_origin + crop_size,
+            horz_origin : horz_origin + crop_size,
+        ]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_valid_random_crop_identity(self):
+        image = self.load_image()
+
+        size = extract_image_size(image)
+        transform = transforms.ValidRandomCrop(size)
+        actual = transform(image)
+        desired = image
         self.assertImagesAlmostEqual(actual, desired)
 
 

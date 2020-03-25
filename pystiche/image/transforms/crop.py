@@ -100,7 +100,7 @@ class ValidRandomCrop(Transform):
         def randint(range: int) -> int:
             if range < 0:
                 raise RuntimeError
-            return torch.randint(0, range + 1).item()
+            return torch.randint(range + 1, ()).item()
 
         vert_origin = randint(image_height - crop_height)
         horz_origin = randint(image_height - crop_height)
