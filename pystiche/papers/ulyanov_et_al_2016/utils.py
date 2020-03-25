@@ -48,7 +48,7 @@ def ulyanov_et_al_2016_lr_scheduler(
     optimizer: Optimizer, impl_params: bool = True,
 ) -> Optional[ExponentialLR]:
     if impl_params:
-        lr_scheduler = ExponentialLR(optimizer, 0.8)
+        lr_scheduler = ExponentialLR(optimizer, gamma=0.8)
     else:
-        lr_scheduler = DelayedExponentialLR(optimizer, 0.7, 5)
+        lr_scheduler = DelayedExponentialLR(optimizer, gamma=0.7, delay=5)
     return lr_scheduler
