@@ -11,6 +11,7 @@ __all__ = [
     "BottomLeftCrop",
     "TopRightCrop",
     "BottomRightCrop",
+    "ValidRandomCrop",
 ]
 
 
