@@ -1,8 +1,8 @@
 from typing import Any, Union, Optional, Tuple, Dict
 from PIL import Image
 import torch
+from pystiche.image import io
 from .core import Transform
-from . import functional as F
 
 __all__ = ["ImportFromPIL", "ExportToPIL"]
 
@@ -16,7 +16,7 @@ class ImportFromPIL(Transform):
         self.make_batched = make_batched
 
     def forward(self, x: Image.Image) -> torch.Tensor:
-        return F.import_from_pil(x, self.device, make_batched=self.make_batched)
+        return io.import_from_pil(x, self.device, make_batched=self.make_batched)
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
@@ -33,7 +33,7 @@ class ExportToPIL(Transform):
         self.mode = mode
 
     def forward(self, x: torch.Tensor) -> Union[Image.Image, Tuple[Image.Image, ...]]:
-        return F.export_to_pil(x, mode=self.mode)
+        return io.export_to_pil(x, mode=self.mode)
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
