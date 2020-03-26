@@ -1,5 +1,4 @@
 from typing import Any, Union, Optional, Sequence, Dict, Callable
-from collections import OrderedDict
 import torch
 import pystiche
 from pystiche.enc import MultiLayerEncoder, Encoder
@@ -11,7 +10,7 @@ from pystiche.ops import (
     MultiLayerEncodingOperator,
     MultiRegionOperator,
 )
-from pystiche.loss import MultiOperatorLoss, PerceptualLoss
+from pystiche.loss import PerceptualLoss, GuidedPerceptualLoss
 from pystiche.misc import warn_deprecation
 from .utils import gatys_et_al_2017_multi_layer_encoder
 
@@ -141,26 +140,17 @@ def gatys_et_al_2017_guided_style_loss(
     )
 
 
-class _GatysEtAl2017PerceptualLoss(MultiOperatorLoss):
+class GatysEtAl2017PerceptualLoss(PerceptualLoss):
     def __init__(
         self, content_loss: MSEEncodingOperator, style_loss: GatysEtAl2017StyleLoss,
     ):
-        super().__init__(
-            OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)])
+        warn_deprecation(
+            "class",
+            "GatysEtAl2017PerceptualLoss",
+            "0.4",
+            info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
-
-    def set_content_image(self, image: torch.Tensor):
-        self.content_loss.set_target_image(image)
-
-
-class GatysEtAl2017PerceptualLoss(_GatysEtAl2017PerceptualLoss):
-    def __init__(
-        self, content_loss: MSEEncodingOperator, style_loss: GatysEtAl2017StyleLoss,
-    ):
         super().__init__(content_loss, style_loss)
-
-    def set_style_image(self, image: torch.Tensor):
-        self.style_loss.set_target_image(image)
 
 
 def gatys_et_al_2017_perceptual_loss(
@@ -186,24 +176,20 @@ def gatys_et_al_2017_perceptual_loss(
         **style_loss_kwargs,
     )
 
-    return GatysEtAl2017PerceptualLoss(content_loss, style_loss)
+    return PerceptualLoss(content_loss, style_loss)
 
 
-class GatysEtAl2017GuidedPerceptualLoss(_GatysEtAl2017PerceptualLoss):
+class GatysEtAl2017GuidedPerceptualLoss(GuidedPerceptualLoss):
     def __init__(
         self, content_loss: MSEEncodingOperator, style_loss: GatysEtAl2017StyleLoss,
     ):
-
+        warn_deprecation(
+            "class",
+            "GatysEtAl2017GuidedPerceptualLoss",
+            "0.4",
+            info="It can be replaced by pystiche.loss.PerceptualLoss.",
+        )
         super().__init__(content_loss, style_loss)
-
-    def set_style_guide(self, region: str, guide: torch.Tensor):
-        self.style_loss.set_target_guide(region, guide)
-
-    def set_style_image(self, region: str, image: torch.Tensor):
-        self.style_loss.set_target_image(region, image)
-
-    def set_content_guide(self, region: str, guide: torch.Tensor):
-        self.style_loss.set_input_guide(region, guide)
 
 
 def gatys_et_al_2017_guided_perceptual_loss(
@@ -231,4 +217,4 @@ def gatys_et_al_2017_guided_perceptual_loss(
         **style_loss_kwargs,
     )
 
-    return GatysEtAl2017GuidedPerceptualLoss(content_loss, style_loss)
+    return GuidedPerceptualLoss(content_loss, style_loss)
