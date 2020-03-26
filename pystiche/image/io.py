@@ -68,7 +68,9 @@ def _pil_resize(
     if is_image_size(size):
         height, width = size
     elif is_edge_size(size):
-        height, width = edge_to_image_size(size, calculate_aspect_ratio(size))
+        height, width = edge_to_image_size(
+            size, calculate_aspect_ratio((image.height, image.size))
+        )
     else:
         raise RuntimeError
 
