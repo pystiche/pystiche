@@ -8,7 +8,7 @@ formats: all
 python:
   version: 3.6
   install:
-    - requirements: docs/torch_for_docs.txt
+    - requirements: docs/rtd_torch_requirements.txt
     - method: pip
       path: .
       extra_requirements:
