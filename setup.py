@@ -13,7 +13,7 @@ install_requires = ("torch>=1.4.0", "torchvision>=0.5.0", "pillow", "numpy", "re
 
 test_requires = ("pytest", "pyimagetest", "pillow_affine")
 
-dev_requires = (*test_requires, "pre-commit")
+dev_requires = (*test_requires, "pre-commit", "BeautifulSoup4")
 
 extras_require = {
     "test": test_requires,

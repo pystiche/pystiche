@@ -8,7 +8,11 @@ matrix:
       install: skip
       script: black --check .
     - name: "Tests"
-      before_install: pip install coverage codecov
+      before_install:
+        - REQUIREMENTS_FILE=travis_ci_torch_requirements.txt
+        - pip install BeautifulSoup4
+        - python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
+        - pip install -r $REQUIREMENTS_FILE coverage codecov
       install: pip install .[test]
       script: coverage run --rcfile=.coveragerc -m pytest test/
       after success: codecov
