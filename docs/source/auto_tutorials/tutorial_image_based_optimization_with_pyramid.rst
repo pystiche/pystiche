@@ -24,7 +24,7 @@ imports
     from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
     from pystiche.loss import MultiOperatorLoss
     from pystiche.pyramid import ImagePyramid
-    from utils import demo_images
+    from pystiche.demo import demo_images
 
 
 
@@ -135,6 +135,7 @@ Create the image pyramid used for the stylization
 
 .. code-block:: default
 
+
     edge_sizes = (500, 700)
     num_steps = (500, 200)
     pyramid = ImagePyramid(edge_sizes, num_steps, resize_targets=(criterion,))
@@ -169,6 +170,7 @@ resize the images, since the stylization is memory intensive
 
 
 .. code-block:: default
+
 
     resize = pyramid[-1].resize_image
     content_image = resize(content_image)
@@ -246,6 +248,7 @@ extract the original aspect ratio to avoid size mismatch errors during resizing
 
 .. code-block:: default
 
+
     aspect_ratio = extract_aspect_ratio(input_image)
 
 
@@ -280,7 +283,7 @@ Run the stylization
 .. code-block:: default
 
 
-    for level in pyramid:
+    for num_level, level in enumerate(pyramid, 1):
         input_image = level.resize_image(input_image, aspect_ratio=aspect_ratio)
         optimizer = get_optimizer(input_image)
 
@@ -292,7 +295,7 @@ Run the stylization
                 loss.backward()
 
                 if step % 50 == 0:
-                    print(f"Level {level}, Step {step}")
+                    print(f"Level {num_level}, Step {step}")
                     print()
                     print(loss.aggregate(1))
                     print("-" * 80)
@@ -312,72 +315,72 @@ Run the stylization
 
  .. code-block:: none
 
-    Level PyramidLevel(edge_size=500, num_steps=500, edge=short), Step 50
+    Level 1, Step 50
 
     content_loss: 2.473e+00
     style_loss  : 8.308e+01
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=500, num_steps=500, edge=short), Step 100
+    Level 1, Step 100
 
     content_loss: 2.559e+00
     style_loss  : 3.479e+01
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=500, num_steps=500, edge=short), Step 150
+    Level 1, Step 150
 
     content_loss: 2.585e+00
     style_loss  : 1.921e+01
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=500, num_steps=500, edge=short), Step 200
+    Level 1, Step 200
 
     content_loss: 2.590e+00
     style_loss  : 1.228e+01
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=500, num_steps=500, edge=short), Step 250
+    Level 1, Step 250
 
     content_loss: 2.592e+00
     style_loss  : 9.073e+00
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=500, num_steps=500, edge=short), Step 300
+    Level 1, Step 300
 
     content_loss: 2.592e+00
     style_loss  : 7.637e+00
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=500, num_steps=500, edge=short), Step 350
+    Level 1, Step 350
 
     content_loss: 2.587e+00
     style_loss  : 6.852e+00
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=500, num_steps=500, edge=short), Step 400
+    Level 1, Step 400
 
     content_loss: 2.582e+00
     style_loss  : 6.361e+00
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=500, num_steps=500, edge=short), Step 450
+    Level 1, Step 450
 
     content_loss: 2.579e+00
     style_loss  : 6.014e+00
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=500, num_steps=500, edge=short), Step 500
+    Level 1, Step 500
 
     content_loss: 2.574e+00
     style_loss  : 5.758e+00
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=700, num_steps=200, edge=short), Step 50
+    Level 2, Step 50
 
     content_loss: 1.920e+00
     style_loss  : 4.788e+00
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=700, num_steps=200, edge=short), Step 100
+    Level 2, Step 100
 
     content_loss: 1.849e+00
     style_loss  : 2.728e+00
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=700, num_steps=200, edge=short), Step 150
+    Level 2, Step 150
 
     content_loss: 1.800e+00
     style_loss  : 2.091e+00
     --------------------------------------------------------------------------------
-    Level PyramidLevel(edge_size=700, num_steps=200, edge=short), Step 200
+    Level 2, Step 200
 
     content_loss: 1.764e+00
     style_loss  : 1.785e+00
@@ -392,7 +395,7 @@ Run the stylization
 
     from pystiche.optim import default_image_pyramid_optim_loop
 
-    default_image_optim_loop(
+    input_image = default_image_pyramid_optim_loop(
         input_image, criterion, pyramid, get_optimizer=get_optimizer
     )
 
@@ -419,7 +422,7 @@ Show the stylization result
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 1 minutes  24.500 seconds)
+   **Total running time of the script:** ( 1 minutes  24.973 seconds)
 
 
 .. _sphx_glr_download_auto_tutorials_tutorial_image_based_optimization_with_pyramid.py:

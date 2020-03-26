@@ -15,7 +15,7 @@ from pystiche.enc import vgg19_encoder
 from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
 from pystiche.loss import MultiOperatorLoss
 from pystiche.pyramid import ImagePyramid
-from utils import demo_images
+from pystiche.demo import demo_images
 
 
 ###############################################################################
@@ -66,6 +66,7 @@ criterion = criterion.to(device)
 
 ###############################################################################
 # Create the image pyramid used for the stylization
+
 edge_sizes = (500, 700)
 num_steps = (500, 200)
 pyramid = ImagePyramid(edge_sizes, num_steps, resize_targets=(criterion,))
@@ -81,6 +82,7 @@ style_image = images["picasso"].read(device=device)
 
 ###############################################################################
 # resize the images, since the stylization is memory intensive
+
 resize = pyramid[-1].resize_image
 content_image = resize(content_image)
 style_image = resize(style_image)
@@ -126,6 +128,7 @@ input_image = content_image.clone()
 
 ###############################################################################
 # extract the original aspect ratio to avoid size mismatch errors during resizing
+
 aspect_ratio = extract_aspect_ratio(input_image)
 
 
@@ -140,7 +143,7 @@ def get_optimizer(input_image):
 ###############################################################################
 # Run the stylization
 
-for level in pyramid:
+for num_level, level in enumerate(pyramid, 1):
     input_image = level.resize_image(input_image, aspect_ratio=aspect_ratio)
     optimizer = get_optimizer(input_image)
 
@@ -152,7 +155,7 @@ for level in pyramid:
             loss.backward()
 
             if step % 50 == 0:
-                print(f"Level {level}, Step {step}")
+                print(f"Level {num_level}, Step {step}")
                 print()
                 print(loss.aggregate(1))
                 print("-" * 80)

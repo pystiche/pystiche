@@ -23,7 +23,7 @@ imports
     from pystiche.enc import vgg19_encoder
     from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
     from pystiche.loss import MultiOperatorLoss
-    from utils import demo_images
+    from pystiche.demo import demo_images
 
 
 
@@ -353,7 +353,7 @@ Show the stylization result
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  53.609 seconds)
+   **Total running time of the script:** ( 0 minutes  52.966 seconds)
 
 
 .. _sphx_glr_download_auto_tutorials_tutorial_image_based_optimization.py:
