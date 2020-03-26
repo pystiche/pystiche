@@ -11,7 +11,8 @@ from pystiche.ops import (
     MultiLayerEncodingOperator,
     MultiRegionOperator,
 )
-from pystiche.loss import MultiOperatorLoss
+from pystiche.loss import MultiOperatorLoss, PerceptualLoss
+from pystiche.misc import warn_deprecation
 from .utils import gatys_et_al_2017_multi_layer_encoder
 
 __all__ = [

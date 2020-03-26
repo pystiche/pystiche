@@ -1,5 +1,4 @@
 from typing import Any, Union, Optional, Sequence, Dict, Callable
-from collections import OrderedDict
 import torch
 from torch.nn.functional import mse_loss
 import pystiche
@@ -10,7 +9,8 @@ from pystiche.ops import (
     GramOperator,
     MultiLayerEncodingOperator,
 )
-from pystiche.loss import MultiOperatorLoss
+from pystiche.loss import PerceptualLoss
+from pystiche.misc import warn_deprecation
 from .utils import gatys_ecker_bethge_2015_multi_layer_encoder
 
 
@@ -19,7 +19,6 @@ __all__ = [
     "gatys_ecker_bethge_2015_content_loss",
     "GatysEckerBethge2015StyleLoss",
     "gatys_ecker_bethge_2015_style_loss",
-    "GatysEckerBethge2015PerceptualLoss",
     "gatys_ecker_bethge_2015_perceptual_loss",
 ]
 
@@ -123,21 +122,19 @@ def gatys_ecker_bethge_2015_style_loss(
     )
 
 
-class GatysEckerBethge2015PerceptualLoss(MultiOperatorLoss):
+class GatysEckerBethge2015PerceptualLoss(PerceptualLoss):
     def __init__(
         self,
         content_loss: GatysEckerBethge2015MSEEncodingOperator,
         style_loss: GatysEckerBethge2015StyleLoss,
     ):
-        super().__init__(
-            OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)])
+        warn_deprecation(
+            "class",
+            "GatysEckerBethge2015PerceptualLoss",
+            "0.4",
+            info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
-
-    def set_content_image(self, image: torch.Tensor):
-        self.content_loss.set_target_image(image)
-
-    def set_style_image(self, image: torch.Tensor):
-        self.style_loss.set_target_image(image)
+        super().__init__(content_loss, style_loss)
 
 
 def gatys_ecker_bethge_2015_perceptual_loss(
@@ -167,4 +164,4 @@ def gatys_ecker_bethge_2015_perceptual_loss(
         **style_loss_kwargs,
     )
 
-    return GatysEckerBethge2015PerceptualLoss(content_loss, style_loss)
+    return PerceptualLoss(content_loss, style_loss)
