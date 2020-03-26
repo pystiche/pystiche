@@ -6,6 +6,7 @@
 
 # -- Imports -----------------------------------------------------------------
 
+import warnings
 import os
 from os import path
 from datetime import datetime
@@ -83,6 +84,10 @@ if not run_by_rtd:
         "filename_pattern": os.sep + "tutorial_",
         "ignore_pattern": "utils.py",
     }
+else:
+    warnings.warn(
+        "Sphinx is run by RTD. The sphinx galleries are not rerun!", UserWarning
+    )
 
 
 # -- Options for HTML output -------------------------------------------------
