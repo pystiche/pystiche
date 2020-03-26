@@ -7,13 +7,12 @@ NST via image-based optimization
 ###############################################################################
 # imports
 
-from collections import OrderedDict
 import torch
 from torch import optim
 from pystiche.image import show_image, write_image
 from pystiche.enc import vgg19_encoder
 from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
-from pystiche.loss import MultiOperatorLoss
+from pystiche.loss import PerceptualLoss
 from pystiche.demo import demo_images
 
 
@@ -57,10 +56,8 @@ style_loss = MultiLayerEncodingOperator(
 ###############################################################################
 # Combine the content and style loss into the optimization criterion
 
-criterion = MultiOperatorLoss(
-    OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)])
-)
-criterion = criterion.to(device)
+criterion = PerceptualLoss(content_loss, style_loss).to(device)
+print(criterion)
 
 
 ###############################################################################
@@ -78,8 +75,8 @@ show_image(style_image)
 ###############################################################################
 # Set the target images for the content and style loss
 
-content_loss.set_target_image(content_image)
-style_loss.set_target_image(style_image)
+criterion.set_content_image(content_image)
+criterion.set_style_image(style_image)
 
 ###############################################################################
 # Set the starting point of the stylization to the content image. If you want
