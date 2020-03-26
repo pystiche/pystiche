@@ -1,11 +1,11 @@
-from typing import Union, Tuple, Dict, Iterator
+from typing import Union, Optional, Tuple, Dict, Iterator
 from collections import OrderedDict
 import torch
 import pystiche
 from pystiche.enc import SingleLayerEncoder, MultiLayerEncoder
 from pystiche.ops import Operator, EncodingOperator
 
-__all__ = ["MultiOperatorLoss"]
+__all__ = ["MultiOperatorLoss", "PerceptualLoss"]
 
 
 class MultiOperatorLoss(pystiche.Module):
@@ -71,3 +71,23 @@ class MultiOperatorLoss(pystiche.Module):
 
     def _get_child_name_by_idx(self, idx: int) -> str:
         return tuple(self._modules.keys())[idx]
+
+
+class PerceptualLoss(MultiOperatorLoss):
+    def __init__(
+        self,
+        content_loss: Operator,
+        style_loss: Operator,
+        regularization_loss: Optional[Operator] = None,
+        trim: bool = True,
+    ) -> None:
+        ops = [("content_loss", content_loss), ("style_loss", style_loss)]
+        if regularization_loss is not None:
+            ops.append(("regularization_loss", regularization_loss))
+        super().__init__(OrderedDict(ops), trim=trim)
+
+    def set_content_image(self, image: torch.Tensor) -> None:
+        self.content_loss.set_target_image(image)
+
+    def set_style_image(self, image: torch.Tensor) -> None:
+        self.style_loss.set_target_image(image)
