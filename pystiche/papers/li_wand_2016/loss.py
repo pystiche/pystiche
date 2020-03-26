@@ -209,7 +209,7 @@ class LiWand2016PerceptualLoss(PerceptualLoss):
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
         super().__init__(
-            content_loss, style_loss, regularization_loss=regularization,
+            content_loss, style_loss, regularization=regularization,
         )
 
 
@@ -245,4 +245,4 @@ def li_wand_2016_perceptual_loss(
         impl_params=impl_params, **regularization_kwargs
     )
 
-    return PerceptualLoss(content_loss, style_loss, regularization_loss=regularization)
+    return PerceptualLoss(content_loss, style_loss, regularization=regularization)

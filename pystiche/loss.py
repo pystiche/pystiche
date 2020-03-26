@@ -83,12 +83,12 @@ class _PerceptualLoss(MultiOperatorLoss):
         self,
         content_loss: ComparisonOperator,
         style_loss: ComparisonOperator,
-        regularization_loss: Optional[RegularizationOperator] = None,
+        regularization: Optional[RegularizationOperator] = None,
         trim: bool = True,
     ) -> None:
         ops = [("content_loss", content_loss), ("style_loss", style_loss)]
-        if regularization_loss is not None:
-            ops.append(("regularization_loss", regularization_loss))
+        if regularization is not None:
+            ops.append(("regularization", regularization))
         super().__init__(OrderedDict(ops), trim=trim)
 
     def set_content_image(self, image: torch.Tensor) -> None:

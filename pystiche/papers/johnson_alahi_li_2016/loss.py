@@ -194,7 +194,7 @@ class JohnsonAlahiLi2016PerceptualLoss(PerceptualLoss):
             "0.4",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
-        super().__init__(content_loss, style_loss, regularization_loss=regularization)
+        super().__init__(content_loss, style_loss, regularization=regularization)
 
 
 def johnson_alahi_li_2016_perceptual_loss(
@@ -237,4 +237,4 @@ def johnson_alahi_li_2016_perceptual_loss(
         instance_norm=instance_norm, style=style, **total_variation_kwargs
     )
 
-    return PerceptualLoss(content_loss, style_loss, regularization_loss=regularization)
+    return PerceptualLoss(content_loss, style_loss, regularization=regularization)
