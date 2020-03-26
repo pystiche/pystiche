@@ -20,7 +20,7 @@ def extract_whl_urls(
 
 
 def get_torch_cpu_pattern():
-    distribution = "(?P<distribution>torch(audio|text|vision)?)"
+    distribution = "(?P<distribution>torch(vision)?)"
     version = "(?P<version>\d+[.]\d+[.]\d+([.]post\d+)?)"
     language = "(?P<language>\w+)"
     abi = "(?P<abi>\w+)"
@@ -28,8 +28,12 @@ def get_torch_cpu_pattern():
     pattern = re.compile(
         f"cpu/{distribution}-{version}(%2Bcpu)?-{language}-{abi}-{platform}[.]whl"
     )
-    # TODO: check if every property is used
-    return pattern
+
+    if set(pattern.groupindex.keys()) == set(WHL_PROPS):
+        return pattern
+
+    # TODO: include message
+    raise RuntimeError
 
 
 def extract_whls(urls, base="https://download.pytorch.org/whl/"):
@@ -52,7 +56,7 @@ def select_link(whls, distribution, language, abi, platform):
         if selected_whls:
             return selected_whls
 
-        # TODO: include error message
+        # TODO: include message
         valid_vals = set([getattr(whl, attr) for whl in whls])
         raise RuntimeError
 
@@ -96,8 +100,8 @@ def parse_input():
         "-f",
         metavar="PATH",
         type=str,
-        default="torch-cpu-requirements.txt",
-        help="Path to the pip requirements file to be generated. Defaults to 'torch-cpu-requirements.txt'.",
+        default="torch_cpu_requirements.txt",
+        help="Path to the pip requirements file to be generated. Defaults to 'torch_cpu_requirements.txt'.",
     )
     parser.add_argument(
         "--language",
