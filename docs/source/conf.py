@@ -4,6 +4,21 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+# -- Imports -----------------------------------------------------------------
+
+import os
+from os import path
+from datetime import datetime
+
+
+# -- Run config --------------------------------------------------------------
+
+try:
+    run_by_rtd = bool(os.environ["READTHEDOCS"])
+except KeyError:
+    run_by_rtd = False
+
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -14,13 +29,12 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-
-# -- Project information -----------------------------------------------------
-from os import path
-from datetime import datetime
-
 here = path.abspath(path.dirname(__file__))
 project_root = path.abspath(path.join(here, "..", ".."))
+
+
+# -- Project information -----------------------------------------------------
+
 pkg_name = "pystiche"
 
 about = {}
@@ -47,7 +61,6 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
-    "sphinx_gallery.gen_gallery",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -61,14 +74,15 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # -- Sphinx gallery configuration --------------------------------------------
 
-import os
+if not run_by_rtd:
+    extensions.append("sphinx_gallery.gen_gallery")
 
-sphinx_gallery_conf = {
-    "examples_dirs": path.join(project_root, "tutorials"),
-    "gallery_dirs": "auto_tutorials",
-    "filename_pattern": os.sep + "tutorial_",
-    "ignore_pattern": "utils.py",
-}
+    sphinx_gallery_conf = {
+        "examples_dirs": path.join(project_root, "tutorials"),
+        "gallery_dirs": "auto_tutorials",
+        "filename_pattern": os.sep + "tutorial_",
+        "ignore_pattern": "utils.py",
+    }
 
 
 # -- Options for HTML output -------------------------------------------------
