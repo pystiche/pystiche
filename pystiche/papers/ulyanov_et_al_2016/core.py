@@ -116,9 +116,13 @@ def ulyanov_et_al_2016_training(
     style_image = batch_up_image(style_image, loader=content_image_loader)
     criterion.set_style_image(style_image)
 
-    def criterion_update_fn(input_image, criterion):
-        if hasattr(criterion, "content_loss"):
+    if stylization:
+        def criterion_update_fn(input_image, criterion):
             criterion.set_content_image(preprocessor(input_image))
+    else:
+        def criterion_update_fn(input_image, criterion):
+            pass
+
 
     default_transformer_epoch_optim_loop(
         content_image_loader,
@@ -164,7 +168,7 @@ def ulyanov_et_al_2016_style_generation(
             postprocessor = ulyanov_et_al_2016_postprocessor()
         postprocessor = postprocessor.to(device)
         output_image = transformer(input_image)
-        output_image = torch.clamp(postprocessor(output_image), 0, 1)
+        output_image = postprocessor(output_image)
 
     return output_image.detach()
 
@@ -180,7 +184,8 @@ def ulyanov_et_al_2016_texture_generation(
     if isinstance(input, torch.Tensor):
         device = input.device
     else:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = torch.device()
+
     if isinstance(transformer, str):
         style = transformer
         transformer = ulyanov_et_al_2016_transformer(
@@ -195,6 +200,6 @@ def ulyanov_et_al_2016_texture_generation(
             postprocessor = ulyanov_et_al_2016_postprocessor()
         postprocessor = postprocessor.to(device)
         output_image = transformer(input)
-        output_image = torch.clamp(postprocessor(output_image), 0, 1)
+        output_image = postprocessor(output_image)
 
     return output_image.detach()

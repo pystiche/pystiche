@@ -7,7 +7,7 @@ from pystiche.ops import (
     GramOperator,
     MultiLayerEncodingOperator,
 )
-from torch.nn.functional import mse_loss
+from pystiche.image import extract_batch_size
 from pystiche.loss import MultiOperatorLoss
 from .utils import ulyanov_et_al_2016_multi_layer_encoder
 
@@ -20,9 +20,12 @@ class UlyanovEtAl2016MSEEncodingOperator(MSEEncodingOperator):
         self.loss_reduction = "mean"
 
     def calculate_score(self, input_repr, target_repr, ctx):
-        score_correction_factor = 1 / input_repr.size()[0]
-        score = mse_loss(input_repr, target_repr, reduction=self.loss_reduction)
-        return score * score_correction_factor
+        score = super().calculate_score(input_repr, target_repr, ctx=ctx)
+        if not self.double_batch_size_mean:
+            return score
+        else:
+            batch_size = extract_batch_size(input_repr)
+            return score / batch_size
 
 
 def ulyanov_et_al_2016_content_loss(
@@ -64,9 +67,12 @@ class UlyanovEtAl2016GramOperator(GramOperator):
     def calculate_score(
         self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
     ) -> torch.Tensor:
-        score_correction_factor = 1 / input_repr.size()[0]
-        score = mse_loss(input_repr, target_repr, reduction=self.loss_reduction)
-        return score * score_correction_factor
+        score = super().calculate_score(input_repr, target_repr, ctx=ctx)
+        if not self.double_batch_size_mean:
+            return score
+        else:
+            batch_size = input_repr.size()[0]
+            return score / batch_size
 
 def ulyanov_et_al_2016_style_loss(
     impl_params: bool = True,

@@ -11,7 +11,7 @@ from pystiche.data import (
     FiniteCycleBatchSampler,
 )
 from pystiche.image import extract_num_channels
-from pystiche.image.transforms import Transform, Resize, ComposedTransform, CenterCrop
+from pystiche.image.transforms import Transform, Resize, ComposedTransform, CenterCrop, ValidRandomCrop
 from pystiche.image.transforms.functional import grayscale_to_fakegrayscale
 
 
@@ -39,7 +39,7 @@ def ulyanov_et_al_2016_content_transform(
     transforms = []
     if impl_params:
         if instance_norm:
-            transforms.append(CenterCrop(edge_size))
+            transforms.append(ValidRandomCrop(edge_size))
         else:
             transforms.append(
                 Resize((edge_size, edge_size), interpolation_mode="bilinear")
@@ -59,8 +59,8 @@ def ulyanov_et_al_2016_style_transform(
     if edge_size is None:
         edge_size = 256
 
-    if impl_params:
-        interpolation_mode = "bicubic" if instance_norm else "bilinear"
+    if impl_params and instance_norm:
+        interpolation_mode = "bicubic"
     else:
         interpolation_mode = "bilinear"
 
