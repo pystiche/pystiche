@@ -16,13 +16,12 @@ imports
 .. code-block:: default
 
 
-    from collections import OrderedDict
     import torch
     from torch import optim
     from pystiche.image import extract_aspect_ratio, show_image, write_image
     from pystiche.enc import vgg19_encoder
     from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
-    from pystiche.loss import MultiOperatorLoss
+    from pystiche.loss import PerceptualLoss
     from pystiche.pyramid import ImagePyramid
     from pystiche.demo import demo_images
 
@@ -117,15 +116,31 @@ Combine the content and style loss into the optimization criterion
 .. code-block:: default
 
 
-    criterion = MultiOperatorLoss(
-        OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)])
+    criterion = PerceptualLoss(content_loss, style_loss).to(device)
+    print(criterion)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+    PerceptualLoss(
+      (content_loss): MSEEncodingOperator(encoder=VGGEncoder(layer=relu_4_2, arch=vgg19, weights=torch))
+      (style_loss): MultiLayerEncodingOperator(
+        encoder=VGGEncoder(arch=vgg19, weights=torch), score_weight=10e3
+        (relu_1_1): GramOperator(score_weight=0.2)
+        (relu_2_1): GramOperator(score_weight=0.2)
+        (relu_3_1): GramOperator(score_weight=0.2)
+        (relu_4_1): GramOperator(score_weight=0.2)
+        (relu_5_1): GramOperator(score_weight=0.2)
+      )
     )
-    criterion = criterion.to(device)
-
-
-
-
-
 
 
 
@@ -195,8 +210,8 @@ Set the target images for the content and style loss
 .. code-block:: default
 
 
-    content_loss.set_target_image(content_image)
-    style_loss.set_target_image(style_image)
+    criterion.set_content_image(content_image)
+    criterion.set_style_image(style_image)
 
 
 
@@ -422,7 +437,7 @@ Show the stylization result
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 1 minutes  24.973 seconds)
+   **Total running time of the script:** ( 1 minutes  28.950 seconds)
 
 
 .. _sphx_glr_download_auto_tutorials_tutorial_image_based_optimization_with_pyramid.py:
