@@ -16,6 +16,13 @@ from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOp
 from pystiche.loss import MultiOperatorLoss
 from utils import demo_images
 
+
+###############################################################################
+# Make this demo device-agnostic
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 ###############################################################################
 # Load the encoder used to create the feature maps for the NST
 
@@ -53,13 +60,8 @@ style_loss = MultiLayerEncodingOperator(
 criterion = MultiOperatorLoss(
     OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)])
 )
-
-
-###############################################################################
-# Make this demo device-agnostic
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 criterion = criterion.to(device)
+
 
 ###############################################################################
 # load the content and style images and transfer them to the selected device
@@ -136,6 +138,8 @@ for step in range(1, num_steps + 1):
         loss.backward()
 
         if step % 50 == 0:
+            print(f"Step {step}")
+            print()
             print(loss.aggregate(1))
             print("-" * 80)
 
@@ -154,6 +158,9 @@ for step in range(1, num_steps + 1):
 #     default_image_optim_loop(
 #         input_image, criterion, optimizer=optimizer, num_steps=num_steps
 #     )
+#
+#   If you do not pass ``optimizer``
+#   :func:`~pystiche.optim.optim.default_image_optimizer` is used.
 
 
 ###############################################################################

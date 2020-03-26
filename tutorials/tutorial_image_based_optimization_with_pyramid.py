@@ -1,6 +1,6 @@
 """
-NST via image-based optimization
-================================
+NST via image-based optimization with image pyramid
+===================================================
 """
 
 
@@ -10,10 +10,11 @@ NST via image-based optimization
 from collections import OrderedDict
 import torch
 from torch import optim
-from pystiche.image import show_image, write_image
+from pystiche.image import extract_aspect_ratio, show_image, write_image
 from pystiche.enc import vgg19_encoder
 from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
 from pystiche.loss import MultiOperatorLoss
+from pystiche.pyramid import ImagePyramid
 from utils import demo_images
 
 
@@ -64,13 +65,25 @@ criterion = criterion.to(device)
 
 
 ###############################################################################
-# load the content and style images and transfer them to the selected device
-# the images are resized, since the stylization is memory intensive
+# Create the image pyramid used for the stylization
+edge_sizes = (500, 700)
+num_steps = (500, 200)
+pyramid = ImagePyramid(edge_sizes, num_steps, resize_targets=(criterion,))
 
-size = 500
+
+###############################################################################
+# load the content and style images and transfer them to the selected device
+
 images = demo_images()
-content_image = images["dancing"].read(size=size, device=device)
-style_image = images["picasso"].read(size=size, device=device)
+content_image = images["dancing"].read(device=device)
+style_image = images["picasso"].read(device=device)
+
+
+###############################################################################
+# resize the images, since the stylization is memory intensive
+resize = pyramid[-1].resize_image
+content_image = resize(content_image)
+style_image = resize(style_image)
 show_image(content_image)
 show_image(style_image)
 
@@ -80,6 +93,7 @@ show_image(style_image)
 
 content_loss.set_target_image(content_image)
 style_loss.set_target_image(style_image)
+
 
 ###############################################################################
 # Set the starting point of the stylization to the content image. If you want
@@ -111,55 +125,55 @@ input_image = content_image.clone()
 
 
 ###############################################################################
-# Create the optimizer that performs the stylization
-
-optimizer = optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
+# extract the original aspect ratio to avoid size mismatch errors during resizing
+aspect_ratio = extract_aspect_ratio(input_image)
 
 
 ###############################################################################
-# .. note::
-#   To avoid boilerplate code, you can achieve the same behavior with
-#   :func:`~pystiche.optim.optim.default_image_optimizer`::
-#
-#     from pystiche.optim import default_image_optimizer
-#
-#     optimizer = default_image_optimizer(input_image)
+# Define a getter for the optimizer that performs the stylization
+
+
+def get_optimizer(input_image):
+    return optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
 
 
 ###############################################################################
 # Run the stylization
 
-num_steps = 500
-for step in range(1, num_steps + 1):
+for level in pyramid:
+    input_image = level.resize_image(input_image, aspect_ratio=aspect_ratio)
+    optimizer = get_optimizer(input_image)
 
-    def closure():
-        optimizer.zero_grad()
-        loss = criterion(input_image)
-        loss.backward()
+    for step in level:
 
-        if step % 50 == 0:
-            print(f"Step {step}")
-            print()
-            print(loss.aggregate(1))
-            print("-" * 80)
+        def closure():
+            optimizer.zero_grad()
+            loss = criterion(input_image)
+            loss.backward()
 
-        return loss
+            if step % 50 == 0:
+                print(f"Level {level}, Step {step}")
+                print()
+                print(loss.aggregate(1))
+                print("-" * 80)
 
-    optimizer.step(closure)
+            return loss
+
+        optimizer.step(closure)
 
 
 ###############################################################################
 # .. note::
 #   To avoid boilerplate code, you can achieve the same behavior with
-#   :func:`~pystiche.optim.optim.default_image_optim_loop`::
+#   :func:`~pystiche.optim.optim.default_image_pyramid_optim_loop`::
 #
-#     from pystiche.optim import default_image_optim_loop
+#     from pystiche.optim import default_image_pyramid_optim_loop
 #
-#     default_image_optim_loop(
-#         input_image, criterion, optimizer=optimizer, num_steps=num_steps
+#     input_image = default_image_pyramid_optim_loop(
+#         input_image, criterion, pyramid, get_optimizer=get_optimizer
 #     )
 #
-#   If you do not pass ``optimizer``
+#   If you do not pass ``get_optimizer``
 #   :func:`~pystiche.optim.optim.default_image_optimizer` is used.
 
 

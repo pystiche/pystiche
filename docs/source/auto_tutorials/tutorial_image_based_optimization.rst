@@ -32,6 +32,23 @@ imports
 
 
 
+
+Make this demo device-agnostic
+
+
+.. code-block:: default
+
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+
+
+
+
+
+
+
 Load the encoder used to create the feature maps for the NST
 
 
@@ -102,23 +119,8 @@ Combine the content and style loss into the optimization criterion
     criterion = MultiOperatorLoss(
         OrderedDict([("content_loss", content_loss), ("style_loss", style_loss)])
     )
-
-
-
-
-
-
-
-
-
-Make this demo device-agnostic
-
-
-.. code-block:: default
-
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     criterion = criterion.to(device)
+
 
 
 
@@ -235,26 +237,85 @@ Run the stylization
 .. code-block:: default
 
 
-    # num_steps = 500
-    # for step in range(1, num_steps + 1):
-    #
-    #     def closure():
-    #         optimizer.zero_grad()
-    #         loss = criterion(input_image)
-    #         loss.backward()
-    #
-    #         if step % 50 == 0:
-    #             print(loss.aggregate(1))
-    #             print("-" * 80)
-    #
-    #         return loss
-    #
-    #     optimizer.step(closure)
+    num_steps = 500
+    for step in range(1, num_steps + 1):
+
+        def closure():
+            optimizer.zero_grad()
+            loss = criterion(input_image)
+            loss.backward()
+
+            if step % 50 == 0:
+                print(f"Step {step}")
+                print()
+                print(loss.aggregate(1))
+                print("-" * 80)
+
+            return loss
+
+        optimizer.step(closure)
 
 
 
 
 
+
+.. rst-class:: sphx-glr-script-out
+
+ Out:
+
+ .. code-block:: none
+
+    Step 50
+
+    content_loss: 2.622e+00
+    style_loss  : 8.435e+01
+    --------------------------------------------------------------------------------
+    Step 100
+
+    content_loss: 2.700e+00
+    style_loss  : 3.251e+01
+    --------------------------------------------------------------------------------
+    Step 150
+
+    content_loss: 2.723e+00
+    style_loss  : 1.752e+01
+    --------------------------------------------------------------------------------
+    Step 200
+
+    content_loss: 2.730e+00
+    style_loss  : 1.152e+01
+    --------------------------------------------------------------------------------
+    Step 250
+
+    content_loss: 2.730e+00
+    style_loss  : 8.900e+00
+    --------------------------------------------------------------------------------
+    Step 300
+
+    content_loss: 2.726e+00
+    style_loss  : 7.672e+00
+    --------------------------------------------------------------------------------
+    Step 350
+
+    content_loss: 2.720e+00
+    style_loss  : 6.954e+00
+    --------------------------------------------------------------------------------
+    Step 400
+
+    content_loss: 2.714e+00
+    style_loss  : 6.505e+00
+    --------------------------------------------------------------------------------
+    Step 450
+
+    content_loss: 2.709e+00
+    style_loss  : 6.176e+00
+    --------------------------------------------------------------------------------
+    Step 500
+
+    content_loss: 2.702e+00
+    style_loss  : 5.918e+00
+    --------------------------------------------------------------------------------
 
 
 
@@ -268,6 +329,9 @@ Run the stylization
     default_image_optim_loop(
         input_image, criterion, optimizer=optimizer, num_steps=num_steps
     )
+
+  If you do not pass ``optimizer``
+  :func:`~pystiche.optim.optim.default_image_optimizer` is used.
 
 Show the stylization result
 
@@ -289,7 +353,7 @@ Show the stylization result
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  5.714 seconds)
+   **Total running time of the script:** ( 0 minutes  53.609 seconds)
 
 
 .. _sphx_glr_download_auto_tutorials_tutorial_image_based_optimization.py:

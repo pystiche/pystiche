@@ -47,6 +47,26 @@
    :hidden:
 
    /auto_tutorials/tutorial_nst_without_pystiche
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="NST via image-based optimization with image pyramid">
+
+.. only:: html
+
+ .. figure:: /auto_tutorials/images/thumb/sphx_glr_tutorial_image_based_optimization_with_pyramid_thumb.png
+
+     :ref:`sphx_glr_auto_tutorials_tutorial_image_based_optimization_with_pyramid.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_tutorials/tutorial_image_based_optimization_with_pyramid
 .. raw:: html
 
     <div class="sphx-glr-clear"></div>
