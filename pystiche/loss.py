@@ -95,7 +95,7 @@ class _PerceptualLoss(MultiOperatorLoss):
         self.content_loss.set_target_image(image)
 
 
-class PerceptualLoss(MultiOperatorLoss):
+class PerceptualLoss(_PerceptualLoss):
     def set_style_image(self, image: torch.Tensor) -> None:
         self.style_loss.set_target_image(image)
 
@@ -105,7 +105,7 @@ class GuidedPerceptualLoss(_PerceptualLoss):
         getattr(self.style_loss, region).set_target_image(image)
 
     def set_content_guide(self, region: str, guide: torch.Tensor) -> None:
-        getattr(self.content_loss, region).set_input_guide(guide)
+        getattr(self.style_loss, region).set_input_guide(guide)
 
     def set_style_guide(self, region: str, guide: torch.Tensor) -> None:
         getattr(self.style_loss, region).set_target_guide(guide)
