@@ -254,9 +254,6 @@ class TestCase(PysticheTestCase):
             misc.get_input_image(starting_point)
 
     def test_get_sha256_hash(self):
-        here = path.abspath(path.dirname(__file__))
-        file = path.join(here, "test_image.png")
-
-        actual = misc.get_sha256_hash(file)
+        actual = misc.get_sha256_hash(self.default_image_file())
         desired = "7538cbb80cb9103606c48b806eae57d56c885c7f90b9b3be70a41160f9cbb683"
         self.assertEqual(actual, desired)
