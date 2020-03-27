@@ -1,5 +1,4 @@
 from typing import Any, Union, Optional, Sequence, Tuple, Dict
-from collections import OrderedDict
 import torch
 from torch.nn.functional import mse_loss
 import pystiche
@@ -11,7 +10,8 @@ from pystiche.ops import (
     MultiLayerEncodingOperator,
 )
 import pystiche.ops.functional as F
-from pystiche.loss import MultiOperatorLoss
+from pystiche.loss import PerceptualLoss
+from pystiche.misc import warn_deprecation
 from .utils import li_wand_2016_multi_layer_encoder
 
 
@@ -22,7 +22,6 @@ __all__ = [
     "li_wand_2016_style_loss",
     "LiWand2016TotalVariationOperator",
     "li_wand_2016_regularization",
-    "LiWand2016PerceptualLoss",
     "li_wand_2016_perceptual_loss",
 ]
 
@@ -196,28 +195,22 @@ def li_wand_2016_regularization(
     )
 
 
-class LiWand2016PerceptualLoss(MultiOperatorLoss):
+class LiWand2016PerceptualLoss(PerceptualLoss):
     def __init__(
         self,
         content_loss: LiWand2016MSEEncodingOperator,
         style_loss: MultiLayerEncodingOperator,
         regularization: LiWand2016TotalVariationOperator,
     ):
-        super().__init__(
-            OrderedDict(
-                [
-                    ("content_loss", content_loss),
-                    ("style_loss", style_loss),
-                    ("regularization", regularization),
-                ]
-            )
+        warn_deprecation(
+            "class",
+            "LiWand2016PerceptualLoss",
+            "0.4",
+            info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
-
-    def set_content_image(self, image: torch.Tensor):
-        self.content_loss.set_target_image(image)
-
-    def set_style_image(self, image: torch.Tensor):
-        self.style_loss.set_target_image(image)
+        super().__init__(
+            content_loss, style_loss, regularization=regularization,
+        )
 
 
 def li_wand_2016_perceptual_loss(
@@ -252,4 +245,4 @@ def li_wand_2016_perceptual_loss(
         impl_params=impl_params, **regularization_kwargs
     )
 
-    return LiWand2016PerceptualLoss(content_loss, style_loss, regularization)
+    return PerceptualLoss(content_loss, style_loss, regularization=regularization)

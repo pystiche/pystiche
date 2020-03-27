@@ -1,8 +1,8 @@
 from typing import Union, Optional, Callable
 import logging
 import torch
-from torch import nn
 import pystiche
+from pystiche.loss import PerceptualLoss
 from pystiche.pyramid import ImagePyramid
 from pystiche.optim import default_image_pyramid_optim_loop
 from pystiche.misc import get_input_image
@@ -28,7 +28,7 @@ def li_wand_2016_nst(
     content_image: torch.Tensor,
     style_image: torch.Tensor,
     impl_params: bool = True,
-    criterion: Optional[nn.Module] = None,
+    criterion: Optional[PerceptualLoss] = None,
     pyramid: Optional[ImagePyramid] = None,
     quiet: bool = False,
     logger: Optional[logging.Logger] = None,

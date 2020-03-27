@@ -1,5 +1,4 @@
 from typing import Any, Union, Optional, Sequence, Dict
-from collections import OrderedDict
 import torch
 import pystiche.ops.functional as F
 from pystiche.enc import Encoder, MultiLayerEncoder
@@ -9,14 +8,14 @@ from pystiche.ops import (
     TotalVariationOperator,
     MultiLayerEncodingOperator,
 )
-from pystiche.loss import MultiOperatorLoss
+from pystiche.loss import PerceptualLoss
+from pystiche.misc import warn_deprecation
 from .utils import johnson_alahi_li_2016_multi_layer_encoder
 
 __all__ = [
     "johnson_alahi_li_2016_content_loss",
     "johnson_alahi_li_2016_style_loss",
     "johnson_alahi_li_2016_regularization",
-    "JohnsonAlahiLi2016PerceptualLoss",
     "johnson_alahi_li_2016_perceptual_loss",
 ]
 
@@ -182,28 +181,20 @@ def johnson_alahi_li_2016_regularization(
     )
 
 
-class JohnsonAlahiLi2016PerceptualLoss(MultiOperatorLoss):
+class JohnsonAlahiLi2016PerceptualLoss(PerceptualLoss):
     def __init__(
         self,
         content_loss: MSEEncodingOperator,
         style_loss: MultiLayerEncodingOperator,
         regularization: TotalVariationOperator,
     ) -> None:
-        super().__init__(
-            OrderedDict(
-                [
-                    ("content_loss", content_loss),
-                    ("style_loss", style_loss),
-                    ("regularization", regularization),
-                ]
-            )
+        warn_deprecation(
+            "class",
+            "JohnsonAlahiLi2016PerceptualLoss",
+            "0.4",
+            info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
-
-    def set_content_image(self, image: torch.Tensor):
-        self.content_loss.set_target_image(image)
-
-    def set_style_image(self, image: torch.Tensor):
-        self.style_loss.set_target_image(image)
+        super().__init__(content_loss, style_loss, regularization=regularization)
 
 
 def johnson_alahi_li_2016_perceptual_loss(
@@ -246,4 +237,4 @@ def johnson_alahi_li_2016_perceptual_loss(
         instance_norm=instance_norm, style=style, **total_variation_kwargs
     )
 
-    return JohnsonAlahiLi2016PerceptualLoss(content_loss, style_loss, regularization)
+    return PerceptualLoss(content_loss, style_loss, regularization=regularization)

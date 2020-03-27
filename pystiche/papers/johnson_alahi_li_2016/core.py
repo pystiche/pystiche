@@ -4,13 +4,11 @@ from torch.utils.data import DataLoader
 from torch import nn
 from torch.optim.optimizer import Optimizer
 import pystiche
+from pystiche.loss import PerceptualLoss
 from pystiche.optim import OptimLogger, default_transformer_optim_loop
 from ..common_utils import batch_up_image
 from .modules import JohnsonAlahiLi2016Transformer, johnson_alahi_li_2016_transformer
-from .loss import (
-    JohnsonAlahiLi2016PerceptualLoss,
-    johnson_alahi_li_2016_perceptual_loss,
-)
+from .loss import johnson_alahi_li_2016_perceptual_loss
 from .data import (
     johnson_alahi_li_2016_style_transform,
     johnson_alahi_li_2016_dataset,
@@ -40,7 +38,7 @@ def johnson_alahi_li_2016_training(
     impl_params=True,
     instance_norm: bool = True,
     transformer: Optional[JohnsonAlahiLi2016Transformer] = None,
-    criterion: Optional[JohnsonAlahiLi2016PerceptualLoss] = None,
+    criterion: Optional[PerceptualLoss] = None,
     get_optimizer: Optional[
         Callable[[JohnsonAlahiLi2016Transformer], Optimizer]
     ] = None,
