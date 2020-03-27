@@ -97,7 +97,7 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
             dct["allow_inplace"] = self.allow_inplace
         return dct
 
-    def __getitem__(self, layer: str) -> SingleLayerEncoder:
+    def extract_single_layer_encoder(self, layer: str) -> SingleLayerEncoder:
         match = DEPRECATED_LAYER_PATTERN.match(layer)
         if match is not None:
             old_layer = layer
