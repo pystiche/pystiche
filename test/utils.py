@@ -40,6 +40,10 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
     def test_root(self):
         return path.join(self.project_root, "test")
 
+    @property
+    def test_assets_root(self):
+        return path.join(self.test_root, "assets")
+
     def setUp(self):
         # the builtin torchvision backend is removed, since it operates on the same
         # native image type (torch.Tensor), which renders the automatic inference of
@@ -54,8 +58,7 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
         # The test image was downloaded from
         # http://www.r0k.us/graphics/kodak/kodim15.html
         # and is cleared for unrestricted usage
-        here = path.abspath(path.dirname(__file__))
-        return path.join(here, "test_image.png")
+        return path.join(self.test_assets_root, "image", "test_image.png")
 
     def load_batched_image(self, batch_size=1, file=None):
         return self.load_image(file=file).repeat(batch_size, 1, 1, 1)
