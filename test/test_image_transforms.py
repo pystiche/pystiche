@@ -1,4 +1,3 @@
-import unittest
 from PIL import Image
 import numpy as np
 import torch
@@ -27,7 +26,7 @@ def PILTransform(affine_transform, expand=False):
     return transform
 
 
-class Tester(PysticheTestCase):
+class TestCase(PysticheTestCase):
     def assertTransformEqualsPIL(
         self,
         pystiche_transform,
@@ -559,7 +558,3 @@ class Tester(PysticheTestCase):
         actual = transform(image)
         desired = image
         self.assertImagesAlmostEqual(actual, desired)
-
-
-if __name__ == "__main__":
-    unittest.main()

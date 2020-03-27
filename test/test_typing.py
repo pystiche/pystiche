@@ -4,7 +4,7 @@ from pystiche import typing
 from utils import PysticheTestCase
 
 
-class Tester(PysticheTestCase):
+class TestCase(PysticheTestCase):
     @staticmethod
     def extract_module_names(pattern):
         names = [name for name in nn.__dict__.keys() if name[0].istitle()]
@@ -19,25 +19,25 @@ class Tester(PysticheTestCase):
 
     @staticmethod
     def create_default_conv_module(name, in_channels=1, out_channels=1, kernel_size=1):
-        return Tester.create_module_from_name(
+        return TestCase.create_module_from_name(
             name, in_channels, out_channels, kernel_size
         )
 
     @staticmethod
     def default_conv_modules():
         pattern = re.compile("Conv(Transpose)?[1-3]d")
-        conv_module_names, _ = Tester.extract_module_names(pattern)
-        return [Tester.create_default_conv_module(name) for name in conv_module_names]
+        conv_module_names, _ = TestCase.extract_module_names(pattern)
+        return [TestCase.create_default_conv_module(name) for name in conv_module_names]
 
     @staticmethod
     def create_default_pool_module(name, kernel_size=1):
-        return Tester.create_module_from_name(name, kernel_size)
+        return TestCase.create_module_from_name(name, kernel_size)
 
     @staticmethod
     def default_pool_modules():
         pattern = re.compile("(Adaptive)?(Avg|Max)Pool[1-3]d")
-        pool_module_names, _ = Tester.extract_module_names(pattern)
-        return [Tester.create_default_pool_module(name) for name in pool_module_names]
+        pool_module_names, _ = TestCase.extract_module_names(pattern)
+        return [TestCase.create_default_pool_module(name) for name in pool_module_names]
 
     def test_is_conv_module(self):
         for module in self.default_conv_modules():

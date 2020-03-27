@@ -4,7 +4,7 @@ from pystiche.image import io, calculate_aspect_ratio, edge_to_image_size
 from utils import PysticheTestCase, get_tmp_dir
 
 
-class Tester(PysticheTestCase):
+class TestCase(PysticheTestCase):
     def test_read_image(self):
         actual = io.read_image(self.default_image_file())
         desired = self.load_image()
