@@ -1,10 +1,10 @@
-import unittest
 import re
 from torch import nn
 from pystiche import typing
+from utils import PysticheTestCase
 
 
-class Tester(unittest.TestCase):
+class Tester(PysticheTestCase):
     @staticmethod
     def extract_module_names(pattern):
         names = [name for name in nn.__dict__.keys() if name[0].istitle()]

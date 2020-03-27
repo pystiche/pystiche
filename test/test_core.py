@@ -1,9 +1,10 @@
 import unittest
 import torch
 import pystiche
+from utils import PysticheTestCase
 
 
-class Tester(unittest.TestCase):
+class Tester(PysticheTestCase):
     def test_LossDict_float(self):
         losses = [(str(i), torch.tensor(i)) for i in range(3)]
         loss_dict = pystiche.LossDict(losses)

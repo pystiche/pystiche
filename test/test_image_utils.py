@@ -1,9 +1,10 @@
 import unittest
 import torch
 from pystiche.image import utils
+from utils import PysticheTestCase
 
 
-class Tester(unittest.TestCase):
+class Tester(PysticheTestCase):
     def test_verify_is_single_image(self):
         single_image = torch.zeros(1, 1, 1)
         utils.verify_is_single_image(single_image)
