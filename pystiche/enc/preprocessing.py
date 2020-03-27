@@ -1,10 +1,10 @@
 from torch import nn
 from pystiche.image import TorchPreprocessing, CaffePreprocessing
 
-PREPROCESSORS = {"torch": TorchPreprocessing(), "caffe": CaffePreprocessing()}
+PREPROCESSORS = {"torch": TorchPreprocessing, "caffe": CaffePreprocessing}
 
 __all__ = ["get_preprocessor"]
 
 
 def get_preprocessor(framework: str) -> nn.Module:
-    return PREPROCESSORS[framework]
+    return PREPROCESSORS[framework]()
