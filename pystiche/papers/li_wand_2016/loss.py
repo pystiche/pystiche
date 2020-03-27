@@ -41,7 +41,7 @@ class LiWand2016MSEEncodingOperator(MSEEncodingOperator):
 def li_wand_2016_content_loss(
     impl_params: bool = True,
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
-    layer: str = "relu_4_2",
+    layer: str = "relu4_2",
     score_weight: Optional[float] = None,
 ):
     if multi_layer_encoder is None:
@@ -137,7 +137,7 @@ def li_wand_2016_style_loss(
         multi_layer_encoder = li_wand_2016_multi_layer_encoder()
 
     if layers is None:
-        layers = ("relu_3_1", "relu_4_1")
+        layers = ("relu3_1", "relu4_1")
 
     if stride is None:
         stride = 2 if impl_params else 1

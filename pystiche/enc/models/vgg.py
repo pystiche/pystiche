@@ -1,9 +1,10 @@
 from collections import OrderedDict
+import re
 from torch.utils import model_zoo
 from torch import nn
 import torchvision
 from pystiche.misc import warn_deprecation
-from ..multi_layer_encoder import MultiLayerEncoder
+from ..multi_layer_encoder import MultiLayerEncoder, SingleLayerEncoder
 from ..preprocessing import get_preprocessor
 
 MODELS = {
@@ -39,6 +40,10 @@ __all__ = [
     "vgg19_bn_multi_layer_encoder",
 ]
 
+DEPRECATED_LAYER_PATTERN = re.compile(
+    "^(?P<type>(conv|bn|relu|pool))_(?P<block>\d)(_(?P<depth>\d))?$"
+)
+
 
 class MultiLayerVGGEncoder(MultiLayerEncoder):
     def __init__(self, arch: str, weights: str, internal_preprocessing, allow_inplace):
@@ -63,17 +68,17 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
         block = depth = 1
         for module in model.children():
             if isinstance(module, nn.Conv2d):
-                name = f"conv_{block}_{depth}"
+                name = f"conv{block}_{depth}"
             elif isinstance(module, nn.BatchNorm2d):
-                name = f"bn_{block}_{depth}"
+                name = f"bn{block}_{depth}"
             elif isinstance(module, nn.ReLU):
                 if not self.allow_inplace:
                     module = nn.ReLU(inplace=False)
-                name = f"relu_{block}_{depth}"
+                name = f"relu{block}_{depth}"
                 # each ReLU layer increases the depth of the current block
                 depth += 1
             else:  # isinstance(module, nn.MaxPool2d):
-                name = f"pool_{block}"
+                name = f"pool{block}"
                 # each pooling layer marks the end of the current block
                 block += 1
                 depth = 1
@@ -91,6 +96,28 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
         if self.allow_inplace:
             dct["allow_inplace"] = self.allow_inplace
         return dct
+
+    def __getitem__(self, layer: str) -> SingleLayerEncoder:
+        match = DEPRECATED_LAYER_PATTERN.match(layer)
+        if match is not None:
+            old_layer = layer
+            type = match.group("type")
+            block = match.group("block")
+            depth = match.group("depth")
+            layer = f"{type}{block}"
+            if depth is not None:
+                layer += f"_{depth}"
+            warn_deprecation(
+                "layer pattern",
+                old_layer,
+                "0.4",
+                info=(
+                    f"Please remove the underscore between the layer type and the "
+                    f"block number, i.e. {layer}."
+                ),
+                url="https://github.com/pmeier/pystiche/issues/125",
+            )
+        return super().__getitem__(layer)
 
 
 class VGGEncoder(MultiLayerVGGEncoder):

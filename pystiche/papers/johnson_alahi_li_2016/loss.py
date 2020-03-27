@@ -38,7 +38,7 @@ def johnson_alahi_li_2016_content_loss(
     instance_norm: bool = True,
     style: Optional[str] = None,
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
-    layer: str = "relu_2_2",
+    layer: str = "relu2_2",
     score_weight: Optional[float] = None,
 ):
     if multi_layer_encoder is None:
@@ -103,7 +103,7 @@ def johnson_alahi_li_2016_style_loss(
         )
 
     if layers is None:
-        layers = ("relu_1_2", "relu_2_2", "relu_3_3", "relu_4_3")
+        layers = ("relu1_2", "relu2_2", "relu3_3", "relu4_3")
 
     if score_weight is None:
         score_weight = get_style_score_weight(impl_params, instance_norm, style=style)
