@@ -1,12 +1,10 @@
 from os import path
-import unittest
 import torch
 from pystiche.image import io, calculate_aspect_ratio, edge_to_image_size
-from image_test_case import PysticheImageTestCase
-from utils import get_tmp_dir
+from utils import PysticheTestCase, get_tmp_dir
 
 
-class Tester(PysticheImageTestCase, unittest.TestCase):
+class TestCase(PysticheTestCase):
     def test_read_image(self):
         actual = io.read_image(self.default_image_file())
         desired = self.load_image()
