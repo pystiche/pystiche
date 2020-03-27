@@ -55,9 +55,6 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
         return self.package_name
 
     def default_image_file(self) -> str:
-        # The test image was downloaded from
-        # http://www.r0k.us/graphics/kodak/kodim15.html
-        # and is cleared for unrestricted usage
         return path.join(self.test_assets_root, "image", "test_image.png")
 
     def load_batched_image(self, batch_size=1, file=None):
