@@ -1,28 +1,39 @@
+from importlib import import_module
 import os
 from os import path
-from setuptools import find_packages
-from importlib import import_module
+import re
 import itertools
-import unittest
+from setuptools import find_packages
 import pystiche
+from utils import PysticheTestCase
 
 
-class Tester(unittest.TestCase):
+class TestCase(PysticheTestCase):
     def test_import(self):
-        here = path.abspath(path.dirname(__file__))
-        pystiche_root = path.join(here, "..", "pystiche")
-
-        packages = find_packages(pystiche_root)
-
-        modules = []
-        for package in packages:
-            files = os.listdir(path.join(pystiche_root, package.replace(".", os.sep)))
+        def find_modules(dir, package=None):
+            if package is not None:
+                dir = path.join(dir, package.replace(".", os.sep))
+            files = os.listdir(dir)
+            modules = []
             for file in files:
                 name, ext = path.splitext(file)
-                if ext == ".py" and name != "__init__":
-                    modules.append(f"{package}.{name}")
+                if ext == ".py" and not name.startswith("_"):
+                    module = f"{package}." if package is not None else ""
+                    module += name
+                    modules.append(module)
+            return modules
 
-        for module in itertools.chain(packages, modules):
+        public_packages = [
+            package
+            for package in find_packages(self.package_root)
+            if not package.startswith("_")
+        ]
+
+        public_modules = find_modules(self.package_root)
+        for package in public_packages:
+            public_modules.extend(find_modules(self.package_root, package=package))
+
+        for module in itertools.chain(public_packages, public_modules):
             import_module(f"pystiche.{module}")
 
     def test_about(self):
@@ -37,6 +48,19 @@ class Tester(unittest.TestCase):
         ):
             self.assertIsInstance(getattr(pystiche, f"__{attr}__"), str)
 
+    def test_name(self):
+        self.assertEqual(pystiche.__name__, self.package_name)
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_version(self):
+        def is_canonical(version):
+            # Copied from
+            # https://www.python.org/dev/peps/pep-0440/#appendix-b-parsing-version-strings-with-regular-expressions
+            return (
+                re.match(
+                    r"^([1-9][0-9]*!)?(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))*((a|b|rc)(0|[1-9][0-9]*))?(\.post(0|[1-9][0-9]*))?(\.dev(0|[1-9][0-9]*))?$",
+                    version,
+                )
+                is not None
+            )
+
+        self.assertTrue(is_canonical(pystiche.__version__))

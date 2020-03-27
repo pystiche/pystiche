@@ -1,8 +1,26 @@
 import contextlib
+from os import path
 import tempfile
 import shutil
+import unittest
 
-__all__ = ["get_tmp_dir"]
+__all__ = ["PysticheTestCase", "get_tmp_dir"]
+
+
+class PysticheTestCase(unittest.TestCase):
+    project_root = path.abspath(path.join(path.dirname(__file__), ".."))
+
+    @property
+    def package_name(self):
+        return "pystiche"
+
+    @property
+    def package_root(self):
+        return path.join(self.project_root, self.package_name)
+
+    @property
+    def test_root(self):
+        return path.join(self.project_root, "test")
 
 
 @contextlib.contextmanager
