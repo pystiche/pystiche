@@ -4,6 +4,7 @@ from copy import copy
 import torch
 from torch import nn
 import pystiche
+from pystiche.misc import warn_deprecation
 from .encoder import Encoder
 from .guides import propagate_guide
 
@@ -88,6 +89,18 @@ class MultiLayerEncoder(pystiche.Module):
         self._verify_layer(layer)
         self._registered_layers.add(layer)
         return SingleLayerEncoder(self, layer)
+
+    def __getitem__(self, layer: str) -> "SingleLayerEncoder":
+        warn_deprecation(
+            "method",
+            "__getitem__",
+            "0.4",
+            info=(
+                "To extract a single layer encoder use MultiLayerEncoder.extract_"
+                "single_layer_encoder() instead."
+            ),
+        )
+        return self.extract_single_layer_encoder(layer)
 
     def clear_cache(self):
         self._cache = {}
