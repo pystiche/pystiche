@@ -45,7 +45,7 @@ def johnson_alahi_li_2016_content_loss(
         multi_layer_encoder = johnson_alahi_li_2016_multi_layer_encoder(
             impl_params=impl_params
         )
-    encoder = multi_layer_encoder[layer]
+    encoder = multi_layer_encoder.extract_single_layer_encoder(layer)
 
     if score_weight is None:
         score_weight = get_content_score_weight(instance_norm, style=style)

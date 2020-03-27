@@ -46,7 +46,7 @@ def li_wand_2016_content_loss(
 ):
     if multi_layer_encoder is None:
         multi_layer_encoder = li_wand_2016_multi_layer_encoder()
-    encoder = multi_layer_encoder[layer]
+    encoder = multi_layer_encoder.extract_single_layer_encoder(layer)
 
     if score_weight is None:
         score_weight = 2e1 if impl_params else 1e0

@@ -10,7 +10,7 @@ NST via image-based optimization with image pyramid
 import torch
 from torch import optim
 from pystiche.image import extract_aspect_ratio, show_image, write_image
-from pystiche.enc import vgg19_encoder
+from pystiche.enc import vgg19_multi_layer_encoder
 from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
 from pystiche.loss import PerceptualLoss
 from pystiche.pyramid import ImagePyramid
@@ -26,14 +26,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ###############################################################################
 # Load the encoder used to create the feature maps for the NST
 
-multi_layer_encoder = vgg19_encoder()
+multi_layer_encoder = vgg19_multi_layer_encoder()
 
 
 ###############################################################################
 # Create the content loss
 
-content_layer = "relu_4_2"
-content_encoder = multi_layer_encoder[content_layer]
+content_layer = "relu4_2"
+content_encoder = multi_layer_encoder.extract_single_layer_encoder(content_layer)
 content_weight = 1e0
 content_loss = MSEEncodingOperator(content_encoder, score_weight=content_weight)
 
@@ -41,7 +41,7 @@ content_loss = MSEEncodingOperator(content_encoder, score_weight=content_weight)
 ###############################################################################
 # Create the style loss
 
-style_layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
+style_layers = ("relu1_1", "relu2_1", "relu3_1", "relu4_1", "relu5_1")
 style_weight = 1e4
 
 
