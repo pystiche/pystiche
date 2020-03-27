@@ -28,7 +28,7 @@ __all__ = [
 
 def gatys_et_al_2017_content_loss(
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
-    layer: str = "relu_4_2",
+    layer: str = "relu4_2",
     score_weight=1e0,
 ):
     if multi_layer_encoder is None:
@@ -87,7 +87,7 @@ def gatys_et_al_2017_style_loss(
         multi_layer_encoder = gatys_et_al_2017_multi_layer_encoder()
 
     if layers is None:
-        layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
+        layers = ("relu1_1", "relu2_1", "relu3_1", "relu4_1", "relu5_1")
 
     def get_encoding_op(encoder, layer_weight):
         return GramOperator(encoder, score_weight=layer_weight, **gram_op_kwargs)
@@ -120,7 +120,7 @@ def gatys_et_al_2017_guided_style_loss(
         multi_layer_encoder = gatys_et_al_2017_multi_layer_encoder()
 
     if layers is None:
-        layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
+        layers = ("relu1_1", "relu2_1", "relu3_1", "relu4_1", "relu5_1")
 
     def get_encoding_op(encoder, layer_weight):
         return GuidedGramOperator(encoder, score_weight=layer_weight, **gram_op_kwargs)
