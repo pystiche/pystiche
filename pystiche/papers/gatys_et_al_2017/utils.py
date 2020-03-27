@@ -2,7 +2,7 @@ import torch
 from torch import optim
 from torch.optim.optimizer import Optimizer
 from pystiche.image import CaffePreprocessing, CaffePostprocessing
-from pystiche.enc import MultiLayerEncoder, vgg19_encoder
+from pystiche.enc import MultiLayerEncoder, vgg19_multi_layer_encoder
 
 __all__ = [
     "gatys_et_al_2017_preprocessor",
@@ -21,7 +21,9 @@ def gatys_et_al_2017_postprocessor() -> CaffePostprocessing:
 
 
 def gatys_et_al_2017_multi_layer_encoder() -> MultiLayerEncoder:
-    return vgg19_encoder(weights="caffe", preprocessing=False, allow_inplace=True)
+    return vgg19_multi_layer_encoder(
+        weights="caffe", preprocessing=False, allow_inplace=True
+    )
 
 
 def gatys_et_al_2017_optimizer(input_image: torch.Tensor) -> Optimizer:

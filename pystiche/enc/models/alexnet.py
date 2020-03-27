@@ -2,6 +2,7 @@ from collections import OrderedDict
 from torch.utils import model_zoo
 from torch import nn
 from torchvision.models import alexnet
+from pystiche.misc import warn_deprecation
 from ..multi_layer_encoder import MultiLayerEncoder
 from ..preprocessing import get_preprocessor
 
@@ -9,10 +10,10 @@ from ..preprocessing import get_preprocessor
 MODEL_URLS = {"torch": "https://download.pytorch.org/models/alexnet-owt-4df8aa71.pth"}
 
 
-__all__ = ["alexnet_encoder"]
+__all__ = ["alexnet_multi_layer_encoder"]
 
 
-class AlexNetEncoder(MultiLayerEncoder):
+class MultiLayerAlexNetEncoder(MultiLayerEncoder):
     def __init__(self, weights: str, preprocessing: bool, allow_inplace: bool):
         self.weights = weights
         self.preprocessing = preprocessing
@@ -55,7 +56,28 @@ class AlexNetEncoder(MultiLayerEncoder):
         return dct
 
 
-def alexnet_encoder(
+class AlexNetEncoder(MultiLayerAlexNetEncoder):
+    def __init__(self, *args, **kwargs):
+        warn_deprecation(
+            "class",
+            "AlexNetEncoder",
+            "0.4",
+            info="It was replaced by MultiLayerAlexNetEncoder.",
+        )
+        super().__init__(*args, **kwargs)
+
+
+def alexnet_multi_layer_encoder(
     weights: str = "torch", preprocessing=True, allow_inplace: bool = False
 ):
-    return AlexNetEncoder(weights, preprocessing, allow_inplace)
+    return MultiLayerAlexNetEncoder(weights, preprocessing, allow_inplace)
+
+
+def alexnet_encoder(*args, **kwargs):
+    warn_deprecation(
+        "function",
+        "alexnet_encoder",
+        "0.4",
+        info="It was replaced by alexnet_multi_layer_encoder",
+    )
+    return alexnet_multi_layer_encoder(*args, **kwargs)

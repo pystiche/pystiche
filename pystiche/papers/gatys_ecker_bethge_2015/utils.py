@@ -3,7 +3,7 @@ from torch import optim, nn
 from torch.optim.optimizer import Optimizer
 import pystiche
 from pystiche.image import CaffePreprocessing, CaffePostprocessing
-from pystiche.enc import MultiLayerEncoder, vgg19_encoder
+from pystiche.enc import MultiLayerEncoder, vgg19_multi_layer_encoder
 
 __all__ = [
     "gatys_ecker_bethge_2015_preprocessor",
@@ -24,7 +24,7 @@ def gatys_ecker_bethge_2015_postprocessor() -> nn.Module:
 def gatys_ecker_bethge_2015_multi_layer_encoder(
     impl_params: bool = True,
 ) -> MultiLayerEncoder:
-    multi_layer_encoder = vgg19_encoder(
+    multi_layer_encoder = vgg19_multi_layer_encoder(
         weights="caffe", preprocessing=False, allow_inplace=True
     )
     if impl_params:
