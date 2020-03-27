@@ -1,10 +1,9 @@
-import unittest
 import torch
 from pystiche.misc import cuda
-from utils import skip_if_cuda_not_available
+from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
-class TestCase(unittest.TestCase):
+class TestCase(PysticheTestCase):
     @staticmethod
     def create_large_cuda_tensor(size_in_gb=256):
         return torch.empty((size_in_gb, *[1024] * 3), device="cuda", dtype=torch.uint8)

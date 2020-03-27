@@ -1,11 +1,11 @@
-from os import path
 import math
 import unittest
 import torch
 from pystiche.misc import misc
+from utils import PysticheTestCase
 
 
-class TestCase(unittest.TestCase):
+class TestCase(PysticheTestCase):
     def test_prod(self):
         n = 10
         iterable = range(1, n + 1)
