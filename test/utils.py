@@ -2,12 +2,13 @@ import contextlib
 from os import path
 import tempfile
 import shutil
+import unittest
 import pyimagetest
 import numpy as np
 import torch
 from PIL import Image
 
-__all__ = ["PysticheTestCase", "get_tmp_dir"]
+__all__ = ["PysticheTestCase", "get_tmp_dir", "skip_if_cuda_not_available"]
 
 
 class PysticheImageBackend(pyimagetest.ImageBackend):
@@ -78,3 +79,8 @@ def get_tmp_dir(**mkdtemp_kwargs):
         yield tmp_dir
     finally:
         shutil.rmtree(tmp_dir)
+
+
+skip_if_cuda_not_available = unittest.skipIf(
+    not torch.cuda.is_available(), "CUDA is not available."
+)
