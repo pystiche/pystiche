@@ -117,7 +117,7 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
                 ),
                 url="https://github.com/pmeier/pystiche/issues/125",
             )
-        return super().__getitem__(layer)
+        return super().extract_single_layer_encoder(layer)
 
 
 class VGGEncoder(MultiLayerVGGEncoder):
