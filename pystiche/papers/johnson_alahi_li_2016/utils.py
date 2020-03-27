@@ -4,7 +4,7 @@ from pystiche.image import (
     CaffePreprocessing,
     CaffePostprocessing,
 )
-from pystiche.enc import MultiLayerEncoder, vgg16_encoder
+from pystiche.enc import MultiLayerEncoder, vgg16_multi_layer_encoder
 
 __all__ = [
     "johnson_alahi_li_2016_preprocessor",
@@ -23,7 +23,7 @@ def johnson_alahi_li_2016_postprocessor() -> CaffePostprocessing:
 
 
 def johnson_alahi_li_2016_multi_layer_encoder(impl_params=True) -> MultiLayerEncoder:
-    return vgg16_encoder(
+    return vgg16_multi_layer_encoder(
         weights="caffe", preprocessing=not impl_params, allow_inplace=True
     )
 
