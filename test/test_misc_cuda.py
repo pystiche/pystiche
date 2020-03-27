@@ -4,7 +4,7 @@ from pystiche.misc import cuda
 from utils import skip_if_cuda_not_available
 
 
-class Tester(unittest.TestCase):
+class TestCase(unittest.TestCase):
     @staticmethod
     def create_large_cuda_tensor(size_in_gb=256):
         return torch.empty((size_in_gb, *[1024] * 3), device="cuda", dtype=torch.uint8)

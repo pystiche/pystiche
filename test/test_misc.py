@@ -5,7 +5,7 @@ import torch
 from pystiche.misc import misc
 
 
-class Tester(unittest.TestCase):
+class TestCase(unittest.TestCase):
     def test_prod(self):
         n = 10
         iterable = range(1, n + 1)
