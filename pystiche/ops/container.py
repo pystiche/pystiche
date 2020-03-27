@@ -63,7 +63,7 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
         score_weight: float = 1e0,
     ):
         def get_op(layer, layer_weight):
-            encoder = multi_layer_encoder[layer]
+            encoder = multi_layer_encoder.extract_single_layer_encoder(layer)
             return get_encoding_op(encoder, layer_weight)
 
         super().__init__(
