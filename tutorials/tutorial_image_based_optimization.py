@@ -10,7 +10,7 @@ NST via image-based optimization
 import torch
 from torch import optim
 from pystiche.image import show_image, write_image
-from pystiche.enc import vgg19_encoder
+from pystiche.enc import vgg19_multi_layer_encoder
 from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
 from pystiche.loss import PerceptualLoss
 from pystiche.demo import demo_images
@@ -25,7 +25,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ###############################################################################
 # Load the encoder used to create the feature maps for the NST
 
-multi_layer_encoder = vgg19_encoder()
+multi_layer_encoder = vgg19_multi_layer_encoder()
 
 
 ###############################################################################
