@@ -19,7 +19,7 @@ imports
     import torch
     from torch import optim
     from pystiche.image import extract_aspect_ratio, show_image, write_image
-    from pystiche.enc import vgg19_encoder
+    from pystiche.enc import vgg19_multi_layer_encoder
     from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
     from pystiche.loss import PerceptualLoss
     from pystiche.pyramid import ImagePyramid
@@ -55,7 +55,7 @@ Load the encoder used to create the feature maps for the NST
 .. code-block:: default
 
 
-    multi_layer_encoder = vgg19_encoder()
+    multi_layer_encoder = vgg19_multi_layer_encoder()
 
 
 
@@ -71,8 +71,8 @@ Create the content loss
 .. code-block:: default
 
 
-    content_layer = "relu_4_2"
-    content_encoder = multi_layer_encoder[content_layer]
+    content_layer = "relu4_2"
+    content_encoder = multi_layer_encoder.extract_single_layer_encoder(content_layer)
     content_weight = 1e0
     content_loss = MSEEncodingOperator(content_encoder, score_weight=content_weight)
 
@@ -90,7 +90,7 @@ Create the style loss
 .. code-block:: default
 
 
-    style_layers = ("relu_1_1", "relu_2_1", "relu_3_1", "relu_4_1", "relu_5_1")
+    style_layers = ("relu1_1", "relu2_1", "relu3_1", "relu4_1", "relu5_1")
     style_weight = 1e4
 
 
@@ -131,14 +131,14 @@ Combine the content and style loss into the optimization criterion
  .. code-block:: none
 
     PerceptualLoss(
-      (content_loss): MSEEncodingOperator(encoder=VGGEncoder(layer=relu_4_2, arch=vgg19, weights=torch))
+      (content_loss): MSEEncodingOperator(encoder=MultiLayerVGGEncoder(layer=relu4_2, arch=vgg19, weights=torch))
       (style_loss): MultiLayerEncodingOperator(
-        encoder=VGGEncoder(arch=vgg19, weights=torch), score_weight=10e3
-        (relu_1_1): GramOperator(score_weight=0.2)
-        (relu_2_1): GramOperator(score_weight=0.2)
-        (relu_3_1): GramOperator(score_weight=0.2)
-        (relu_4_1): GramOperator(score_weight=0.2)
-        (relu_5_1): GramOperator(score_weight=0.2)
+        encoder=MultiLayerVGGEncoder(arch=vgg19, weights=torch), score_weight=10e3
+        (relu1_1): GramOperator(score_weight=0.2)
+        (relu2_1): GramOperator(score_weight=0.2)
+        (relu3_1): GramOperator(score_weight=0.2)
+        (relu4_1): GramOperator(score_weight=0.2)
+        (relu5_1): GramOperator(score_weight=0.2)
       )
     )
 
@@ -437,7 +437,7 @@ Show the stylization result
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 1 minutes  28.950 seconds)
+   **Total running time of the script:** ( 1 minutes  28.726 seconds)
 
 
 .. _sphx_glr_download_auto_tutorials_tutorial_image_based_optimization_with_pyramid.py:
