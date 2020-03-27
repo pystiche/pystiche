@@ -84,7 +84,7 @@ class MultiLayerEncoder(pystiche.Module):
         encs = self(image, layers=self._registered_layers, store=True)
         self._cache = dict(zip(keys, encs))
 
-    def __getitem__(self, layer: str) -> "SingleLayerEncoder":
+    def extract_single_layer_encoder(self, layer: str) -> "SingleLayerEncoder":
         self._verify_layer(layer)
         self._registered_layers.add(layer)
         return SingleLayerEncoder(self, layer)
