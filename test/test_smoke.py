@@ -48,6 +48,19 @@ class TestCase(PysticheTestCase):
         ):
             self.assertIsInstance(getattr(pystiche, f"__{attr}__"), str)
 
+    def test_name(self):
+        self.assertEqual(pystiche.__name__, self.package_name)
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_version(self):
+        def is_canonical(version):
+            # Copied from
+            # https://www.python.org/dev/peps/pep-0440/#appendix-b-parsing-version-strings-with-regular-expressions
+            return (
+                re.match(
+                    r"^([1-9][0-9]*!)?(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))*((a|b|rc)(0|[1-9][0-9]*))?(\.post(0|[1-9][0-9]*))?(\.dev(0|[1-9][0-9]*))?$",
+                    version,
+                )
+                is not None
+            )
+
+        self.assertTrue(is_canonical(pystiche.__version__))
