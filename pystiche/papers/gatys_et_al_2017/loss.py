@@ -33,7 +33,7 @@ def gatys_et_al_2017_content_loss(
 ):
     if multi_layer_encoder is None:
         multi_layer_encoder = gatys_et_al_2017_multi_layer_encoder()
-    encoder = multi_layer_encoder[layer]
+    encoder = multi_layer_encoder.extract_single_layer_encoder(layer)
 
     return MSEEncodingOperator(encoder, score_weight=score_weight)
 
