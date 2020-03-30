@@ -16,9 +16,10 @@ def powerset(iterable):
 class TestCase(PysticheTestCase):
     def test_perceptual_loss_components(self):
         op = TotalVariationOperator()
-        all_components = {"content_loss", "style_loss", "regularization"}
+        required_components = {"content_loss", "style_loss"}
+        all_components = {*required_components, "regularization"}
         for components in powerset(all_components):
-            if not components:
+            if not set(components).intersection(required_components):
                 with self.assertRaises(RuntimeError):
                     loss.PerceptualLoss()
                 continue
@@ -37,15 +38,15 @@ class TestCase(PysticheTestCase):
     def test_perceptual_loss_content_image(self):
         torch.manual_seed(0)
         image = torch.rand(1, 1, 100, 100)
-        regularization = TotalVariationOperator()
+        content_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
+        style_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
 
-        perceptual_loss = loss.PerceptualLoss(regularization=regularization)
+        perceptual_loss = loss.PerceptualLoss(style_loss=style_loss)
         with self.assertRaises(RuntimeError):
             perceptual_loss.set_content_image(image)
 
-        content_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
         perceptual_loss = loss.PerceptualLoss(
-            content_loss=content_loss, regularization=regularization
+            content_loss=content_loss, style_loss=style_loss
         )
         perceptual_loss.set_content_image(image)
 
@@ -58,15 +59,16 @@ class TestCase(PysticheTestCase):
     def test_perceptual_loss_style_image(self):
         torch.manual_seed(0)
         image = torch.rand(1, 1, 100, 100)
-        regularization = TotalVariationOperator()
+        content_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
+        style_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
 
-        perceptual_loss = loss.PerceptualLoss(regularization=regularization)
+        perceptual_loss = loss.PerceptualLoss(content_loss=content_loss)
         with self.assertRaises(RuntimeError):
             perceptual_loss.set_style_image(image)
 
         style_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
         perceptual_loss = loss.PerceptualLoss(
-            style_loss=style_loss, regularization=regularization
+            content_loss=content_loss, style_loss=style_loss
         )
         perceptual_loss.set_style_image(image)
 
