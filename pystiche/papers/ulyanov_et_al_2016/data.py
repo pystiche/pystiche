@@ -11,7 +11,13 @@ from pystiche.data import (
     FiniteCycleBatchSampler,
 )
 from pystiche.image import extract_num_channels
-from pystiche.image.transforms import Transform, Resize, ComposedTransform, CenterCrop, ValidRandomCrop
+from pystiche.image.transforms import (
+    Transform,
+    Resize,
+    ComposedTransform,
+    CenterCrop,
+    ValidRandomCrop,
+)
 from pystiche.image.transforms.functional import grayscale_to_fakegrayscale
 
 
@@ -59,14 +65,9 @@ def ulyanov_et_al_2016_style_transform(
     if edge_size is None:
         edge_size = 256
 
-    if impl_params and instance_norm:
-        interpolation_mode = "bicubic"
-    else:
-        interpolation_mode = "bilinear"
+    interpolation_mode = "bicubic" if impl_params and instance_norm else "bilinear"
 
-    transforms = [
-        Resize(edge_size, edge="long", interpolation_mode=interpolation_mode)
-    ]
+    transforms = [Resize(edge_size, edge="long", interpolation_mode=interpolation_mode)]
     return ComposedTransform(*transforms)
 
 
@@ -141,11 +142,11 @@ def ulyanov_et_al_2016_images(
             urljoin(base_ulyanov_suppl_texture, "pebble.png"),
             md5="5b5e5aa6c579e42e268058a94d683a6c",
         ),
-        "pixelcity_windows2": DownloadableImage(
+        "pixels": DownloadableImage(
             urljoin(base_ulyanov_suppl_texture, "pixelcity_windows2.jpg"),
             md5="53026a8411e7c26e959e36d3223f3b8f",
         ),
-        "red-peppers256.o": DownloadableImage(
+        "peppers": DownloadableImage(
             urljoin(base_ulyanov_suppl_texture, "red-peppers256.o.jpg"),
             md5="16371574a10e0d10b88b807204c4f546",
         ),

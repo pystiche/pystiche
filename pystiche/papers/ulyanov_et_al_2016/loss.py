@@ -17,10 +17,10 @@ class UlyanovEtAl2016MSEEncodingOperator(MSEEncodingOperator):
         self, encoder: Encoder, score_weight: float = 1e0
     ):
         super().__init__(encoder, score_weight=score_weight)
-        self.loss_reduction = "mean"
+        self.double_batch_size_mean = impl_params
 
     def calculate_score(self, input_repr, target_repr, ctx):
-        score = super().calculate_score(input_repr, target_repr, ctx=ctx)
+        score = super().calculate_score(input_repr, target_repr, ctx)
         if not self.double_batch_size_mean:
             return score
         else:
@@ -45,7 +45,9 @@ def ulyanov_et_al_2016_content_loss(
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()
     encoder = multi_layer_encoder[layer]
 
-    return UlyanovEtAl2016MSEEncodingOperator(encoder, score_weight=score_weight)
+    return UlyanovEtAl2016MSEEncodingOperator(
+        encoder, score_weight=score_weight, impl_params=impl_params
+    )
 
 
 class UlyanovEtAl2016GramOperator(GramOperator):
@@ -67,12 +69,13 @@ class UlyanovEtAl2016GramOperator(GramOperator):
     def calculate_score(
         self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
     ) -> torch.Tensor:
-        score = super().calculate_score(input_repr, target_repr, ctx=ctx)
+        score = super().calculate_score(input_repr, target_repr, ctx)
         if not self.double_batch_size_mean:
             return score
         else:
             batch_size = input_repr.size()[0]
             return score / batch_size
+
 
 def ulyanov_et_al_2016_style_loss(
     impl_params: bool = True,
@@ -125,7 +128,7 @@ class UlyanovEtAl2016PerceptualLoss(MultiOperatorLoss):
 
         dict = OrderedDict([("style_loss", style_loss)])
         if content_loss is not None:
-            dict["content_loss"] = content_loss
+            modules.append([("content_loss", content_loss)])
 
         super().__init__(dict)
 

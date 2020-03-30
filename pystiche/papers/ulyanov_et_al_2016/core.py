@@ -39,7 +39,7 @@ __all__ = [
     "ulyanov_et_al_2016_image_loader",
     "ulyanov_et_al_2016_training",
     "ulyanov_et_al_2016_images",
-    "ulyanov_et_al_2016_style_generation",
+    "ulyanov_et_al_2016_stylization",
     "ulyanov_et_al_2016_texture_generation",
 ]
 
@@ -117,14 +117,16 @@ def ulyanov_et_al_2016_training(
     criterion.set_style_image(style_image)
 
     if stylization:
+
         def criterion_update_fn(input_image, criterion):
             criterion.set_content_image(preprocessor(input_image))
+
     else:
+
         def criterion_update_fn(input_image, criterion):
             pass
 
-
-    default_transformer_epoch_optim_loop(
+    return default_transformer_epoch_optim_loop(
         content_image_loader,
         transformer,
         criterion,
@@ -137,10 +139,8 @@ def ulyanov_et_al_2016_training(
         log_fn=log_fn,
     )
 
-    return transformer
 
-
-def ulyanov_et_al_2016_style_generation(
+def ulyanov_et_al_2016_stylization(
     input_image: torch.Tensor,
     transformer: Union[nn.Module, str],
     impl_params: bool = True,
@@ -152,15 +152,19 @@ def ulyanov_et_al_2016_style_generation(
     if isinstance(transformer, str):
         style = transformer
         transformer = ulyanov_et_al_2016_transformer(
-            style=style, impl_params=impl_params, instance_norm=instance_norm, stylization=stylization
+            style=style,
+            impl_params=impl_params,
+            instance_norm=instance_norm,
+            stylization=stylization,
         )
         if instance_norm or not impl_params:
             transformer = transformer.eval()
         transformer = transformer.to(device)
 
     with torch.no_grad():
-        content_transform = ulyanov_et_al_2016_content_transform(impl_params=impl_params,
-                                                                 instance_norm=instance_norm)
+        content_transform = ulyanov_et_al_2016_content_transform(
+            impl_params=impl_params, instance_norm=instance_norm
+        )
         content_transform = content_transform.to(device)
         input_image = content_transform(input_image)
 
@@ -182,14 +186,17 @@ def ulyanov_et_al_2016_texture_generation(
     postprocessor: Optional[CaffePostprocessing] = None,
 ):
     if isinstance(input, torch.Tensor):
-        device = input.device
+        device = input.device()
     else:
-        device = torch.device()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if isinstance(transformer, str):
         style = transformer
         transformer = ulyanov_et_al_2016_transformer(
-            style=style, impl_params=impl_params, instance_norm=instance_norm, stylization=stylization
+            style=style,
+            impl_params=impl_params,
+            instance_norm=instance_norm,
+            stylization=stylization,
         )
         if instance_norm or not impl_params:
             transformer = transformer.eval()
