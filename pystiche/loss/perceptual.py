@@ -24,12 +24,13 @@ class _PerceptualLoss(MultiOperatorLoss):
             ops.append((self._CONTENT_LOSS_ID, content_loss))
         if style_loss is not None:
             ops.append((self._STYLE_LOSS_ID, style_loss))
-        if regularization is not None:
-            ops.append((self._REGULARIZATION_ID, regularization))
 
         if not ops:
-            # FIXME
-            raise RuntimeError
+            msg = "PerceptualLoss requires at least content_loss or style_loss."
+            raise RuntimeError(msg)
+
+        if regularization is not None:
+            ops.append((self._REGULARIZATION_ID, regularization))
 
         super().__init__(OrderedDict(ops), trim=trim)
 
@@ -47,13 +48,21 @@ class _PerceptualLoss(MultiOperatorLoss):
 
     def _verify_has_content_loss(self):
         if not self.has_content_loss:
-            # FIXME
-            raise RuntimeError
+            msg = (
+                "This instance of PerceptualLoss has no content_loss. If you need a "
+                "content_loss construct your instance with "
+                "PerceptualLoss(content_loss=..., ...)."
+            )
+            raise RuntimeError(msg)
 
     def _verfiy_has_style_loss(self):
         if not self.has_style_loss:
-            # FIXME
-            raise RuntimeError
+            msg = (
+                "This instance of PerceptualLoss has no style_loss. If you need a "
+                "style_loss construct your instance with "
+                "PerceptualLoss(style_loss=..., ...)."
+            )
+            raise RuntimeError(msg)
 
     def set_content_image(self, image: torch.Tensor) -> None:
         self._verify_has_content_loss()
