@@ -71,6 +71,12 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
         desired = transform(image)
         self.assertImagesAlmostEqual(actual, desired, tolerance=tolerance)
 
+    def assertTensorAlmostEqual(self, actual, desired, **kwargs):
+        def cast(x):
+            return x.detach().cpu().numpy()
+
+        np.testing.assert_allclose(cast(actual), cast(desired), **kwargs)
+
 
 @contextlib.contextmanager
 def get_tmp_dir(**mkdtemp_kwargs):

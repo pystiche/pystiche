@@ -1,17 +1,10 @@
 from math import sqrt
-import numpy as np
 import torch
 import pystiche
 from utils import PysticheTestCase
 
 
 class TestCase(PysticheTestCase):
-    def assertTensorAlmostEqual(self, actual, desired, **kwargs):
-        def cast(x):
-            return x.detach().cpu().numpy()
-
-        np.testing.assert_allclose(cast(actual), cast(desired), **kwargs)
-
     def test_possqrt(self):
         vals = (-1.0, 0.0, 1.0, 2.0)
         desireds = (0.0, 0.0, 1.0, sqrt(2.0))
