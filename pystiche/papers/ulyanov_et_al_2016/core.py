@@ -174,7 +174,7 @@ def ulyanov_et_al_2016_stylization(
     return output_image.detach()
 
 
-def ulyanov_et_al_2016_texture_generation(
+def ulyanov_et_al_2016_texture_synthesis(
     input: Union[Tuple[int, int], torch.Tensor],
     transformer: Union[nn.Module, str],
     impl_params: bool = True,
@@ -182,7 +182,7 @@ def ulyanov_et_al_2016_texture_generation(
     stylization: bool = True,
 ):
     if isinstance(input, torch.Tensor):
-        device = input.device()
+        device = input.device
     else:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
