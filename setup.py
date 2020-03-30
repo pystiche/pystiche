@@ -20,7 +20,17 @@ install_requires = (
 
 test_requires = ("pytest", "pyimagetest", "pillow_affine")
 
-dev_requires = (*test_requires, "pre-commit")
+doc_requires = (
+    "sphinx",
+    "sphinx_autodoc_typehints",
+    "sphinx_rtd_theme",
+    "sphinx-gallery",
+    # Install additional sphinx-gallery dependencies
+    # https://sphinx-gallery.github.io/stable/index.html#install-via-pip
+    "matplotlib",
+)
+
+dev_requires = (*test_requires, *doc_requires, "pre-commit", "BeautifulSoup4", "pyyaml")
 
 extras_require = {
     "test": test_requires,
