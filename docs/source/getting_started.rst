@@ -48,7 +48,7 @@ the following:
 Installation for developers
 ---------------------------
 
-If you want to contribute to ``pystiche`` please install with the ``[dev]`` extra in
+If you want to contribute to ``pystiche`` please install with the ``dev`` extra in
 order to install all required development tools. Since ``pystiche`` uses the
 `black code formatter <https://github.com/psf/black>`_, you should install it as a
 pre-commit hook:
@@ -70,7 +70,7 @@ the documentation locally run
   cd $PYSTICHE_ROOT/docs
   make $TARGET
 
-You can run ``make`` without arguments to get a list of all available ``$TARGET``s.
+You can run ``make`` without arguments to get a list of all available ``$TARGET`` s.
 
 .. note::
 
