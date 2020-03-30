@@ -9,15 +9,26 @@
 import warnings
 import os
 from os import path
+from distutils.util import strtobool as _strtobool
 from datetime import datetime
+
+
+def strtobool(val):
+    return bool(_strtobool(val))
 
 
 # -- Run config --------------------------------------------------------------
 
-try:
-    run_by_rtd = bool(os.environ["READTHEDOCS"])
-except KeyError:
-    run_by_rtd = False
+
+def get_bool_env_var(name):
+    try:
+        return strtobool(os.environ[name])
+    except KeyError:
+        return False
+
+
+run_by_rtd = get_bool_env_var("READTHEDOCS")
+exclude_gallery = get_bool_env_var("PYSTICHE_EXCLUDE_GALLERY") or run_by_rtd
 
 
 # -- Path setup --------------------------------------------------------------
@@ -75,19 +86,16 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # -- Sphinx gallery configuration --------------------------------------------
 
-if not run_by_rtd:
+if not exclude_gallery:
     extensions.append("sphinx_gallery.gen_gallery")
 
     sphinx_gallery_conf = {
         "examples_dirs": path.join(project_root, "tutorials"),
         "gallery_dirs": "auto_tutorials",
         "filename_pattern": os.sep + "tutorial_",
-        "ignore_pattern": "utils.py",
     }
 else:
-    warnings.warn(
-        "Sphinx is run by RTD. The sphinx galleries are not rerun!", UserWarning
-    )
+    warnings.warn("Sphinx gallery is excluded and will not be built!", UserWarning)
 
 
 # -- Options for HTML output -------------------------------------------------
