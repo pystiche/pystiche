@@ -40,7 +40,7 @@ __all__ = [
     "ulyanov_et_al_2016_training",
     "ulyanov_et_al_2016_images",
     "ulyanov_et_al_2016_stylization",
-    "ulyanov_et_al_2016_texture_generation",
+    "ulyanov_et_al_2016_texture_synthesis",
 ]
 
 
