@@ -146,7 +146,6 @@ def ulyanov_et_al_2016_stylization(
     impl_params: bool = True,
     instance_norm: bool = False,
     stylization: bool = True,
-    postprocessor: Optional[CaffePostprocessing] = None,
 ):
     device = input_image.device
     if isinstance(transformer, str):
@@ -167,9 +166,7 @@ def ulyanov_et_al_2016_stylization(
         )
         content_transform = content_transform.to(device)
         input_image = content_transform(input_image)
-
-        if postprocessor is None:
-            postprocessor = ulyanov_et_al_2016_postprocessor()
+        postprocessor = ulyanov_et_al_2016_postprocessor()
         postprocessor = postprocessor.to(device)
         output_image = transformer(input_image)
         output_image = postprocessor(output_image)
@@ -183,7 +180,6 @@ def ulyanov_et_al_2016_texture_generation(
     impl_params: bool = True,
     instance_norm: bool = False,
     stylization: bool = True,
-    postprocessor: Optional[CaffePostprocessing] = None,
 ):
     if isinstance(input, torch.Tensor):
         device = input.device()
@@ -203,8 +199,7 @@ def ulyanov_et_al_2016_texture_generation(
         transformer = transformer.to(device)
 
     with torch.no_grad():
-        if postprocessor is None:
-            postprocessor = ulyanov_et_al_2016_postprocessor()
+        postprocessor = ulyanov_et_al_2016_postprocessor()
         postprocessor = postprocessor.to(device)
         output_image = transformer(input)
         output_image = postprocessor(output_image)
