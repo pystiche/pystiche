@@ -9,7 +9,14 @@ with open(path.join(here, "pystiche", "__about__.py"), "r") as fh:
 with open(path.join(here, "README.md"), "r") as fh:
     long_description = fh.read()
 
-install_requires = ("torch>=1.4.0", "torchvision>=0.5.0", "Pillow", "numpy", "requests")
+install_requires = (
+    "torch>=1.4.0",
+    "torchvision>=0.5.0",
+    "pillow",
+    "numpy",
+    "requests",
+    "typing_extensions",
+)
 
 test_requires = ("pytest", "pyimagetest", "pillow_affine")
 
