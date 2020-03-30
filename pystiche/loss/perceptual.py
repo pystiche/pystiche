@@ -8,33 +8,73 @@ __all__ = ["PerceptualLoss", "GuidedPerceptualLoss"]
 
 
 class _PerceptualLoss(MultiOperatorLoss):
+    _CONTENT_LOSS_ID = "content_loss"
+    _STYLE_LOSS_ID = "style_loss"
+    _REGULARIZATION_ID = "regularization"
+
     def __init__(
         self,
-        content_loss: ComparisonOperator,
-        style_loss: ComparisonOperator,
+        content_loss: Optional[ComparisonOperator] = None,
+        style_loss: Optional[ComparisonOperator] = None,
         regularization: Optional[RegularizationOperator] = None,
         trim: bool = True,
     ) -> None:
-        ops = [("content_loss", content_loss), ("style_loss", style_loss)]
+        ops = []
+        if content_loss is not None:
+            ops.append((self._CONTENT_LOSS_ID, content_loss))
+        if style_loss is not None:
+            ops.append((self._STYLE_LOSS_ID, style_loss))
         if regularization is not None:
-            ops.append(("regularization", regularization))
+            ops.append((self._REGULARIZATION_ID, regularization))
+
+        if not ops:
+            # FIXME
+            raise RuntimeError
+
         super().__init__(OrderedDict(ops), trim=trim)
 
+    @property
+    def has_content_loss(self) -> bool:
+        return self._CONTENT_LOSS_ID in self._modules
+
+    @property
+    def has_style_loss(self) -> bool:
+        return self._STYLE_LOSS_ID in self._modules
+
+    @property
+    def has_regularization(self) -> bool:
+        return self._REGULARIZATION_ID in self._modules
+
+    def _verify_has_content_loss(self):
+        if not self.has_content_loss:
+            # FIXME
+            raise RuntimeError
+
+    def _verfiy_has_style_loss(self):
+        if not self.has_style_loss:
+            # FIXME
+            raise RuntimeError
+
     def set_content_image(self, image: torch.Tensor) -> None:
+        self._verify_has_content_loss()
         self.content_loss.set_target_image(image)
 
 
 class PerceptualLoss(_PerceptualLoss):
     def set_style_image(self, image: torch.Tensor) -> None:
+        self._verfiy_has_style_loss()
         self.style_loss.set_target_image(image)
 
 
 class GuidedPerceptualLoss(_PerceptualLoss):
     def set_style_image(self, region: str, image: torch.Tensor) -> None:
+        self._verfiy_has_style_loss()
         getattr(self.style_loss, region).set_target_image(image)
 
     def set_content_guide(self, region: str, guide: torch.Tensor) -> None:
+        self._verfiy_has_style_loss()
         getattr(self.style_loss, region).set_input_guide(guide)
 
     def set_style_guide(self, region: str, guide: torch.Tensor) -> None:
+        self._verfiy_has_style_loss()
         getattr(self.style_loss, region).set_target_guide(guide)
