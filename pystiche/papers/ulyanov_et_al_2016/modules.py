@@ -106,10 +106,13 @@ class UlyanovEtAl2016TextureNoise(UlyanovEtAl2016NoiseModule):
 
 def ulyanov_et_al_2016_noise(
     stylization: bool = True,
-    in_channels: int = 3,
+    in_channels: Optional[int] = None,
     num_noise_channels: int = 3,
     noise_fn: Optional[NoiseFn] = None,
 ) -> UlyanovEtAl2016NoiseModule:
+    if in_channels is None:
+        in_channels = 3 if stylization else 0
+
     if stylization:
         noise_class = UlyanovEtAl2016StylizationNoise
     else:
@@ -319,7 +322,7 @@ def ulyanov_et_al_2016_level(
     impl_params: bool = True,
     instance_norm: bool = True,
     stylization: bool = True,
-    in_channels: int = 3,
+    in_channels: Optional[int] = None,
     num_noise_channels: int = 3,
     noise_fn: Optional[NoiseFn] = None,
     inplace: bool = True,
@@ -351,6 +354,8 @@ def ulyanov_et_al_2016_level(
         modules.append(("conv_seq", conv_seq))
         return SequentialWithOutChannels(OrderedDict(modules))
 
+    if in_channels is None:
+        in_channels = 3 if stylization else 0
     noise = not impl_params or not stylization
     shallow_brach = conv_sequence(in_channels, out_channels=8, noise=noise)
 
