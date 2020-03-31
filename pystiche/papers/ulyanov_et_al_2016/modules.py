@@ -48,6 +48,51 @@ class NoiseFn(Protocol):
         pass
 
 
+class TextureNoiseParams:
+    def __init__(
+        self,
+        input: Union[Tuple[int, int], torch.Tensor],
+        num_noise_channels: int = 3,
+        batch_size: int = 1,
+        **meta: Any,
+    ):
+        def get_size(input: Union[Tuple[int, int], torch.Tensor]) -> Tuple[int, int]:
+            if isinstance(input, torch.Tensor):
+                return extract_image_size(input)
+            else:
+                return input
+
+        def get_meta(input: Union[Tuple[int, int], torch.Tensor]) -> Dict[str, Any]:
+            if isinstance(input, torch.Tensor):
+                return pystiche.tensor_meta(input, **meta)
+            else:
+                return meta
+
+        self._batch_size = batch_size
+        self._num_noise_channels = num_noise_channels
+        self._image_size = get_size(input)
+        self._meta = get_meta(input)
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size(
+            (self._batch_size, self._num_noise_channels, *self._image_size)
+        )
+
+    @property
+    def meta(self) -> Dict[str, Any]:
+        return self._meta
+
+    def downsample(self) -> "TextureNoiseParams":
+        height, width = self._image_size
+        return TextureNoiseParams(
+            (height // 2, width // 2),
+            self._num_noise_channels,
+            batch_size=self._batch_size,
+            **self.meta,
+        )
+
+
 class UlyanovEtAl2016NoiseModule(nn.Module):
     def __init__(
         self,
@@ -82,26 +127,14 @@ class UlyanovEtAl2016StylizationNoise(UlyanovEtAl2016NoiseModule):
 class UlyanovEtAl2016TextureNoise(UlyanovEtAl2016NoiseModule):
     def forward(
         self,
-        input: Union[Tuple[int, int], torch.Tensor],
-        batch_size: int = 1,
-        **meta: Any
+        params: Union[TextureNoiseParams, torch.Tensor, Tuple[int, int]],
+        **kwargs: Any,
     ) -> torch.Tensor:
-        def get_size(input: Union[Tuple[int, int], torch.Tensor]) -> torch.Size:
-            if isinstance(input, torch.Tensor):
-                image_size = extract_image_size(input)
-            else:
-                image_size = input
-            return torch.Size((batch_size, self.num_noise_channels, *image_size))
-
-        def get_meta(input: Union[Tuple[int, int], torch.Tensor]) -> Dict[str, Any]:
-            if isinstance(input, torch.Tensor):
-                return pystiche.tensor_meta(input, **meta)
-            else:
-                return meta
-
-        size = get_size(input)
-        meta = get_meta(input)
-        return self.noise_fn(size, **meta)
+        if not isinstance(params, TextureNoiseParams):
+            params = TextureNoiseParams(
+                params, num_noise_channels=self.num_noise_channels, **kwargs
+            )
+        return self.noise_fn(params.size, **params.meta)
 
 
 def ulyanov_et_al_2016_noise(
@@ -130,17 +163,12 @@ class UlyanovEtAl2016StylizationDownsample(nn.AvgPool2d):
 class UlyanovEtAl2016TextureDownsample(nn.Module):
     def forward(
         self,
-        input: Union[Tuple[int, int], torch.Tensor],
-        batch_size: int = 1,
-        **meta: Any
-    ) -> Tuple[int, int]:
-        if isinstance(input, torch.Tensor):
-            image_size = extract_image_size(input)
-        else:
-            image_size = input
-        height, width = image_size
-
-        return height // 2, width // 2
+        params: Union[TextureNoiseParams, torch.Tensor, Tuple[int, int]],
+        **kwargs: Any,
+    ) -> TextureNoiseParams:
+        if not isinstance(params, TextureNoiseParams):
+            params = TextureNoiseParams(params, **kwargs)
+        return params.downsample()
 
 
 def ulyanov_et_al_2016_downsample(stylization: bool = True) -> nn.Module:
@@ -287,7 +315,7 @@ class UlyanovEtAl2016JoinBlock(nn.Module):
     def forward(self, *inputs: torch.Tensor) -> torch.Tensor:
         return join_channelwise(
             *[norm(input) for norm, input in zip_equal(self.norm_modules, inputs)],
-            channel_dim=self.channel_dim
+            channel_dim=self.channel_dim,
         )
 
 
