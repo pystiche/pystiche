@@ -2,6 +2,7 @@ import os
 from os import path
 import tempfile
 import torch
+from torch import nn
 import pystiche
 from unittest import mock
 from utils import PysticheTestCase
@@ -140,3 +141,24 @@ class TestCase(PysticheTestCase):
             self.assertTrue(path.exists(desired) and path.isdir(desired))
         finally:
             os.rmdir(tmp_dir)
+
+    def test_SequentialModule(self):
+        modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
+        model = pystiche.SequentialModule(*modules)
+
+        for idx, module in enumerate(modules):
+            actual = getattr(model, str(idx))
+            desired = module
+            self.assertIs(actual, desired)
+
+    def test_SequentialModule_call(self):
+        torch.manual_seed(0)
+        modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
+        input = torch.rand(1, 3, 256, 256)
+
+        pystiche_model = pystiche.SequentialModule(*modules)
+        torch_model = nn.Sequential(*modules)
+
+        actual = pystiche_model(input)
+        desired = torch_model(input)
+        self.assertTensorAlmostEqual(actual, desired)
