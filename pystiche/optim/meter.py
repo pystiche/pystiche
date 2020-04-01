@@ -214,8 +214,12 @@ class ETAMeter(FloatMeter):
         return self.calculate_eta(self.local_avg)
 
     def __str__(self):
-        eta = self.local_eta if self.show_local_eta else self.global_eta
-        return f"{self.name} {eta.strftime(self.fmt)}"
+        if self.count > 0:
+            eta = self.local_eta if self.show_local_eta else self.global_eta
+            eta = eta.strftime(self.fmt)
+        else:
+            eta = "N/A"
+        return f"{self.name} {eta}"
 
 
 class ProgressMeter(Meter):
