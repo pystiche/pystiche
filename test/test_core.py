@@ -1,5 +1,9 @@
+import os
+from os import path
+import tempfile
 import torch
 import pystiche
+from unittest import mock
 from utils import PysticheTestCase
 
 
@@ -117,3 +121,22 @@ class TestCase(PysticheTestCase):
             (("a", torch.tensor(0.0)), ("b", torch.tensor(1.0)))
         )
         self.assertIsInstance(str(loss_dict), str)
+
+    @mock.patch("pystiche.core._home.os.makedirs")
+    def test_home_default(self, makedirs_mock):
+        actual = pystiche.home()
+        desired = path.expanduser(path.join("~", ".cache", "pystiche"))
+        self.assertEqual(actual, desired)
+
+    @mock.patch("pystiche.core._home.os.getenv")
+    def test_home_env(self, getenv_mock):
+        tmp_dir = tempfile.mkdtemp()
+        os.rmdir(tmp_dir)
+        getenv_mock.return_value = tmp_dir
+        try:
+            actual = tmp_dir
+            desired = pystiche.home()
+            self.assertEqual(actual, desired)
+            self.assertTrue(path.exists(desired) and path.isdir(desired))
+        finally:
+            os.rmdir(tmp_dir)
