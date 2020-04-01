@@ -197,25 +197,29 @@ class ETAMeter(FloatMeter):
         super().update(time_diff)
         self.last_time = time
 
-    def calculate_eta(self, time_diff: float) -> datetime:
+    def calculate_eta(self, time_diff: float) -> str:
         count_diff = max(self.total_count - self.count, 0)
         now = datetime.now()
         if count_diff <= 0:
-            return now
+            return now.strftime(self.fmt)
 
-        return now + count_diff * timedelta(seconds=time_diff)
+        eta = now + count_diff * timedelta(seconds=time_diff)
+        return eta.strftime(self.fmt)
 
     @property
-    def global_eta(self) -> datetime:
+    def global_eta(self) -> str:
         return self.calculate_eta(self.global_avg)
 
     @property
-    def local_eta(self) -> datetime:
+    def local_eta(self) -> str:
         return self.calculate_eta(self.local_avg)
 
     def __str__(self):
-        eta = self.local_eta if self.show_local_eta else self.global_eta
-        return f"{self.name} {eta.strftime(self.fmt)}"
+        if self.count > 0:
+            eta = self.local_eta if self.show_local_eta else self.global_eta
+        else:
+            eta = "N/A"
+        return f"{self.name} {eta}"
 
 
 class ProgressMeter(Meter):
