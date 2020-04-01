@@ -1,4 +1,4 @@
-from typing import Any, Union, Sequence, Dict
+from typing import Any, Union, Sequence, Dict, Tuple
 import torch
 from pystiche.typing import ConvModule, PoolModule
 
@@ -32,7 +32,7 @@ def is_scalar_tensor(x: torch.Tensor) -> bool:
     return x.dim() == 0
 
 
-ConvModuleMeta = Union[int, Sequence[int]]
+ConvModuleMeta = Tuple[int, ...]
 
 
 def conv_module_meta(
@@ -42,7 +42,7 @@ def conv_module_meta(
     return _extract_meta_attrs(x, attrs, **kwargs)
 
 
-PoolModuleMeta = Union[int, Sequence[int]]
+PoolModuleMeta = Tuple[int, ...]
 
 
 def pool_module_meta(

@@ -162,3 +162,73 @@ class TestCase(PysticheTestCase):
         actual = pystiche_model(input)
         desired = torch_model(input)
         self.assertTensorAlmostEqual(actual, desired)
+
+    def test_tensor_meta(self):
+        meta = {"dtype": torch.bool, "device": torch.device("cpu")}
+
+        x = torch.empty((), **meta)
+
+        actual = pystiche.tensor_meta(x)
+        desired = meta
+        self.assertDictEqual(actual, desired)
+
+    def test_tensor_meta_kwargs(self):
+        dtype = torch.bool
+
+        x = torch.empty(())
+
+        actual = pystiche.tensor_meta(x, dtype=dtype)["dtype"]
+        desired = dtype
+        self.assertEqual(actual, desired)
+
+    def test_is_scalar_tensor(self):
+        for scalar_tensor in (torch.tensor(0.0), torch.empty(())):
+            self.assertTrue(pystiche.is_scalar_tensor(scalar_tensor))
+
+        for nd_tensor in (torch.empty(0), torch.empty((0,))):
+            self.assertFalse(pystiche.is_scalar_tensor(nd_tensor))
+
+    def test_conv_module_meta(self):
+        meta = {
+            "kernel_size": (2,),
+            "stride": (3,),
+            "padding": (4,),
+            "dilation": (5,),
+        }
+
+        x = nn.Conv1d(1, 1, **meta)
+
+        actual = pystiche.conv_module_meta(x)
+        desired = meta
+        self.assertDictEqual(actual, desired)
+
+    def test_conv_module_meta_kwargs(self):
+        stride = (2,)
+
+        x = nn.Conv1d(1, 1, 1, stride=stride)
+
+        actual = pystiche.conv_module_meta(x, stride=stride)["stride"]
+        desired = stride
+        self.assertEqual(actual, desired)
+
+    def test_pool_module_meta(self):
+        meta = {
+            "kernel_size": (2,),
+            "stride": (3,),
+            "padding": (4,),
+        }
+
+        x = nn.MaxPool1d(**meta)
+
+        actual = pystiche.pool_module_meta(x)
+        desired = meta
+        self.assertDictEqual(actual, desired)
+
+    def test_pool_module_meta_kwargs(self):
+        kernel_size = (2,)
+
+        x = nn.MaxPool1d(kernel_size=kernel_size)
+
+        actual = pystiche.conv_module_meta(x, kernel_size=kernel_size)["kernel_size"]
+        desired = kernel_size
+        self.assertEqual(actual, desired)
