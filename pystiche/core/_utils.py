@@ -17,7 +17,7 @@ def _extract_patchesnd(
     dims = range(2, x.dim())
     for dim, patch_size, stride in zip_equal(dims, patch_sizes, strides):
         x = x.unfold(dim, patch_size, stride)
-    x = x.permute(0, *dims, 1, *[dim + 2 for dim in dims]).contiguous()
+    x = x.permute(0, *dims, 1, *[dim + len(dims) for dim in dims]).contiguous()
     num_patches = prod(x.size()[: len(dims) + 1])
     return x.view(num_patches, num_channels, *patch_sizes)
 
