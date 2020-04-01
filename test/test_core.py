@@ -1,5 +1,7 @@
 import os
 from os import path
+from collections import OrderedDict
+import itertools
 import tempfile
 import torch
 from torch import nn
@@ -9,6 +11,42 @@ from utils import PysticheTestCase
 
 
 class TestCase(PysticheTestCase):
+    def test_Object_str(self):
+        _properties = OrderedDict((("a", 1),))
+        extra_properties = OrderedDict((("b", 2),))
+        _named_children = (("c", 3),)
+        extra_named_children = (("d", 4),)
+
+        class TestObject(pystiche.Object):
+            def _properties(self):
+                return _properties
+
+            def extra_properties(self):
+                return extra_properties
+
+            def _named_children(self):
+                return iter(_named_children)
+
+            def extra_named_children(self):
+                return iter(extra_named_children)
+
+        test_object = TestObject()
+        properties = OrderedDict(
+            [
+                property
+                for property in itertools.chain(
+                    _properties.items(), extra_properties.items()
+                )
+            ]
+        )
+        named_children = tuple(itertools.chain(_named_children, extra_named_children))
+
+        actual = str(test_object)
+        desired = test_object._build_str(
+            name="TestObject", properties=properties, named_children=named_children
+        )
+        self.assertEqual(actual, desired)
+
     def test_LossDict_setitem_Tensor(self):
         name = "loss"
         loss_dict = pystiche.LossDict()
