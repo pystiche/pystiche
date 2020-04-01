@@ -16,6 +16,7 @@ from collections import OrderedDict
 import torch
 from torch import nn
 from pystiche.misc import build_obj_str, build_fmtstr, format_dict
+from ._meta import is_scalar_tensor
 
 
 __all__ = ["Object", "TensorStorage", "LossDict", "TensorKey"]
@@ -100,15 +101,16 @@ class LossDict(OrderedDict):
 
     def __setitem__(self, name: str, loss: Union[torch.Tensor, "LossDict"]) -> None:
         if isinstance(loss, torch.Tensor):
+            if not is_scalar_tensor(loss):
+                # FIXME
+                raise TypeError
             super().__setitem__(name, loss)
-            return
-        if isinstance(loss, LossDict):
+        elif isinstance(loss, LossDict):
             for child_name, child_loss in loss.items():
                 super().__setitem__(f"{name}.{child_name}", child_loss)
-            return
-
-        # FIXME
-        raise TypeError
+        else:
+            # FIXME
+            raise TypeError
 
     def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
         if max_depth == 0:
@@ -136,12 +138,13 @@ class LossDict(OrderedDict):
         return self.total().item()
 
     def __float__(self) -> float:
-        return float(self.item())
+        return self.item()
 
     def __mul__(self, other) -> "LossDict":
         other = float(other)
         return LossDict([(name, loss * other) for name, loss in self.items()])
 
+    # TODO: can this be moved in __str__?
     def format(self, max_depth: Optional[int] = None, **format_dict_kwargs: Any) -> str:
         if max_depth is not None:
             dct = self.aggregate(max_depth)

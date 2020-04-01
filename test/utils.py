@@ -71,9 +71,17 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
         desired = transform(image)
         self.assertImagesAlmostEqual(actual, desired, tolerance=tolerance)
 
-    def assertTensorAlmostEqual(self, actual, desired, **kwargs):
+    def assertTensorAlmostEqual(
+        self, actual, desired, check_dtype=True, check_device=True, **kwargs
+    ):
         def cast(x):
             return x.detach().cpu().numpy()
+
+        if check_dtype:
+            self.assertEqual(actual.dtype, desired.dtype)
+
+        if check_device:
+            self.assertEqual(actual.device, desired.device)
 
         np.testing.assert_allclose(cast(actual), cast(desired), **kwargs)
 
