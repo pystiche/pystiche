@@ -203,6 +203,9 @@ class TestCase(PysticheTestCase):
             desired = child
             self.assertIs(actual, desired)
 
+        with self.assertRaises(RuntimeError):
+            TestModule(named_children=named_children, indexed_children=indexed_children)
+
     def test_Module_extra_repr_smoke(self):
         class TestModule(pystiche.Module):
             def forward(self):
