@@ -321,7 +321,7 @@ class TestCase(PysticheTestCase):
         desired = image
         self.assertImagesAlmostEqual(actual, desired)
 
-    @mock.patch("pystiche.image.io.plt")
+    @mock.patch("pystiche.image.io._show_pil_image")
     def test_show_image_smoke(self, plt_mock):
         io.show_image(self.load_image())
         io.show_image(self.load_image(), size=100)
