@@ -1,10 +1,9 @@
-import sys
 from os import path
 from unittest import mock
 from PIL import Image
 import torch
 from pystiche.image import utils, io
-from utils import PysticheTestCase, get_tmp_dir, skip_if_cuda_not_available
+from utils import PysticheTestCase, get_tmp_dir
 
 
 class TestCase(PysticheTestCase):
