@@ -1,6 +1,9 @@
+from os import path
+from unittest import mock
+from PIL import Image
 import torch
-from pystiche.image import utils
-from utils import PysticheTestCase
+from pystiche.image import utils, io
+from utils import PysticheTestCase, get_tmp_dir
 
 
 class TestCase(PysticheTestCase):
@@ -50,14 +53,17 @@ class TestCase(PysticheTestCase):
         batched_image = single_image.unsqueeze(0)
         utils.verify_is_image(batched_image)
 
+        with self.assertRaises(TypeError):
+            utils.verify_is_image(None)
+
         for dtype in (torch.uint8, torch.int):
             with self.assertRaises(TypeError):
-                image = torch.zeros(1, 1, 1, dtype=dtype)
+                image = torch.empty([1] * 3, dtype=dtype)
                 utils.verify_is_image(image)
 
         for dim in (2, 5):
             with self.assertRaises(TypeError):
-                image = torch.tensor(*[0.0] * dim)
+                image = torch.empty([1] * dim)
                 utils.verify_is_image(image)
 
     def test_is_image(self):
@@ -74,6 +80,9 @@ class TestCase(PysticheTestCase):
         self.assertTrue(utils.is_image_size(tuple(image_size)))
         self.assertFalse(utils.is_image_size(image_size[0]))
         self.assertFalse(utils.is_image_size(image_size + image_size))
+        self.assertFalse(
+            utils.is_image_size([float(edge_size) for edge_size in image_size])
+        )
 
     def test_is_edge_size(self):
         edge_size = 1
@@ -190,3 +199,130 @@ class TestCase(PysticheTestCase):
         actual = utils.extract_aspect_ratio(image)
         desired = width / height
         self.assertAlmostEqual(actual, desired)
+
+    def test_make_batched_image(self):
+        single_image = torch.empty(1, 1, 1)
+        batched_image = utils.make_batched_image(single_image)
+        self.assertTrue(utils.is_batched_image(batched_image))
+
+    def test_make_single_image(self):
+        batched_image = torch.empty(1, 1, 1, 1)
+        single_image = utils.make_single_image(batched_image)
+        self.assertTrue(utils.is_single_image(single_image))
+
+        batched_image = torch.empty(2, 1, 1, 1)
+        with self.assertRaises(RuntimeError):
+            utils.make_single_image(batched_image)
+
+    def test_force_image(self):
+        @utils.force_image
+        def identity(image):
+            return image
+
+        single_image = torch.empty(1, 1, 1)
+        batched_image = torch.empty(1, 1, 1, 1)
+
+        self.assertIs(identity(single_image), single_image)
+        self.assertIs(identity(batched_image), batched_image)
+
+        with self.assertRaises(TypeError):
+            identity(None)
+
+    def test_force_single_image(self):
+        @utils.force_single_image
+        def identity(single_image):
+            self.assertTrue(utils.is_single_image(single_image))
+            return single_image
+
+        single_image = torch.empty(1, 1, 1)
+        batched_image = torch.empty(1, 1, 1, 1)
+
+        self.assertIs(identity(single_image), single_image)
+        self.assertTensorAlmostEqual(identity(batched_image), batched_image)
+
+        with self.assertRaises(TypeError):
+            identity(None)
+
+    def test_force_batched_image(self):
+        @utils.force_batched_image
+        def identity(batched_image):
+            self.assertTrue(utils.is_batched_image(batched_image))
+            return batched_image
+
+        single_image = torch.empty(1, 1, 1)
+        batched_image = torch.empty(1, 1, 1, 1)
+
+        self.assertTensorAlmostEqual(identity(single_image), single_image)
+        self.assertIs(identity(batched_image), batched_image)
+
+        with self.assertRaises(TypeError):
+            identity(None)
+
+    def test_read_image(self):
+        actual = io.read_image(self.default_image_file())
+        desired = self.load_image()
+        self.assertTrue(utils.is_batched_image(actual))
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_read_image_resize(self):
+        image_size = (200, 300)
+        actual = io.read_image(self.default_image_file(), size=image_size)
+        desired = self.load_image(backend="PIL").resize(image_size[::-1])
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_read_image_resize_scalar(self):
+        edge_size = 200
+
+        image = self.load_image(backend="PIL")
+        aspect_ratio = utils.calculate_aspect_ratio((image.height, image.width))
+        image_size = utils.edge_to_image_size(edge_size, aspect_ratio)
+
+        actual = io.read_image(self.default_image_file(), size=edge_size)
+        desired = image.resize(image_size[::-1])
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_read_image_resize_other(self):
+        with self.assertRaises(RuntimeError):
+            io.read_image(self.default_image_file(), size="invalid_size")
+
+    def test_read_guides(self):
+        def create_guide():
+            return torch.rand(1, 1, 256, 256).gt(0.5).float()
+
+        def write_guide(guide, file):
+            guide = guide.squeeze().byte().mul(255).numpy()
+            Image.fromarray(guide, mode="L").convert("1").save(file)
+
+        torch.manual_seed(0)
+        guides = (create_guide(), create_guide(), create_guide())
+
+        with get_tmp_dir() as tmp_dir:
+            for idx, guide in enumerate(guides):
+                write_guide(guide, path.join(tmp_dir, f"region{idx}.png"))
+
+            actual = io.read_guides(tmp_dir)
+            regions = set(actual.keys())
+            desired = {f"region{idx}": guide for idx, guide in enumerate(guides)}
+
+            self.assertEqual(regions, set(desired.keys()))
+            for region in regions:
+                self.assertTensorAlmostEqual(actual[region], desired[region])
+
+    def test_write_image(self):
+        torch.manual_seed(0)
+        image = torch.rand(3, 100, 100)
+        with get_tmp_dir() as tmp_dir:
+            file = path.join(tmp_dir, "tmp_image.png")
+            io.write_image(image, file)
+
+            actual = self.load_image(file=file)
+
+        desired = image
+        self.assertImagesAlmostEqual(actual, desired)
+
+    @mock.patch("pystiche.image.io._show_pil_image")
+    def test_show_image_smoke(self, plt_mock):
+        image = self.load_image()
+        io.show_image(image)
+        io.show_image(image, size=100)
+        io.show_image(image, size=(100, 200))
