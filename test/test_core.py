@@ -220,6 +220,19 @@ class TestCase(PysticheTestCase):
         self.assertTrue(key == key)
         self.assertTrue(key == pystiche.TensorKey(x.flip(0)))
 
+    def test_TensorKey_eq_tensor(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+        key = pystiche.TensorKey(x)
+
+        self.assertTrue(key == x)
+
+    def test_TensorKey_eq_other(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+        key = pystiche.TensorKey(x)
+
+        with self.assertRaises(TypeError):
+            key == None
+
     @skip_if_cuda_not_available
     def test_TensorKey_eq_device(self):
         x = torch.tensor((0.0, 0.5, 1.0))
