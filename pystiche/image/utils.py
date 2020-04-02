@@ -110,14 +110,11 @@ def is_image(x: Any) -> bool:
 
 
 def is_image_size(x: Any) -> bool:
-    try:
-        return (
-            isinstance(x, Sequence)
-            and len(x) == 2
-            and all(map(lambda item: isinstance(item, int), x))
-        )
-    except TypeError:
-        return False
+    return (
+        isinstance(x, Sequence)
+        and len(x) == 2
+        and all(map(lambda item: isinstance(item, int), x))
+    )
 
 
 def is_edge_size(x: Any) -> bool:
