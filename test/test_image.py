@@ -51,14 +51,17 @@ class TestCase(PysticheTestCase):
         batched_image = single_image.unsqueeze(0)
         utils.verify_is_image(batched_image)
 
+        with self.assertRaises(TypeError):
+            utils.verify_is_image(None)
+
         for dtype in (torch.uint8, torch.int):
             with self.assertRaises(TypeError):
-                image = torch.zeros(1, 1, 1, dtype=dtype)
+                image = torch.empty([1] * 3, dtype=dtype)
                 utils.verify_is_image(image)
 
         for dim in (2, 5):
             with self.assertRaises(TypeError):
-                image = torch.tensor(*[0.0] * dim)
+                image = torch.empty([1] * dim)
                 utils.verify_is_image(image)
 
     def test_is_image(self):
@@ -75,6 +78,9 @@ class TestCase(PysticheTestCase):
         self.assertTrue(utils.is_image_size(tuple(image_size)))
         self.assertFalse(utils.is_image_size(image_size[0]))
         self.assertFalse(utils.is_image_size(image_size + image_size))
+        self.assertFalse(
+            utils.is_image_size([float(edge_size) for edge_size in image_size])
+        )
 
     def test_is_edge_size(self):
         edge_size = 1
