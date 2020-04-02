@@ -7,7 +7,7 @@ import torch
 from torch import nn
 import pystiche
 from unittest import mock
-from utils import PysticheTestCase
+from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
 class TestCase(PysticheTestCase):
@@ -212,6 +212,73 @@ class TestCase(PysticheTestCase):
             self.assertTrue(path.exists(desired) and path.isdir(desired))
         finally:
             os.rmdir(tmp_dir)
+
+    def test_TensorKey_eq(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+        key = pystiche.TensorKey(x)
+
+        self.assertTrue(key == key)
+        self.assertTrue(key == pystiche.TensorKey(x.flip(0)))
+
+    @skip_if_cuda_not_available
+    def test_TensorKey_eq_device(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+
+        key1 = pystiche.TensorKey(x.cpu())
+        key2 = pystiche.TensorKey(x.cuda())
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_eq_dtype(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+
+        key1 = pystiche.TensorKey(x.float())
+        key2 = pystiche.TensorKey(x.double())
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_eq_size(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+
+        key1 = pystiche.TensorKey(x)
+        key2 = pystiche.TensorKey(x[:-1])
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_eq_min(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+
+        # This creates a tensor with given min and the same max and norm values as x
+        min = 0.1
+        intermediate = torch.sqrt(torch.norm(x) ** 2.0 - (1.0 + min ** 2.0)).item()
+        y = torch.tensor((min, intermediate, 1.0))
+
+        key1 = pystiche.TensorKey(x)
+        key2 = pystiche.TensorKey(y)
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_eq_max(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+
+        # This creates a tensor with given max and the same min and norm values as x
+        max = 0.9
+        intermediate = torch.sqrt(torch.norm(x) ** 2.0 - max ** 2.0).item()
+        y = torch.tensor((0.0, intermediate, max))
+
+        key1 = pystiche.TensorKey(x)
+        key2 = pystiche.TensorKey(y)
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_eq_norm(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+        y = torch.tensor((0.0, 0.6, 1.0))
+
+        key1 = pystiche.TensorKey(x)
+        key2 = pystiche.TensorKey(y)
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_hash_smoke(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+        key = pystiche.TensorKey(x)
+
+        self.assertIsInstance(hash(key), int)
 
     def test_Module(self):
         class TestModule(pystiche.Module):
