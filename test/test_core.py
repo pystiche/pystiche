@@ -11,6 +11,13 @@ from utils import PysticheTestCase
 
 
 class TestCase(PysticheTestCase):
+    def test_Object_str_smoke(self):
+        class TestObject(pystiche.Object):
+            pass
+
+        test_object = TestObject()
+        self.assertIsInstance(str(test_object), str)
+
     def test_Object_str(self):
         _properties = OrderedDict((("a", 1),))
         extra_properties = OrderedDict((("b", 2),))
