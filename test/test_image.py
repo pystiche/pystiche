@@ -1,7 +1,10 @@
+import sys
 from os import path
+from unittest import mock
+from PIL import Image
 import torch
 from pystiche.image import utils, io
-from utils import PysticheTestCase, get_tmp_dir
+from utils import PysticheTestCase, get_tmp_dir, skip_if_cuda_not_available
 
 
 class TestCase(PysticheTestCase):
@@ -259,6 +262,7 @@ class TestCase(PysticheTestCase):
     def test_read_image(self):
         actual = io.read_image(self.default_image_file())
         desired = self.load_image()
+        self.assertTrue(utils.is_batched_image(actual))
         self.assertImagesAlmostEqual(actual, desired)
 
     def test_read_image_resize(self):
@@ -278,6 +282,33 @@ class TestCase(PysticheTestCase):
         desired = image.resize(image_size[::-1])
         self.assertImagesAlmostEqual(actual, desired)
 
+    def test_read_image_resize_other(self):
+        with self.assertRaises(RuntimeError):
+            io.read_image(self.default_image_file(), size="invalid_size")
+
+    def test_read_guides(self):
+        def create_guide():
+            return torch.rand(1, 1, 256, 256).gt(0.5).float()
+
+        def write_guide(guide, file):
+            guide = guide.squeeze().byte().mul(255).numpy()
+            Image.fromarray(guide, mode="L").convert("1").save(file)
+
+        torch.manual_seed(0)
+        guides = (create_guide(), create_guide(), create_guide())
+
+        with get_tmp_dir() as tmp_dir:
+            for idx, guide in enumerate(guides):
+                write_guide(guide, path.join(tmp_dir, f"region{idx}.png"))
+
+            actual = io.read_guides(tmp_dir)
+            regions = set(actual.keys())
+            desired = {f"region{idx}": guide for idx, guide in enumerate(guides)}
+
+            self.assertEqual(regions, set(desired.keys()))
+            for region in regions:
+                self.assertTensorAlmostEqual(actual[region], desired[region])
+
     def test_write_image(self):
         torch.manual_seed(0)
         image = torch.rand(3, 100, 100)
@@ -290,5 +321,12 @@ class TestCase(PysticheTestCase):
         desired = image
         self.assertImagesAlmostEqual(actual, desired)
 
-    def test_show_image(self):
-        pass
+    @mock.patch("pystiche.image.io.plt")
+    def test_show_image_smoke(self, plt_mock):
+        io.show_image(self.load_image())
+        io.show_image(self.load_image(), size=100)
+        io.show_image(self.load_image(), size=(100, 200))
+
+    # @mock.patch("pystiche.image.io.Image.Image.show")
+    # def test_show_image_without_matplotlib_smoke(self, plt_mock):
+    #     pass
