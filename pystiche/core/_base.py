@@ -164,12 +164,14 @@ class LossDict(OrderedDict):
 class TensorKey:
     def __init__(self, x: torch.Tensor) -> None:
         x = x.detach()
-        self._key = (*self.extract_meta(x), *self.calculate_stats(x))
+        self._key = (*self._extract_meta(x), *self._calculate_stats(x))
 
-    def extract_meta(self, x: torch.Tensor) -> Tuple[Hashable, ...]:
+    @staticmethod
+    def _extract_meta(x: torch.Tensor) -> Tuple[Hashable, ...]:
         return (x.device, x.dtype, x.size())
 
-    def calculate_stats(self, x: torch.Tensor) -> List[str]:
+    @staticmethod
+    def _calculate_stats(x: torch.Tensor) -> List[str]:
         stat_fns = (torch.min, torch.max, torch.norm)
         return [f"{stat_fn(x):.4e}" for stat_fn in stat_fns]
 
@@ -178,11 +180,13 @@ class TensorKey:
         return self._key
 
     def __eq__(self, other) -> bool:
-        try:
-            return self.key == other.key
-        except AttributeError:
+        if isinstance(other, torch.Tensor):
+            other = TensorKey(other)
+        elif not isinstance(other, TensorKey):
             # FIXME
             raise TypeError
+
+        return self.key == other.key
 
     def __hash__(self) -> int:
         return hash(self.key)
