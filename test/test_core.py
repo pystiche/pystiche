@@ -180,6 +180,37 @@ class TestCase(PysticheTestCase):
         finally:
             os.rmdir(tmp_dir)
 
+    def test_Module(self):
+        class TestModule(pystiche.Module):
+            def forward(self):
+                pass
+
+        childs = (nn.Conv2d(1, 1, 1), nn.ReLU())
+        named_children = OrderedDict(
+            [(f"child{idx}", child) for idx, child in enumerate(childs)]
+        )
+        indexed_children = childs
+
+        test_module = TestModule(named_children=named_children)
+        for idx, child in enumerate(childs):
+            actual = getattr(test_module, f"child{idx}")
+            desired = child
+            self.assertIs(actual, desired)
+
+        test_module = TestModule(indexed_children=indexed_children)
+        for idx, child in enumerate(childs):
+            actual = getattr(test_module, str(idx))
+            desired = child
+            self.assertIs(actual, desired)
+
+    def test_Module_extra_repr_smoke(self):
+        class TestModule(pystiche.Module):
+            def forward(self):
+                pass
+
+        test_module = TestModule()
+        self.assertIsInstance(test_module.extra_repr(), str)
+
     def test_SequentialModule(self):
         modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
         model = pystiche.SequentialModule(*modules)
