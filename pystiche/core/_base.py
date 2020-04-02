@@ -74,6 +74,8 @@ class Object(ABC):
         return self._build_str()
 
 
+# TODO: can this be removed for now?
+#  If not it should subclass pystiche.Module and thus should be moved to ._modules
 class TensorStorage(nn.Module, Object):
     def __init__(self, **attrs: Dict[str, Any]) -> None:
         super().__init__()
