@@ -322,10 +322,7 @@ class TestCase(PysticheTestCase):
 
     @mock.patch("pystiche.image.io._show_pil_image")
     def test_show_image_smoke(self, plt_mock):
-        io.show_image(self.load_image())
-        io.show_image(self.load_image(), size=100)
-        io.show_image(self.load_image(), size=(100, 200))
-
-    # @mock.patch("pystiche.image.io.Image.Image.show")
-    # def test_show_image_without_matplotlib_smoke(self, plt_mock):
-    #     pass
+        image = self.load_image()
+        io.show_image(image)
+        io.show_image(image, size=100)
+        io.show_image(image, size=(100, 200))
