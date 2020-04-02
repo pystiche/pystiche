@@ -198,6 +198,64 @@ class TestCase(PysticheTestCase):
         desired = width / height
         self.assertAlmostEqual(actual, desired)
 
+    def test_make_batched_image(self):
+        single_image = torch.empty(1, 1, 1)
+        batched_image = utils.make_batched_image(single_image)
+        self.assertTrue(utils.is_batched_image(batched_image))
+
+    def test_make_single_image(self):
+        batched_image = torch.empty(1, 1, 1, 1)
+        single_image = utils.make_single_image(batched_image)
+        self.assertTrue(utils.is_single_image(single_image))
+
+        batched_image = torch.empty(2, 1, 1, 1)
+        with self.assertRaises(RuntimeError):
+            utils.make_single_image(batched_image)
+
+    def test_force_image(self):
+        @utils.force_image
+        def identity(image):
+            return image
+
+        single_image = torch.empty(1, 1, 1)
+        batched_image = torch.empty(1, 1, 1, 1)
+
+        self.assertIs(identity(single_image), single_image)
+        self.assertIs(identity(batched_image), batched_image)
+
+        with self.assertRaises(TypeError):
+            identity(None)
+
+    def test_force_single_image(self):
+        @utils.force_single_image
+        def identity(single_image):
+            self.assertTrue(utils.is_single_image(single_image))
+            return single_image
+
+        single_image = torch.empty(1, 1, 1)
+        batched_image = torch.empty(1, 1, 1, 1)
+
+        self.assertIs(identity(single_image), single_image)
+        self.assertTensorAlmostEqual(identity(batched_image), batched_image)
+
+        with self.assertRaises(TypeError):
+            identity(None)
+
+    def test_force_batched_image(self):
+        @utils.force_batched_image
+        def identity(batched_image):
+            self.assertTrue(utils.is_batched_image(batched_image))
+            return batched_image
+
+        single_image = torch.empty(1, 1, 1)
+        batched_image = torch.empty(1, 1, 1, 1)
+
+        self.assertTensorAlmostEqual(identity(single_image), single_image)
+        self.assertIs(identity(batched_image), batched_image)
+
+        with self.assertRaises(TypeError):
+            identity(None)
+
     def test_read_image(self):
         actual = io.read_image(self.default_image_file())
         desired = self.load_image()
