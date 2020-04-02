@@ -7,10 +7,17 @@ import torch
 from torch import nn
 import pystiche
 from unittest import mock
-from utils import PysticheTestCase
+from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
 class TestCase(PysticheTestCase):
+    def test_Object_str_smoke(self):
+        class TestObject(pystiche.Object):
+            pass
+
+        test_object = TestObject()
+        self.assertIsInstance(str(test_object), str)
+
     def test_Object_str(self):
         _properties = OrderedDict((("a", 1),))
         extra_properties = OrderedDict((("b", 2),))
@@ -86,6 +93,32 @@ class TestCase(PysticheTestCase):
 
         with self.assertRaises(TypeError):
             loss_dict[name] = 1.0
+
+    def test_LossDict_aggregate_max_depth_gt_0(self):
+        def loss():
+            return torch.tensor(1.0)
+
+        loss_dict = pystiche.LossDict(
+            (("0.0.0", loss()), ("0.0.1", loss()), ("0.1", loss()), ("1", loss()))
+        )
+
+        actual = loss_dict.aggregate(1)
+        desired = pystiche.LossDict((("0", 3 * loss()), ("1", loss())))
+        self.assertDictEqual(actual, desired)
+
+        actual = loss_dict.aggregate(2)
+        desired = pystiche.LossDict(
+            (("0.0", 2 * loss()), ("0.1", loss()), ("1", loss()))
+        )
+        self.assertDictEqual(actual, desired)
+
+        actual = loss_dict.aggregate(3)
+        desired = loss_dict
+        self.assertDictEqual(actual, desired)
+
+        actual = loss_dict.aggregate(4)
+        desired = loss_dict
+        self.assertDictEqual(actual, desired)
 
     def test_LossDict_total(self):
         loss1 = torch.tensor(1.0)
@@ -179,6 +212,107 @@ class TestCase(PysticheTestCase):
             self.assertTrue(path.exists(desired) and path.isdir(desired))
         finally:
             os.rmdir(tmp_dir)
+
+    def test_TensorKey_eq(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+        key = pystiche.TensorKey(x)
+
+        self.assertTrue(key == key)
+        self.assertTrue(key == pystiche.TensorKey(x.flip(0)))
+
+    @skip_if_cuda_not_available
+    def test_TensorKey_eq_device(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+
+        key1 = pystiche.TensorKey(x.cpu())
+        key2 = pystiche.TensorKey(x.cuda())
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_eq_dtype(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+
+        key1 = pystiche.TensorKey(x.float())
+        key2 = pystiche.TensorKey(x.double())
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_eq_size(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+
+        key1 = pystiche.TensorKey(x)
+        key2 = pystiche.TensorKey(x[:-1])
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_eq_min(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+
+        # This creates a tensor with given min and the same max and norm values as x
+        min = 0.1
+        intermediate = torch.sqrt(torch.norm(x) ** 2.0 - (1.0 + min ** 2.0)).item()
+        y = torch.tensor((min, intermediate, 1.0))
+
+        key1 = pystiche.TensorKey(x)
+        key2 = pystiche.TensorKey(y)
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_eq_max(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+
+        # This creates a tensor with given max and the same min and norm values as x
+        max = 0.9
+        intermediate = torch.sqrt(torch.norm(x) ** 2.0 - max ** 2.0).item()
+        y = torch.tensor((0.0, intermediate, max))
+
+        key1 = pystiche.TensorKey(x)
+        key2 = pystiche.TensorKey(y)
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_eq_norm(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+        y = torch.tensor((0.0, 0.6, 1.0))
+
+        key1 = pystiche.TensorKey(x)
+        key2 = pystiche.TensorKey(y)
+        self.assertFalse(key1 == key2)
+
+    def test_TensorKey_hash_smoke(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+        key = pystiche.TensorKey(x)
+
+        self.assertIsInstance(hash(key), int)
+
+    def test_Module(self):
+        class TestModule(pystiche.Module):
+            def forward(self):
+                pass
+
+        childs = (nn.Conv2d(1, 1, 1), nn.ReLU())
+        named_children = OrderedDict(
+            [(f"child{idx}", child) for idx, child in enumerate(childs)]
+        )
+        indexed_children = childs
+
+        test_module = TestModule(named_children=named_children)
+        for idx, child in enumerate(childs):
+            actual = getattr(test_module, f"child{idx}")
+            desired = child
+            self.assertIs(actual, desired)
+
+        test_module = TestModule(indexed_children=indexed_children)
+        for idx, child in enumerate(childs):
+            actual = getattr(test_module, str(idx))
+            desired = child
+            self.assertIs(actual, desired)
+
+        with self.assertRaises(RuntimeError):
+            TestModule(named_children=named_children, indexed_children=indexed_children)
+
+    def test_Module_extra_repr_smoke(self):
+        class TestModule(pystiche.Module):
+            def forward(self):
+                pass
+
+        test_module = TestModule()
+        self.assertIsInstance(test_module.extra_repr(), str)
 
     def test_SequentialModule(self):
         modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
