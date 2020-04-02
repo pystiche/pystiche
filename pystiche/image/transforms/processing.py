@@ -1,5 +1,5 @@
-from .transforms import (
-    ComposedTransform,
+from .core import ComposedTransform
+from .misc import (
     Normalize,
     Denormalize,
     FloatToUint8Range,
