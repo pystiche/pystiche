@@ -36,7 +36,7 @@ def _verify_image_type(x: Any) -> None:
         msg += f"of type {type(x)} instead."
         raise TypeError(msg)
     elif x.dtype != torch.float32:
-        msg = f" with dtype=={x.dtype} instead."
+        msg += f"with dtype=={x.dtype} instead."
         raise TypeError(msg)
 
 
