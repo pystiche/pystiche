@@ -94,6 +94,32 @@ class TestCase(PysticheTestCase):
         with self.assertRaises(TypeError):
             loss_dict[name] = 1.0
 
+    def test_LossDict_aggregate_max_depth_gt_0(self):
+        def loss():
+            return torch.tensor(1.0)
+
+        loss_dict = pystiche.LossDict(
+            (("0.0.0", loss()), ("0.0.1", loss()), ("0.1", loss()), ("1", loss()))
+        )
+
+        actual = loss_dict.aggregate(1)
+        desired = pystiche.LossDict((("0", 3 * loss()), ("1", loss())))
+        self.assertDictEqual(actual, desired)
+
+        actual = loss_dict.aggregate(2)
+        desired = pystiche.LossDict(
+            (("0.0", 2 * loss()), ("0.1", loss()), ("1", loss()))
+        )
+        self.assertDictEqual(actual, desired)
+
+        actual = loss_dict.aggregate(3)
+        desired = loss_dict
+        self.assertDictEqual(actual, desired)
+
+        actual = loss_dict.aggregate(4)
+        desired = loss_dict
+        self.assertDictEqual(actual, desired)
+
     def test_LossDict_total(self):
         loss1 = torch.tensor(1.0)
         loss2 = torch.tensor(2.0)
