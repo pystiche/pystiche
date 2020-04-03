@@ -39,7 +39,7 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
 
     @property
     def test_root(self):
-        return path.join(self.project_root, "test")
+        return path.join(self.project_root, "tests")
 
     @property
     def test_assets_root(self):
