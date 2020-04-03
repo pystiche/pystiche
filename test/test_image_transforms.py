@@ -78,6 +78,184 @@ class PysticheTransfromTestCase(PysticheTestCase):
         assert_transform_equality(pystiche_batched_image, pil_image)
 
 
+class TestColor(PysticheTransfromTestCase):
+    def test_rgb_to_grayscale(self):
+        def PILRGBToGrayscale():
+            def transform(image):
+                assert image.mode == "RGB"
+                return image.convert("L")
+
+            return transform
+
+        self.assertTransformEqualsPIL(
+            pystiche_transform=transforms.RGBToGrayscale(),
+            pil_transform=PILRGBToGrayscale(),
+        )
+
+    def test_grayscale_to_fakegrayscale(self):
+        def PILGrayscaleToFakegrayscale():
+            def transform(image):
+                assert image.mode == "L"
+                return image.convert("RGB")
+
+            return transform
+
+        self.assertTransformEqualsPIL(
+            pystiche_transform=transforms.GrayscaleToFakegrayscale(),
+            pil_transform=PILGrayscaleToFakegrayscale(),
+            pil_image=self.load_image(backend="PIL").convert("L"),
+        )
+
+    def test_rgb_to_fakegrayscale(self):
+        def PILRGBToFakegrayscale():
+            def transform(image):
+                assert image.mode == "RGB"
+                return image.convert("L").convert("RGB")
+
+            return transform
+
+        self.assertTransformEqualsPIL(
+            pystiche_transform=transforms.RGBToFakegrayscale(),
+            pil_transform=PILRGBToFakegrayscale(),
+        )
+
+    def test_grayscale_to_binary(self):
+        def PILGrayscaleToBinary():
+            def transform(image):
+                assert image.mode == "L"
+                return image.convert("1", dither=0)
+
+            return transform
+
+        self.assertTransformEqualsPIL(
+            pystiche_transform=transforms.GrayscaleToBinary(),
+            pil_transform=PILGrayscaleToBinary(),
+            pil_image=self.load_image(backend="PIL").convert("L"),
+        )
+
+    def test_rgb_to_binary(self):
+        def PILRGBToBinary():
+            def transform(image):
+                assert image.mode == "RGB"
+                return image.convert("1", dither=0)
+
+            return transform
+
+        self.assertTransformEqualsPIL(
+            pystiche_transform=transforms.RGBToBinary(), pil_transform=PILRGBToBinary()
+        )
+
+    def test_rgb_to_yuv(self):
+        def PILRGBToYUV():
+            def transform(image):
+                assert image.mode == "RGB"
+                # fmt: off
+                matrix = (
+                     0.299,  0.587,  0.114, 0.0,
+                    -0.147, -0.289,  0.436, 0.0,
+                     0.615, -0.515, -0.100, 0.0,
+                )
+                # fmt: on
+                return image.convert("RGB", matrix)
+
+            return transform
+
+        self.assertTransformEqualsPIL(
+            pystiche_transform=transforms.RGBToYUV(),
+            pil_transform=PILRGBToYUV(),
+            tolerance=2e-2,
+        )
+
+    def test_yuv_to_rgb(self):
+        def transform(image):
+            rgb_to_yuv = transforms.RGBToYUV()
+            yuv_to_rgb = transforms.YUVToRGB()
+            return yuv_to_rgb(rgb_to_yuv(image))
+
+        self.assertIdentityTransform(transform, self.load_image())
+
+
+class TestCore(PysticheTransfromTestCase):
+    pass
+
+
+class TestCrop(PysticheTransfromTestCase):
+    def test_top_left_crop(self):
+        image = self.load_image()
+        size = 200
+
+        transform = transforms.TopLeftCrop(size)
+        actual = transform(image)
+        desired = image[:, :, :size, :size]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_bottom_left_crop(self):
+        image = self.load_image()
+        size = 200
+
+        transform = transforms.BottomLeftCrop(size)
+        actual = transform(image)
+        desired = image[:, :, -size:, :size]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_top_right_crop(self):
+        image = self.load_image()
+        size = 200
+
+        transform = transforms.TopRightCrop(size)
+        actual = transform(image)
+        desired = image[:, :, :size, -size:]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_bottom_right_crop(self):
+        image = self.load_image()
+        size = 200
+
+        transform = transforms.BottomRightCrop(size)
+        actual = transform(image)
+        desired = image[:, :, -size:, -size:]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_center_crop(self):
+        image = torch.rand(1, 1, 100, 100)
+        size = 50
+
+        transform = transforms.CenterCrop(size)
+        actual = transform(image)
+        desired = image[:, :, size // 2 : -size // 2, size // 2 : -size // 2]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_valid_random_crop(self):
+        image_size = (100, 100)
+        crop_size = 50
+        image = torch.rand(1, 1, *image_size)
+
+        torch.manual_seed(0)
+        vert_origin, horz_origin = transforms.ValidRandomCrop.get_random_origin(
+            image_size, crop_size
+        )
+        torch.manual_seed(0)
+        transform = transforms.ValidRandomCrop(crop_size)
+
+        actual = transform(image)
+        desired = image[
+            :,
+            :,
+            vert_origin : vert_origin + crop_size,
+            horz_origin : horz_origin + crop_size,
+        ]
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_valid_random_crop_identity(self):
+        image = self.load_image()
+
+        size = extract_image_size(image)
+        transform = transforms.ValidRandomCrop(size)
+        actual = transform(image)
+        desired = image
+        self.assertImagesAlmostEqual(actual, desired)
+
+
 class TestIo(PysticheTransfromTestCase):
     def test_pil_import_export(self):
         import_transform = transforms.ImportFromPIL()
@@ -119,57 +297,8 @@ class TestIo(PysticheTransfromTestCase):
             self.assertImagesAlmostEqual(actual, desired)
 
 
-class TestResize(PysticheTransfromTestCase):
-    def test_resize_with_image_size(self):
-        def PILResizeTransform(image_size):
-            size = image_size[::-1]
-            return lambda image: image.resize(size, resample=Image.BILINEAR)
-
-        image_size = (100, 100)
-        pystiche_transform = transforms.Resize(image_size)
-        pil_transform = PILResizeTransform(image_size)
-        self.assertTransformEqualsPIL(
-            pystiche_transform=pystiche_transform,
-            pil_transform=pil_transform,
-            tolerance=3e-2,
-        )
-
-    def test_resize_with_edge_size(self):
-        def PILFixedAspectRatioResizeTransform(edge_size, edge):
-            def transform(image):
-                aspect_ratio = calculate_aspect_ratio(image.size[::-1])
-                image_size = edge_to_image_size(edge_size, aspect_ratio, edge)
-                size = image_size[::-1]
-                return image.resize(size, resample=Image.BILINEAR)
-
-            return transform
-
-        edge_size = 100
-        for edge in ("short", "long", "vert", "horz"):
-            pystiche_transform = transforms.Resize(edge_size, edge=edge)
-            pil_transform = PILFixedAspectRatioResizeTransform(edge_size, edge=edge)
-            self.assertTransformEqualsPIL(
-                pystiche_transform=pystiche_transform,
-                pil_transform=pil_transform,
-                tolerance=3e-2,
-            )
-
-    def test_rescale(self):
-        def PILRescaleTransform(factor):
-            def transform(image):
-                size = [round(edge_size * factor) for edge_size in image.size]
-                return image.resize(size, resample=Image.BILINEAR)
-
-            return transform
-
-        factor = 1.0 / np.pi
-        pystiche_transform = transforms.Rescale(factor)
-        pil_transform = PILRescaleTransform(factor)
-        self.assertTransformEqualsPIL(
-            pystiche_transform=pystiche_transform,
-            pil_transform=pil_transform,
-            tolerance=2e-2,
-        )
+class TestMisc(PysticheTransfromTestCase):
+    pass
 
 
 class TestMotif(PysticheTransfromTestCase):
@@ -358,103 +487,6 @@ class TestMotif(PysticheTransfromTestCase):
             pystiche_transform(pystiche_image)
 
 
-class TestColor(PysticheTransfromTestCase):
-    def test_rgb_to_grayscale(self):
-        def PILRGBToGrayscale():
-            def transform(image):
-                assert image.mode == "RGB"
-                return image.convert("L")
-
-            return transform
-
-        self.assertTransformEqualsPIL(
-            pystiche_transform=transforms.RGBToGrayscale(),
-            pil_transform=PILRGBToGrayscale(),
-        )
-
-    def test_grayscale_to_fakegrayscale(self):
-        def PILGrayscaleToFakegrayscale():
-            def transform(image):
-                assert image.mode == "L"
-                return image.convert("RGB")
-
-            return transform
-
-        self.assertTransformEqualsPIL(
-            pystiche_transform=transforms.GrayscaleToFakegrayscale(),
-            pil_transform=PILGrayscaleToFakegrayscale(),
-            pil_image=self.load_image(backend="PIL").convert("L"),
-        )
-
-    def test_rgb_to_fakegrayscale(self):
-        def PILRGBToFakegrayscale():
-            def transform(image):
-                assert image.mode == "RGB"
-                return image.convert("L").convert("RGB")
-
-            return transform
-
-        self.assertTransformEqualsPIL(
-            pystiche_transform=transforms.RGBToFakegrayscale(),
-            pil_transform=PILRGBToFakegrayscale(),
-        )
-
-    def test_grayscale_to_binary(self):
-        def PILGrayscaleToBinary():
-            def transform(image):
-                assert image.mode == "L"
-                return image.convert("1", dither=0)
-
-            return transform
-
-        self.assertTransformEqualsPIL(
-            pystiche_transform=transforms.GrayscaleToBinary(),
-            pil_transform=PILGrayscaleToBinary(),
-            pil_image=self.load_image(backend="PIL").convert("L"),
-        )
-
-    def test_rgb_to_binary(self):
-        def PILRGBToBinary():
-            def transform(image):
-                assert image.mode == "RGB"
-                return image.convert("1", dither=0)
-
-            return transform
-
-        self.assertTransformEqualsPIL(
-            pystiche_transform=transforms.RGBToBinary(), pil_transform=PILRGBToBinary()
-        )
-
-    def test_rgb_to_yuv(self):
-        def PILRGBToYUV():
-            def transform(image):
-                assert image.mode == "RGB"
-                # fmt: off
-                matrix = (
-                     0.299,  0.587,  0.114, 0.0,
-                    -0.147, -0.289,  0.436, 0.0,
-                     0.615, -0.515, -0.100, 0.0,
-                )
-                # fmt: on
-                return image.convert("RGB", matrix)
-
-            return transform
-
-        self.assertTransformEqualsPIL(
-            pystiche_transform=transforms.RGBToYUV(),
-            pil_transform=PILRGBToYUV(),
-            tolerance=2e-2,
-        )
-
-    def test_yuv_to_rgb(self):
-        def transform(image):
-            rgb_to_yuv = transforms.RGBToYUV()
-            yuv_to_rgb = transforms.YUVToRGB()
-            return yuv_to_rgb(rgb_to_yuv(image))
-
-        self.assertIdentityTransform(transform, self.load_image())
-
-
 class TestProcessing(PysticheTransfromTestCase):
     def test_torch_processing(self):
         preprocessing_transform = transforms.TorchPreprocessing()
@@ -501,78 +533,54 @@ class TestProcessing(PysticheTransfromTestCase):
         self.assertIdentityTransform(identity, image)
 
 
-class TestCrop(PysticheTransfromTestCase):
-    def test_top_left_crop(self):
-        image = self.load_image()
-        size = 200
+class TestResize(PysticheTransfromTestCase):
+    def test_resize_with_image_size(self):
+        def PILResizeTransform(image_size):
+            size = image_size[::-1]
+            return lambda image: image.resize(size, resample=Image.BILINEAR)
 
-        transform = transforms.TopLeftCrop(size)
-        actual = transform(image)
-        desired = image[:, :, :size, :size]
-        self.assertImagesAlmostEqual(actual, desired)
-
-    def test_bottom_left_crop(self):
-        image = self.load_image()
-        size = 200
-
-        transform = transforms.BottomLeftCrop(size)
-        actual = transform(image)
-        desired = image[:, :, -size:, :size]
-        self.assertImagesAlmostEqual(actual, desired)
-
-    def test_top_right_crop(self):
-        image = self.load_image()
-        size = 200
-
-        transform = transforms.TopRightCrop(size)
-        actual = transform(image)
-        desired = image[:, :, :size, -size:]
-        self.assertImagesAlmostEqual(actual, desired)
-
-    def test_bottom_right_crop(self):
-        image = self.load_image()
-        size = 200
-
-        transform = transforms.BottomRightCrop(size)
-        actual = transform(image)
-        desired = image[:, :, -size:, -size:]
-        self.assertImagesAlmostEqual(actual, desired)
-
-    def test_center_crop(self):
-        image = torch.rand(1, 1, 100, 100)
-        size = 50
-
-        transform = transforms.CenterCrop(size)
-        actual = transform(image)
-        desired = image[:, :, size // 2 : -size // 2, size // 2 : -size // 2]
-        self.assertImagesAlmostEqual(actual, desired)
-
-    def test_valid_random_crop(self):
         image_size = (100, 100)
-        crop_size = 50
-        image = torch.rand(1, 1, *image_size)
-
-        torch.manual_seed(0)
-        vert_origin, horz_origin = transforms.ValidRandomCrop.get_random_origin(
-            image_size, crop_size
+        pystiche_transform = transforms.Resize(image_size)
+        pil_transform = PILResizeTransform(image_size)
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform,
+            pil_transform=pil_transform,
+            tolerance=3e-2,
         )
-        torch.manual_seed(0)
-        transform = transforms.ValidRandomCrop(crop_size)
 
-        actual = transform(image)
-        desired = image[
-            :,
-            :,
-            vert_origin : vert_origin + crop_size,
-            horz_origin : horz_origin + crop_size,
-        ]
-        self.assertImagesAlmostEqual(actual, desired)
+    def test_resize_with_edge_size(self):
+        def PILFixedAspectRatioResizeTransform(edge_size, edge):
+            def transform(image):
+                aspect_ratio = calculate_aspect_ratio(image.size[::-1])
+                image_size = edge_to_image_size(edge_size, aspect_ratio, edge)
+                size = image_size[::-1]
+                return image.resize(size, resample=Image.BILINEAR)
 
-    def test_valid_random_crop_identity(self):
-        image = self.load_image()
+            return transform
 
-        size = extract_image_size(image)
-        transform = transforms.ValidRandomCrop(size)
-        actual = transform(image)
-        desired = image
-        self.assertImagesAlmostEqual(actual, desired)
+        edge_size = 100
+        for edge in ("short", "long", "vert", "horz"):
+            pystiche_transform = transforms.Resize(edge_size, edge=edge)
+            pil_transform = PILFixedAspectRatioResizeTransform(edge_size, edge=edge)
+            self.assertTransformEqualsPIL(
+                pystiche_transform=pystiche_transform,
+                pil_transform=pil_transform,
+                tolerance=3e-2,
+            )
+
+    def test_rescale(self):
+        def PILRescaleTransform(factor):
+            def transform(image):
+                size = [round(edge_size * factor) for edge_size in image.size]
+                return image.resize(size, resample=Image.BILINEAR)
+
+            return transform
+
+        factor = 1.0 / np.pi
+        pystiche_transform = transforms.Rescale(factor)
+        pil_transform = PILRescaleTransform(factor)
+        self.assertTransformEqualsPIL(
+            pystiche_transform=pystiche_transform,
+            pil_transform=pil_transform,
+            tolerance=2e-2,
+        )
