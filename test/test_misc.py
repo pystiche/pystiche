@@ -1,11 +1,11 @@
 import math
 import unittest
 import torch
-from pystiche.misc import misc
-from utils import PysticheTestCase
+from pystiche.misc import misc, cuda
+from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
-class TestCase(PysticheTestCase):
+class TestMisc(PysticheTestCase):
     def test_prod(self):
         n = 10
         iterable = range(1, n + 1)
@@ -257,3 +257,24 @@ class TestCase(PysticheTestCase):
         actual = misc.get_sha256_hash(self.default_image_file())
         desired = "7538cbb80cb9103606c48b806eae57d56c885c7f90b9b3be70a41160f9cbb683"
         self.assertEqual(actual, desired)
+
+
+class TestCuda(PysticheTestCase):
+    @staticmethod
+    def create_large_cuda_tensor(size_in_gb=256):
+        return torch.empty((size_in_gb, *[1024] * 3), device="cuda", dtype=torch.uint8)
+
+    @skip_if_cuda_not_available
+    def test_use_cuda_out_of_memory_error(self):
+        with self.assertRaises(cuda.CudaOutOfMemoryError):
+            with cuda.use_cuda_out_of_memory_error():
+                self.create_large_cuda_tensor()
+
+    @skip_if_cuda_not_available
+    def test_abort_if_cuda_memory_exausts(self):
+        @cuda.abort_if_cuda_memory_exausts
+        def fn():
+            self.create_large_cuda_tensor()
+
+        with self.assertWarns(cuda.CudaOutOfMemoryWarning):
+            fn()
