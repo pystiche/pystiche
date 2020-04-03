@@ -39,11 +39,11 @@ def compose_transforms(
     def unroll(
         transform: Union[Transform, ComposedTransform]
     ) -> Iterable[Union[Transform, ComposedTransform]]:
-        if isinstance(transform, Transform):
-            return (transform,)
-        elif isinstance(transform, ComposedTransform):
+        if isinstance(transform, ComposedTransform):
             return transform.children()
+        elif isinstance(transform, Transform):
+            return (transform,)
         else:
-            raise RuntimeError
+            raise TypeError
 
     return ComposedTransform(*itertools.chain(*map(unroll, transforms)))
