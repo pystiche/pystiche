@@ -64,13 +64,6 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
     def load_single_image(self, file=None):
         return self.load_batched_image(file=file).squeeze(0)
 
-    def assertIdentityTransform(self, transform, image=None, tolerance=1e-2):
-        if image is None:
-            image = self.load_image()
-        actual = image
-        desired = transform(image)
-        self.assertImagesAlmostEqual(actual, desired, tolerance=tolerance)
-
     def assertTensorAlmostEqual(
         self, actual, desired, check_dtype=True, check_device=True, **kwargs
     ):
