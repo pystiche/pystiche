@@ -13,7 +13,11 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
-class TestCase(PysticheTestCase):
+class TestMultiOp(PysticheTestCase):
+    pass
+
+
+class TestPerceptual(PysticheTestCase):
     def test_perceptual_loss_components(self):
         op = TotalVariationOperator()
         required_components = {"content_loss", "style_loss"}

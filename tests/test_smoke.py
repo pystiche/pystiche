@@ -8,7 +8,7 @@ import pystiche
 from utils import PysticheTestCase
 
 
-class TestCase(PysticheTestCase):
+class TestSmoke(PysticheTestCase):
     def test_import(self):
         def find_modules(dir, package=None):
             if package is not None:

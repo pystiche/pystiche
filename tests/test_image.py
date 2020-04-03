@@ -6,7 +6,78 @@ from pystiche.image import utils, io
 from utils import PysticheTestCase, get_tmp_dir
 
 
-class TestCase(PysticheTestCase):
+class TestIo(PysticheTestCase):
+    def test_read_image(self):
+        actual = io.read_image(self.default_image_file())
+        desired = self.load_image()
+        self.assertTrue(utils.is_batched_image(actual))
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_read_image_resize(self):
+        image_size = (200, 300)
+        actual = io.read_image(self.default_image_file(), size=image_size)
+        desired = self.load_image(backend="PIL").resize(image_size[::-1])
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_read_image_resize_scalar(self):
+        edge_size = 200
+
+        image = self.load_image(backend="PIL")
+        aspect_ratio = utils.calculate_aspect_ratio((image.height, image.width))
+        image_size = utils.edge_to_image_size(edge_size, aspect_ratio)
+
+        actual = io.read_image(self.default_image_file(), size=edge_size)
+        desired = image.resize(image_size[::-1])
+        self.assertImagesAlmostEqual(actual, desired)
+
+    def test_read_image_resize_other(self):
+        with self.assertRaises(RuntimeError):
+            io.read_image(self.default_image_file(), size="invalid_size")
+
+    def test_read_guides(self):
+        def create_guide():
+            return torch.rand(1, 1, 256, 256).gt(0.5).float()
+
+        def write_guide(guide, file):
+            guide = guide.squeeze().byte().mul(255).numpy()
+            Image.fromarray(guide, mode="L").convert("1").save(file)
+
+        torch.manual_seed(0)
+        guides = (create_guide(), create_guide(), create_guide())
+
+        with get_tmp_dir() as tmp_dir:
+            for idx, guide in enumerate(guides):
+                write_guide(guide, path.join(tmp_dir, f"region{idx}.png"))
+
+            actual = io.read_guides(tmp_dir)
+            regions = set(actual.keys())
+            desired = {f"region{idx}": guide for idx, guide in enumerate(guides)}
+
+            self.assertEqual(regions, set(desired.keys()))
+            for region in regions:
+                self.assertTensorAlmostEqual(actual[region], desired[region])
+
+    def test_write_image(self):
+        torch.manual_seed(0)
+        image = torch.rand(3, 100, 100)
+        with get_tmp_dir() as tmp_dir:
+            file = path.join(tmp_dir, "tmp_image.png")
+            io.write_image(image, file)
+
+            actual = self.load_image(file=file)
+
+        desired = image
+        self.assertImagesAlmostEqual(actual, desired)
+
+    @mock.patch("pystiche.image.io._show_pil_image")
+    def test_show_image_smoke(self, plt_mock):
+        image = self.load_image()
+        io.show_image(image)
+        io.show_image(image, size=100)
+        io.show_image(image, size=(100, 200))
+
+
+class TestUtils(PysticheTestCase):
     def test_verify_is_single_image(self):
         single_image = torch.zeros(1, 1, 1)
         utils.verify_is_single_image(single_image)
@@ -257,72 +328,3 @@ class TestCase(PysticheTestCase):
 
         with self.assertRaises(TypeError):
             identity(None)
-
-    def test_read_image(self):
-        actual = io.read_image(self.default_image_file())
-        desired = self.load_image()
-        self.assertTrue(utils.is_batched_image(actual))
-        self.assertImagesAlmostEqual(actual, desired)
-
-    def test_read_image_resize(self):
-        image_size = (200, 300)
-        actual = io.read_image(self.default_image_file(), size=image_size)
-        desired = self.load_image(backend="PIL").resize(image_size[::-1])
-        self.assertImagesAlmostEqual(actual, desired)
-
-    def test_read_image_resize_scalar(self):
-        edge_size = 200
-
-        image = self.load_image(backend="PIL")
-        aspect_ratio = utils.calculate_aspect_ratio((image.height, image.width))
-        image_size = utils.edge_to_image_size(edge_size, aspect_ratio)
-
-        actual = io.read_image(self.default_image_file(), size=edge_size)
-        desired = image.resize(image_size[::-1])
-        self.assertImagesAlmostEqual(actual, desired)
-
-    def test_read_image_resize_other(self):
-        with self.assertRaises(RuntimeError):
-            io.read_image(self.default_image_file(), size="invalid_size")
-
-    def test_read_guides(self):
-        def create_guide():
-            return torch.rand(1, 1, 256, 256).gt(0.5).float()
-
-        def write_guide(guide, file):
-            guide = guide.squeeze().byte().mul(255).numpy()
-            Image.fromarray(guide, mode="L").convert("1").save(file)
-
-        torch.manual_seed(0)
-        guides = (create_guide(), create_guide(), create_guide())
-
-        with get_tmp_dir() as tmp_dir:
-            for idx, guide in enumerate(guides):
-                write_guide(guide, path.join(tmp_dir, f"region{idx}.png"))
-
-            actual = io.read_guides(tmp_dir)
-            regions = set(actual.keys())
-            desired = {f"region{idx}": guide for idx, guide in enumerate(guides)}
-
-            self.assertEqual(regions, set(desired.keys()))
-            for region in regions:
-                self.assertTensorAlmostEqual(actual[region], desired[region])
-
-    def test_write_image(self):
-        torch.manual_seed(0)
-        image = torch.rand(3, 100, 100)
-        with get_tmp_dir() as tmp_dir:
-            file = path.join(tmp_dir, "tmp_image.png")
-            io.write_image(image, file)
-
-            actual = self.load_image(file=file)
-
-        desired = image
-        self.assertImagesAlmostEqual(actual, desired)
-
-    @mock.patch("pystiche.image.io._show_pil_image")
-    def test_show_image_smoke(self, plt_mock):
-        image = self.load_image()
-        io.show_image(image)
-        io.show_image(image, size=100)
-        io.show_image(image, size=(100, 200))

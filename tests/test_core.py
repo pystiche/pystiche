@@ -3,6 +3,7 @@ from os import path
 from collections import OrderedDict
 import itertools
 import tempfile
+from math import sqrt
 import torch
 from torch import nn
 import pystiche
@@ -10,7 +11,7 @@ from unittest import mock
 from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
-class TestCase(PysticheTestCase):
+class TestBase(PysticheTestCase):
     def test_Object_str_smoke(self):
         class TestObject(pystiche.Object):
             pass
@@ -194,25 +195,6 @@ class TestCase(PysticheTestCase):
         )
         self.assertIsInstance(str(loss_dict), str)
 
-    @mock.patch("pystiche.core._home.os.makedirs")
-    def test_home_default(self, makedirs_mock):
-        actual = pystiche.home()
-        desired = path.expanduser(path.join("~", ".cache", "pystiche"))
-        self.assertEqual(actual, desired)
-
-    @mock.patch("pystiche.core._home.os.getenv")
-    def test_home_env(self, getenv_mock):
-        tmp_dir = tempfile.mkdtemp()
-        os.rmdir(tmp_dir)
-        getenv_mock.return_value = tmp_dir
-        try:
-            actual = tmp_dir
-            desired = pystiche.home()
-            self.assertEqual(actual, desired)
-            self.assertTrue(path.exists(desired) and path.isdir(desired))
-        finally:
-            os.rmdir(tmp_dir)
-
     def test_TensorKey_eq(self):
         x = torch.tensor((0.0, 0.5, 1.0))
         key = pystiche.TensorKey(x)
@@ -293,61 +275,103 @@ class TestCase(PysticheTestCase):
 
         self.assertIsInstance(hash(key), int)
 
-    def test_Module(self):
-        class TestModule(pystiche.Module):
-            def forward(self):
-                pass
 
-        childs = (nn.Conv2d(1, 1, 1), nn.ReLU())
-        named_children = OrderedDict(
-            [(f"child{idx}", child) for idx, child in enumerate(childs)]
-        )
-        indexed_children = childs
+class TestHome(PysticheTestCase):
+    @mock.patch("pystiche.core._home.os.makedirs")
+    def test_home_default(self, makedirs_mock):
+        actual = pystiche.home()
+        desired = path.expanduser(path.join("~", ".cache", "pystiche"))
+        self.assertEqual(actual, desired)
 
-        test_module = TestModule(named_children=named_children)
-        for idx, child in enumerate(childs):
-            actual = getattr(test_module, f"child{idx}")
-            desired = child
-            self.assertIs(actual, desired)
+    @mock.patch("pystiche.core._home.os.getenv")
+    def test_home_env(self, getenv_mock):
+        tmp_dir = tempfile.mkdtemp()
+        os.rmdir(tmp_dir)
+        getenv_mock.return_value = tmp_dir
+        try:
+            actual = tmp_dir
+            desired = pystiche.home()
+            self.assertEqual(actual, desired)
+            self.assertTrue(path.exists(desired) and path.isdir(desired))
+        finally:
+            os.rmdir(tmp_dir)
 
-        test_module = TestModule(indexed_children=indexed_children)
-        for idx, child in enumerate(childs):
-            actual = getattr(test_module, str(idx))
-            desired = child
-            self.assertIs(actual, desired)
 
-        with self.assertRaises(RuntimeError):
-            TestModule(named_children=named_children, indexed_children=indexed_children)
+class TestMath(PysticheTestCase):
+    def test_possqrt(self):
+        vals = (-1.0, 0.0, 1.0, 2.0)
+        desireds = (0.0, 0.0, 1.0, sqrt(2.0))
 
-    def test_Module_extra_repr_smoke(self):
-        class TestModule(pystiche.Module):
-            def forward(self):
-                pass
+        for val, desired in zip(vals, desireds):
+            x = torch.tensor(val, requires_grad=True)
+            y = pystiche.possqrt(x)
 
-        test_module = TestModule()
-        self.assertIsInstance(test_module.extra_repr(), str)
+            actual = y.item()
+            self.assertAlmostEqual(actual, desired)
 
-    def test_SequentialModule(self):
-        modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
-        model = pystiche.SequentialModule(*modules)
+    def test_possqrt_grad(self):
+        vals = (-1.0, 0.0, 1.0, 2.0)
+        desireds = (0.0, 0.0, 1.0 / 2.0, 1.0 / (2.0 * sqrt(2.0)))
 
-        for idx, module in enumerate(modules):
-            actual = getattr(model, str(idx))
-            desired = module
-            self.assertIs(actual, desired)
+        for val, desired in zip(vals, desireds):
+            x = torch.tensor(val, requires_grad=True)
+            y = pystiche.possqrt(x)
+            y.backward()
 
-    def test_SequentialModule_call(self):
+            actual = x.grad.item()
+            self.assertAlmostEqual(actual, desired)
+
+    def test_batch_gram_matrix(self):
+        size = 100
+
+        for dim in (1, 2, 3):
+            x = torch.ones((1, 1, *[size] * dim))
+            y = pystiche.batch_gram_matrix(x)
+
+            actual = y.item()
+            desired = float(size ** dim)
+            self.assertAlmostEqual(actual, desired)
+
+    def test_batch_gram_matrix_size(self):
+        batch_size = 1
+        num_channels = 3
+
         torch.manual_seed(0)
-        modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
-        input = torch.rand(1, 3, 256, 256)
+        for dim in (1, 2, 3):
+            size = (batch_size, num_channels, *torch.randint(256, (dim,)).tolist())
+            x = torch.empty(size)
+            y = pystiche.batch_gram_matrix(x)
 
-        pystiche_model = pystiche.SequentialModule(*modules)
-        torch_model = nn.Sequential(*modules)
+            actual = y.size()
+            desired = (batch_size, num_channels, num_channels)
+            self.assertTupleEqual(actual, desired)
 
-        actual = pystiche_model(input)
-        desired = torch_model(input)
+    def test_batch_gram_matrix_normalize1(self):
+        num_channels = 3
+
+        x = torch.ones((1, num_channels, 128, 128))
+        y = pystiche.batch_gram_matrix(x, normalize=True)
+
+        actual = y.flatten()
+        desired = torch.ones((num_channels ** 2,))
         self.assertTensorAlmostEqual(actual, desired)
 
+    def test_batch_gram_matrix_normalize2(self):
+        torch.manual_seed(0)
+        tensor_constructors = (torch.ones, torch.rand, torch.randn)
+
+        for constructor in tensor_constructors:
+            x = pystiche.batch_gram_matrix(
+                constructor((1, 3, 128, 128)), normalize=True
+            )
+            y = pystiche.batch_gram_matrix(
+                constructor((1, 3, 256, 256)), normalize=True
+            )
+
+            self.assertTensorAlmostEqual(x, y, atol=2e-2)
+
+
+class TestMeta(PysticheTestCase):
     def test_tensor_meta(self):
         meta = {"dtype": torch.bool, "device": torch.device("cpu")}
 
@@ -418,6 +442,65 @@ class TestCase(PysticheTestCase):
         desired = kernel_size
         self.assertEqual(actual, desired)
 
+
+class TestModules(PysticheTestCase):
+    def test_Module(self):
+        class TestModule(pystiche.Module):
+            def forward(self):
+                pass
+
+        childs = (nn.Conv2d(1, 1, 1), nn.ReLU())
+        named_children = OrderedDict(
+            [(f"child{idx}", child) for idx, child in enumerate(childs)]
+        )
+        indexed_children = childs
+
+        test_module = TestModule(named_children=named_children)
+        for idx, child in enumerate(childs):
+            actual = getattr(test_module, f"child{idx}")
+            desired = child
+            self.assertIs(actual, desired)
+
+        test_module = TestModule(indexed_children=indexed_children)
+        for idx, child in enumerate(childs):
+            actual = getattr(test_module, str(idx))
+            desired = child
+            self.assertIs(actual, desired)
+
+        with self.assertRaises(RuntimeError):
+            TestModule(named_children=named_children, indexed_children=indexed_children)
+
+    def test_Module_extra_repr_smoke(self):
+        class TestModule(pystiche.Module):
+            def forward(self):
+                pass
+
+        test_module = TestModule()
+        self.assertIsInstance(test_module.extra_repr(), str)
+
+    def test_SequentialModule(self):
+        modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
+        model = pystiche.SequentialModule(*modules)
+
+        for idx, module in enumerate(modules):
+            actual = getattr(model, str(idx))
+            desired = module
+            self.assertIs(actual, desired)
+
+    def test_SequentialModule_call(self):
+        torch.manual_seed(0)
+        modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
+        input = torch.rand(1, 3, 256, 256)
+
+        pystiche_model = pystiche.SequentialModule(*modules)
+        torch_model = nn.Sequential(*modules)
+
+        actual = pystiche_model(input)
+        desired = torch_model(input)
+        self.assertTensorAlmostEqual(actual, desired)
+
+
+class TestUtils(PysticheTestCase):
     def test_extract_patchesnd_num_patches(self):
         batch_size = 2
         size = 64

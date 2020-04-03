@@ -14,5 +14,5 @@ matrix:
         - python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
         - pip install -r $REQUIREMENTS_FILE coverage codecov
       install: pip install .[test]
-      script: coverage run --rcfile=.coveragerc -m pytest test/
+      script: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini
       after success: codecov

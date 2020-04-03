@@ -34,7 +34,7 @@ def default_pool_modules():
     return [create_default_pool_module(name) for name in pool_module_names]
 
 
-class TestCase(PysticheTestCase):
+class TestTyping(PysticheTestCase):
     def test_is_conv_module(self):
         for module in default_conv_modules():
             msg = (
