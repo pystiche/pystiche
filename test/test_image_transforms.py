@@ -10,7 +10,6 @@ from pystiche.image import (
     make_batched_image,
     io,
     transforms,
-    processing,
 )
 import pillow_affine as pa
 from utils import PysticheTestCase
@@ -441,8 +440,8 @@ class TestCase(PysticheTestCase):
         self.assertIdentityTransform(transform, self.load_image())
 
     def test_torch_processing(self):
-        preprocessing_transform = processing.TorchPreprocessing()
-        postprocessing_transform = processing.TorchPostprocessing()
+        preprocessing_transform = transforms.TorchPreprocessing()
+        postprocessing_transform = transforms.TorchPostprocessing()
 
         image = self.load_image()
 
@@ -456,15 +455,15 @@ class TestCase(PysticheTestCase):
 
         self.assertIdentityTransform(post_pre_processing_transform, image)
 
-        @processing.torch_processing
+        @transforms.torch_processing
         def identity(x):
             return x
 
         self.assertIdentityTransform(identity, image)
 
     def test_caffe_processing(self):
-        preprocessing_transform = processing.CaffePreprocessing()
-        postprocessing_transform = processing.CaffePostprocessing()
+        preprocessing_transform = transforms.CaffePreprocessing()
+        postprocessing_transform = transforms.CaffePostprocessing()
 
         image = self.load_image()
 
@@ -478,7 +477,7 @@ class TestCase(PysticheTestCase):
 
         self.assertIdentityTransform(post_pre_processing_transform, image)
 
-        @processing.caffe_processing
+        @transforms.caffe_processing
         def identity(x):
             return x
 

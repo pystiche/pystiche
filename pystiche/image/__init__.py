@@ -1,3 +1,5 @@
 from .io import *
 from .utils import *
-from .processing import *
+
+# Remove this together with .processing.py
+from .transforms.processing import *
