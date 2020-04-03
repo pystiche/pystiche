@@ -103,7 +103,7 @@ class ValidRandomCrop(Transform):
             return torch.randint(range + 1, ()).item()
 
         vert_origin = randint(image_height - crop_height)
-        horz_origin = randint(image_height - crop_height)
+        horz_origin = randint(image_width - crop_width)
         return (vert_origin, horz_origin)
 
     def forward(self, image: torch.Tensor) -> torch.Tensor:
