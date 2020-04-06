@@ -1,12 +1,63 @@
 import torch
 from torch import nn
+from torch.nn.functional import mse_loss
+import pystiche
 from pystiche.enc import SequentialEncoder
 from pystiche import ops
+from pystiche.ops import functional as F
 from utils import PysticheTestCase
 
 
 class TestComparison(PysticheTestCase):
-    pass
+    def test_MSEEncodingOperator_call(self):
+        torch.manual_seed(0)
+        target_image = torch.rand(1, 3, 128, 128)
+        input_image = torch.rand(1, 3, 128, 128)
+        encoder = SequentialEncoder((nn.Conv2d(3, 3, 1),))
+
+        op = ops.MSEEncodingOperator(encoder)
+        op.set_target_image(target_image)
+
+        actual = op(input_image)
+        desired = mse_loss(encoder(input_image), encoder(target_image))
+        self.assertTensorAlmostEqual(actual, desired)
+
+    def test_GramOperator_call(self):
+        torch.manual_seed(0)
+        target_image = torch.rand(1, 3, 128, 128)
+        input_image = torch.rand(1, 3, 128, 128)
+        encoder = SequentialEncoder((nn.Conv2d(3, 3, 1),))
+
+        op = ops.GramOperator(encoder)
+        op.set_target_image(target_image)
+
+        actual = op(input_image)
+        desired = mse_loss(
+            pystiche.batch_gram_matrix(encoder(input_image), normalize=True),
+            pystiche.batch_gram_matrix(encoder(target_image), normalize=True),
+        )
+        self.assertTensorAlmostEqual(actual, desired)
+
+    def test_MRFOperator_call(self):
+        patch_size = 3
+        stride = 2
+
+        torch.manual_seed(0)
+        target_image = torch.rand(1, 3, 128, 128)
+        input_image = torch.rand(1, 3, 128, 128)
+        encoder = SequentialEncoder((nn.Conv2d(3, 3, 1),))
+
+        op = ops.MRFOperator(encoder, patch_size, stride=stride)
+        op.set_target_image(target_image)
+
+        actual = op(input_image)
+        desired = F.patch_matching_loss(
+            pystiche.extract_patches2d(encoder(input_image), patch_size, stride=stride),
+            pystiche.extract_patches2d(
+                encoder(target_image), patch_size, stride=stride
+            ),
+        )
+        self.assertTensorAlmostEqual(actual, desired)
 
 
 class TestContainer(PysticheTestCase):
@@ -228,4 +279,23 @@ class TestOp(PysticheTestCase):
 
 
 class TestRegularization(PysticheTestCase):
-    pass
+    def test_TotalVariationOperator_call(self):
+        torch.manual_seed(0)
+        image = torch.rand(1, 3, 128, 128)
+        exponent = 3.0
+
+        op = ops.TotalVariationOperator(exponent=exponent)
+
+        actual = op(image)
+        desired = F.total_variation_loss(image, exponent=exponent)
+        self.assertTensorAlmostEqual(actual, desired)
+
+    def test_ValueRangeOperator_call(self):
+        torch.manual_seed(0)
+        image = torch.randn(1, 3, 128, 128)
+
+        op = ops.ValueRangeOperator()
+
+        actual = op(image)
+        desired = F.value_range_loss(image)
+        self.assertTensorAlmostEqual(actual, desired)
