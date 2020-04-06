@@ -24,6 +24,7 @@ class OperatorContainer(Operator):
             [(name, op(input_image)) for name, op in self.named_children()]
         )
 
+    # TODO: can this be removed?
     def __getitem__(self, name):
         return self._modules[name]
 
