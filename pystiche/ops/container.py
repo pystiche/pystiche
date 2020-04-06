@@ -6,7 +6,12 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from .op import Operator, EncodingOperator, ComparisonOperator
 from .guidance import Guidance, ComparisonGuidance
 
-__all__ = ["OperatorContainer", "MultiLayerEncodingOperator", "MultiRegionOperator"]
+__all__ = [
+    "OperatorContainer",
+    "SameOperatorContainer",
+    "MultiLayerEncodingOperator",
+    "MultiRegionOperator",
+]
 
 
 class OperatorContainer(Operator):
