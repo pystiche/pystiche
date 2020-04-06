@@ -1,9 +1,9 @@
-from math import sinh
+from collections import OrderedDict
 import torch
 from torch import nn
 from torch.nn.functional import mse_loss
 import pystiche
-from pystiche.enc import SequentialEncoder
+from pystiche.enc import SequentialEncoder, MultiLayerEncoder, SingleLayerEncoder
 from pystiche import ops
 from pystiche.ops import functional as F
 from utils import PysticheTestCase
@@ -62,7 +62,199 @@ class TestComparison(PysticheTestCase):
 
 
 class TestContainer(PysticheTestCase):
-    pass
+    def test_OperatorContainer(self):
+        class TestOperator(ops.Operator):
+            def process_input_image(self, image):
+                pass
+
+        named_ops = [(str(idx), TestOperator()) for idx in range(3)]
+        op_container = ops.OperatorContainer(OrderedDict(named_ops))
+
+        actuals = op_container.named_children()
+        desireds = named_ops
+        self.assertNamedChildrenEqual(actuals, desireds)
+
+    def test_OperatorContainer_call(self):
+        class TestOperator(ops.Operator):
+            def __init__(self, bias):
+                super().__init__()
+                self.bias = bias
+
+            def process_input_image(self, image):
+                return image + self.bias
+
+        input = torch.tensor(0.0)
+
+        named_ops = [(str(idx), TestOperator(idx + 1.0)) for idx in range(3)]
+        op_container = ops.OperatorContainer(OrderedDict(named_ops))
+
+        actual = op_container(input)
+        desired = pystiche.LossDict([(name, input + op.bias) for name, op in named_ops])
+        self.assertTensorDictAlmostEqual(actual, desired)
+
+    def test_OperatorContainer_getitem(self):
+        class TestOperator(ops.Operator):
+            def __init__(self, bias):
+                super().__init__()
+                self.bias = bias
+
+            def process_input_image(self, image):
+                return image + self.bias
+
+        named_ops = [(str(idx), TestOperator(idx + 1.0)) for idx in range(3)]
+        op_container = ops.OperatorContainer(OrderedDict(named_ops))
+
+        for name, _ in named_ops:
+            actual = op_container[name]
+            desired = getattr(op_container, name)
+            self.assertIs(actual, desired)
+
+    def test_SameOperatorContainer(self):
+        class TestOperator(ops.Operator):
+            def process_input_image(self, image):
+                pass
+
+        def get_op(name, score_weight):
+            return TestOperator()
+
+        names = [str(idx) for idx in range(3)]
+        same_operator_container = ops.SameOperatorContainer(names, get_op)
+
+        for name in names:
+            op = getattr(same_operator_container, name)
+            self.assertIsInstance(op, TestOperator)
+
+    def test_SameOperatorContainer_op_weights_str(self):
+        class TestOperator(ops.Operator):
+            def process_input_image(self, image):
+                pass
+
+        def get_op(name, score_weight):
+            return TestOperator(score_weight=score_weight)
+
+        names = [str(idx) for idx in range(3)]
+        op_weights_config = ("sum", "mean")
+
+        desireds = (float(len(names)), 1.0)
+        for op_weights, desired in zip(op_weights_config, desireds):
+            same_operator_container = ops.SameOperatorContainer(
+                names, get_op, op_weights=op_weights
+            )
+            actual = sum(
+                [getattr(same_operator_container, name).score_weight for name in names]
+            )
+            self.assertFloatAlmostEqual(actual, desired)
+
+        with self.assertRaises(ValueError):
+            ops.SameOperatorContainer(
+                names, get_op, op_weights="invalid",
+            )
+
+    def test_SameOperatorContainer_op_weights_seq(self):
+        class TestOperator(ops.Operator):
+            def process_input_image(self, image):
+                pass
+
+        def get_op(name, score_weight):
+            return TestOperator(score_weight=score_weight)
+
+        names, op_weights = zip(*[(str(idx), float(idx) + 1.0) for idx in range(3)])
+
+        same_operator_container = ops.SameOperatorContainer(
+            names, get_op, op_weights=op_weights
+        )
+
+        for name, score_weight in zip(names, op_weights):
+            actual = getattr(same_operator_container, name).score_weight
+            desired = score_weight
+            self.assertFloatAlmostEqual(actual, desired)
+
+    def test_MultiLayerEncodingOperator(self):
+        class TestOperator(ops.EncodingRegularizationOperator):
+            def input_enc_to_repr(self, image):
+                pass
+
+            def calculate_score(self, input_repr):
+                pass
+
+        def get_encoding_op(encoder, score_weight):
+            return TestOperator(encoder, score_weight=score_weight)
+
+        layers = [str(index) for index in range(3)]
+        modules = OrderedDict([(layer, nn.Module()) for layer in layers])
+        multi_layer_encoder = MultiLayerEncoder(modules)
+
+        multi_layer_enc_op = ops.MultiLayerEncodingOperator(
+            multi_layer_encoder, layers, get_encoding_op
+        )
+
+        for layer in layers:
+            op = getattr(multi_layer_enc_op, layer)
+            self.assertIsInstance(op.encoder, SingleLayerEncoder)
+            self.assertEqual(op.encoder.layer, layer)
+            self.assertIs(op.encoder.multi_layer_encoder, multi_layer_encoder)
+
+    def test_MultiLayerEncodingOperator_set_target_image(self):
+        class TestOperator(ops.EncodingComparisonOperator):
+            def target_enc_to_repr(self, image):
+                return image, None
+
+            def input_enc_to_repr(self, image, ctx):
+                pass
+
+            def calculate_score(self, input_repr, target_repr, ctx):
+                pass
+
+        def get_encoding_op(encoder, score_weight):
+            return TestOperator(encoder, score_weight=score_weight)
+
+        torch.manual_seed(0)
+        image = torch.rand(1, 3, 128, 128)
+
+        layers = [str(index) for index in range(3)]
+        modules = OrderedDict([(layer, nn.Conv2d(3, 3, 1)) for layer in layers])
+        multi_layer_encoder = MultiLayerEncoder(modules)
+
+        multi_layer_enc_op = ops.MultiLayerEncodingOperator(
+            multi_layer_encoder, layers, get_encoding_op
+        )
+        multi_layer_enc_op.set_target_image(image)
+
+        for layer in layers:
+            actual = getattr(multi_layer_enc_op, layer).target_image
+            desired = image
+            self.assertTensorAlmostEqual(actual, desired)
+
+    def test_MultiRegionOperator_set_target_image(self):
+        class TestOperator(ops.PixelComparisonOperator):
+            def __init__(self, bias, score_weight=1e0):
+                super().__init__(score_weight=score_weight)
+                self.bias = bias
+
+            def target_image_to_repr(self, image):
+                return image + self.bias, None
+
+            def input_image_to_repr(self, image, ctx):
+                pass
+
+            def calculate_score(self, input_repr, target_repr, ctx):
+                pass
+
+        def get_op(name, score_weight):
+            return TestOperator(float(name), score_weight=score_weight)
+
+        torch.manual_seed(0)
+        image = torch.rand(1, 3, 128, 128)
+
+        regions = [str(idx) for idx in range(3)]
+        multi_region_operator = ops.MultiRegionOperator(regions, get_op)
+        for region in regions:
+            multi_region_operator.set_target_image(region, image)
+
+        for region in regions:
+            actual = getattr(multi_region_operator, region).target_image
+            desired = image
+            self.assertTensorAlmostEqual(actual, desired)
 
 
 class TestFunctional(PysticheTestCase):
@@ -86,7 +278,7 @@ class TestFunctional(PysticheTestCase):
         torch.manual_seed(0)
         zero_patch = torch.zeros(3, 3, 3)
         one_patch = torch.ones(3, 3, 3)
-        rand_patch = torch.rand(3, 3, 3)
+        rand_patch = torch.randn(3, 3, 3)
 
         input = torch.stack((rand_patch + 0.1, rand_patch * 0.9))
         target = torch.stack((zero_patch, one_patch, rand_patch))

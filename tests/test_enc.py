@@ -81,14 +81,6 @@ class TestMultiLayerEncoder(PysticheTestCase):
         desired = layers[-1]
         self.assertEqual(actual, desired)
 
-    def assertNamedChildrenEqual(self, actuals, desireds):
-        self.assertCountEqual(actuals, desireds)
-        for actual, desired in zip(actuals, desireds):
-            actual_name, actual_module = actual
-            desired_name, desired_module = actual
-            self.assertEqual(actual_name, desired_name)
-            self.assertIs(actual_module, desired_module)
-
     def test_MultiLayerEncoder_named_children_to(self):
         layers, modules = zip(*[(str(idx), nn.Module()) for idx in range(3)])
         multi_layer_encoder = enc.MultiLayerEncoder(OrderedDict(zip(layers, modules)))

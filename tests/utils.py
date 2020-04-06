@@ -87,6 +87,23 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
 
         np.testing.assert_allclose(cast(actual), cast(desired), **kwargs)
 
+    def assertNamedChildrenEqual(self, actuals, desireds, equality_sufficient=False):
+        self.assertCountEqual(actuals, desireds)
+        for actual, desired in zip(actuals, desireds):
+            actual_name, actual_module = actual
+            desired_name, desired_module = actual
+            self.assertEqual(actual_name, desired_name)
+            if equality_sufficient:
+                self.assertEqual(actual_module, desired_module)
+            else:
+                self.assertIs(actual_module, desired_module)
+
+    def assertTensorDictAlmostEqual(self, actual, desired, **kwargs):
+        self.assertCountEqual(actual, desired)
+        self.assertEqual(set(actual.keys()), set(desired.keys()))
+        for key in actual.keys():
+            self.assertTensorAlmostEqual(actual[key], desired[key], **kwargs)
+
 
 @contextlib.contextmanager
 def get_tmp_dir(**mkdtemp_kwargs):
