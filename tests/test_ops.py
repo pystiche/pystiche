@@ -1,3 +1,4 @@
+from math import sinh
 import torch
 from torch import nn
 from torch.nn.functional import mse_loss
@@ -57,7 +58,7 @@ class TestComparison(PysticheTestCase):
                 encoder(target_image), patch_size, stride=stride
             ),
         )
-        self.assertTensorAlmostEqual(actual, desired)
+        self.assertFloatAlmostEqual(actual, desired)
 
 
 class TestContainer(PysticheTestCase):
@@ -65,7 +66,62 @@ class TestContainer(PysticheTestCase):
 
 
 class TestFunctional(PysticheTestCase):
-    pass
+    def test_reduce(self):
+        torch.manual_seed(0)
+        x = torch.rand(1, 3, 128, 128)
+
+        actual = F._reduce(x, "mean")
+        desired = torch.mean(x)
+        self.assertTensorAlmostEqual(actual, desired)
+
+        actual = F._reduce(x, "sum")
+        desired = torch.sum(x)
+        self.assertTensorAlmostEqual(actual, desired)
+
+        actual = F._reduce(x, "none")
+        desired = x
+        self.assertTensorAlmostEqual(actual, desired)
+
+    def test_patch_matching_loss(self):
+        torch.manual_seed(0)
+        zero_patch = torch.zeros(3, 3, 3)
+        one_patch = torch.ones(3, 3, 3)
+        rand_patch = torch.rand(3, 3, 3)
+
+        input = torch.stack((rand_patch + 0.1, rand_patch * 0.9))
+        target = torch.stack((zero_patch, one_patch, rand_patch))
+
+        actual = F.patch_matching_loss(input, target)
+        desired = mse_loss(input, torch.stack((rand_patch, rand_patch)))
+        self.assertFloatAlmostEqual(actual, desired)
+
+        pass
+
+    def test_value_range_loss_zero(self):
+        torch.manual_seed(0)
+        input = torch.rand(1, 3, 128, 128)
+
+        actual = F.value_range_loss(input)
+        desired = 0.0
+        self.assertFloatAlmostEqual(actual, desired)
+
+    def test_total_variation_loss(self):
+        def get_checkerboard(size):
+            return (
+                (
+                    torch.arange(size ** 2).view(size, size)
+                    + torch.arange(size).view(size, 1)
+                )
+                % 2
+            ).bool()
+
+        size = 128
+        checkerboard = get_checkerboard(size)
+        input = checkerboard.float().view(1, 1, size, size).repeat(1, 3, 1, 1)
+
+        actual = F.total_variation_loss(input)
+        desired = 2.0
+        self.assertFloatAlmostEqual(actual, desired)
 
 
 class TestGuidance(PysticheTestCase):

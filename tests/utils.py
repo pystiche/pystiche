@@ -64,6 +64,15 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
     def load_single_image(self, file=None):
         return self.load_batched_image(file=file).squeeze(0)
 
+    def assertFloatAlmostEqual(self, actual, desired, **kwargs):
+        if isinstance(actual, torch.Tensor):
+            actual = actual.item()
+
+        if isinstance(desired, torch.Tensor):
+            desired = desired.item()
+
+        np.testing.assert_almost_equal(actual, desired, **kwargs)
+
     def assertTensorAlmostEqual(
         self, actual, desired, check_dtype=True, check_device=True, **kwargs
     ):
