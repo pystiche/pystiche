@@ -64,6 +64,15 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
     def load_single_image(self, file=None):
         return self.load_batched_image(file=file).squeeze(0)
 
+    def assertFloatAlmostEqual(self, actual, desired, **kwargs):
+        if isinstance(actual, torch.Tensor):
+            actual = actual.item()
+
+        if isinstance(desired, torch.Tensor):
+            desired = desired.item()
+
+        np.testing.assert_almost_equal(actual, desired, **kwargs)
+
     def assertTensorAlmostEqual(
         self, actual, desired, check_dtype=True, check_device=True, **kwargs
     ):
@@ -77,6 +86,23 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
             self.assertEqual(actual.device, desired.device)
 
         np.testing.assert_allclose(cast(actual), cast(desired), **kwargs)
+
+    def assertNamedChildrenEqual(self, actuals, desireds, equality_sufficient=False):
+        self.assertCountEqual(actuals, desireds)
+        for actual, desired in zip(actuals, desireds):
+            actual_name, actual_module = actual
+            desired_name, desired_module = actual
+            self.assertEqual(actual_name, desired_name)
+            if equality_sufficient:
+                self.assertEqual(actual_module, desired_module)
+            else:
+                self.assertIs(actual_module, desired_module)
+
+    def assertTensorDictAlmostEqual(self, actual, desired, **kwargs):
+        self.assertCountEqual(actual, desired)
+        self.assertEqual(set(actual.keys()), set(desired.keys()))
+        for key in actual.keys():
+            self.assertTensorAlmostEqual(actual[key], desired[key], **kwargs)
 
 
 @contextlib.contextmanager

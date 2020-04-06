@@ -6,7 +6,12 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from .op import Operator, EncodingOperator, ComparisonOperator
 from .guidance import Guidance, ComparisonGuidance
 
-__all__ = ["OperatorContainer", "MultiLayerEncodingOperator", "MultiRegionOperator"]
+__all__ = [
+    "OperatorContainer",
+    "SameOperatorContainer",
+    "MultiLayerEncodingOperator",
+    "MultiRegionOperator",
+]
 
 
 class OperatorContainer(Operator):
@@ -19,6 +24,7 @@ class OperatorContainer(Operator):
             [(name, op(input_image)) for name, op in self.named_children()]
         )
 
+    # TODO: can this be removed?
     def __getitem__(self, name):
         return self._modules[name]
 

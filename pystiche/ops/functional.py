@@ -4,6 +4,7 @@ import pystiche
 from pystiche.misc import verify_str_arg
 
 
+# TODO: move this to pystiche.misc and make public? Maybe name reduce_tensor.
 def _reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:
     verify_str_arg(reduction, "reduction", ("mean", "sum", "none"))
     if reduction == "mean":
@@ -24,10 +25,10 @@ def patch_matching_loss(
         input: torch.Tensor, target: torch.Tensor, eps: float = 1e-8
     ) -> torch.Tensor:
         input = torch.flatten(input, 1)
-        input = input / torch.norm(input, dim=1, keepdim=True)
+        input = input / (torch.norm(input, dim=1, keepdim=True) + eps)
 
         target = torch.flatten(target, 1)
-        target = target / torch.norm(target, dim=1, keepdim=True)
+        target = target / (torch.norm(target, dim=1, keepdim=True) + eps)
 
         return torch.clamp(torch.mm(input, target.t()), max=1.0 / eps)
 
@@ -41,6 +42,7 @@ def patch_matching_loss(
 def value_range_loss(
     input: torch.Tensor, min=0.0, max=1.0, reduction: str = "mean"
 ) -> torch.Tensor:
+    # TODO: remove sinh call; quadratic, i.e. x * (x-1) is enough
     loss = relu(torch.sinh(input - min) * torch.sinh(input - max))
     return _reduce(loss, reduction)
 
