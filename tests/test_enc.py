@@ -19,13 +19,6 @@ class TestEncoder(PysticheTestCase):
         desired = torch_encoder(input)
         self.assertTensorAlmostEqual(actual, desired)
 
-    def test_SequentialEncoder_propagate_guide(self):
-        pass
-
-
-class TestGuides(PysticheTestCase):
-    pass
-
 
 class TestMultiLayerEncoder(PysticheTestCase):
     class ForwardPassCounter(nn.Module):
@@ -274,8 +267,20 @@ class TestMultiLayerEncoder(PysticheTestCase):
             with self.assertRaises(AttributeError):
                 getattr(multi_layer_encoder, name)
 
-    def test_MultiLayerEncoder_propagate_guide(self):
-        pass
+    def test_SingleLayerEncoder_call(self):
+        torch.manual_seed(0)
+        conv = nn.Conv2d(3, 1, 1)
+        relu = nn.ReLU(inplace=False)
+        input = torch.rand(1, 3, 128, 128)
+
+        modules = OrderedDict((("conv", conv), ("relu", relu)))
+        multi_layer_encoder = enc.MultiLayerEncoder(modules)
+
+        single_layer_encoder = enc.SingleLayerEncoder(multi_layer_encoder, "conv")
+
+        actual = single_layer_encoder(input)
+        desired = conv(input)
+        self.assertTensorAlmostEqual(actual, desired)
 
 
 class TestProcessing(PysticheTestCase):
