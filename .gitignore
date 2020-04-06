@@ -105,3 +105,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+pystiche/papers/ulyanov_et_al_2016/test.py
