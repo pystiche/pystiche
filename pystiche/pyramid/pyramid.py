@@ -45,6 +45,7 @@ class ImagePyramid(Object):
             ]
         )
 
+    # TODO: can this be removed?
     def add_resize_target(self, op: Operator):
         self._resize_targets.add(op)
 
