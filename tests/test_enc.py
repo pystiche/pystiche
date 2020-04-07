@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from pystiche.image.transforms import TorchPreprocessing, CaffePreprocessing
 from pystiche import enc
-from utils import PysticheTestCase
+from utils import PysticheTestCase, ForwardPassCounter
 
 
 class TestEncoder(PysticheTestCase):
@@ -21,15 +21,6 @@ class TestEncoder(PysticheTestCase):
 
 
 class TestMultiLayerEncoder(PysticheTestCase):
-    class ForwardPassCounter(nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.count = 0
-
-        def forward(self, input):
-            self.count += 1
-            return input
-
     def test_MultiLayerEncoder(self):
         modules = OrderedDict([(str(idx), nn.Module()) for idx in range(3)])
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
@@ -130,28 +121,25 @@ class TestMultiLayerEncoder(PysticheTestCase):
 
     def test_MultiLayerEncoder_call_store(self):
         torch.manual_seed(0)
-        count = self.ForwardPassCounter()
-        conv = nn.Conv2d(3, 1, 1)
-        relu = nn.ReLU(inplace=False)
-        input = torch.rand(1, 3, 128, 128)
+        count = ForwardPassCounter()
 
-        modules = OrderedDict((("count", count), ("conv", conv), ("relu", relu)))
+        modules = OrderedDict((("count", count),))
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
+        layers = ("count",)
 
-        layers = ("conv", "relu")
+        input = torch.rand(1, 3, 128, 128)
         multi_layer_encoder(input, layers, store=True)
-        encs = multi_layer_encoder(input, layers)
-
-        actual = encs[0]
-        desired = conv(input)
-        self.assertTensorAlmostEqual(actual, desired)
-
-        actual = encs[1]
-        desired = relu(conv(input))
-        self.assertTensorAlmostEqual(actual, desired)
+        multi_layer_encoder(input, layers)
 
         actual = count.count
         desired = 1
+        self.assertEqual(actual, desired)
+
+        new_input = torch.rand(1, 3, 128, 128)
+        multi_layer_encoder(new_input, layers)
+
+        actual = count.count
+        desired = 2
         self.assertEqual(actual, desired)
 
     def test_MultiLayerEncoder_extract_single_layer_encoder(self):
@@ -172,7 +160,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
 
     def test_MultiLayerEncoder_encode(self):
         torch.manual_seed(0)
-        count = self.ForwardPassCounter()
+        count = ForwardPassCounter()
         conv = nn.Conv2d(3, 1, 1)
         relu = nn.ReLU(inplace=False)
         input = torch.rand(1, 3, 128, 128)
@@ -199,7 +187,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
 
     def test_MultiLayerEncoder_clear_cache(self):
         torch.manual_seed(0)
-        count = self.ForwardPassCounter()
+        count = ForwardPassCounter()
         input = torch.rand(1, 3, 128, 128)
 
         modules = OrderedDict((("count", count),))
