@@ -45,6 +45,7 @@ class ImagePyramid(Object):
             ]
         )
 
+    # TODO: can this be removed?
     def add_resize_target(self, op: Operator):
         self._resize_targets.add(op)
 
@@ -56,12 +57,12 @@ class ImagePyramid(Object):
 
     def __iter__(self):
         image_storage = ImageStorage(self._resize_ops())
-        for level in self._levels:
-            try:
+        try:
+            for level in self._levels:
                 self._resize(level)
                 yield level
-            finally:
-                image_storage.restore()
+        finally:
+            image_storage.restore()
 
     def _resize(self, level: PyramidLevel):
         for op in self._resize_ops():
