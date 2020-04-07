@@ -1,9 +1,17 @@
+from collections import OrderedDict
 from itertools import chain, combinations
 import torch
 from torch import nn
-from pystiche.ops import TotalVariationOperator, MSEEncodingOperator
+import pystiche
+from pystiche.enc import SequentialEncoder, MultiLayerEncoder
+from pystiche.ops import (
+    Operator,
+    EncodingRegularizationOperator,
+    TotalVariationOperator,
+    MSEEncodingOperator,
+)
 from pystiche import loss
-from utils import PysticheTestCase
+from utils import PysticheTestCase, ForwardPassCounter
 
 
 # copied from
@@ -14,11 +22,105 @@ def powerset(iterable):
 
 
 class TestMultiOp(PysticheTestCase):
-    pass
+    def test_MultiOperatorLoss(self):
+        class TestOperator(Operator):
+            def process_input_image(self, image):
+                pass
+
+        named_ops = [(str(idx), TestOperator()) for idx in range(3)]
+        multi_op_loss = loss.MultiOperatorLoss(OrderedDict(named_ops))
+
+        actuals = multi_op_loss.named_children()
+        desireds = named_ops
+        self.assertNamedChildrenEqual(actuals, desireds)
+
+    def test_MultiOperatorLoss_trim(self):
+        class TestOperator(EncodingRegularizationOperator):
+            def input_enc_to_repr(self, image):
+                pass
+
+            def calculate_score(self, input_repr):
+                pass
+
+        layers = [str(idx) for idx in range(3)]
+        modules = OrderedDict([(layer, nn.Module()) for layer in layers])
+        multi_layer_encoder = MultiLayerEncoder(modules)
+
+        ops = OrderedDict(
+            (
+                (
+                    "op",
+                    TestOperator(
+                        multi_layer_encoder.extract_single_layer_encoder(layers[0])
+                    ),
+                ),
+            ),
+        )
+        loss.MultiOperatorLoss(ops, trim=True)
+
+        self.assertTrue(layers[0] in multi_layer_encoder)
+        for layer in layers[1:]:
+            self.assertFalse(layer in multi_layer_encoder)
+
+    def test_MultiOperatorLoss_call(self):
+        class TestOperator(Operator):
+            def __init__(self, bias):
+                super().__init__()
+                self.bias = bias
+
+            def process_input_image(self, image):
+                return image + self.bias
+
+        input = torch.tensor(0.0)
+
+        named_ops = [(str(idx), TestOperator(idx + 1.0)) for idx in range(3)]
+        multi_op_loss = loss.MultiOperatorLoss(OrderedDict(named_ops))
+
+        actual = multi_op_loss(input)
+        desired = pystiche.LossDict([(name, input + op.bias) for name, op in named_ops])
+        self.assertTensorDictAlmostEqual(actual, desired)
+
+    def test_MultiOperatorLoss_call_encode(self):
+        class TestOperator(EncodingRegularizationOperator):
+            def input_enc_to_repr(self, image):
+                return image
+
+            def calculate_score(self, input_repr):
+                return torch.mean(input_repr)
+
+        count = ForwardPassCounter()
+        modules = OrderedDict((("count", count),))
+        multi_layer_encoder = MultiLayerEncoder(modules)
+
+        ops = OrderedDict(
+            [
+                (
+                    str(idx),
+                    TestOperator(
+                        multi_layer_encoder.extract_single_layer_encoder("count")
+                    ),
+                )
+                for idx in range(3)
+            ]
+        )
+        multi_op_loss = loss.MultiOperatorLoss(ops)
+
+        torch.manual_seed(0)
+        input = torch.rand(1, 3, 128, 128)
+
+        multi_op_loss(input)
+        actual = count.count
+        desired = 1
+        self.assertEqual(actual, desired)
+
+        multi_op_loss(input)
+        actual = count.count
+        desired = 2
+        self.assertEqual(actual, desired)
 
 
 class TestPerceptual(PysticheTestCase):
-    def test_perceptual_loss_components(self):
+    def test_perceptual_loss(self):
         op = TotalVariationOperator()
         required_components = {"content_loss", "style_loss"}
         all_components = {*required_components, "regularization"}
@@ -42,8 +144,8 @@ class TestPerceptual(PysticheTestCase):
     def test_perceptual_loss_content_image(self):
         torch.manual_seed(0)
         image = torch.rand(1, 1, 100, 100)
-        content_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
-        style_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
+        content_loss = MSEEncodingOperator(SequentialEncoder((nn.Conv2d(1, 1, 1),)))
+        style_loss = MSEEncodingOperator(SequentialEncoder((nn.Conv2d(1, 1, 1),)))
 
         perceptual_loss = loss.PerceptualLoss(style_loss=style_loss)
         with self.assertRaises(RuntimeError):
@@ -63,14 +165,13 @@ class TestPerceptual(PysticheTestCase):
     def test_perceptual_loss_style_image(self):
         torch.manual_seed(0)
         image = torch.rand(1, 1, 100, 100)
-        content_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
-        style_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
+        content_loss = MSEEncodingOperator(SequentialEncoder((nn.Conv2d(1, 1, 1),)))
+        style_loss = MSEEncodingOperator(SequentialEncoder((nn.Conv2d(1, 1, 1),)))
 
         perceptual_loss = loss.PerceptualLoss(content_loss=content_loss)
         with self.assertRaises(RuntimeError):
             perceptual_loss.set_style_image(image)
 
-        style_loss = MSEEncodingOperator(nn.Conv2d(1, 1, 1))
         perceptual_loss = loss.PerceptualLoss(
             content_loss=content_loss, style_loss=style_loss
         )

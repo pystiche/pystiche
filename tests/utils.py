@@ -6,9 +6,15 @@ import unittest
 import pyimagetest
 import numpy as np
 import torch
+from torch import nn
 from PIL import Image
 
-__all__ = ["PysticheTestCase", "get_tmp_dir", "skip_if_cuda_not_available"]
+__all__ = [
+    "PysticheTestCase",
+    "get_tmp_dir",
+    "skip_if_cuda_not_available",
+    "ForwardPassCounter",
+]
 
 
 class PysticheImageBackend(pyimagetest.ImageBackend):
@@ -117,3 +123,13 @@ def get_tmp_dir(**mkdtemp_kwargs):
 skip_if_cuda_not_available = unittest.skipIf(
     not torch.cuda.is_available(), "CUDA is not available."
 )
+
+
+class ForwardPassCounter(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.count = 0
+
+    def forward(self, input):
+        self.count += 1
+        return input
