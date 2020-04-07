@@ -4,9 +4,12 @@ python: "3.6"
 matrix:
   include:
     - name: "Code format"
-      before_install: pip install black
+      before_install: pip install isort black flake8
       install: skip
-      script: black --check .
+      script:
+        - isort --check-only --recursive .
+        - black --check .
+        - flake8 --exclude=.svn,CVS,.bzr,.hg,.git,__pycache__,.tox,.eggs,*.egg,.venv,docs/build .
     - name: "Tests"
       before_install:
         - REQUIREMENTS_FILE=travis_ci_torch_requirements.txt
