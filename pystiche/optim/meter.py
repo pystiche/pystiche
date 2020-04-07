@@ -51,8 +51,8 @@ class FloatMeter(Meter):
         self.count = 0
         self.last_val = 0.0
         self.global_sum = 0.0
-        self.global_min = 0.0
-        self.global_max = 0.0
+        self.global_min = float("inf")
+        self.global_max = -float("inf")
         self.window = deque(maxlen=self.window_size)
 
     def update(self, vals: Union[Collection[float], float]) -> None:
