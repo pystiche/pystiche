@@ -209,9 +209,7 @@ class ETAMeter(FloatMeter):
 
     def calculate_eta(self, time_diff: float) -> datetime:
         count_diff = max(self.total_count - self.count, 0)
-        now = datetime.now()
-        if count_diff <= 0:
-            return now
+        return datetime.now() + count_diff * timedelta(seconds=time_diff)
 
     @property
     def global_eta(self) -> datetime:
