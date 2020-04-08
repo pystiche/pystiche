@@ -7,7 +7,6 @@ from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
 import pystiche
-from pystiche.image import CaffePostprocessing
 from pystiche.optim import OptimLogger, default_transformer_epoch_optim_loop
 
 from ..common_utils import batch_up_image

@@ -13,7 +13,11 @@ exclude =
     __pycache__,
     *.pyc,
     docs/build,
-    docs/source/auto_*
+    docs/source/auto_*,
+    tutorials # for now
+ignore = E203, E501, W503
 max-line-length = 88
+per-file-ignores =
+    __init__.py: F401, F403
 show_source = True
 statistics = True

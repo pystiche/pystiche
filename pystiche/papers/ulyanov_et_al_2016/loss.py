@@ -12,7 +12,9 @@ from .utils import ulyanov_et_al_2016_multi_layer_encoder
 
 
 class UlyanovEtAl2016MSEEncodingOperator(MSEEncodingOperator):
-    def __init__(self, encoder: Encoder, score_weight: float = 1e0):
+    def __init__(
+        self, encoder: Encoder, impl_params: bool = True, score_weight: float = 1e0
+    ):
         super().__init__(encoder, score_weight=score_weight)
         self.double_batch_size_mean = impl_params
 
@@ -123,11 +125,11 @@ class UlyanovEtAl2016PerceptualLoss(MultiOperatorLoss):
         content_loss: MSEEncodingOperator = None,
     ) -> None:
 
-        dict = OrderedDict([("style_loss", style_loss)])
+        modules = [("style_loss", style_loss)]
         if content_loss is not None:
             modules.append([("content_loss", content_loss)])
 
-        super().__init__(dict)
+        super().__init__(OrderedDict(modules))
 
     def set_content_image(self, image: torch.Tensor):
         self.content_loss.set_target_image(image)
