@@ -2,11 +2,24 @@
 # See link below for available options
 # https://github.com/timothycrosley/isort/wiki/isort-Settings#full-reference-of-isort-settings
 
+skip = [
+  ".git",
+  ".github",
+  ".venv",
+  ".mypy_cache",
+  ".pytest_cache",
+  "__pycache__",
+  "docs/build"
+]
+skip_glob = ["docs/source/auto_*"]
 line_length = 88
 use_parentheses = true
 multi_line_output = 3
 force_grid_wrap = 0
 include_trailing_comma = true
+
+known_pytorch = ["torch", "torchvision"]
+sections= ["FUTURE", "STDLIB", "THIRDPARTY", "PYTORCH", "FIRSTPARTY", "LOCALFOLDER"]
 
 [tool.black]
 # See link below for available options
