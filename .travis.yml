@@ -5,13 +5,12 @@ matrix:
   include:
     - name: "Code format"
       before_install:
-        - TRAVIS_VIRTUALENV=$(which python | sed 's/\/bin.*//g')
-        - pwd
-        - ls -lA ../../../virtualenv
+        - TRAVIS_VIRTUALENV=../../../virtualenv/python$TRAVIS_PYTHON_VERSION
+        - ls -lA $TRAVIS_VIRTUALENV
       install: pip install isort black flake8
       script:
         - JOBS=$(nproc)
-        - isort --settings-path=pyproject.toml --check-only --verbose --recursive .
+        - isort --settings-path=pyproject.toml --virtual-env $TRAVIS_VIRTUALENV --check-only --verbose --recursive .
         - black --config=pyproject.toml --check .
         - flake8 --config=.flake8 --jobs=$JOBS .
     - name: "Tests"
