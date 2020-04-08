@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from copy import copy
-from typing import Collection, Dict, Iterator, Optional, Sequence, Tuple, Union
+from typing import Collection, Dict, Iterator, Optional, Sequence, Tuple
 
 import torch
 from torch import nn
