@@ -154,8 +154,8 @@ class TestColor(PysticheTransfromTestCase):
                 assert image.mode == "RGB"
                 # fmt: off
                 matrix = (
-                     0.299,  0.587,  0.114, 0.0,  # noqa: E126
-                    -0.147, -0.289,  0.436, 0.0,
+                     0.299,  0.587,  0.114, 0.0,  # noqa: E126, E241
+                    -0.147, -0.289,  0.436, 0.0,  # noqa: E241
                      0.615, -0.515, -0.100, 0.0,
                 )
                 # fmt: on
