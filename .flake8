@@ -1,4 +1,6 @@
 [flake8]
+# See link below for available options
+# https://flake8.pycqa.org/en/latest/user/options.html#options-and-their-descriptions
 # Move this to pyproject.toml as soon as it is supported.
 # See https://gitlab.com/pycqa/flake8/issues/428
 
