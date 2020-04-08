@@ -215,7 +215,7 @@ class TestBase(PysticheTestCase):
         key = pystiche.TensorKey(x)
 
         with self.assertRaises(TypeError):
-            key == None
+            key == 1
 
     @skip_if_cuda_not_available
     def test_TensorKey_eq_device(self):
