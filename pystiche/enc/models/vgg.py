@@ -44,7 +44,7 @@ __all__ = [
 ]
 
 DEPRECATED_LAYER_PATTERN = re.compile(
-    "^(?P<type>(conv|bn|relu|pool))_(?P<block>\d)(_(?P<depth>\d))?$"
+    r"^(?P<type>(conv|bn|relu|pool))_(?P<block>\d)(_(?P<depth>\d))?$"
 )
 
 

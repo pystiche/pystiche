@@ -21,13 +21,13 @@ def extract_whl_urls(
 
 
 def get_torch_cpu_pattern():
-    distribution = "(?P<distribution>torch(vision)?)"
-    version = "(?P<version>\d+[.]\d+[.]\d+([.]post\d+)?)"
-    language = "(?P<language>\w+)"
-    abi = "(?P<abi>\w+)"
-    platform = "(?P<platform>\w+)"
+    distribution = r"(?P<distribution>torch(vision)?)"
+    version = r"(?P<version>\d+[.]\d+[.]\d+([.]post\d+)?)"
+    language = r"(?P<language>\w+)"
+    abi = r"(?P<abi>\w+)"
+    platform = r"(?P<platform>\w+)"
     pattern = re.compile(
-        f"cpu/{distribution}-{version}(%2Bcpu)?-{language}-{abi}-{platform}[.]whl"
+        fr"cpu/{distribution}-{version}(%2Bcpu)?-{language}-{abi}-{platform}[.]whl"
     )
 
     if set(pattern.groupindex.keys()) == set(WHL_PROPS):
