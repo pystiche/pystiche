@@ -1,0 +1,28 @@
+[tool.isort]
+# See link below for available options
+# https://github.com/timothycrosley/isort/wiki/isort-Settings#full-reference-of-isort-settings
+
+line_length = 88
+use_parentheses = true
+multi_line_output = 3
+force_grid_wrap = 0
+include_trailing_comma = true
+
+[tool.black]
+# See link below for available options
+# https://github.com/psf/black#configuration-format
+
+line-length = 88
+target-version = ["py36"]
+exclude = '''
+/(
+    \.git
+  | \.github
+  | \.venv
+  | \.mypy_cache
+  | \.pytest_cache
+  | __pycache__
+  | docs/build
+  | docs/source/auto_*
+)/
+'''
