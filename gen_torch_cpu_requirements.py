@@ -58,7 +58,7 @@ def select_link(whls, distribution, language, abi, platform):
             return selected_whls
 
         # TODO: include message
-        valid_vals = set([getattr(whl, attr) for whl in whls])
+        # valid_vals = set([getattr(whl, attr) for whl in whls])
         raise RuntimeError
 
     whls = select(whls, "distribution", distribution)
