@@ -7,7 +7,7 @@ matrix:
       before_install:
         - TRAVIS_VIRTUALENV=$(which python | sed 's/\/bin.*//g')
         - pwd
-        - ls ../../../virtualenv
+        - ls -lA ../../../virtualenv
       install: pip install isort black flake8
       script:
         - JOBS=$(nproc)
