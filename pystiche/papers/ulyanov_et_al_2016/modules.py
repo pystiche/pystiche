@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from math import sqrt
 from typing import Any, Dict, Optional, Sequence, Tuple, Union
-
 from typing_extensions import Protocol
 
 import torch
