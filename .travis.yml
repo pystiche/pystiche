@@ -8,7 +8,7 @@ matrix:
       install: skip
       script:
         - JOBS=$(nproc)
-        - isort --settings-path=pyproject.toml --check-only --jobs=$JOBS --recursive .
+        - isort --settings-path=pyproject.toml --check-only --verbose --jobs=$JOBS --recursive .
         - black --config=pyproject.toml --check .
         - flake8 --config=.flake8 --jobs=$JOBS .
     - name: "Tests"
