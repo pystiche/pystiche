@@ -5,7 +5,7 @@ matrix:
   include:
     - name: "Code format"
       before_install:
-        - TRAVIS_VIRTUALENV=$(compgen -o default $HOME/virtualenv/python$TRAVIS_PYTHON_VERSION)
+        - TRAVIS_VIRTUALENV=$(which python | sed 's/\/bin.*//g')
         - echo $TRAVIS_VIRTUALENV
       install: pip install isort black flake8
       script:
