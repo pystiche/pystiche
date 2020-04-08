@@ -1,7 +1,9 @@
 import torch
-from .op import PixelRegularizationOperator
-from pystiche.misc import to_engstr, is_almost
+
+from pystiche.misc import is_almost, to_engstr
+
 from . import functional as F
+from .op import PixelRegularizationOperator
 
 __all__ = ["TotalVariationOperator", "ValueRangeOperator"]
 

@@ -1,22 +1,25 @@
-from typing import Union, Optional, Iterable, Tuple, Callable
-import warnings
 import time
+import warnings
+from typing import Callable, Iterable, Optional, Tuple, Union
+
 import torch
 from torch import nn, optim
-from torch.utils.data import DataLoader
-from torch.optim.optimizer import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
+from torch.optim.optimizer import Optimizer
+from torch.utils.data import DataLoader
+
 import pystiche
 from pystiche.image import extract_aspect_ratio, extract_image_size
+from pystiche.misc import warn_deprecation
 from pystiche.pyramid import ImagePyramid
 from pystiche.pyramid.level import PyramidLevel
-from pystiche.misc import warn_deprecation
+
 from .log import (
     OptimLogger,
+    default_epoch_header_fn,
     default_image_optim_log_fn,
     default_pyramid_level_header,
     default_transformer_optim_log_fn,
-    default_epoch_header_fn,
 )
 
 

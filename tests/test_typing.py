@@ -1,5 +1,7 @@
 import re
+
 from torch import nn
+
 from pystiche import typing
 from utils import PysticheTestCase
 

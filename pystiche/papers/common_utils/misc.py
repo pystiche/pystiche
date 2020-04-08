@@ -1,18 +1,13 @@
-from typing import (
-    Union,
-    Optional,
-    Sequence as SequenceType,
-    Tuple,
-    Callable,
-    TypeVar,
-    ContextManager,
-    overload,
-)
-from collections import Sequence
 import contextlib
+from collections import Sequence
+from typing import Callable, ContextManager, Optional
+from typing import Sequence as SequenceType
+from typing import Tuple, TypeVar, Union, overload
+
 import torch
 from torch.utils.data.dataloader import DataLoader
-from pystiche.image import is_single_image, make_batched_image, extract_batch_size
+
+from pystiche.image import extract_batch_size, is_single_image, make_batched_image
 from pystiche.optim import OptimLogger
 
 __all__ = [

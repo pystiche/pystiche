@@ -1,12 +1,13 @@
-from typing import Optional
+from typing import Optional, Tuple
+
 from PIL import Image, ImageOps
-from typing import Tuple
+
 from pystiche.data import (
-    NoLicense,
-    PublicDomainLicense,
     CreativeCommonsLicense,
     DownloadableImage,
     DownloadableImageCollection,
+    NoLicense,
+    PublicDomainLicense,
 )
 
 __all__ = ["li_wand_2016_images"]

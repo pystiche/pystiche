@@ -1,36 +1,31 @@
-from typing import Union, Optional, Callable, Tuple
-import torch
-from pystiche.image import CaffePostprocessing
-from torch.utils.data import DataLoader
-from torch import nn
-from torch.optim.optimizer import Optimizer
-import pystiche
-from torch.optim.lr_scheduler import ExponentialLR
-from pystiche.optim import (
-    OptimLogger,
-    default_transformer_epoch_optim_loop,
-)
-from ..common_utils import batch_up_image
-from .modules import ulyanov_et_al_2016_transformer, UlyanovEtAl2016Transformer
-from .loss import (
-    UlyanovEtAl2016PerceptualLoss,
-    ulyanov_et_al_2016_perceptual_loss,
-)
+from typing import Callable, Optional, Tuple, Union
 
+import torch
+from torch import nn
+from torch.optim.lr_scheduler import ExponentialLR
+from torch.optim.optimizer import Optimizer
+from torch.utils.data import DataLoader
+
+import pystiche
+from pystiche.image import CaffePostprocessing
+from pystiche.optim import OptimLogger, default_transformer_epoch_optim_loop
+
+from ..common_utils import batch_up_image
 from .data import (
-    ulyanov_et_al_2016_style_transform,
     ulyanov_et_al_2016_content_transform,
     ulyanov_et_al_2016_dataset,
     ulyanov_et_al_2016_image_loader,
     ulyanov_et_al_2016_images,
+    ulyanov_et_al_2016_style_transform,
 )
+from .loss import UlyanovEtAl2016PerceptualLoss, ulyanov_et_al_2016_perceptual_loss
+from .modules import UlyanovEtAl2016Transformer, ulyanov_et_al_2016_transformer
 from .utils import (
-    ulyanov_et_al_2016_preprocessor,
-    ulyanov_et_al_2016_postprocessor,
-    ulyanov_et_al_2016_optimizer,
     ulyanov_et_al_2016_lr_scheduler,
+    ulyanov_et_al_2016_optimizer,
+    ulyanov_et_al_2016_postprocessor,
+    ulyanov_et_al_2016_preprocessor,
 )
-
 
 __all__ = [
     "ulyanov_et_al_2016_transformer",

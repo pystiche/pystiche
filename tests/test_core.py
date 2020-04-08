@@ -1,13 +1,15 @@
-import os
-from os import path
-from collections import OrderedDict
 import itertools
+import os
 import tempfile
+from collections import OrderedDict
 from math import sqrt
+from os import path
+from unittest import mock
+
 import torch
 from torch import nn
+
 import pystiche
-from unittest import mock
 from utils import PysticheTestCase, skip_if_cuda_not_available
 
 

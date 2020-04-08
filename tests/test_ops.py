@@ -1,10 +1,12 @@
 from collections import OrderedDict
+
 import torch
 from torch import nn
 from torch.nn.functional import mse_loss
+
 import pystiche
-from pystiche.enc import SequentialEncoder, MultiLayerEncoder, SingleLayerEncoder
 from pystiche import ops
+from pystiche.enc import MultiLayerEncoder, SequentialEncoder, SingleLayerEncoder
 from pystiche.ops import functional as F
 from utils import PysticheTestCase
 

@@ -1,5 +1,7 @@
 from typing import Optional, Sequence, Tuple
+
 import torch
+
 from pystiche.image.utils import extract_num_channels, force_batched_image
 
 __all__ = [

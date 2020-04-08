@@ -1,10 +1,12 @@
-from typing import Any, Optional, Callable
 import os
+from typing import Any, Callable, Optional
+
 import torch
 from torch import nn
 from torch.utils.data import Dataset
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.folder import is_image_file
+
 from pystiche.image import read_image
 
 __all__ = [

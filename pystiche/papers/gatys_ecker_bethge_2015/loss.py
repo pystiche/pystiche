@@ -1,18 +1,20 @@
-from typing import Any, Union, Optional, Sequence, Dict, Callable
+from typing import Any, Callable, Dict, Optional, Sequence, Union
+
 import torch
 from torch.nn.functional import mse_loss
+
 import pystiche
-from pystiche.enc import MultiLayerEncoder, Encoder
-from pystiche.ops import (
-    EncodingOperator,
-    MSEEncodingOperator,
-    GramOperator,
-    MultiLayerEncodingOperator,
-)
+from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.loss import PerceptualLoss
 from pystiche.misc import warn_deprecation
-from .utils import gatys_ecker_bethge_2015_multi_layer_encoder
+from pystiche.ops import (
+    EncodingOperator,
+    GramOperator,
+    MSEEncodingOperator,
+    MultiLayerEncodingOperator,
+)
 
+from .utils import gatys_ecker_bethge_2015_multi_layer_encoder
 
 __all__ = [
     "GatysEckerBethge2015MSEEncodingOperator",

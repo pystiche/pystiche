@@ -1,8 +1,11 @@
 from os import path
 from unittest import mock
+
 from PIL import Image
+
 import torch
-from pystiche.image import utils, io
+
+from pystiche.image import io, utils
 from utils import PysticheTestCase, get_tmp_dir
 
 

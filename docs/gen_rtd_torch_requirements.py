@@ -1,6 +1,7 @@
-from importlib.util import spec_from_file_location, module_from_spec
-from os import path
 from argparse import Namespace
+from importlib.util import module_from_spec, spec_from_file_location
+from os import path
+
 import yaml
 
 PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), ".."))

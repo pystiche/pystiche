@@ -1,8 +1,11 @@
-from typing import Sequence
 from abc import abstractmethod
+from typing import Sequence
+
 import torch
 from torch import nn
+
 import pystiche
+
 from .guides import propagate_guide
 
 __all__ = ["Encoder", "SequentialEncoder"]

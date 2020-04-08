@@ -1,14 +1,18 @@
-from typing import Any, Union, Optional, Sequence, Tuple, Dict
-from typing_extensions import Protocol
 from collections import OrderedDict
 from math import sqrt
+from typing import Any, Dict, Optional, Sequence, Tuple, Union
+
+from typing_extensions import Protocol
+
 import torch
 from torch import nn
 from torchvision.models.utils import load_state_dict_from_url
+
 import pystiche
 from pystiche.image import extract_image_size
 from pystiche.misc import zip_equal
-from ..common_utils import same_size_padding, is_valid_padding
+
+from ..common_utils import is_valid_padding, same_size_padding
 
 MODEL_URLS = {}
 

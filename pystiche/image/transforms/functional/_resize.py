@@ -1,14 +1,17 @@
-from typing import Union, Optional, Tuple
+from typing import Optional, Tuple, Union
+
 import torch
-from pystiche.misc import to_2d_arg
+
 from pystiche.image.utils import (
-    is_image_size,
-    is_edge_size,
     edge_to_image_size,
-    extract_image_size,
     extract_aspect_ratio,
+    extract_image_size,
     force_batched_image,
+    is_edge_size,
+    is_image_size,
 )
+from pystiche.misc import to_2d_arg
+
 from ._align_corners import interpolate
 
 __all__ = ["resize", "rescale"]

@@ -1,10 +1,8 @@
-from torch import optim, nn
+from torch import nn, optim
 from torch.optim.optimizer import Optimizer
-from pystiche.image import (
-    CaffePreprocessing,
-    CaffePostprocessing,
-)
+
 from pystiche.enc import MultiLayerEncoder, vgg16_multi_layer_encoder
+from pystiche.image import CaffePostprocessing, CaffePreprocessing
 
 __all__ = [
     "johnson_alahi_li_2016_preprocessor",

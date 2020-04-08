@@ -1,10 +1,11 @@
 import itertools
+
 from pystiche.enc import SingleLayerEncoder
 from pystiche.ops import (
+    ComparisonGuidance,
     ComparisonOperator,
     EncodingOperator,
     Guidance,
-    ComparisonGuidance,
 )
 
 __all__ = ["ImageStorage"]

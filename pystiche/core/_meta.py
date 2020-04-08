@@ -1,7 +1,8 @@
-from typing import Any, Union, Sequence, Dict, Tuple
-import torch
-from pystiche.typing import ConvModule, PoolModule
+from typing import Any, Dict, Sequence, Tuple, Union
 
+import torch
+
+from pystiche.typing import ConvModule, PoolModule
 
 __all__ = [
     "tensor_meta",

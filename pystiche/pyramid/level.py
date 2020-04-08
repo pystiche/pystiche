@@ -1,8 +1,10 @@
 from typing import Optional
+
 import torch
+
 from pystiche import Object
-from pystiche.misc import verify_str_arg
 from pystiche.image.transforms.functional import resize
+from pystiche.misc import verify_str_arg
 
 __all__ = ["PyramidLevel"]
 

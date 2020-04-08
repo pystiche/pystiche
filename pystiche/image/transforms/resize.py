@@ -1,11 +1,11 @@
-from typing import Any, Union, Optional, Tuple, Dict
+from typing import Any, Dict, Optional, Tuple, Union
+
 import torch
-from pystiche.image.utils import (
-    is_image_size,
-    is_edge_size,
-)
-from .core import Transform
+
+from pystiche.image.utils import is_edge_size, is_image_size
+
 from . import functional as F
+from .core import Transform
 
 __all__ = ["Resize", "Rescale"]
 

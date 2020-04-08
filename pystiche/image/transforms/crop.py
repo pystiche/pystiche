@@ -1,8 +1,11 @@
-from typing import Any, Union, Tuple, Dict
+from typing import Any, Dict, Tuple, Union
+
 import torch
+
 from pystiche.image import extract_image_size
-from .core import Transform
+
 from . import functional as F
+from .core import Transform
 from .functional._crop import _parse_size
 
 __all__ = [

@@ -1,23 +1,25 @@
+from abc import ABC
+from collections import OrderedDict
+from copy import copy
 from typing import (
     Any,
-    Optional,
-    Sequence,
-    Tuple,
-    List,
     Dict,
     Hashable,
     Iterator,
+    List,
     NoReturn,
+    Optional,
+    Sequence,
+    Tuple,
     Union,
 )
-from abc import ABC
-from copy import copy
-from collections import OrderedDict
+
 import torch
 from torch import nn
-from pystiche.misc import build_obj_str, build_fmtstr, format_dict
-from ._meta import is_scalar_tensor
 
+from pystiche.misc import build_fmtstr, build_obj_str, format_dict
+
+from ._meta import is_scalar_tensor
 
 __all__ = ["Object", "TensorStorage", "LossDict", "TensorKey"]
 

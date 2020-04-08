@@ -1,17 +1,20 @@
-from typing import Any, Union, Optional, Sequence, Dict, Callable
+from typing import Any, Callable, Dict, Optional, Sequence, Union
+
 import torch
+
 import pystiche
-from pystiche.enc import MultiLayerEncoder, Encoder
+from pystiche.enc import Encoder, MultiLayerEncoder
+from pystiche.loss import GuidedPerceptualLoss, PerceptualLoss
+from pystiche.misc import warn_deprecation
 from pystiche.ops import (
-    EncodingOperator,
     EncodingComparisonGuidance,
-    MSEEncodingOperator,
+    EncodingOperator,
     GramOperator,
+    MSEEncodingOperator,
     MultiLayerEncodingOperator,
     MultiRegionOperator,
 )
-from pystiche.loss import PerceptualLoss, GuidedPerceptualLoss
-from pystiche.misc import warn_deprecation
+
 from .utils import gatys_et_al_2017_multi_layer_encoder
 
 __all__ = [

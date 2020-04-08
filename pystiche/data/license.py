@@ -1,6 +1,6 @@
-from typing import Optional, Sequence
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Optional, Sequence
 
 __all__ = [
     "License",

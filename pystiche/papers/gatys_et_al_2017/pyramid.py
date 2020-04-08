@@ -1,4 +1,5 @@
-from typing import Union, Sequence
+from typing import Sequence, Union
+
 from pystiche.pyramid import ImagePyramid
 
 __all__ = ["gatys_et_al_2017_image_pyramid"]

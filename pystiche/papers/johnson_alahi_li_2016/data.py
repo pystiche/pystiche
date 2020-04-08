@@ -1,24 +1,21 @@
 from typing import Optional, Sized, Tuple
 from urllib.parse import urljoin
+
 import torch
-from torch.utils.data import Dataset, Sampler, DataLoader
-from pystiche.image import extract_image_size, extract_num_channels, CaffePreprocessing
+from torch.utils.data import DataLoader, Dataset, Sampler
+
 from pystiche.data import (
     DownloadableImage,
     DownloadableImageCollection,
-    ImageFolderDataset,
     FiniteCycleBatchSampler,
+    ImageFolderDataset,
 )
-from pystiche.image.transforms import (
-    Transform,
-    ComposedTransform,
-    Resize,
-)
+from pystiche.image import CaffePreprocessing, extract_image_size, extract_num_channels
+from pystiche.image.transforms import ComposedTransform, Resize, Transform
 from pystiche.image.transforms.functional import (
-    top_left_crop,
     grayscale_to_fakegrayscale,
+    top_left_crop,
 )
-
 
 __all__ = [
     "johnson_alahi_li_2016_content_transform",

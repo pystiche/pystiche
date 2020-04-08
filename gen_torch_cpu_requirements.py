@@ -1,11 +1,12 @@
 import argparse
-from collections import namedtuple
-import sys
-from platform import platform as _get_platform
-from urllib.request import urlopen
-from urllib.parse import urljoin
-from bs4 import BeautifulSoup
 import re
+import sys
+from collections import namedtuple
+from platform import platform as _get_platform
+from urllib.parse import urljoin
+from urllib.request import urlopen
+
+from bs4 import BeautifulSoup
 
 WHL_PROPS = ("distribution", "version", "language", "abi", "platform")
 

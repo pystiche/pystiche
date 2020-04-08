@@ -1,30 +1,31 @@
-from typing import (
-    Any,
-    Union,
-    Optional,
-    Iterable,
-    Sequence,
-    Sized,
-    Tuple,
-    Dict,
-    ContextManager,
-)
 import contextlib
+import hashlib
+import itertools
+import random
+import shutil
+import tempfile
+import warnings
 from collections import OrderedDict
 from functools import reduce
 from operator import mul
-import warnings
-import itertools
 from os import path
-import shutil
-import hashlib
-import tempfile
-import random
+from typing import (
+    Any,
+    ContextManager,
+    Dict,
+    Iterable,
+    Optional,
+    Sequence,
+    Sized,
+    Tuple,
+    Union,
+)
+
 import numpy as np
+
 import torch
 from torch import nn
 from torch.hub import _get_torch_home
-
 
 __all__ = [
     "prod",

@@ -1,12 +1,14 @@
-from typing import Union, Optional, Sequence, Collection, Tuple, Iterator
 import itertools
+from typing import Collection, Iterator, Optional, Sequence, Tuple, Union
+
 import numpy as np
+
 from pystiche import Object
 from pystiche.misc import zip_equal
-from pystiche.ops import Operator, ComparisonOperator, Guidance, ComparisonGuidance
+from pystiche.ops import ComparisonGuidance, ComparisonOperator, Guidance, Operator
+
 from .level import PyramidLevel
 from .storage import ImageStorage
-
 
 __all__ = ["ImagePyramid", "OctaveImagePyramid"]
 

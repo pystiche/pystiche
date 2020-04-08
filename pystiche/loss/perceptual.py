@@ -1,7 +1,10 @@
 from collections import OrderedDict
 from typing import Optional
+
 import torch
+
 from pystiche.ops import ComparisonOperator, RegularizationOperator
+
 from .multi_op import MultiOperatorLoss
 
 __all__ = ["PerceptualLoss", "GuidedPerceptualLoss"]

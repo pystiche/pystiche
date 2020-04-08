@@ -1,18 +1,20 @@
-from PIL import Image
 import numpy as np
+import pillow_affine as pa
+from PIL import Image
+
 import torch
+
 from pystiche.image import (
-    is_single_image,
     calculate_aspect_ratio,
-    extract_image_size,
-    extract_edge_size,
     edge_to_image_size,
-    make_single_image,
-    make_batched_image,
+    extract_edge_size,
+    extract_image_size,
     io,
+    is_single_image,
+    make_batched_image,
+    make_single_image,
     transforms,
 )
-import pillow_affine as pa
 from utils import PysticheTestCase
 
 
