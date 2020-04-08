@@ -1,8 +1,10 @@
 from abc import abstractmethod
-from typing import Any, Optional, Sequence, Dict
 from collections import OrderedDict
+from typing import Any, Dict, Optional, Sequence
+
 import torch
 from torch import nn
+
 from ._base import Object
 
 __all__ = ["Module", "SequentialModule"]

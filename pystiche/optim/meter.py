@@ -1,9 +1,11 @@
-from typing import Any, Union, Optional, Collection, Callable
 from abc import ABC, abstractmethod
-from collections import deque, OrderedDict
+from collections import OrderedDict, deque
 from datetime import datetime, timedelta
+from typing import Any, Callable, Collection, Optional, Union
+
 import torch
-from pystiche.misc import build_fmtstr, build_deprecation_message, warn_deprecation
+
+from pystiche.misc import build_deprecation_message, build_fmtstr, warn_deprecation
 
 __all__ = [
     "Meter",

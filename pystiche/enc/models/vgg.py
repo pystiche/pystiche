@@ -1,9 +1,12 @@
-from collections import OrderedDict
 import re
-from torch.utils import model_zoo
-from torch import nn
+from collections import OrderedDict
+
 import torchvision
+from torch import nn
+from torch.utils import model_zoo
+
 from pystiche.misc import warn_deprecation
+
 from ..multi_layer_encoder import MultiLayerEncoder, SingleLayerEncoder
 from ..preprocessing import get_preprocessor
 

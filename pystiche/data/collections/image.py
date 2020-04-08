@@ -1,12 +1,15 @@
-from typing import Any, Optional, Dict, Callable
 from os import path
-from PIL import Image as PILImage
+from typing import Any, Callable, Dict, Optional
+
 import requests
+from PIL import Image as PILImage
+
 import torch
-import pystiche
-from pystiche.image import read_image
 from torchvision.datasets.utils import check_md5
+
+import pystiche
 from pystiche.data.license import License, UnknownLicense
+from pystiche.image import read_image
 
 __all__ = ["Image", "DownloadableImage"]
 

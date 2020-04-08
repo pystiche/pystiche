@@ -1,9 +1,11 @@
 from collections import OrderedDict
+
 import torch
 from torch import nn
-from pystiche.image.transforms import TorchPreprocessing, CaffePreprocessing
+
 from pystiche import enc
-from utils import PysticheTestCase, ForwardPassCounter
+from pystiche.image.transforms import CaffePreprocessing, TorchPreprocessing
+from utils import ForwardPassCounter, PysticheTestCase
 
 
 class TestEncoder(PysticheTestCase):

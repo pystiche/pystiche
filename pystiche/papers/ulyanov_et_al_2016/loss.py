@@ -1,14 +1,13 @@
-from typing import Union, Optional, Sequence, Any, Dict
 from collections import OrderedDict
+from typing import Any, Dict, Optional, Sequence, Union
+
 import torch
+
 from pystiche.enc import Encoder, MultiLayerEncoder
-from pystiche.ops import (
-    MSEEncodingOperator,
-    GramOperator,
-    MultiLayerEncodingOperator,
-)
 from pystiche.image import extract_batch_size
 from pystiche.loss import MultiOperatorLoss
+from pystiche.ops import GramOperator, MSEEncodingOperator, MultiLayerEncodingOperator
+
 from .utils import ulyanov_et_al_2016_multi_layer_encoder
 
 

@@ -1,13 +1,15 @@
 import contextlib
-from os import path
-import tempfile
 import shutil
+import tempfile
 import unittest
-import pyimagetest
+from os import path
+
 import numpy as np
+import pyimagetest
+from PIL import Image
+
 import torch
 from torch import nn
-from PIL import Image
 
 __all__ = [
     "PysticheTestCase",

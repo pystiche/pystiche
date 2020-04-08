@@ -1,7 +1,9 @@
-from typing import Any, Union, Optional, Tuple, Dict
+from typing import Any, Dict, Optional, Tuple, Union
+
 import torch
-from .core import Transform
+
 from . import functional as F
+from .core import Transform
 
 __all__ = [
     "TransformMotifAffinely",

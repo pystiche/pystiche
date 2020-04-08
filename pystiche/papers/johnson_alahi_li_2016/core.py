@@ -1,24 +1,27 @@
-from typing import Union, Optional, Callable
+from typing import Callable, Optional, Union
+
 import torch
-from torch.utils.data import DataLoader
 from torch import nn
 from torch.optim.optimizer import Optimizer
+from torch.utils.data import DataLoader
+
 import pystiche
 from pystiche.loss import PerceptualLoss
 from pystiche.optim import OptimLogger, default_transformer_optim_loop
+
 from ..common_utils import batch_up_image
-from .modules import JohnsonAlahiLi2016Transformer, johnson_alahi_li_2016_transformer
-from .loss import johnson_alahi_li_2016_perceptual_loss
 from .data import (
-    johnson_alahi_li_2016_style_transform,
     johnson_alahi_li_2016_dataset,
     johnson_alahi_li_2016_image_loader,
     johnson_alahi_li_2016_images,
+    johnson_alahi_li_2016_style_transform,
 )
+from .loss import johnson_alahi_li_2016_perceptual_loss
+from .modules import JohnsonAlahiLi2016Transformer, johnson_alahi_li_2016_transformer
 from .utils import (
-    johnson_alahi_li_2016_preprocessor,
-    johnson_alahi_li_2016_postprocessor,
     johnson_alahi_li_2016_optimizer,
+    johnson_alahi_li_2016_postprocessor,
+    johnson_alahi_li_2016_preprocessor,
 )
 
 __all__ = [

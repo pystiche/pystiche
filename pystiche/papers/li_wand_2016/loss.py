@@ -1,19 +1,21 @@
-from typing import Any, Union, Optional, Sequence, Tuple, Dict
+from typing import Any, Dict, Optional, Sequence, Tuple, Union
+
 import torch
 from torch.nn.functional import mse_loss
+
 import pystiche
-from pystiche.enc import MultiLayerEncoder, Encoder
-from pystiche.ops import (
-    MSEEncodingOperator,
-    MRFOperator,
-    TotalVariationOperator,
-    MultiLayerEncodingOperator,
-)
 import pystiche.ops.functional as F
+from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.loss import PerceptualLoss
 from pystiche.misc import warn_deprecation
-from .utils import li_wand_2016_multi_layer_encoder
+from pystiche.ops import (
+    MRFOperator,
+    MSEEncodingOperator,
+    MultiLayerEncodingOperator,
+    TotalVariationOperator,
+)
 
+from .utils import li_wand_2016_multi_layer_encoder
 
 __all__ = [
     "LiWand2016MSEEncodingOperator",

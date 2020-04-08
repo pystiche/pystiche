@@ -1,10 +1,9 @@
-from typing import Union, Optional, Tuple
+from typing import Optional, Tuple, Union
+
 import torch
-from torch.nn.functional import (
-    interpolate as _interpolate,
-    affine_grid as _affine_grid,
-    grid_sample as _grid_sample,
-)
+from torch.nn.functional import affine_grid as _affine_grid
+from torch.nn.functional import grid_sample as _grid_sample
+from torch.nn.functional import interpolate as _interpolate
 
 __all__ = ["interpolate", "affine_grid", "grid_sample"]
 

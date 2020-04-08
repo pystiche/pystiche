@@ -1,9 +1,11 @@
-from importlib import import_module
-import os
-from os import path
-import re
 import itertools
+import os
+import re
+from importlib import import_module
+from os import path
+
 from setuptools import find_packages
+
 import pystiche
 from utils import PysticheTestCase
 

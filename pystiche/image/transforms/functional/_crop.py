@@ -1,12 +1,14 @@
-from typing import Union, Tuple
+from typing import Tuple, Union
+
 import torch
-from pystiche.misc import verify_str_arg
+
 from pystiche.image.utils import (
-    is_image_size,
-    is_edge_size,
     extract_image_size,
     force_batched_image,
+    is_edge_size,
+    is_image_size,
 )
+from pystiche.misc import verify_str_arg
 
 __all__ = [
     "crop",

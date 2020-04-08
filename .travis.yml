@@ -4,8 +4,7 @@ python: "3.6"
 matrix:
   include:
     - name: "Code format"
-      before_install: pip install isort black flake8
-      install: skip
+      install: pip install isort black flake8
       script:
         - JOBS=$(nproc)
         - isort --settings-path=pyproject.toml --check-only --jobs=$JOBS --recursive .

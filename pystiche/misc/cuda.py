@@ -1,7 +1,6 @@
-from typing import Callable
 import warnings
 from contextlib import contextmanager
-
+from typing import Callable
 
 __all__ = [
     "CudaOutOfMemoryError",

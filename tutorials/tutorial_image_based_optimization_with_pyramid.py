@@ -9,13 +9,13 @@ NST via image-based optimization with image pyramid
 
 import torch
 from torch import optim
-from pystiche.image import extract_aspect_ratio, show_image, write_image
-from pystiche.enc import vgg19_multi_layer_encoder
-from pystiche.ops import MSEEncodingOperator, GramOperator, MultiLayerEncodingOperator
-from pystiche.loss import PerceptualLoss
-from pystiche.pyramid import ImagePyramid
-from pystiche.demo import demo_images
 
+from pystiche.demo import demo_images
+from pystiche.enc import vgg19_multi_layer_encoder
+from pystiche.image import extract_aspect_ratio, show_image, write_image
+from pystiche.loss import PerceptualLoss
+from pystiche.ops import GramOperator, MSEEncodingOperator, MultiLayerEncodingOperator
+from pystiche.pyramid import ImagePyramid
 
 ###############################################################################
 # Make this demo device-agnostic

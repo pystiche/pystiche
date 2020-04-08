@@ -1,9 +1,11 @@
+from typing import Any, List, Optional
+
 from torch import nn, optim
-from typing import Optional, Any, List
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.optim.optimizer import Optimizer
-from pystiche.image import CaffePreprocessing, CaffePostprocessing
+
 from pystiche.enc import MultiLayerEncoder, vgg19_multi_layer_encoder
+from pystiche.image import CaffePostprocessing, CaffePreprocessing
 
 
 def ulyanov_et_al_2016_multi_layer_encoder() -> MultiLayerEncoder:

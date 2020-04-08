@@ -1,25 +1,26 @@
 from typing import Optional, Sized
 from urllib.parse import urljoin
+
 import torch
-from torch.utils.data import Dataset, Sampler, DataLoader
+from torch.utils.data import DataLoader, Dataset, Sampler
+
 from pystiche.data import (
+    CreativeCommonsLicense,
     DownloadableImage,
     DownloadableImageCollection,
-    CreativeCommonsLicense,
-    PublicDomainLicense,
-    ImageFolderDataset,
     FiniteCycleBatchSampler,
+    ImageFolderDataset,
+    PublicDomainLicense,
 )
 from pystiche.image import extract_num_channels
 from pystiche.image.transforms import (
-    Transform,
-    Resize,
-    ComposedTransform,
     CenterCrop,
+    ComposedTransform,
+    Resize,
+    Transform,
     ValidRandomCrop,
 )
 from pystiche.image.transforms.functional import grayscale_to_fakegrayscale
-
 
 __all__ = [
     "ulyanov_et_al_2016_content_transform",

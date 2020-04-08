@@ -1,13 +1,17 @@
-from typing import Union, Optional, Tuple
+from typing import Optional, Tuple, Union
+
 import numpy as np
+
 import torch
-from pystiche.misc import to_2d_arg, verify_str_arg
+
 from pystiche.image.utils import (
     extract_batch_size,
-    extract_num_channels,
     extract_image_size,
+    extract_num_channels,
     force_batched_image,
 )
+from pystiche.misc import to_2d_arg, verify_str_arg
+
 from ._align_corners import affine_grid, grid_sample
 
 __all__ = [

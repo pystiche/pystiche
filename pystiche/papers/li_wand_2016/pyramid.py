@@ -1,4 +1,5 @@
-from typing import Any, Union, Optional, Sequence
+from typing import Any, Optional, Sequence, Union
+
 from pystiche.pyramid import OctaveImagePyramid
 
 __all__ = ["li_wand_2016_image_pyramid"]

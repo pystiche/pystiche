@@ -1,6 +1,8 @@
-from typing import Any, Optional, Tuple, Dict, Iterator
+from typing import Any, Dict, Iterator, Optional, Tuple
+
 import pystiche
-from .image import Image, DownloadableImage
+
+from .image import DownloadableImage, Image
 
 __all__ = ["ImageCollection", "DownloadableImageCollection"]
 

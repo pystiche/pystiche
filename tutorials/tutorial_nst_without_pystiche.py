@@ -7,24 +7,25 @@ NST via image-based optimisation without pystiche
 # We start of the tutorial by importing all necessary packages. Next to torch and
 # torchvision, we use PIL and matplotlib.pyplot to read, write, and display images.
 
+from collections import OrderedDict
+from os import path
+
+import matplotlib.pyplot as plt
+from PIL import Image
+
 import torch
+import torch.nn.functional as Fnn
+import torchvision
+import torchvision.transforms.functional as Fv
+from torch import nn, optim
+from torchvision import transforms
+from torchvision.models import vgg19
 
 print("I'm working with torch version " + torch.__version__)
-from torch import nn
-import torch.nn.functional as Fnn
-from torch import optim
 
-import torchvision
 
 print("I'm working with torchvision version " + torchvision.__version__)
-from torchvision.models import vgg19
-from torchvision import transforms
-import torchvision.transforms.functional as Fv
 
-from os import path
-from collections import OrderedDict
-from PIL import Image
-import matplotlib.pyplot as plt
 
 ###############################################################################
 # The NST algorithm involves a neural network as part of an optimisation problem. Thus

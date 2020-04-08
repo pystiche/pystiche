@@ -1,8 +1,9 @@
 import torch
 from torch import optim
 from torch.optim.optimizer import Optimizer
-from pystiche.image import CaffePreprocessing, CaffePostprocessing
+
 from pystiche.enc import MultiLayerEncoder, vgg19_multi_layer_encoder
+from pystiche.image import CaffePostprocessing, CaffePreprocessing
 
 __all__ = [
     "gatys_et_al_2017_preprocessor",

@@ -1,17 +1,19 @@
 from collections import OrderedDict
 from itertools import chain, combinations
+
 import torch
 from torch import nn
+
 import pystiche
-from pystiche.enc import SequentialEncoder, MultiLayerEncoder
-from pystiche.ops import (
-    Operator,
-    EncodingRegularizationOperator,
-    TotalVariationOperator,
-    MSEEncodingOperator,
-)
 from pystiche import loss
-from utils import PysticheTestCase, ForwardPassCounter
+from pystiche.enc import MultiLayerEncoder, SequentialEncoder
+from pystiche.ops import (
+    EncodingRegularizationOperator,
+    MSEEncodingOperator,
+    Operator,
+    TotalVariationOperator,
+)
+from utils import ForwardPassCounter, PysticheTestCase
 
 
 # copied from

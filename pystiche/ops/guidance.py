@@ -1,14 +1,16 @@
-from typing import Union, Optional, Tuple
+from typing import Optional, Tuple, Union
+
 import torch
+
 import pystiche
+
+from .comparison import MRFOperator
 from .op import (
-    PixelRegularizationOperator,
+    EncodingComparisonOperator,
     EncodingRegularizationOperator,
     PixelComparisonOperator,
-    EncodingComparisonOperator,
+    PixelRegularizationOperator,
 )
-from .comparison import MRFOperator
-
 
 __all__ = [
     "Guidance",

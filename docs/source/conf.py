@@ -6,11 +6,11 @@
 
 # -- Imports -----------------------------------------------------------------
 
-import warnings
 import os
-from os import path
-from distutils.util import strtobool as _strtobool
+import warnings
 from datetime import datetime
+from distutils.util import strtobool as _strtobool
+from os import path
 
 
 def strtobool(val):

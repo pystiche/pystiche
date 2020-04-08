@@ -1,11 +1,15 @@
-from typing import Union, Iterator, Sequence, Tuple
 import itertools
+from typing import Iterator, Sequence, Tuple, Union
+
 import numpy as np
+
 import torch
+
 import pystiche
-from pystiche.misc import to_2d_arg
-from pystiche.image.transforms import TransformMotifAffinely
 from pystiche.enc import Encoder
+from pystiche.image.transforms import TransformMotifAffinely
+from pystiche.misc import to_2d_arg
+
 from . import functional as F
 from .op import EncodingComparisonOperator
 

@@ -1,21 +1,24 @@
-from typing import Union, Optional, Tuple, Dict, Callable
 import logging
+from typing import Callable, Dict, Optional, Tuple, Union
+
 import torch
+
 import pystiche
-from pystiche.loss import PerceptualLoss, GuidedPerceptualLoss
-from pystiche.pyramid import ImagePyramid
-from pystiche.optim import default_image_pyramid_optim_loop
+from pystiche.loss import GuidedPerceptualLoss, PerceptualLoss
 from pystiche.misc import get_input_image
+from pystiche.optim import default_image_pyramid_optim_loop
+from pystiche.pyramid import ImagePyramid
+
 from .data import gatys_et_al_2017_images
 from .loss import (
-    gatys_et_al_2017_perceptual_loss,
     gatys_et_al_2017_guided_perceptual_loss,
+    gatys_et_al_2017_perceptual_loss,
 )
 from .pyramid import gatys_et_al_2017_image_pyramid
 from .utils import (
-    gatys_et_al_2017_preprocessor,
-    gatys_et_al_2017_postprocessor,
     gatys_et_al_2017_optimizer,
+    gatys_et_al_2017_postprocessor,
+    gatys_et_al_2017_preprocessor,
 )
 
 __all__ = [

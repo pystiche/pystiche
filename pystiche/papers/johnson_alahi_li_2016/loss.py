@@ -1,15 +1,18 @@
-from typing import Any, Union, Optional, Sequence, Dict
+from typing import Any, Dict, Optional, Sequence, Union
+
 import torch
+
 import pystiche.ops.functional as F
 from pystiche.enc import Encoder, MultiLayerEncoder
-from pystiche.ops import (
-    MSEEncodingOperator,
-    GramOperator,
-    TotalVariationOperator,
-    MultiLayerEncodingOperator,
-)
 from pystiche.loss import PerceptualLoss
 from pystiche.misc import warn_deprecation
+from pystiche.ops import (
+    GramOperator,
+    MSEEncodingOperator,
+    MultiLayerEncodingOperator,
+    TotalVariationOperator,
+)
+
 from .utils import johnson_alahi_li_2016_multi_layer_encoder
 
 __all__ = [

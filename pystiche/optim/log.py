@@ -1,14 +1,17 @@
-from typing import Union, Optional, Tuple, Callable
 import contextlib
+import logging
 import sys
 import time
-import logging
+from typing import Callable, Optional, Tuple, Union
+
 import torch
-from torch.optim.optimizer import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
+from torch.optim.optimizer import Optimizer
+
 import pystiche
 from pystiche.pyramid.level import PyramidLevel
-from .meter import AverageMeter, LossMeter, ETAMeter, ProgressMeter
+
+from .meter import AverageMeter, ETAMeter, LossMeter, ProgressMeter
 
 __all__ = [
     "default_logger",

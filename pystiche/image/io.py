@@ -1,23 +1,25 @@
-from typing import Any, Union, Optional, Tuple
-from os import path, listdir
+from os import listdir, path
+from typing import Any, Optional, Tuple, Union
+
 from PIL import Image
+
 import torch
-from torchvision.transforms.functional import (
-    to_tensor as _to_tensor,
-    to_pil_image as _to_pil_image,
-)
+from torchvision.transforms.functional import to_pil_image as _to_pil_image
+from torchvision.transforms.functional import to_tensor as _to_tensor
+
 from pystiche.misc import warn_deprecation
+
 from .utils import (
-    is_image_size,
-    is_edge_size,
-    extract_batch_size,
     calculate_aspect_ratio,
     edge_to_image_size,
-    is_batched_image,
-    make_single_image,
-    make_batched_image,
-    force_single_image,
+    extract_batch_size,
     force_image,
+    force_single_image,
+    is_batched_image,
+    is_edge_size,
+    is_image_size,
+    make_batched_image,
+    make_single_image,
 )
 
 try:

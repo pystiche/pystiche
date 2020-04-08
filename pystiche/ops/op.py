@@ -1,10 +1,12 @@
 from abc import abstractmethod
-from typing import Any, Union, Optional, Tuple, Dict
 from collections import OrderedDict
+from typing import Any, Dict, Optional, Tuple, Union
+
 import torch
+
 import pystiche
-from pystiche.misc import to_engstr, is_almost
 from pystiche.enc import Encoder
+from pystiche.misc import is_almost, to_engstr
 
 __all__ = [
     "Operator",

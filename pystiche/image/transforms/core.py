@@ -1,7 +1,9 @@
-from typing import Union, Iterable
-from abc import abstractmethod
 import itertools
+from abc import abstractmethod
+from typing import Iterable, Union
+
 import torch
+
 import pystiche
 
 __all__ = ["Transform", "ComposedTransform"]

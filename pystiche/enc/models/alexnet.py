@@ -1,11 +1,13 @@
 from collections import OrderedDict
-from torch.utils import model_zoo
+
 from torch import nn
+from torch.utils import model_zoo
 from torchvision.models import alexnet
+
 from pystiche.misc import warn_deprecation
+
 from ..multi_layer_encoder import MultiLayerEncoder
 from ..preprocessing import get_preprocessor
-
 
 MODEL_URLS = {"torch": "https://download.pytorch.org/models/alexnet-owt-4df8aa71.pth"}
 

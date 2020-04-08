@@ -1,5 +1,6 @@
-from typing import Sized, Tuple, Iterator
 import itertools
+from typing import Iterator, Sized, Tuple
+
 from torch.utils.data import Sampler
 
 __all__ = [

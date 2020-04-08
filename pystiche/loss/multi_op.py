@@ -1,12 +1,11 @@
-from typing import Union, Tuple, Dict, Iterator
+from typing import Dict, Iterator, Tuple, Union
+
 import torch
+
 import pystiche
-from pystiche.enc import SingleLayerEncoder, MultiLayerEncoder
-from pystiche.ops import (
-    Operator,
-    EncodingOperator,
-)
+from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
 from pystiche.misc import warn_deprecation
+from pystiche.ops import EncodingOperator, Operator
 
 __all__ = ["MultiOperatorLoss"]
 

@@ -1,20 +1,22 @@
-from typing import Union, Optional, Callable
 import logging
+from typing import Callable, Optional, Union
+
 import torch
+
 import pystiche
 from pystiche.loss import PerceptualLoss
-from pystiche.pyramid import ImagePyramid
-from pystiche.optim import default_image_pyramid_optim_loop
 from pystiche.misc import get_input_image
+from pystiche.optim import default_image_pyramid_optim_loop
+from pystiche.pyramid import ImagePyramid
+
 from .data import li_wand_2016_images
 from .loss import li_wand_2016_perceptual_loss
 from .pyramid import li_wand_2016_image_pyramid
 from .utils import (
-    li_wand_2016_preprocessor,
-    li_wand_2016_postprocessor,
     li_wand_2016_optimizer,
+    li_wand_2016_postprocessor,
+    li_wand_2016_preprocessor,
 )
-
 
 __all__ = [
     "li_wand_2016_images",

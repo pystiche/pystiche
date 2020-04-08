@@ -1,7 +1,8 @@
 import torch
+
+from pystiche import pyramid
 from pystiche.image import extract_edge_size
 from pystiche.ops import PixelComparisonOperator
-from pystiche import pyramid
 from pystiche.pyramid import level
 from utils import PysticheTestCase
 

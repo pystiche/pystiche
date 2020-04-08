@@ -1,10 +1,13 @@
-from typing import Sequence, Tuple, Iterator, Union, Dict, Optional, Collection
 from collections import OrderedDict
 from copy import copy
+from typing import Collection, Dict, Iterator, Optional, Sequence, Tuple, Union
+
 import torch
 from torch import nn
+
 import pystiche
 from pystiche.misc import warn_deprecation
+
 from .encoder import Encoder
 from .guides import propagate_guide
 

@@ -1,9 +1,10 @@
 from typing import Optional
+
 from pystiche.data import (
-    PublicDomainLicense,
     CreativeCommonsLicense,
     DownloadableImage,
     DownloadableImageCollection,
+    PublicDomainLicense,
 )
 
 __all__ = ["gatys_ecker_bethge_2015_images"]

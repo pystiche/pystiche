@@ -1,10 +1,13 @@
-from typing import Union, Sequence, Dict, Callable
 from collections import OrderedDict
+from typing import Callable, Dict, Sequence, Union
+
 import torch
+
 import pystiche
 from pystiche.enc import Encoder, MultiLayerEncoder
-from .op import Operator, EncodingOperator, ComparisonOperator
-from .guidance import Guidance, ComparisonGuidance
+
+from .guidance import ComparisonGuidance, Guidance
+from .op import ComparisonOperator, EncodingOperator, Operator
 
 __all__ = [
     "OperatorContainer",

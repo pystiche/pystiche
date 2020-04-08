@@ -1,18 +1,20 @@
-from typing import Union, Optional, Callable
 import logging
+from typing import Callable, Optional, Union
+
 import torch
+
 import pystiche
 from pystiche.loss import PerceptualLoss
 from pystiche.misc import get_input_image
 from pystiche.optim import default_image_optim_loop
+
 from .data import gatys_ecker_bethge_2015_images
 from .loss import gatys_ecker_bethge_2015_perceptual_loss
 from .utils import (
-    gatys_ecker_bethge_2015_preprocessor,
-    gatys_ecker_bethge_2015_postprocessor,
     gatys_ecker_bethge_2015_optimizer,
+    gatys_ecker_bethge_2015_postprocessor,
+    gatys_ecker_bethge_2015_preprocessor,
 )
-
 
 __all__ = [
     "gatys_ecker_bethge_2015_images",

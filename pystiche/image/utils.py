@@ -1,5 +1,7 @@
 from typing import Any, Sequence, Tuple
+
 import torch
+
 from pystiche.misc import verify_str_arg
 
 __all__ = [

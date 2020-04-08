@@ -1,14 +1,13 @@
-from typing import Union, Optional, Tuple
 from math import sqrt
+from typing import Optional, Tuple, Union
+
 import torch
 from torch import nn
 from torchvision.models.utils import load_state_dict_from_url
+
 import pystiche
-from ..common_utils import (
-    same_size_padding,
-    same_size_output_padding,
-    ResidualBlock,
-)
+
+from ..common_utils import ResidualBlock, same_size_output_padding, same_size_padding
 
 __all__ = [
     "johnson_alahi_li_2016_conv_block",

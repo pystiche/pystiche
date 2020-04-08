@@ -1,12 +1,11 @@
 from .core import ComposedTransform
 from .misc import (
-    Normalize,
     Denormalize,
     FloatToUint8Range,
-    Uint8ToFloatRange,
+    Normalize,
     ReverseChannelOrder,
+    Uint8ToFloatRange,
 )
-
 
 TORCH_MEAN = (0.485, 0.456, 0.406)
 TORCH_STD = (0.229, 0.224, 0.225)

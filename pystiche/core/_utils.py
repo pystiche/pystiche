@@ -1,7 +1,8 @@
-from typing import Union, Sequence
-import torch
-from pystiche.misc import prod, to_1d_arg, to_2d_arg, to_3d_arg, zip_equal
+from typing import Sequence, Union
 
+import torch
+
+from pystiche.misc import prod, to_1d_arg, to_2d_arg, to_3d_arg, zip_equal
 
 __all__ = [
     "extract_patches1d",
