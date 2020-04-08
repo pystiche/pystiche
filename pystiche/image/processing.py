@@ -1,6 +1,6 @@
 from pystiche.misc import warn_deprecation
 
-from .transforms.processing import *
+from .transforms.processing import *  # noqa: F401, F403
 
 # If removed, also remove import in pystiche.image.__init__.py
 warn_deprecation(
