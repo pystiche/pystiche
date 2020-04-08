@@ -4,13 +4,13 @@ python: "3.6"
 matrix:
   include:
     - name: "Code format"
-      before_install: pip install isort black flake8
-      install: skip
+      before_install:
+        - TRAVIS_VIRTUALENV=$(compgen -o default $HOME/virtualenv/python$TRAVIS_PYTHON_VERSION)
+        - echo $TRAVIS_VIRTUALENV
+      install: pip install isort black flake8
       script:
         - JOBS=$(nproc)
-        - VIRTUALENV="$HOME/virtualenv/$TRAVIS_PYTHON_VERSION"
-        - echo VIRTUALENV
-        - isort --settings-path=pyproject.toml --check-only --virtual-env=$VIRTUALENV --verbose --jobs=$JOBS --recursive .
+        - isort --settings-path=pyproject.toml --check-only --virtual-env=$TRAVIS_VIRTUALENV --verbose --jobs=$JOBS --recursive .
         - black --config=pyproject.toml --check .
         - flake8 --config=.flake8 --jobs=$JOBS .
     - name: "Tests"
