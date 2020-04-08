@@ -1,0 +1,17 @@
+[flake8]
+# Move this to pyproject.toml as soon as it is supported.
+# See https://gitlab.com/pycqa/flake8/issues/428
+
+exclude =
+    .git,
+    .github,
+    .venv,
+    .mypy_cache,
+    .pytest_cache,
+    __pycache__,
+    *.pyc,
+    docs/build,
+    docs/source/auto_*
+max-line-length = 88
+show_source = True
+statistics = True

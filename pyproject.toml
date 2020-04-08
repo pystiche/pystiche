@@ -1,5 +1,17 @@
-[tool-isort]
-
 [tool-black]
 
-[tool-flake8]
+line-length = 88
+target-version = ["py36"]
+exclude = '''
+/(
+    \.git
+    \.github
+  | \.venv
+  | \.mypy_cache
+  | \.pytest_cache
+  | __pycache__
+  | *\.pyc
+  | docs/build
+  | docs/source/auto_*
+)/
+'''

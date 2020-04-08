@@ -7,9 +7,10 @@ matrix:
       before_install: pip install isort black flake8
       install: skip
       script:
-        - isort --check-only --recursive .
+        - JOBS=$(nproc)
+        - isort --settings-path=.isort.cfg --check-only --jobs=$JOBS --recursive .
         - black --check .
-        - flake8 --exclude=.svn,CVS,.bzr,.hg,.git,__pycache__,.tox,.eggs,*.egg,.venv,docs/build .
+        - flake8 --config=.flake8 --jobs=$JOBS .
     - name: "Tests"
       before_install:
         - REQUIREMENTS_FILE=travis_ci_torch_requirements.txt
