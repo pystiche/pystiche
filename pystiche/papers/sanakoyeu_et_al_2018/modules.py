@@ -108,9 +108,6 @@ class SanakoyeuEtAl2018ConvTransponse(nn.Module):
         return self.conv(nn.functional.interpolate(input, scale_factor=self.stride, mode="nearest"))
 
 
-
-
-
 class SanakoyeuEtAl2018ConvTransponseBlock(nn.Sequential):
     def __init__(
         self,
@@ -238,7 +235,7 @@ def sanakoyeu_et_al_2018_transformer_encoder(
     return pystiche.SequentialModule(*modules)
 
 
-class SanakoyeuEtAl2018Encoder(nn.Module):
+class SanakoyeuEtAl2018Encoder(pystiche.Module):
     def __init__(self):
         super().__init__()
         self.encoder = sanakoyeu_et_al_2018_transformer_encoder()
@@ -307,7 +304,7 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     return pystiche.SequentialModule(*modules)
 
 
-class SanakoyeuEtAl2018Decoder(nn.Module):
+class SanakoyeuEtAl2018Decoder(pystiche.Module):
     def __init__(self):
         super().__init__()
         self.decoder = sanakoyeu_et_al_2018_transformer_decoder()
@@ -317,10 +314,7 @@ class SanakoyeuEtAl2018Decoder(nn.Module):
         return torch.sigmoid(output) * 2 - 1
 
 
-from pystiche.core._modules import Module
-
-
-class SanakoyeuEtAl2018Discriminator(Module):
+class SanakoyeuEtAl2018Discriminator(pystiche.Module):
     def __init__(self, pred_module, *modules: nn.Module):
         self.pred_module = pred_module
         super().__init__(indexed_children=modules)
@@ -334,7 +328,6 @@ class SanakoyeuEtAl2018Discriminator(Module):
             else:
                 x = module(x)
         return pred
-
 
 
 class SanakoyeuEtAl2018DiscriminatorPredBlock(nn.Module):
@@ -448,7 +441,7 @@ def sanakoyeu_et_al_2018_discriminator(
     )
 
 
-class SanakoyeuEtAl2018TransformerBlock(nn.Module):
+class SanakoyeuEtAl2018TransformerBlock(pystiche.Module):
     def __init__(
         self,
         input_channel: int = 3,

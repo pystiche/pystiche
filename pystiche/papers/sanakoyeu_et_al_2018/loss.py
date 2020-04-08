@@ -1,15 +1,24 @@
 from typing import List, Optional, Tuple
+from collections import OrderedDict
+
+import torch
+from torch import nn
+from torch.nn.functional import binary_cross_entropy_with_logits
+
 from pystiche.papers.sanakoyeu_et_al_2018.modules import (
     SanakoyeuEtAl2018TransformerBlock,
 )
 import pystiche.ops.functional as F
-import torch
-from torch import nn
-from torch.nn.functional import binary_cross_entropy_with_logits
 from pystiche.ops import RegularizationOperator
-from pystiche.papers.sanakoyeu_et_al_2018.modules import SanakoyeuEtAl2018Discriminator, SanakoyeuEtAl2018Encoder
+from pystiche.papers.sanakoyeu_et_al_2018.modules import (
+    sanakoyeu_et_al_2018_discriminator,
+    SanakoyeuEtAl2018Discriminator,
+    SanakoyeuEtAl2018Encoder,
+)
 from pystiche.ops.op import EncodingComparisonOperator
+from pystiche.ops.comparison import MSEEncodingOperator
 from pystiche.enc import Encoder
+from pystiche.loss import MultiOperatorLoss
 
 
 def loss(
@@ -85,7 +94,7 @@ def sanakoyeu_et_al_2018_discriminator_loss(
             score_weight = 1e-3
 
     if discriminator is None:
-        discriminator = SanakoyeuEtAl2018Discriminator()
+        discriminator = sanakoyeu_et_al_2018_discriminator()
 
     return DiscriminatorOperator(discriminator, score_weight=score_weight)
 
@@ -102,7 +111,9 @@ def discriminator_loss(
     discr_loss = loss(fake_predictions, real=False, scale_weight=scale_weight) + loss(
         real_predictions, real=True, scale_weight=scale_weight
     )
-    discr_acc = (acc(fake_predictions, real=False) + acc(real_predictions, real=True)) / 2
+    discr_acc = (
+        acc(fake_predictions, real=False) + acc(real_predictions, real=True)
+    ) / 2
     return discr_loss, discr_acc
 
 
@@ -118,7 +129,9 @@ class DiscriminatorLoss(nn.Module):
 
 
 class SanakoyeuEtAl2018FeatureOperator(EncodingComparisonOperator):
-    def __init__(self, encoder: Encoder, score_weight: float = 1.0, impl_params: bool = True):
+    def __init__(
+        self, encoder: Encoder, score_weight: float = 1.0, impl_params: bool = True
+    ):
         super().__init__(encoder, score_weight=score_weight)
         self.impl_params = impl_params
 
@@ -157,13 +170,77 @@ def sanakoyeu_et_al_2018_style_aware_content_loss(
     if encoder is None:
         encoder = SanakoyeuEtAl2018Encoder()
 
-    return SanakoyeuEtAl2018FeatureOperator(encoder, score_weight=score_weight, impl_params=impl_params)
-# --------------------------------------------------------------------------------------------------------------------
+    return SanakoyeuEtAl2018FeatureOperator(
+        encoder, score_weight=score_weight, impl_params=impl_params
+    )
 
 
-def sanakoyeu_et_al_2018_image_loss(
-    input_image: torch.Tensor,
-    output_image: torch.Tensor,
-    transformer_block: SanakoyeuEtAl2018TransformerBlock,
-) -> torch.Tensor:
-    return F.mse_loss(transformer_block(input_image), transformer_block(output_image))
+class SanakoyeuEtAl2018TransformerOperator(MSEEncodingOperator):
+    def update_encoder(self, encoder: Encoder):
+        self.encoder = encoder
+
+
+def sanakoyeu_et_al_2018_transformer_loss(
+    impl_params: bool = True,
+    transformer: Optional[SanakoyeuEtAl2018TransformerBlock] = None,
+    score_weight=None,
+) -> SanakoyeuEtAl2018TransformerOperator:
+    if score_weight is None:
+        if impl_params:
+            score_weight = 1e2
+        else:
+            score_weight = 1e0
+
+    if transformer is None:
+        transformer = SanakoyeuEtAl2018TransformerBlock()
+
+    return SanakoyeuEtAl2018TransformerOperator(transformer, score_weight=score_weight)
+
+
+class SanakoyeuEtAl2018GeneratorLoss(MultiOperatorLoss):
+    def __init__(
+        self,
+        style_aware_content_loss: SanakoyeuEtAl2018FeatureOperator,
+        transformer_loss: SanakoyeuEtAl2018TransformerOperator,
+        discr_loss: DiscriminatorOperator,
+    ) -> None:
+
+        modules = [
+            ("style_aware_content_loss", style_aware_content_loss),
+            ("transformer_loss", transformer_loss),
+            ("discr_loss", discr_loss)
+                   ]
+
+        super().__init__(OrderedDict(modules))
+
+    def update_style_aware_content_loss_encoder(self, encoder: Encoder):
+        self.style_aware_content_loss.update_encoder(encoder)
+
+    def update_transformer_loss_transformer(self, encoder: Encoder):
+        self.transformer_loss.update_encoder(encoder)
+
+    def set_style_image(self, image: torch.Tensor):
+        self.style_loss.set_target_image(image)
+
+    def set_content_image(self, image: torch.Tensor):
+        self.style_aware_content_loss.set_target_image(image)
+        self.transformer_loss.set_target_image(image)
+
+
+def sanakoyeu_et_al_2018_generator_loss(
+    impl_params: bool = True,
+    style_aware_content_loss: Optional[SanakoyeuEtAl2018FeatureOperator] = None,
+    transformer_loss: Optional[SanakoyeuEtAl2018TransformerOperator] = None,
+    discr_loss: Optional[DiscriminatorOperator] = None,
+) -> SanakoyeuEtAl2018GeneratorLoss:
+
+    if style_aware_content_loss is None:
+        style_aware_content_loss = sanakoyeu_et_al_2018_style_aware_content_loss(impl_params=impl_params)
+
+    if transformer_loss is None:
+        transformer_loss = sanakoyeu_et_al_2018_transformer_loss(impl_params=impl_params)
+
+    if discr_loss is None:
+        discr_loss = sanakoyeu_et_al_2018_discriminator_loss(impl_params=impl_params)
+
+    return SanakoyeuEtAl2018GeneratorLoss(style_aware_content_loss, transformer_loss, discr_loss)
