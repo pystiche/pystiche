@@ -9,7 +9,8 @@ skip = [
   ".mypy_cache",
   ".pytest_cache",
   "__pycache__",
-  "docs/build"
+  "docs/build",
+  "__init__.py",
 ]
 skip_glob = ["docs/source/auto_*"]
 line_length = 88
