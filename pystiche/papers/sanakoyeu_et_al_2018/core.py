@@ -43,13 +43,13 @@ def default_gan_optim_loop(
     init_discr_success: float = 0.8,
     init_win_rate: float = 0.8,
     alpha: float = 0.05,
+    impl_params: bool = True,
     get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
     device: Optional[torch.device] = None,
 ) -> nn.Module:
 
-    discriminator_optimizer = get_optimizer(discriminator.parameters())
-    generator_optimizer = get_optimizer(list(generator.parameters()) + list(transformer_block.parameters()))
-    content_image_loader = itertools.cycle(content_image_loader)
+    discriminator_optimizer = get_optimizer(discriminator)
+    generator_optimizer = get_optimizer(generator)
     style_image_loader = itertools.cycle(style_image_loader)
 
     discr_success = init_discr_success
@@ -63,7 +63,7 @@ def default_gan_optim_loop(
             return loss
 
         discriminator_optimizer.step(closure)
-        acc = discriminator_criterion.get_acc()
+        acc = discriminator_criterion.get_current_acc()
         discr_success = discr_success * (1. - alpha) + alpha * acc
 
         return discr_success
@@ -80,14 +80,20 @@ def default_gan_optim_loop(
         discr_success = discr_success * (1. - alpha) + alpha * (1. - acc)
         return discr_success
 
+    count = 0
     for content_image in content_image_loader:
-        content_image.to(device)
+        content_image = content_image.to(device)
         stylized_image = generator(content_image)
+        count +=1
 
-        if discr_success >= win_rate:
+        if discr_success < win_rate:
             style_image = next(style_image_loader)
-            style_image.to(device)
-            discr_success = train_discriminator_one_step(stylized_image, style_image, discr_success)
+            style_image = style_image.to(device)
+            if impl_params:
+                fake_images = torch.cat((stylized_image, content_image), 0)
+            else:
+                fake_images = stylized_image
+            discr_success = train_discriminator_one_step(fake_images, style_image, discr_success)
         else:
             generator_criterion_update_fn(generator.encoder, transformer_block, content_image, generator_criterion)
             discr_success = train_generator_one_step(stylized_image, discr_success)
@@ -134,6 +140,8 @@ def sanakoyeu_et_al_2018_training(
 
     if generator_criterion is None:
         generator_criterion = sanakoyeu_et_al_2018_generator_loss(
+            generator.encoder,
+            discriminator,
             impl_params=impl_params
         )
         generator_criterion = generator_criterion.eval()
@@ -145,11 +153,11 @@ def sanakoyeu_et_al_2018_training(
     def generator_criterion_update_fn(
         encoder, transformer_block, content_image, criterion
     ):
-        criterion.update_style_aware_content_loss_encoder(encoder)
-        criterion.update_transformer_loss_transformer(transformer_block)
-        criterion.set_style_image(content_image)
+        criterion.update_encoder(encoder)
+        criterion.update_transformer(transformer_block)
+        criterion.set_content_image(content_image)
 
-    return default_transformer_epoch_optim_loop(
+    return default_gan_optim_loop(
         content_image_loader,
         style_image_loader,
         generator,
@@ -158,7 +166,8 @@ def sanakoyeu_et_al_2018_training(
         discriminator_criterion,
         generator_criterion,
         generator_criterion_update_fn,
-        get_optimizer,
+        impl_params=impl_params,
+        get_optimizer=get_optimizer,
         device=device
     )
 

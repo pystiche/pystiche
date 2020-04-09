@@ -5,14 +5,12 @@ import torch
 from torch import nn
 from torch.nn.functional import binary_cross_entropy_with_logits
 
+import pystiche
 from pystiche.papers.sanakoyeu_et_al_2018.modules import (
     SanakoyeuEtAl2018TransformerBlock,
 )
 from pystiche.ops import RegularizationOperator
-from pystiche.papers.sanakoyeu_et_al_2018.modules import (
-    SanakoyeuEtAl2018Discriminator,
-    SanakoyeuEtAl2018Encoder,
-)
+from pystiche.papers.sanakoyeu_et_al_2018.modules import SanakoyeuEtAl2018Discriminator
 from pystiche.ops.comparison import MSEEncodingOperator
 from pystiche.enc import Encoder
 from pystiche.loss import MultiOperatorLoss
@@ -65,12 +63,12 @@ class DiscriminatorOperator(RegularizationOperator):
         self.acc = 0.0
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
-        input_repr = self.discriminator(image)
-        return self.calculate_score(input_repr)
+        input_pred = self.discriminator(image)
+        return self.calculate_score(input_pred)
 
-    def calculate_score(self, input_repr: torch.Tensor) -> torch.Tensor:
-        self.acc = acc([input_repr], real=True)
-        return loss([input_repr], real=True)
+    def calculate_score(self, input_pred: List[torch.Tensor]) -> torch.Tensor:
+        self.acc = acc(input_pred, real=True)
+        return loss(input_pred, real=True)
 
     def get_current_acc(self):
         return self.acc
@@ -146,8 +144,8 @@ class SanakoyeuEtAl2018FeatureOperator(MSEEncodingOperator):
 
 
 def sanakoyeu_et_al_2018_style_aware_content_loss(
+    encoder: Optional[pystiche.SequentialModule],
     impl_params: bool = True,
-    encoder: Optional[SanakoyeuEtAl2018Encoder] = None,
     score_weight=None,
 ) -> SanakoyeuEtAl2018FeatureOperator:
     if score_weight is None:
@@ -155,9 +153,6 @@ def sanakoyeu_et_al_2018_style_aware_content_loss(
             score_weight = 1e2
         else:
             score_weight = 1e0
-
-    if encoder is None:
-        encoder = SanakoyeuEtAl2018Encoder()
 
     return SanakoyeuEtAl2018FeatureOperator(
         encoder, score_weight=score_weight, impl_params=impl_params
@@ -214,6 +209,8 @@ class SanakoyeuEtAl2018GeneratorLoss(MultiOperatorLoss):
 
 
 def sanakoyeu_et_al_2018_generator_loss(
+    encoder: Optional[pystiche.SequentialModule],
+    discriminator: SanakoyeuEtAl2018Discriminator,
     impl_params: bool = True,
     style_aware_content_loss: Optional[SanakoyeuEtAl2018FeatureOperator] = None,
     transformer_loss: Optional[SanakoyeuEtAl2018TransformerOperator] = None,
@@ -221,12 +218,12 @@ def sanakoyeu_et_al_2018_generator_loss(
 ) -> SanakoyeuEtAl2018GeneratorLoss:
 
     if style_aware_content_loss is None:
-        style_aware_content_loss = sanakoyeu_et_al_2018_style_aware_content_loss(impl_params=impl_params)
+        style_aware_content_loss = sanakoyeu_et_al_2018_style_aware_content_loss(encoder, impl_params=impl_params)
 
     if transformer_loss is None:
         transformer_loss = sanakoyeu_et_al_2018_transformer_loss(impl_params=impl_params)
 
     if discr_loss is None:
-        discr_loss = sanakoyeu_et_al_2018_discriminator_loss(impl_params=impl_params)
+        discr_loss = sanakoyeu_et_al_2018_discriminator_loss(discriminator,impl_params=impl_params)
 
     return SanakoyeuEtAl2018GeneratorLoss(style_aware_content_loss, transformer_loss, discr_loss)

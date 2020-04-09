@@ -11,6 +11,7 @@ def get_norm_module(out_channels: int, instance_norm: bool) -> nn.Module:
     else:
         return nn.BatchNorm2d(out_channels)
 
+
 def get_padding(padding: str, kernel_size: Union[Tuple[int, int], int]) -> int:
     def elementwise(fn, inputs):
         if isinstance(inputs, Collection):
@@ -26,6 +27,7 @@ def get_padding(padding: str, kernel_size: Union[Tuple[int, int], int]) -> int:
         return 0
     else:
         raise NotImplementedError
+
 
 class SanakoyeuEtAl2018Conv(nn.Module):
     def __init__(
@@ -235,15 +237,6 @@ def sanakoyeu_et_al_2018_transformer_encoder(
     return pystiche.SequentialModule(*modules)
 
 
-class SanakoyeuEtAl2018Encoder(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.encoder = sanakoyeu_et_al_2018_transformer_encoder()
-
-    def forward(self, input: torch.Tensor) -> torch.Tensor:
-        return self.encoder(input)
-
-
 def sanakoyeu_et_al_2018_transformer_decoder(
     output_channel: int = 3,
     gf_dim: int = 32,
@@ -304,24 +297,15 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     return pystiche.SequentialModule(*modules)
 
 
-class SanakoyeuEtAl2018Decoder(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.decoder = sanakoyeu_et_al_2018_transformer_decoder()
-
-    def forward(self, input: torch.Tensor) -> torch.Tensor:
-        output = self.decoder(input)
-        return torch.sigmoid(output) * 2 - 1
-
-
 class SanakoyeuEtAl2018Generator(nn.Module):
     def __init__(self):
         super().__init__()
-        self.encoder = SanakoyeuEtAl2018Encoder()
-        self.decoder = SanakoyeuEtAl2018Decoder()
+        self.encoder = sanakoyeu_et_al_2018_transformer_encoder()
+        self.decoder = sanakoyeu_et_al_2018_transformer_decoder()
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        return self.decoder(self.encoder(input))
+        output = self.decoder(self.encoder(input))
+        return torch.sigmoid(output) * 2 - 1
 
 
 class SanakoyeuEtAl2018Discriminator(pystiche.Module):
