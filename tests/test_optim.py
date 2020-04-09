@@ -242,7 +242,7 @@ class TestOptim(PysticheTestCase):
             quiet=True,
         )
         desired = asset.output.image
-        self.assertTensorAlmostEqual(actual, desired)
+        self.assertTensorAlmostEqual(actual, desired, rtol=1e-6)
 
     def test_default_image_optim_loop_processing(self):
         asset = self.load_asset(
@@ -259,7 +259,7 @@ class TestOptim(PysticheTestCase):
             quiet=True,
         )
         desired = asset.output.image
-        self.assertTensorAlmostEqual(actual, desired)
+        self.assertTensorAlmostEqual(actual, desired, rtol=1e-6)
 
     def test_default_image_pyramid_optim_loop(self):
         asset = self.load_asset(path.join("optim", "default_image_pyramid_optim_loop"))
@@ -272,7 +272,7 @@ class TestOptim(PysticheTestCase):
             quiet=True,
         )
         desired = asset.output.image
-        self.assertTensorAlmostEqual(actual, desired)
+        self.assertTensorAlmostEqual(actual, desired, rtol=1e-6)
 
     def test_default_image_pyramid_optim_loop_processing(self):
         asset = self.load_asset(path.join("optim", "default_image_pyramid_optim_loop"))
@@ -287,7 +287,7 @@ class TestOptim(PysticheTestCase):
             quiet=True,
         )
         desired = asset.output.image
-        self.assertTensorAlmostEqual(actual, desired)
+        self.assertTensorAlmostEqual(actual, desired, rtol=1e-6)
 
     def test_default_transformer_optimizer(self):
         torch.manual_seed(0)
@@ -318,7 +318,7 @@ class TestOptim(PysticheTestCase):
 
         actual = transformer.parameters()
         desired = asset.output.transformer.parameters()
-        self.assertTensorSequenceAlmostEqual(actual, desired)
+        self.assertTensorSequenceAlmostEqual(actual, desired, rtol=1e-6)
 
     def test_default_transformer_epoch_optim_loop(self):
         asset = self.load_asset(
@@ -341,4 +341,4 @@ class TestOptim(PysticheTestCase):
 
         actual = transformer.parameters()
         desired = asset.output.transformer.parameters()
-        self.assertTensorSequenceAlmostEqual(actual, desired)
+        self.assertTensorSequenceAlmostEqual(actual, desired, rtol=1e-6)
