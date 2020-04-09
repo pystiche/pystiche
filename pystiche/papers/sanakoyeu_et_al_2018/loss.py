@@ -8,14 +8,11 @@ from torch.nn.functional import binary_cross_entropy_with_logits
 from pystiche.papers.sanakoyeu_et_al_2018.modules import (
     SanakoyeuEtAl2018TransformerBlock,
 )
-import pystiche.ops.functional as F
 from pystiche.ops import RegularizationOperator
 from pystiche.papers.sanakoyeu_et_al_2018.modules import (
-    sanakoyeu_et_al_2018_discriminator,
     SanakoyeuEtAl2018Discriminator,
     SanakoyeuEtAl2018Encoder,
 )
-from pystiche.ops.op import EncodingComparisonOperator
 from pystiche.ops.comparison import MSEEncodingOperator
 from pystiche.enc import Encoder
 from pystiche.loss import MultiOperatorLoss
@@ -79,12 +76,12 @@ class DiscriminatorOperator(RegularizationOperator):
         return self.acc
 
     def set_current_discriminator(self, discriminator: nn.Module):
-        self.discriminator = discriminator  # FIXME: right?
+        self.discriminator = discriminator  # FIXME: necessary?
 
 
 def sanakoyeu_et_al_2018_discriminator_loss(
+    discriminator: SanakoyeuEtAl2018Discriminator,
     impl_params: bool = True,
-    discriminator: Optional[SanakoyeuEtAl2018Discriminator] = None,
     score_weight=None,
 ) -> RegularizationOperator:
     if score_weight is None:
@@ -92,10 +89,6 @@ def sanakoyeu_et_al_2018_discriminator_loss(
             score_weight = 1e0
         else:
             score_weight = 1e-3
-
-    if discriminator is None:
-        discriminator = sanakoyeu_et_al_2018_discriminator()
-
     return DiscriminatorOperator(discriminator, score_weight=score_weight)
 
 
@@ -121,31 +114,27 @@ class DiscriminatorLoss(nn.Module):
     def __init__(self, discriminator: SanakoyeuEtAl2018Discriminator) -> None:
         super().__init__()
         self.discriminator = discriminator
+        self.acc = 0.0
+
+    def get_current_acc(self):
+        return self.acc
 
     def forward(
         self, fake_image: torch.Tensor, real_image: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        return discriminator_loss(fake_image, real_image, self.discriminator)
+    ) -> torch.Tensor:
+        loss, self.acc = discriminator_loss(fake_image, real_image, self.discriminator)
+        return loss
 
 
-class SanakoyeuEtAl2018FeatureOperator(EncodingComparisonOperator):
+class SanakoyeuEtAl2018FeatureOperator(MSEEncodingOperator):
     def __init__(
         self, encoder: Encoder, score_weight: float = 1.0, impl_params: bool = True
     ):
         super().__init__(encoder, score_weight=score_weight)
         self.impl_params = impl_params
 
-    def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
-        return enc
-
-    def input_enc_to_repr(self, enc: torch.Tensor, ctx: None) -> torch.Tensor:
-        return self.enc_to_repr(enc)
-
-    def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
-        return self.enc_to_repr(enc), None
-
     def update_encoder(self, encoder: Encoder):
-        self.encoder = encoder
+        self.encoder = encoder # FIXME: necessary?
 
     def calculate_score(
         self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
@@ -153,7 +142,7 @@ class SanakoyeuEtAl2018FeatureOperator(EncodingComparisonOperator):
         if self.impl_params:
             return torch.mean(torch.abs(input_repr - target_repr))
         else:
-            return F.mse_loss(input_repr, target_repr)
+            return super().calculate_score(input_repr, target_repr, ctx)
 
 
 def sanakoyeu_et_al_2018_style_aware_content_loss(
@@ -176,8 +165,8 @@ def sanakoyeu_et_al_2018_style_aware_content_loss(
 
 
 class SanakoyeuEtAl2018TransformerOperator(MSEEncodingOperator):
-    def update_encoder(self, encoder: Encoder):
-        self.encoder = encoder
+    def update_transformer(self, transformer: Encoder):
+        self.encoder = transformer # FIXME: necessary?
 
 
 def sanakoyeu_et_al_2018_transformer_loss(
@@ -213,14 +202,11 @@ class SanakoyeuEtAl2018GeneratorLoss(MultiOperatorLoss):
 
         super().__init__(OrderedDict(modules))
 
-    def update_style_aware_content_loss_encoder(self, encoder: Encoder):
+    def update_encoder(self, encoder: Encoder):
         self.style_aware_content_loss.update_encoder(encoder)
 
-    def update_transformer_loss_transformer(self, encoder: Encoder):
-        self.transformer_loss.update_encoder(encoder)
-
-    def set_style_image(self, image: torch.Tensor):
-        self.style_loss.set_target_image(image)
+    def update_transformer(self, transformer: Encoder):
+        self.transformer_loss.update_transformer(transformer)
 
     def set_content_image(self, image: torch.Tensor):
         self.style_aware_content_loss.set_target_image(image)
