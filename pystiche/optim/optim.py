@@ -29,10 +29,11 @@ def default_image_optimizer(input_image: torch.Tensor) -> Optimizer:
 def default_image_optim_loop(
     input_image: torch.Tensor,
     criterion: nn.Module,
+    # TODO: use optimizer instead of get_optimizer
     get_optimizer: Optional[Callable[[torch.Tensor], Optimizer]] = None,
     num_steps: Union[int, Iterable[int]] = 500,
-    preprocessor: nn.Module = None,
-    postprocessor: nn.Module = None,
+    preprocessor: Optional[nn.Module] = None,
+    postprocessor: Optional[nn.Module] = None,
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
     log_fn: Optional[
@@ -225,7 +226,7 @@ def default_transformer_epoch_optim_loop(
     ] = None,
 ) -> nn.Module:
     if device is None:
-        device = next(transformer.params()).device
+        device = next(transformer.parameters()).device
 
     if optimizer is None:
         if lr_scheduler is None:
