@@ -132,7 +132,7 @@ class SanakoyeuEtAl2018FeatureOperator(MSEEncodingOperator):
         self.impl_params = impl_params
 
     def update_encoder(self, encoder: Encoder):
-        self.encoder = encoder # FIXME: necessary?
+        self.encoder = encoder  # FIXME: necessary?
 
     def calculate_score(
         self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
@@ -161,7 +161,7 @@ def sanakoyeu_et_al_2018_style_aware_content_loss(
 
 class SanakoyeuEtAl2018TransformerOperator(MSEEncodingOperator):
     def update_transformer(self, transformer: Encoder):
-        self.encoder = transformer # FIXME: necessary?
+        self.encoder = transformer  # FIXME: necessary?
 
 
 def sanakoyeu_et_al_2018_transformer_loss(
@@ -192,8 +192,8 @@ class SanakoyeuEtAl2018GeneratorLoss(MultiOperatorLoss):
         modules = [
             ("style_aware_content_loss", style_aware_content_loss),
             ("transformer_loss", transformer_loss),
-            ("discr_loss", discr_loss)
-                   ]
+            ("discr_loss", discr_loss),
+        ]
 
         super().__init__(OrderedDict(modules))
 
@@ -218,12 +218,20 @@ def sanakoyeu_et_al_2018_generator_loss(
 ) -> SanakoyeuEtAl2018GeneratorLoss:
 
     if style_aware_content_loss is None:
-        style_aware_content_loss = sanakoyeu_et_al_2018_style_aware_content_loss(encoder, impl_params=impl_params)
+        style_aware_content_loss = sanakoyeu_et_al_2018_style_aware_content_loss(
+            encoder, impl_params=impl_params
+        )
 
     if transformer_loss is None:
-        transformer_loss = sanakoyeu_et_al_2018_transformer_loss(impl_params=impl_params)
+        transformer_loss = sanakoyeu_et_al_2018_transformer_loss(
+            impl_params=impl_params
+        )
 
     if discr_loss is None:
-        discr_loss = sanakoyeu_et_al_2018_discriminator_loss(discriminator,impl_params=impl_params)
+        discr_loss = sanakoyeu_et_al_2018_discriminator_loss(
+            discriminator, impl_params=impl_params
+        )
 
-    return SanakoyeuEtAl2018GeneratorLoss(style_aware_content_loss, transformer_loss, discr_loss)
+    return SanakoyeuEtAl2018GeneratorLoss(
+        style_aware_content_loss, transformer_loss, discr_loss
+    )

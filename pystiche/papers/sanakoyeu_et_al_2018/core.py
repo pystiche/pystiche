@@ -5,9 +5,7 @@ from torch.utils.data import DataLoader
 from torch import nn
 from torch.optim.optimizer import Optimizer
 import pystiche
-from pystiche.optim import (
-    default_transformer_epoch_optim_loop,
-)
+from pystiche.optim import default_transformer_epoch_optim_loop
 from .modules import (
     SanakoyeuEtAl2018Generator,
     SanakoyeuEtAl2018Discriminator,
@@ -39,7 +37,9 @@ def default_gan_optim_loop(
     transformer_block: nn.Module,
     discriminator_criterion: nn.Module,
     generator_criterion: nn.Module,
-    generator_criterion_update_fn: Callable[[nn.Module,nn.Module, torch.tensor, nn.ModuleDict], None],
+    generator_criterion_update_fn: Callable[
+        [nn.Module, nn.Module, torch.tensor, nn.ModuleDict], None
+    ],
     init_discr_success: float = 0.8,
     init_win_rate: float = 0.8,
     alpha: float = 0.05,
@@ -64,7 +64,7 @@ def default_gan_optim_loop(
 
         discriminator_optimizer.step(closure)
         acc = discriminator_criterion.get_current_acc()
-        discr_success = discr_success * (1. - alpha) + alpha * acc
+        discr_success = discr_success * (1.0 - alpha) + alpha * acc
 
         return discr_success
 
@@ -77,14 +77,14 @@ def default_gan_optim_loop(
 
         generator_optimizer.step(closure)
         acc = generator_criterion["discr_loss"].get_current_acc()
-        discr_success = discr_success * (1. - alpha) + alpha * (1. - acc)
+        discr_success = discr_success * (1.0 - alpha) + alpha * (1.0 - acc)
         return discr_success
 
     count = 0
     for content_image in content_image_loader:
         content_image = content_image.to(device)
         stylized_image = generator(content_image)
-        count +=1
+        count += 1
 
         if discr_success < win_rate:
             style_image = next(style_image_loader)
@@ -93,13 +93,16 @@ def default_gan_optim_loop(
                 fake_images = torch.cat((stylized_image, content_image), 0)
             else:
                 fake_images = stylized_image
-            discr_success = train_discriminator_one_step(fake_images, style_image, discr_success)
+            discr_success = train_discriminator_one_step(
+                fake_images, style_image, discr_success
+            )
         else:
-            generator_criterion_update_fn(generator.encoder, transformer_block, content_image, generator_criterion)
+            generator_criterion_update_fn(
+                generator.encoder, transformer_block, content_image, generator_criterion
+            )
             discr_success = train_generator_one_step(stylized_image, discr_success)
 
     return generator
-
 
 
 def sanakoyeu_et_al_2018_training(
@@ -140,9 +143,7 @@ def sanakoyeu_et_al_2018_training(
 
     if generator_criterion is None:
         generator_criterion = sanakoyeu_et_al_2018_generator_loss(
-            generator.encoder,
-            discriminator,
-            impl_params=impl_params
+            generator.encoder, discriminator, impl_params=impl_params
         )
         generator_criterion = generator_criterion.eval()
     generator_criterion = generator_criterion.to(device)
@@ -168,7 +169,5 @@ def sanakoyeu_et_al_2018_training(
         generator_criterion_update_fn,
         impl_params=impl_params,
         get_optimizer=get_optimizer,
-        device=device
+        device=device,
     )
-
-

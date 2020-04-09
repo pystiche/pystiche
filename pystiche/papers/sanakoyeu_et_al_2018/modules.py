@@ -103,11 +103,13 @@ class SanakoyeuEtAl2018ConvTransponse(nn.Module):
         self.stride = stride
         padding = get_padding(padding, kernel_size)
         self.conv = nn.Conv2d(
-                in_channels, out_channels, kernel_size, stride=1, padding=padding
-            )  # TODO: init weights and bias None
+            in_channels, out_channels, kernel_size, stride=1, padding=padding
+        )  # TODO: init weights and bias None
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        return self.conv(nn.functional.interpolate(input, scale_factor=self.stride, mode="nearest"))
+        return self.conv(
+            nn.functional.interpolate(input, scale_factor=self.stride, mode="nearest")
+        )
 
 
 class SanakoyeuEtAl2018ConvTransponseBlock(nn.Sequential):
@@ -291,7 +293,11 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     modules.append(nn.ReflectionPad2d(3))
     modules.append(
         SanakoyeuEtAl2018Conv(
-            in_channels=gf_dim, out_channels=output_channel, kernel_size=7, stride=1, padding="valid"
+            in_channels=gf_dim,
+            out_channels=output_channel,
+            kernel_size=7,
+            stride=1,
+            padding="valid",
         )
     )
     return pystiche.SequentialModule(*modules)
@@ -455,11 +461,7 @@ class SanakoyeuEtAl2018TransformerBlock(nn.Module):
             )
         else:
             self.forwardBlock = nn.Conv2d(
-                input_channel,
-                3,
-                kernel_size,
-                stride=stride,
-                padding=padding,
+                input_channel, 3, kernel_size, stride=stride, padding=padding,
             )
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:

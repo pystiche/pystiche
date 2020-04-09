@@ -1,26 +1,16 @@
 from typing import Optional, Sized, Tuple, List, Iterator, Dict, Any
-from urllib.parse import urljoin
 import torch
 from torch.utils.data import Dataset, Sampler, DataLoader
 from pystiche.data import (
-    DownloadableImage,
-    DownloadableImageCollection,
-    CreativeCommonsLicense,
-    PublicDomainLicense,
     ImageFolderDataset,
     FiniteCycleBatchSampler,
     InfiniteCycleBatchSampler,
 )
-from pystiche.image import extract_num_channels
 from pystiche.image.transforms import (
     Transform,
-    Rescale,
-    Resize,
     ComposedTransform,
-    CenterCrop,
     ValidRandomCrop,
 )
-from pystiche.image.transforms.functional import grayscale_to_fakegrayscale
 from pystiche.image.transforms import functional as F
 
 
@@ -102,8 +92,9 @@ def sanakoyeu_et_al_2018_images(
     tar13 = "vincent-van-gogh_road-with-cypresses-1890.tar.gz"
     tar14 = "wassily-kandinsky.tar.gz"
 
-
-    places365_url = "data.csail.mit.edu/places/places365/train_large_places365standard.tar"
+    places365_url = (
+        "data.csail.mit.edu/places/places365/train_large_places365standard.tar"
+    )
     # TODO: loading
     return None
 
