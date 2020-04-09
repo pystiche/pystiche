@@ -11,6 +11,8 @@ from PIL import Image
 import torch
 from torch import nn
 
+import dill
+
 __all__ = [
     "PysticheTestCase",
     "get_tmp_dir",
@@ -111,6 +113,21 @@ class PysticheTestCase(pyimagetest.ImageTestCase):
         self.assertEqual(set(actual.keys()), set(desired.keys()))
         for key in actual.keys():
             self.assertTensorAlmostEqual(actual[key], desired[key], **kwargs)
+
+    def assertTensorSequenceAlmostEqual(self, actual, desired, **kwargs):
+        actual = tuple(actual)
+        desired = tuple(desired)
+        self.assertEqual(len(actual), len(desired))
+        for actual_item, desired_item in zip(actual, desired):
+            self.assertTensorAlmostEqual(actual_item, desired_item, **kwargs)
+
+    def load_asset(self, file, ext=".asset"):
+        if not path.isabs(file):
+            file = path.join(self.test_assets_root, file)
+        file = path.splitext(file)[0] + ext
+
+        with open(file, "rb") as fh:
+            return dill.load(fh)
 
 
 @contextlib.contextmanager

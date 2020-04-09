@@ -1,5 +1,10 @@
 from datetime import datetime, timedelta
+from os import path
+
 import torch
+from torch import nn
+from torch.optim.optimizer import Optimizer
+
 from pystiche import optim
 from utils import PysticheTestCase
 
@@ -215,4 +220,125 @@ class TestMeter(PysticheTestCase):
 
 
 class TestOptim(PysticheTestCase):
-    pass
+    def test_default_image_optimizer(self):
+        torch.manual_seed(0)
+        image = torch.rand(1, 3, 128, 128)
+        optimizer = optim.default_image_optimizer(image)
+
+        self.assertIsInstance(optimizer, Optimizer)
+
+        actual = optimizer.param_groups[0]["params"][0]
+        desired = image
+        self.assertTensorAlmostEqual(actual, desired)
+
+    def test_default_image_optim_loop(self):
+        asset = self.load_asset(path.join("optim", "default_image_optim_loop"))
+
+        actual = optim.default_image_optim_loop(
+            asset.input.image,
+            asset.input.criterion,
+            get_optimizer=asset.params.get_optimizer,
+            num_steps=asset.params.num_steps,
+            quiet=True,
+        )
+        desired = asset.output.image
+        self.assertTensorAlmostEqual(actual, desired)
+
+    def test_default_image_optim_loop_processing(self):
+        asset = self.load_asset(
+            path.join("optim", "default_image_optim_loop_processing")
+        )
+
+        actual = optim.default_image_optim_loop(
+            asset.input.image,
+            asset.input.criterion,
+            get_optimizer=asset.params.get_optimizer,
+            num_steps=asset.params.num_steps,
+            preprocessor=asset.params.preprocessor,
+            postprocessor=asset.params.postprocessor,
+            quiet=True,
+        )
+        desired = asset.output.image
+        self.assertTensorAlmostEqual(actual, desired)
+
+    def test_default_image_pyramid_optim_loop(self):
+        asset = self.load_asset(path.join("optim", "default_image_pyramid_optim_loop"))
+
+        actual = optim.default_image_pyramid_optim_loop(
+            asset.input.image,
+            asset.input.criterion,
+            asset.input.pyramid,
+            get_optimizer=asset.params.get_optimizer,
+            quiet=True,
+        )
+        desired = asset.output.image
+        self.assertTensorAlmostEqual(actual, desired)
+
+    def test_default_image_pyramid_optim_loop_processing(self):
+        asset = self.load_asset(path.join("optim", "default_image_pyramid_optim_loop"))
+
+        actual = optim.default_image_pyramid_optim_loop(
+            asset.input.image,
+            asset.input.criterion,
+            asset.input.pyramid,
+            get_optimizer=asset.params.get_optimizer,
+            preprocessor=asset.params.preprocessor,
+            postprocessor=asset.params.postprocessor,
+            quiet=True,
+        )
+        desired = asset.output.image
+        self.assertTensorAlmostEqual(actual, desired)
+
+    def test_default_transformer_optimizer(self):
+        torch.manual_seed(0)
+        transformer = nn.Conv2d(3, 3, 1)
+        optimizer = optim.default_transformer_optimizer(transformer)
+
+        self.assertIsInstance(optimizer, Optimizer)
+
+        actuals = optimizer.param_groups[0]["params"]
+        desireds = tuple(transformer.parameters())
+        for actual, desired in zip(actuals, desireds):
+            self.assertTensorAlmostEqual(actual, desired)
+
+    def test_default_transformer_optim_loop(self):
+        asset = self.load_asset(path.join("optim", "default_transformer_optim_loop"))
+
+        transformer = asset.input.transformer
+        optimizer = asset.params.get_optimizer(transformer)
+        transformer = optim.default_transformer_optim_loop(
+            asset.input.image_loader,
+            asset.input.device,
+            transformer,
+            asset.input.criterion,
+            asset.input.criterion_update_fn,
+            optimizer=optimizer,
+            quiet=True,
+        )
+
+        actual = transformer.parameters()
+        desired = asset.output.transformer.parameters()
+        self.assertTensorSequenceAlmostEqual(actual, desired)
+
+    def test_default_transformer_epoch_optim_loop(self):
+        asset = self.load_asset(
+            path.join("optim", "default_transformer_epoch_optim_loop")
+        )
+
+        transformer = asset.input.transformer
+        optimizer = asset.params.get_optimizer(transformer)
+        lr_scheduler = asset.params.get_lr_scheduler(optimizer)
+        transformer = optim.default_transformer_epoch_optim_loop(
+            asset.input.image_loader,
+            transformer,
+            asset.input.criterion,
+            asset.input.criterion_update_fn,
+            asset.input.epochs,
+            optimizer=optimizer,
+            lr_scheduler=lr_scheduler,
+            quiet=True,
+        )
+
+        actual = transformer.parameters()
+        desired = asset.output.transformer.parameters()
+        self.assertTensorSequenceAlmostEqual(actual, desired)
