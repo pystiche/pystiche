@@ -2,7 +2,7 @@
 
 # pystiche
 
-`pystiche` is framework for Neural Style Transfer (NST) algorithms built upon [PyTorch](https://pytorch.org). The name of the project is a pun on [_pastiche_](https://en.wikipedia.org/wiki/Pastiche) meaning:
+`pystiche` is framework for [Neural Style Transfer (NST)](https://github.com/ycjing/Neural-Style-Transfer-Papers) built upon [PyTorch](https://pytorch.org). The name of the project is a pun on [_pastiche_](https://en.wikipedia.org/wiki/Pastiche) meaning:
 
 > A pastiche is a work of visual art [...] that imitates the style or character of the work of one or more other artists. Unlike parody, pastiche celebrates, rather than mocks, the work it imitates.
 
