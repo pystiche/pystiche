@@ -259,6 +259,6 @@ def default_transformer_epoch_optim_loop(
                 transformer = transformer_optim_loop(transformer)
 
         if lr_scheduler is not None:
-            lr_scheduler.step(epoch)
+            lr_scheduler.step()
 
     return transformer
