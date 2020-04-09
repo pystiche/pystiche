@@ -319,7 +319,7 @@ def _generate_default_transformer_epoch_optim_loop_asset(
 
             optimizer.step(closure)
 
-        lr_scheduler.step(epoch)
+        lr_scheduler.step()
 
     input = {
         "image_loader": image_loader,
