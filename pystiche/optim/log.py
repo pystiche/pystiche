@@ -19,6 +19,7 @@ __all__ = [
     "default_image_optim_log_fn",
     "default_pyramid_level_header",
     "default_transformer_optim_log_fn",
+    "default_epoch_header_fn",
 ]
 
 

@@ -51,8 +51,8 @@ class FloatMeter(Meter):
         self.count = 0
         self.last_val = 0.0
         self.global_sum = 0.0
-        self.global_min = 0.0
-        self.global_max = 0.0
+        self.global_min = float("inf")
+        self.global_max = -float("inf")
         self.window = deque(maxlen=self.window_size)
 
     def update(self, vals: Union[Collection[float], float]) -> None:
@@ -68,11 +68,15 @@ class FloatMeter(Meter):
 
     @property
     def global_avg(self) -> float:
+        if self.count == 0:
+            raise RuntimeError
         return self.global_sum / self.count
 
     @property
     def local_avg(self) -> float:
         vals = tuple(self.window)
+        if not vals:
+            raise RuntimeError
         return sum(vals) / len(vals)
 
     @abstractmethod
@@ -124,9 +128,13 @@ class AverageMeter(FloatMeter):
         def format(val: float) -> str:
             return self.fmt.format(val)
 
-        val = format(self.last_val)
-        avg = format(self.local_avg if self.show_local_avg else self.global_avg)
-        return f"{self.name} {val} ({avg})"
+        if self.count > 0:
+            val = format(self.last_val)
+            avg = format(self.local_avg if self.show_local_avg else self.global_avg)
+            info = f"{val} ({avg})"
+        else:
+            info = "N/A"
+        return f"{self.name} {info}"
 
     @property
     def val(self) -> float:
@@ -201,11 +209,7 @@ class ETAMeter(FloatMeter):
 
     def calculate_eta(self, time_diff: float) -> datetime:
         count_diff = max(self.total_count - self.count, 0)
-        now = datetime.now()
-        if count_diff <= 0:
-            return now
-
-        return now + count_diff * timedelta(seconds=time_diff)
+        return datetime.now() + count_diff * timedelta(seconds=time_diff)
 
     @property
     def global_eta(self) -> datetime:
@@ -218,10 +222,10 @@ class ETAMeter(FloatMeter):
     def __str__(self):
         if self.count > 0:
             eta = self.local_eta if self.show_local_eta else self.global_eta
-            eta = eta.strftime(self.fmt)
+            info = eta.strftime(self.fmt)
         else:
-            eta = "N/A"
-        return f"{self.name} {eta}"
+            info = "N/A"
+        return f"{self.name} {info}"
 
 
 class ProgressMeter(Meter):
