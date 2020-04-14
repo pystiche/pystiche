@@ -1,11 +1,9 @@
-from typing import Optional, Callable
+from typing import Optional, Callable, Union
 import itertools
 import torch
 from torch.utils.data import DataLoader
 from torch import nn
 from torch.optim.optimizer import Optimizer
-import pystiche
-from pystiche.optim import default_transformer_epoch_optim_loop
 from .modules import (
     SanakoyeuEtAl2018Generator,
     SanakoyeuEtAl2018Discriminator,
@@ -17,15 +15,24 @@ from .loss import (
     DiscriminatorLoss,
     sanakoyeu_et_al_2018_generator_loss,
 )
+from .data import (
+    sanakoyeu_et_al_2018_dataset,
+    sanakoyeu_et_al_2018_image_loader,
+    sanakoyeu_et_al_2018_images,
+)
 from .utils import sanakoyeu_et_al_2018_optimizer
 
 __all__ = [
     "sanakoyeu_et_al_2018_training",
+    "sanakoyeu_et_al_2018_stylization",
     "SanakoyeuEtAl2018Generator",
     "sanakoyeu_et_al_2018_discriminator",
     "SanakoyeuEtAl2018TransformerBlock",
     "sanakoyeu_et_al_2018_generator_loss",
     "DiscriminatorLoss",
+    "sanakoyeu_et_al_2018_images",
+    "sanakoyeu_et_al_2018_image_loader",
+    "sanakoyeu_et_al_2018_dataset"
 ]
 
 
@@ -80,11 +87,9 @@ def default_gan_optim_loop(
         discr_success = discr_success * (1.0 - alpha) + alpha * (1.0 - acc)
         return discr_success
 
-    count = 0
     for content_image in content_image_loader:
         content_image = content_image.to(device)
         stylized_image = generator(content_image)
-        count += 1
 
         if discr_success < win_rate:
             style_image = next(style_image_loader)
@@ -171,3 +176,20 @@ def sanakoyeu_et_al_2018_training(
         get_optimizer=get_optimizer,
         device=device,
     )
+
+def sanakoyeu_et_al_2018_stylization(
+    input_image: torch.Tensor,
+    generator: Union[nn.Module, str],
+    impl_params: bool = True
+):
+    device = input_image.device
+    if isinstance(generator, str):
+        generator = SanakoyeuEtAl2018Generator()
+        if not impl_params:
+            generator = generator.eval()
+        generator = generator.to(device)
+
+    with torch.no_grad():
+        output_image = generator(input_image)
+
+    return output_image.detach()
