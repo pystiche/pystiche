@@ -39,14 +39,9 @@ class TestModels(PysticheTestCase):
         with torch.no_grad():
             encs = multi_layer_encoder(asset.input.image, layers)
 
-        # actual = dict(zip(layers, [pystiche.TensorKey(x) for x in encs]))
-        # desired = asset.output.enc_keys
-        # self.assertDictEqual(actual, desired)
-        actual = pystiche.TensorKey(encs[0])
-        desired = asset.output.enc_keys[layers[0]]
-        print(actual)
-        print(desired)
-        self.assertEqual(actual, desired)
+        actual = dict(zip(layers, [pystiche.TensorKey(x) for x in encs]))
+        desired = asset.output.enc_keys
+        self.assertDictEqual(actual, desired)
 
     # def test_VGGMultiLayerEncoder(self):
     #     archs = ("vgg11", "vgg13", "vgg16", "vgg19")
