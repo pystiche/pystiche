@@ -1,8 +1,10 @@
 from collections import OrderedDict
+from os import path
 
 import torch
 from torch import nn
 
+import pystiche
 from pystiche import enc
 from pystiche.image.transforms import CaffePreprocessing, TorchPreprocessing
 from utils import ForwardPassCounter, PysticheTestCase
@@ -20,6 +22,42 @@ class TestEncoder(PysticheTestCase):
         actual = pystiche_encoder(input)
         desired = torch_encoder(input)
         self.assertTensorAlmostEqual(actual, desired)
+
+
+class TestModels(PysticheTestCase):
+    def test_AlexNetMultiLayerEncoder(self):
+        asset = self.load_asset(path.join("enc", "alexnet"))
+
+        multi_layer_encoder = enc.alexnet_multi_layer_encoder(
+            weights="torch", preprocessing=False, allow_inplace=False
+        )
+        layers = tuple(multi_layer_encoder.children_names())
+        encs = multi_layer_encoder(asset.input.image, layers)
+
+        actual = dict(zip(layers, [pystiche.TensorKey(x) for x in encs]))
+        desired = asset.output.enc_keys
+        self.assertDictEqual(actual, desired)
+
+    def test_VGGMultiLayerEncoder(self):
+        archs = ("vgg11", "vgg13", "vgg16", "vgg19")
+        archs = (*archs, *[f"{arch}_bn" for arch in archs])
+
+        for arch in archs:
+            with self.subTest(arch=arch):
+                asset = self.load_asset(path.join("enc", arch))
+
+                get_vgg_multi_layer_encoder = enc.__dict__[
+                    f"{arch}_multi_layer_encoder"
+                ]
+                multi_layer_encoder = get_vgg_multi_layer_encoder(
+                    weights="torch", preprocessing=False, allow_inplace=False
+                )
+                layers = tuple(multi_layer_encoder.children_names())
+                encs = multi_layer_encoder(asset.input.image, layers)
+
+                actual = dict(zip(layers, [pystiche.TensorKey(x) for x in encs]))
+                desired = asset.output.enc_keys
+                self.assertDictEqual(actual, desired)
 
 
 class TestMultiLayerEncoder(PysticheTestCase):
