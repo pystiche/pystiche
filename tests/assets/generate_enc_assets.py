@@ -5,24 +5,20 @@ import torch
 from torch import nn
 from torchvision import models
 
-# from pystiche import TensorKey
 import pystiche
 from utils import store_asset
 
 
-def _generate_sequential_enc_asset(file, model, image, layers=None):
-    if layers is None:
-        layers = model._modules.keys()
-
+def _generate_sequential_enc_asset(file, model, image, precision=3):
     model.eval()
     input_image = image.clone()
     enc_keys = {}
     for layer, module in model.named_children():
         image = module(image)
-        enc_keys[layer] = pystiche.TensorKey(image)
+        enc_keys[layer] = pystiche.TensorKey(image, precision=precision)
 
     input = {"image": input_image}
-    params = {}
+    params = {"precision": precision}
     output = {"enc_keys": enc_keys}
     store_asset(input, params, output, file)
 

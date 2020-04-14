@@ -39,7 +39,12 @@ class TestModels(PysticheTestCase):
         with torch.no_grad():
             encs = multi_layer_encoder(asset.input.image, layers)
 
-        actual = dict(zip(layers, [pystiche.TensorKey(x) for x in encs]))
+        actual = dict(
+            zip(
+                layers,
+                [pystiche.TensorKey(x, precision=asset.params.precision) for x in encs],
+            )
+        )
         desired = asset.output.enc_keys
         self.assertDictEqual(actual, desired)
 
@@ -61,7 +66,15 @@ class TestModels(PysticheTestCase):
                 with torch.no_grad():
                     encs = multi_layer_encoder(asset.input.image, layers)
 
-                actual = dict(zip(layers, [pystiche.TensorKey(x) for x in encs]))
+                actual = dict(
+                    zip(
+                        layers,
+                        [
+                            pystiche.TensorKey(x, precision=asset.params.precision)
+                            for x in encs
+                        ],
+                    )
+                )
                 desired = asset.output.enc_keys
                 self.assertDictEqual(actual, desired)
 
