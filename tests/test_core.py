@@ -204,6 +204,15 @@ class TestBase(PysticheTestCase):
         self.assertTrue(key == key)
         self.assertTrue(key == pystiche.TensorKey(x.flip(0)))
 
+    def test_TensorKey_eq_precision(self):
+        x = torch.tensor(1.0)
+        y = torch.tensor(1.0001)
+
+        self.assertFalse(pystiche.TensorKey(x) == pystiche.TensorKey(y))
+        self.assertTrue(
+            pystiche.TensorKey(x, precision=3) == pystiche.TensorKey(y, precision=3)
+        )
+
     def test_TensorKey_eq_tensor(self):
         x = torch.tensor((0.0, 0.5, 1.0))
         key = pystiche.TensorKey(x)
@@ -215,7 +224,7 @@ class TestBase(PysticheTestCase):
         key = pystiche.TensorKey(x)
 
         with self.assertRaises(TypeError):
-            key == 1
+            self.assertTrue(key == 1)
 
     @skip_if_cuda_not_available
     def test_TensorKey_eq_device(self):
