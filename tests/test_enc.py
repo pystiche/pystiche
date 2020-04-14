@@ -32,7 +32,8 @@ class TestModels(PysticheTestCase):
             weights="torch", preprocessing=False, allow_inplace=False
         )
         layers = tuple(multi_layer_encoder.children_names())
-        encs = multi_layer_encoder(asset.input.image, layers)
+        with torch.no_grad():
+            encs = multi_layer_encoder(asset.input.image, layers)
 
         actual = dict(zip(layers, [pystiche.TensorKey(x) for x in encs]))
         desired = asset.output.enc_keys
@@ -53,7 +54,8 @@ class TestModels(PysticheTestCase):
                     weights="torch", preprocessing=False, allow_inplace=False
                 )
                 layers = tuple(multi_layer_encoder.children_names())
-                encs = multi_layer_encoder(asset.input.image, layers)
+                with torch.no_grad:
+                    encs = multi_layer_encoder(asset.input.image, layers)
 
                 actual = dict(zip(layers, [pystiche.TensorKey(x) for x in encs]))
                 desired = asset.output.enc_keys
