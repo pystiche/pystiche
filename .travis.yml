@@ -6,10 +6,9 @@ matrix:
     - name: "Code format"
       install: pip install isort black flake8
       script:
-        - JOBS=$(nproc)
-        - isort --settings-path=pyproject.toml --check-only --jobs=$JOBS --recursive .
+        - isort --settings-path=pyproject.toml --check-only --jobs=$(nproc) --recursive .
         - black --config=pyproject.toml --check .
-        - flake8 --config=.flake8 --jobs=$JOBS .
+        - flake8 --config=.flake8 --jobs=$(nproc) .
     - name: "Tests"
       before_install:
         - REQUIREMENTS_FILE=travis_ci_torch_requirements.txt
@@ -19,5 +18,6 @@ matrix:
       install:
         - pip install .[test]
         - pip install --upgrade pytest
-      script: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini
+      script:
+        - coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
       after success: codecov
