@@ -1,7 +1,6 @@
 import contextlib
 import shutil
 import tempfile
-import unittest
 from os import path
 
 import numpy as np
@@ -12,6 +11,7 @@ import torch
 from torch import nn
 
 import dill
+import pytest
 
 __all__ = [
     "PysticheTestCase",
@@ -139,8 +139,8 @@ def get_tmp_dir(**mkdtemp_kwargs):
         shutil.rmtree(tmp_dir)
 
 
-skip_if_cuda_not_available = unittest.skipIf(
-    not torch.cuda.is_available(), "CUDA is not available."
+skip_if_cuda_not_available = pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="CUDA is not available."
 )
 
 
