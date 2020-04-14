@@ -285,17 +285,22 @@ class TestHome(PysticheTestCase):
         desired = path.expanduser(path.join("~", ".cache", "pystiche"))
         self.assertEqual(actual, desired)
 
-    @mock.patch("pystiche.core._home.os.getenv")
-    def test_home_env(self, getenv_mock):
+    def test_home_env(self):
         tmp_dir = tempfile.mkdtemp()
         os.rmdir(tmp_dir)
-        getenv_mock.return_value = tmp_dir
+
+        pystiche_home = os.getenv("PYSTICHE_HOME")
+        os.environ["PYSTICHE_HOME"] = tmp_dir
         try:
-            actual = tmp_dir
-            desired = pystiche.home()
+            actual = pystiche.home()
+            desired = tmp_dir
             self.assertEqual(actual, desired)
             self.assertTrue(path.exists(desired) and path.isdir(desired))
         finally:
+            if pystiche_home is None:
+                os.unsetenv("PYSTICHE_HOME")
+            else:
+                os.environ["PYSTICHE_HOME"] = pystiche_home
             os.rmdir(tmp_dir)
 
 
