@@ -286,6 +286,12 @@ class TestBase(PysticheTestCase):
 
         self.assertIsInstance(hash(key), int)
 
+    def test_TensorKey_repr_smoke(self):
+        x = torch.tensor((0.0, 0.5, 1.0))
+        key = pystiche.TensorKey(x)
+
+        self.assertIsInstance(repr(key), str)
+
 
 class TestHome(PysticheTestCase):
     @mock.patch("pystiche.core._home.os.makedirs")
