@@ -3,15 +3,14 @@ import shutil
 import tempfile
 from os import path
 
+import dill
 import numpy as np
 import pyimagetest
+import pytest
 from PIL import Image
 
 import torch
 from torch import nn
-
-import dill
-import pytest
 
 __all__ = [
     "PysticheTestCase",
