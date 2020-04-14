@@ -40,7 +40,12 @@ class TestModels(PysticheTestCase):
         )
         layers = tuple(multi_layer_encoder.children_names())
         with torch.no_grad():
-            encs = multi_layer_encoder(asset.input.image, layers)
+            if torch.cuda.is_available():
+                multi_layer_encoder = multi_layer_encoder.cuda()
+                input_image = asset.input.image.cuda()
+                encs = [x.cpu() for x in multi_layer_encoder(input_image, layers)]
+            else:
+                encs = multi_layer_encoder(asset.input.image, layers)
 
         actual = dict(
             zip(
@@ -69,7 +74,14 @@ class TestModels(PysticheTestCase):
                 )
                 layers = tuple(multi_layer_encoder.children_names())
                 with torch.no_grad():
-                    encs = multi_layer_encoder(asset.input.image, layers)
+                    if torch.cuda.is_available():
+                        multi_layer_encoder = multi_layer_encoder.cuda()
+                        input_image = asset.input.image.cuda()
+                        encs = [
+                            x.cpu() for x in multi_layer_encoder(input_image, layers)
+                        ]
+                    else:
+                        encs = multi_layer_encoder(asset.input.image, layers)
 
                 actual = dict(
                     zip(
