@@ -23,7 +23,7 @@ class MultiLayerAlexNetEncoder(MultiLayerEncoder):
 
         super().__init__(self._collect_modules())
 
-    def collect_modules(self):
+    def _collect_modules(self):
         base_model = alexnet()
         url = MODEL_URLS[self.weights]
         state_dict = model_zoo.load_url(url)
@@ -36,17 +36,23 @@ class MultiLayerAlexNetEncoder(MultiLayerEncoder):
         block = 1
         for module in model.children():
             if isinstance(module, nn.Conv2d):
-                name = f"conv_{block}"
+                name = f"conv{block}"
             elif isinstance(module, nn.ReLU):
                 if not self.allow_inplace:
                     module = nn.ReLU(inplace=False)
-                name = f"relu_{block}"
+                name = f"relu{block}"
+                if block in (3, 4):
+                    # in the third and forth block the ReLU layer marks the end of the
+                    # block
+                    block += 1
             else:  # isinstance(module, nn.MaxPool2d):
-                name = f"pool_{block}"
+                name = f"pool{block}"
                 # each pooling layer marks the end of the current block
                 block += 1
 
             modules[name] = module
+
+        return modules
 
     def extra_properties(self):
         dct = OrderedDict()
