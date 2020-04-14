@@ -19,7 +19,7 @@ install_requires = (
     "typing_extensions",
 )
 
-test_requires = ("pytest", "pyimagetest", "pillow_affine", "dill")
+test_requires = ("pytest", "pyimagetest", "pillow_affine", "dill", "pytest-subtests")
 
 doc_requires = (
     "sphinx",
