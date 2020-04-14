@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from os import path
 
+import pytest
+
 import torch
 from torch import nn
 
@@ -28,6 +30,8 @@ class TestModels(PysticheTestCase):
     def setUp(self):
         self.maxDiff = None
 
+    @pytest.mark.large_download
+    @pytest.mark.slow_if_cuda_not_available
     def test_AlexNetMultiLayerEncoder(self):
         asset = self.load_asset(path.join("enc", "alexnet"))
 
@@ -47,6 +51,8 @@ class TestModels(PysticheTestCase):
         desired = asset.output.enc_keys
         self.assertDictEqual(actual, desired)
 
+    @pytest.mark.large_download
+    @pytest.mark.slow_if_cuda_not_available
     def test_VGGMultiLayerEncoder(self):
         archs = ("vgg11", "vgg13", "vgg16", "vgg19")
         archs = (*archs, *[f"{arch}_bn" for arch in archs])
