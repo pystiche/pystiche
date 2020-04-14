@@ -192,3 +192,6 @@ class TensorKey:
 
     def __hash__(self) -> int:
         return hash(self.key)
+
+    def __repr__(self) -> str:
+        return str(self.key)
