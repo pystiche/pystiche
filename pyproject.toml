@@ -22,14 +22,14 @@ include_trailing_comma = true
 known_standard_library = ["typing_extensions"]
 known_third_party = [
   "numpy",
-   "PIL",
-   "requests",
-   "pyimagetest",
-   "pillow_affine",
-   "matplotlib",
-   "pytest", 
-   "dill"
- ]
+  "PIL",
+  "requests",
+  "pyimagetest",
+  "pillow_affine",
+  "matplotlib",
+  "pytest",
+  "dill"
+]
 known_pytorch = ["torch", "torchvision"]
 sections= ["FUTURE", "STDLIB", "THIRDPARTY", "PYTORCH", "FIRSTPARTY", "LOCALFOLDER"]
 
