@@ -25,6 +25,9 @@ class TestEncoder(PysticheTestCase):
 
 
 class TestModels(PysticheTestCase):
+    def setUp(self):
+        self.maxDiff = None
+
     def test_AlexNetMultiLayerEncoder(self):
         asset = self.load_asset(path.join("enc", "alexnet"))
 
