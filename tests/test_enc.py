@@ -27,11 +27,7 @@ class TestEncoder(PysticheTestCase):
 
 
 class TestModels(PysticheTestCase):
-    def setUp(self):
-        self.maxDiff = None
-
     @pytest.mark.large_download
-    @pytest.mark.slow_if_cuda_not_available
     def test_AlexNetMultiLayerEncoder(self):
         asset = self.load_asset(path.join("enc", "alexnet"))
 
@@ -40,12 +36,7 @@ class TestModels(PysticheTestCase):
         )
         layers = tuple(multi_layer_encoder.children_names())
         with torch.no_grad():
-            if torch.cuda.is_available():
-                multi_layer_encoder = multi_layer_encoder.cuda()
-                input_image = asset.input.image.cuda()
-                encs = [x.cpu() for x in multi_layer_encoder(input_image, layers)]
-            else:
-                encs = multi_layer_encoder(asset.input.image, layers)
+            encs = multi_layer_encoder(asset.input.image, layers)
 
         actual = dict(
             zip(
@@ -57,7 +48,6 @@ class TestModels(PysticheTestCase):
         self.assertDictEqual(actual, desired)
 
     @pytest.mark.large_download
-    @pytest.mark.slow_if_cuda_not_available
     def test_VGGMultiLayerEncoder(self):
         archs = ("vgg11", "vgg13", "vgg16", "vgg19")
         archs = (*archs, *[f"{arch}_bn" for arch in archs])
@@ -74,14 +64,7 @@ class TestModels(PysticheTestCase):
                 )
                 layers = tuple(multi_layer_encoder.children_names())
                 with torch.no_grad():
-                    if torch.cuda.is_available():
-                        multi_layer_encoder = multi_layer_encoder.cuda()
-                        input_image = asset.input.image.cuda()
-                        encs = [
-                            x.cpu() for x in multi_layer_encoder(input_image, layers)
-                        ]
-                    else:
-                        encs = multi_layer_encoder(asset.input.image, layers)
+                    encs = multi_layer_encoder(asset.input.image, layers)
 
                 actual = dict(
                     zip(

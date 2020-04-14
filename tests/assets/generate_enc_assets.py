@@ -9,7 +9,7 @@ import pystiche
 from utils import store_asset
 
 
-def _generate_sequential_enc_asset(file, model, image, precision=1):
+def _generate_sequential_enc_asset(file, model, image, precision=2):
     model.eval()
     input_image = image.clone()
     enc_keys = {}
