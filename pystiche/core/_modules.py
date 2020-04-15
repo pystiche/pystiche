@@ -6,7 +6,7 @@ from torch import nn
 
 from pystiche.misc import warn_deprecation
 
-from ._base import ComplexObject
+from ._objects import ComplexObject
 
 __all__ = ["Module", "SequentialModule"]
 
