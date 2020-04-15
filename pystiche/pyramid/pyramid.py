@@ -3,7 +3,7 @@ from typing import Collection, Iterator, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from pystiche import Object
+from pystiche import ComplexObject
 from pystiche.misc import zip_equal
 from pystiche.ops import ComparisonGuidance, ComparisonOperator, Guidance, Operator
 
@@ -13,7 +13,7 @@ from .storage import ImageStorage
 __all__ = ["ImagePyramid", "OctaveImagePyramid"]
 
 
-class ImagePyramid(Object):
+class ImagePyramid(ComplexObject):
     def __init__(
         self,
         edge_sizes: Sequence[int],

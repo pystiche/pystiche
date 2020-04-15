@@ -5,12 +5,12 @@ from typing import Any, Dict, Optional, Sequence
 import torch
 from torch import nn
 
-from ._base import Object
+from ._base import ComplexObject
 
 __all__ = ["Module", "SequentialModule"]
 
 
-class Module(nn.Module, Object):
+class Module(nn.Module, ComplexObject):
     def __init__(
         self,
         named_children: Optional[Dict[str, nn.Module]] = None,
@@ -42,7 +42,7 @@ class Module(nn.Module, Object):
         pass
 
     def __repr__(self):
-        return Object.__repr__(self)
+        return ComplexObject.__repr__(self)
 
     def torch_repr(self):
         return nn.Module.__repr__(self)

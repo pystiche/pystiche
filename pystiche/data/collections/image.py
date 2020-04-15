@@ -14,7 +14,7 @@ from pystiche.image import read_image
 __all__ = ["Image", "DownloadableImage"]
 
 
-class Image(pystiche.Object):
+class Image(pystiche.ComplexObject):
     def __init__(
         self,
         file: str,

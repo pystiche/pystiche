@@ -17,14 +17,14 @@ from typing import (
 import torch
 from torch import nn
 
-from pystiche.misc import build_fmtstr, build_obj_str, format_dict
+from pystiche.misc import build_fmtstr, build_obj_str, format_dict, warn_deprecation
 
 from ._meta import is_scalar_tensor
 
-__all__ = ["Object", "TensorStorage", "LossDict", "TensorKey"]
+__all__ = ["ComplexObject", "TensorStorage", "LossDict", "TensorKey"]
 
 
-class Object(ABC):
+class ComplexObject(ABC):
     _STR_INDENT = 2
 
     def _properties(self) -> Dict[str, Any]:
@@ -76,9 +76,17 @@ class Object(ABC):
         return self._build_repr()
 
 
+class Object(ComplexObject):
+    def __init__(self, *args, **kwargs):
+        warn_deprecation(
+            "class", "Object", "0.4", info="It was renamed to ComplexObject."
+        )
+        super().__init__(*args, **kwargs)
+
+
 # TODO: can this be removed for now?
 #  If not it should subclass pystiche.Module and thus should be moved to ._modules
-class TensorStorage(nn.Module, Object):
+class TensorStorage(nn.Module, ComplexObject):
     def __init__(self, **attrs: Dict[str, Any]) -> None:
         super().__init__()
         for name, attr in attrs.items():

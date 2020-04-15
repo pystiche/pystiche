@@ -2,14 +2,14 @@ from typing import Optional
 
 import torch
 
-from pystiche import Object
+from pystiche import ComplexObject
 from pystiche.image.transforms.functional import resize
 from pystiche.misc import verify_str_arg
 
 __all__ = ["PyramidLevel"]
 
 
-class PyramidLevel(Object):
+class PyramidLevel(ComplexObject):
     def __init__(self, edge_size: int, num_steps: int, edge: str):
         self.edge_size = edge_size
         self.num_steps: int = num_steps

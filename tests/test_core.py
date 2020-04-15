@@ -15,20 +15,20 @@ from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
 class TestBase(PysticheTestCase):
-    def test_Object_repr_smoke(self):
-        class TestObject(pystiche.Object):
+    def test_ComplexObject_repr_smoke(self):
+        class TestObject(pystiche.ComplexObject):
             pass
 
         test_object = TestObject()
         self.assertIsInstance(repr(test_object), str)
 
-    def test_Object_repr(self):
+    def test_ComplexObject_repr(self):
         _properties = OrderedDict((("a", 1),))
         extra_properties = OrderedDict((("b", 2),))
         _named_children = (("c", 3),)
         extra_named_children = (("d", 4),)
 
-        class TestObject(pystiche.Object):
+        class TestObject(pystiche.ComplexObject):
             def _properties(self):
                 return _properties
 
