@@ -493,13 +493,21 @@ class TestModules(PysticheTestCase):
         with self.assertRaises(RuntimeError):
             TestModule(named_children=named_children, indexed_children=indexed_children)
 
-    def test_Module_extra_repr_smoke(self):
+    def test_Module_repr_smoke(self):
         class TestModule(pystiche.Module):
             def forward(self):
                 pass
 
         test_module = TestModule()
-        self.assertIsInstance(test_module.extra_repr(), str)
+        self.assertIsInstance(repr(test_module), str)
+
+    def test_Module_torch_repr_smoke(self):
+        class TestModule(pystiche.Module):
+            def forward(self):
+                pass
+
+        test_module = TestModule()
+        self.assertIsInstance(test_module.torch_repr(), str)
 
     def test_SequentialModule(self):
         modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
