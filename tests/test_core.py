@@ -14,7 +14,7 @@ from pystiche.misc import build_obj_str
 from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
-class TestBase(PysticheTestCase):
+class TestObjects(PysticheTestCase):
     def test_ComplexObject_repr_smoke(self):
         class TestObject(pystiche.ComplexObject):
             pass
