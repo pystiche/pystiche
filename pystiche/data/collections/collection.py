@@ -12,6 +12,7 @@ class ImageCollection(pystiche.Object):
         self, images: Dict[str, Image], root: Optional[str] = None,
     ):
         self.images = images
+        # TODO: is root needed here?
         if root is None:
             root = pystiche.home()
         self.root = root
