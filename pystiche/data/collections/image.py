@@ -102,18 +102,26 @@ class DownloadableImage(Image):
             download_and_transform(file)
             return
 
-        if self.md5 is None or check_md5(file, self.md5):
-            return
+        msg_tail = "If you want to overwrite it, set overwrite=True."
 
-        if overwrite:
-            download_and_transform(file)
-            return
+        if self.md5 is None:
+            if overwrite:
+                download_and_transform(file)
+                return
+            else:
+                msg = f"{file} already exists in {root}. {msg_tail}"
+                raise FileExistsError(msg)
 
-        msg = (
-            f"{file} with a different MD5 hash is already present in {root}."
-            f"If you want to overwrite it, set overwrite=True."
-        )
-        raise RuntimeError(msg)
+        if not check_md5(file, self.md5):
+            if overwrite:
+                download_and_transform(file)
+                return
+            else:
+                msg = (
+                    f"{file} with a different MD5 hash already exists in {root}. "
+                    f"{msg_tail}"
+                )
+                raise FileExistsError(msg)
 
     def read(
         self,
