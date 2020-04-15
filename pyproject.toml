@@ -20,18 +20,20 @@ multi_line_output = 3
 force_grid_wrap = 0
 include_trailing_comma = true
 
-known_standard_library = ["typing_extensions"]
+known_standard_library = ["setuptools", "typing_extensions"]
 known_third_party = [
+  "bs4",
+  "dill",
+  "matplotlib",
   "numpy",
   "PIL",
-  "requests",
-  "pyimagetest",
   "pillow_affine",
-  "matplotlib",
+  "pyimagetest",
   "pytest",
-  "dill"
+  "requests",
 ]
 known_pytorch = ["torch", "torchvision"]
+known_first_party = ["pystiche", "utils"]
 sections= ["FUTURE", "STDLIB", "THIRDPARTY", "PYTORCH", "FIRSTPARTY", "LOCALFOLDER"]
 
 [tool.black]

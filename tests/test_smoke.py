@@ -7,7 +7,6 @@ import tempfile
 import unittest
 from importlib import import_module, util
 from os import path
-
 from setuptools import find_packages
 
 PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), ".."))
