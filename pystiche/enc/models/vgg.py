@@ -113,7 +113,7 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
             warn_deprecation(
                 "layer pattern",
                 old_layer,
-                "0.4",
+                "0.4.0",
                 info=(
                     f"Please remove the underscore between the layer type and the "
                     f"block number, i.e. {layer}."
@@ -128,7 +128,7 @@ class VGGEncoder(MultiLayerVGGEncoder):
         warn_deprecation(
             "class",
             "VGGEncoder",
-            "0.4",
+            "0.4.0",
             info="It was replaced by MultiLayerVGGEncoder.",
         )
         super().__init__(*args, **kwargs)
@@ -179,7 +179,7 @@ def _vgg_encoder(arch: str, **kwargs) -> MultiLayerVGGEncoder:
     warn_deprecation(
         "function",
         f"{arch}_encoder",
-        "0.4",
+        "0.4.0",
         info=f"It was replaced by {arch}_multi_layer_encoder",
     )
     return MultiLayerVGGEncoder(arch, **kwargs)

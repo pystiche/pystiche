@@ -6,6 +6,6 @@ from .transforms.processing import *  # noqa: F401, F403
 warn_deprecation(
     "module",
     "pystiche.image.processing",
-    "0.4",
+    "0.4.0",
     info="It was moved to pystiche.image.transforms.processing",
 )

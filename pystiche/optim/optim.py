@@ -159,7 +159,7 @@ def default_transformer_optim_loop(
         warn_deprecation(
             "parameter",
             "get_optimizer",
-            "0.4",
+            "0.4.0",
             info="You can achieve the same functionality by passing optimizer=get_optimizer(transformer).",
             url="https://github.com/pmeier/pystiche/pull/96",
         )

@@ -88,7 +88,7 @@ class MultiLayerEncoder(pystiche.Module):
         warn_deprecation(
             "method",
             "MultiLayerEncoder.__getitem__",
-            "0.4",
+            "0.4.0",
             info=(
                 "To extract a single layer encoder use MultiLayerEncoder.extract_"
                 "single_layer_encoder() instead."

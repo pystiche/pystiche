@@ -1,13 +1,26 @@
+from importlib.util import module_from_spec, spec_from_file_location
 from os import path
 
 from setuptools import find_packages, setup
 
-about = {}
-here = path.abspath(path.dirname(__file__))
-with open(path.join(here, "pystiche", "__about__.py"), "r") as fh:
+PROJECT_ROOT = path.abspath(path.dirname(__file__))
+PACKAGE_NAME = "pystiche"
+PACKAGE_ROOT = path.join(PROJECT_ROOT, PACKAGE_NAME)
+
+
+def load_git_module():
+    spec = spec_from_file_location(PACKAGE_NAME, path.join(PACKAGE_ROOT, "_git.py"),)
+    git = module_from_spec(spec)
+    spec.loader.exec_module(git)
+    return git
+
+
+git = load_git_module()
+about = {"git": git, "_PROJECT_ROOT": PROJECT_ROOT}
+with open(path.join(PACKAGE_ROOT, "__about__.py"), "r") as fh:
     exec(fh.read(), about)
 
-with open(path.join(here, "README.md"), "r") as fh:
+with open(path.join(PROJECT_ROOT, "README.md"), "r") as fh:
     long_description = fh.read()
 
 install_requires = (
@@ -56,7 +69,7 @@ setup(
     author_email=about["__author_email__"],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=find_packages(where=here, exclude=("docs", "test", "tutorials")),
+    packages=find_packages(where=PROJECT_ROOT, exclude=("docs", "test", "tutorials")),
     install_requires=install_requires,
     extras_require=extras_require,
     python_requires=">=3.6",

@@ -133,7 +133,7 @@ class GatysEckerBethge2015PerceptualLoss(PerceptualLoss):
         warn_deprecation(
             "class",
             "GatysEckerBethge2015PerceptualLoss",
-            "0.4",
+            "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
         super().__init__(content_loss, style_loss)

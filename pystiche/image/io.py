@@ -92,7 +92,7 @@ def _pil_resize(
         warn_deprecation(
             "parameter",
             "resize_kwargs",
-            "0.4",
+            "0.4.0",
             info="The keyword arguments are ignored",
         )
 
