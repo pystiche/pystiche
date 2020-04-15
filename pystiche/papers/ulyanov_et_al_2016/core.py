@@ -7,6 +7,7 @@ from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
 import pystiche
+from pystiche.loss import PerceptualLoss
 from pystiche.optim import OptimLogger, default_transformer_epoch_optim_loop
 
 from ..common_utils import batch_up_image
@@ -17,7 +18,7 @@ from .data import (
     ulyanov_et_al_2016_images,
     ulyanov_et_al_2016_style_transform,
 )
-from .loss import UlyanovEtAl2016PerceptualLoss, ulyanov_et_al_2016_perceptual_loss
+from .loss import ulyanov_et_al_2016_perceptual_loss
 from .modules import UlyanovEtAl2016Transformer, ulyanov_et_al_2016_transformer
 from .utils import (
     ulyanov_et_al_2016_lr_scheduler,
@@ -45,7 +46,7 @@ def ulyanov_et_al_2016_training(
     instance_norm: bool = True,
     stylization: bool = True,
     transformer: Optional[UlyanovEtAl2016Transformer] = None,
-    criterion: Optional[UlyanovEtAl2016PerceptualLoss] = None,
+    criterion: Optional[PerceptualLoss] = None,
     lr_scheduler: Optional[ExponentialLR] = None,
     num_epochs: Optional[int] = None,
     get_optimizer: Optional[Callable[[UlyanovEtAl2016Transformer], Optimizer]] = None,

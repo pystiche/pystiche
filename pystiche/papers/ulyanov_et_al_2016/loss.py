@@ -1,14 +1,21 @@
-from collections import OrderedDict
 from typing import Any, Dict, Optional, Sequence, Union
 
 import torch
 
 from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.image import extract_batch_size
-from pystiche.loss import MultiOperatorLoss
+from pystiche.loss import PerceptualLoss
 from pystiche.ops import GramOperator, MSEEncodingOperator, MultiLayerEncodingOperator
 
 from .utils import ulyanov_et_al_2016_multi_layer_encoder
+
+__all__ = [
+    "UlyanovEtAl2016MSEEncodingOperator",
+    "ulyanov_et_al_2016_content_loss",
+    "UlyanovEtAl2016GramOperator",
+    "ulyanov_et_al_2016_style_loss",
+    "ulyanov_et_al_2016_perceptual_loss",
+]
 
 
 class UlyanovEtAl2016MSEEncodingOperator(MSEEncodingOperator):
@@ -118,26 +125,6 @@ def ulyanov_et_al_2016_style_loss(
     )
 
 
-class UlyanovEtAl2016PerceptualLoss(MultiOperatorLoss):
-    def __init__(
-        self,
-        style_loss: MultiLayerEncodingOperator,
-        content_loss: MSEEncodingOperator = None,
-    ) -> None:
-
-        modules = [("style_loss", style_loss)]
-        if content_loss is not None:
-            modules.append([("content_loss", content_loss)])
-
-        super().__init__(OrderedDict(modules))
-
-    def set_content_image(self, image: torch.Tensor):
-        self.content_loss.set_target_image(image)
-
-    def set_style_image(self, image: torch.Tensor):
-        self.style_loss.set_target_image(image)
-
-
 def ulyanov_et_al_2016_perceptual_loss(
     impl_params: bool = True,
     instance_norm: bool = True,
@@ -145,7 +132,7 @@ def ulyanov_et_al_2016_perceptual_loss(
     multi_layer_encoder: Optional[MultiLayerEncoder] = None,
     content_loss_kwargs: Optional[Dict[str, Any]] = None,
     style_loss_kwargs: Optional[Dict[str, Any]] = None,
-) -> UlyanovEtAl2016PerceptualLoss:
+) -> PerceptualLoss:
     if multi_layer_encoder is None:
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()
 
@@ -170,4 +157,5 @@ def ulyanov_et_al_2016_perceptual_loss(
         )
     else:
         content_loss = None
-    return UlyanovEtAl2016PerceptualLoss(style_loss, content_loss=content_loss)
+
+    return PerceptualLoss(content_loss, style_loss)
