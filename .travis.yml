@@ -22,4 +22,4 @@ jobs:
         - pip install --upgrade pytest
       script:
         - coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
-      after success: codecov
+      after_success: codecov
