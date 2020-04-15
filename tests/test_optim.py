@@ -5,6 +5,7 @@ import torch
 from torch import nn
 from torch.optim.optimizer import Optimizer
 
+import pystiche
 from pystiche import optim
 from utils import PysticheTestCase
 
@@ -141,6 +142,31 @@ class TestMeter(PysticheTestCase):
             self.assertIsInstance(str(meter), str)
             meter.update(0.0)
             self.assertIsInstance(str(meter), str)
+
+    def test_LossMeter_update_LossDict(self):
+        actual_meter = optim.LossMeter("actual_meter")
+        desired_meter = optim.LossMeter("desired_meter")
+
+        losses = torch.arange(3, dtype=torch.float)
+        loss_dict = pystiche.LossDict(
+            [(str(idx), loss) for idx, loss in enumerate(losses)]
+        )
+
+        actual_meter.update(loss_dict)
+        desired_meter.update(torch.sum(losses).item())
+
+        for attr in (
+            "count",
+            "last_val",
+            "global_sum",
+            "global_min",
+            "global_max",
+            "global_avg",
+            "local_avg",
+        ):
+            actual = getattr(actual_meter, attr)
+            desired = getattr(desired_meter, attr)
+            self.assertAlmostEqual(actual, desired)
 
     def test_ETAMeter(self):
         first_time = 1.0

@@ -5,6 +5,7 @@ from typing import Any, Callable, Collection, Optional, Union
 
 import torch
 
+import pystiche
 from pystiche.misc import build_deprecation_message, build_fmtstr, warn_deprecation
 
 __all__ = [
@@ -167,6 +168,13 @@ class AverageMeter(FloatMeter):
 class LossMeter(AverageMeter):
     def __init__(self, name: str = "loss", fmt: str = "{:.3e}", **kwargs: Any) -> None:
         super().__init__(name, fmt=fmt, **kwargs)
+
+    def update(
+        self, val: Union[float, torch.Tensor, pystiche.LossDict],
+    ):
+        if isinstance(val, pystiche.LossDict):
+            val = float(val)
+        super().update(val)
 
 
 class TimeMeter(AverageMeter):
