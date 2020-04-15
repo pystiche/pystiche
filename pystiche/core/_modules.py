@@ -32,8 +32,8 @@ class Module(nn.Module, ComplexObject):
     def add_named_modules(self, modules: Sequence[Tuple[str, nn.Module]]) -> None:
         if isinstance(modules, dict):
             warn_deprecation(
-                "bla",
-                "blub",
+                "parameter named_modules as ",
+                "dict",
                 "0.4",
                 info="To achieve the same behavior you can pass tuple(modules.items())",
             )
