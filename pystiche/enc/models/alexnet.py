@@ -69,7 +69,7 @@ class AlexNetEncoder(MultiLayerAlexNetEncoder):
         warn_deprecation(
             "class",
             "AlexNetEncoder",
-            "0.4",
+            "0.4.0",
             info="It was replaced by MultiLayerAlexNetEncoder.",
         )
         super().__init__(*args, **kwargs)
@@ -85,7 +85,7 @@ def alexnet_encoder(*args, **kwargs):
     warn_deprecation(
         "function",
         "alexnet_encoder",
-        "0.4",
+        "0.4.0",
         info="It was replaced by alexnet_multi_layer_encoder",
     )
     return alexnet_multi_layer_encoder(*args, **kwargs)

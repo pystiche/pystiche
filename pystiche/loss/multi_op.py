@@ -21,7 +21,7 @@ class MultiOperatorLoss(pystiche.Module):
             warn_deprecation(
                 "variable number of input",
                 "*args",
-                "0.4",
+                "0.4.0",
                 info="Please construct a MultiOperatorLoss with a dictionary of named operators.",
             )
             named_children = None
@@ -68,7 +68,7 @@ class MultiOperatorLoss(pystiche.Module):
         warn_deprecation(
             "method",
             "__getitem__",
-            "0.4",
+            "0.4.0",
             info="If you need dynamic access to the operators, use getattr() instead.",
         )
         if isinstance(item, str):
@@ -79,7 +79,7 @@ class MultiOperatorLoss(pystiche.Module):
             raise TypeError
 
     def __delitem__(self, item: Union[str, int]):
-        warn_deprecation("method", "__delitem__", "0.4")
+        warn_deprecation("method", "__delitem__", "0.4.0")
         if isinstance(item, str):
             del self._modules[item]
         elif isinstance(item, int):

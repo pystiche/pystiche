@@ -207,7 +207,7 @@ class LiWand2016PerceptualLoss(PerceptualLoss):
         warn_deprecation(
             "class",
             "LiWand2016PerceptualLoss",
-            "0.4",
+            "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
         super().__init__(

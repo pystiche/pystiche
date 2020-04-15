@@ -150,7 +150,7 @@ class GatysEtAl2017PerceptualLoss(PerceptualLoss):
         warn_deprecation(
             "class",
             "GatysEtAl2017PerceptualLoss",
-            "0.4",
+            "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
         super().__init__(content_loss, style_loss)
@@ -189,7 +189,7 @@ class GatysEtAl2017GuidedPerceptualLoss(GuidedPerceptualLoss):
         warn_deprecation(
             "class",
             "GatysEtAl2017GuidedPerceptualLoss",
-            "0.4",
+            "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
         super().__init__(content_loss, style_loss)
