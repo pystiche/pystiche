@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from os import path
 
 import pytest
@@ -85,25 +84,25 @@ class TestModels(PysticheTestCase):
 
 class TestMultiLayerEncoder(PysticheTestCase):
     def test_MultiLayerEncoder(self):
-        modules = OrderedDict([(str(idx), nn.Module()) for idx in range(3)])
+        modules = [(str(idx), nn.Module()) for idx in range(3)]
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
-        for name, module in modules.items():
+        for name, module in modules:
             actual = getattr(multi_layer_encoder, name)
             desired = module
             self.assertIs(actual, desired)
 
     def test_MultiLayerEncoder_named_children(self):
-        modules = OrderedDict([(str(idx), nn.Module()) for idx in range(3)])
+        modules = [(str(idx), nn.Module()) for idx in range(3)]
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         actual = tuple(multi_layer_encoder.children_names())
-        desired = tuple(modules.keys())
+        desired = tuple(zip(*modules))[0]
         self.assertTupleEqual(actual, desired)
 
     def test_MultiLayerEncoder_contains(self):
         idcs = (0, 2)
-        modules = OrderedDict([(str(idx), nn.Module()) for idx in idcs])
+        modules = [(str(idx), nn.Module()) for idx in idcs]
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         for idx in idcs:
@@ -113,8 +112,9 @@ class TestMultiLayerEncoder(PysticheTestCase):
             self.assertFalse(str(idx) in multi_layer_encoder)
 
     def test_MultiLayerEncoder_extract_deepest_layer(self):
-        layers, modules = zip(*[(str(idx), nn.Module()) for idx in range(3)])
-        multi_layer_encoder = enc.MultiLayerEncoder(OrderedDict(zip(layers, modules)))
+        layers = [str(idx) for idx in range(3)]
+        modules = [(layer, nn.Module()) for layer in layers]
+        multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         actual = multi_layer_encoder.extract_deepest_layer(layers)
         desired = layers[-1]
@@ -136,29 +136,31 @@ class TestMultiLayerEncoder(PysticheTestCase):
         self.assertEqual(actual, desired)
 
     def test_MultiLayerEncoder_named_children_to(self):
-        layers, modules = zip(*[(str(idx), nn.Module()) for idx in range(3)])
-        multi_layer_encoder = enc.MultiLayerEncoder(OrderedDict(zip(layers, modules)))
+        layers = [str(idx) for idx in range(3)]
+        modules = [(layer, nn.Module()) for layer in layers]
+        multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         actuals = multi_layer_encoder.named_children_to(layers[-2])
-        desireds = tuple(zip(layers, modules))[:-2]
+        desireds = modules[:-2]
         self.assertNamedChildrenEqual(actuals, desireds)
 
         actuals = multi_layer_encoder.named_children_to(layers[-2], include_last=True)
-        desireds = tuple(zip(layers, modules))[:-1]
+        desireds = modules[:-1]
         self.assertNamedChildrenEqual(actuals, desireds)
 
     def test_MultiLayerEncoder_named_children_from(self):
-        layers, modules = zip(*[(str(idx), nn.Module()) for idx in range(3)])
-        multi_layer_encoder = enc.MultiLayerEncoder(OrderedDict(zip(layers, modules)))
+        layers = [str(idx) for idx in range(3)]
+        modules = [(layer, nn.Module()) for layer in layers]
+        multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         actuals = multi_layer_encoder.named_children_from(layers[-2])
-        desireds = tuple(zip(layers, modules))[1:]
+        desireds = modules[1:]
         self.assertNamedChildrenEqual(actuals, desireds)
 
         actuals = multi_layer_encoder.named_children_from(
             layers[-2], include_first=False
         )
-        desireds = tuple(zip(layers, modules))[2:]
+        desireds = modules[2:]
         self.assertNamedChildrenEqual(actuals, desireds)
 
     def test_MultiLayerEncoder_call(self):
@@ -168,7 +170,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
         pool = nn.MaxPool2d(2)
         input = torch.rand(1, 3, 128, 128)
 
-        modules = OrderedDict((("conv", conv), ("relu", relu), ("pool", pool)))
+        modules = (("conv", conv), ("relu", relu), ("pool", pool))
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         layers = ("conv", "pool")
@@ -186,10 +188,10 @@ class TestMultiLayerEncoder(PysticheTestCase):
         torch.manual_seed(0)
         count = ForwardPassCounter()
 
-        modules = OrderedDict((("count", count),))
+        modules = (("count", count),)
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
-        layers = ("count",)
 
+        layers = ("count",)
         input = torch.rand(1, 3, 128, 128)
         multi_layer_encoder(input, layers, store=True)
         multi_layer_encoder(input, layers)
@@ -209,7 +211,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
         conv = nn.Conv2d(3, 1, 1)
         relu = nn.ReLU(inplace=False)
 
-        modules = OrderedDict((("conv", conv), ("relu", relu)))
+        modules = (("conv", conv), ("relu", relu))
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         layer = "relu"
@@ -228,7 +230,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
         relu = nn.ReLU(inplace=False)
         input = torch.rand(1, 3, 128, 128)
 
-        modules = OrderedDict((("count", count), ("conv", conv), ("relu", relu)))
+        modules = (("count", count), ("conv", conv), ("relu", relu))
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         layers = ("conv", "relu")
@@ -253,7 +255,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
         count = ForwardPassCounter()
         input = torch.rand(1, 3, 128, 128)
 
-        modules = OrderedDict((("count", count),))
+        modules = (("count", count),)
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         layers = ("count",)
@@ -266,10 +268,11 @@ class TestMultiLayerEncoder(PysticheTestCase):
         self.assertEqual(actual, desired)
 
     def test_MultiLayerEncoder_trim(self):
-        modules = OrderedDict([(str(idx), nn.Module()) for idx in range(3)])
+        layers = [str(idx) for idx in range(3)]
+        modules = [(layer, nn.Module()) for layer in layers]
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
-        for name, module in modules.items():
+        for name, module in modules:
             actual = getattr(multi_layer_encoder, name)
             desired = module
             self.assertIs(actual, desired)
@@ -277,20 +280,21 @@ class TestMultiLayerEncoder(PysticheTestCase):
         idx = 1
         multi_layer_encoder.trim((str(idx),))
 
-        for name, module in tuple(modules.items())[: idx + 1]:
+        for name, module in modules[: idx + 1]:
             actual = getattr(multi_layer_encoder, name)
             desired = module
             self.assertIs(actual, desired)
 
-        for name in tuple(modules.keys())[idx + 1 :]:
+        for name in tuple(zip(*modules))[0][idx + 1 :]:
             with self.assertRaises(AttributeError):
                 getattr(multi_layer_encoder, name)
 
     def test_MultiLayerEncoder_trim_layers(self):
-        modules = OrderedDict([(str(idx), nn.Module()) for idx in range(3)])
+        layers = [str(idx) for idx in range(3)]
+        modules = [(layer, nn.Module()) for layer in layers]
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
-        for name, module in modules.items():
+        for name, module in modules:
             actual = getattr(multi_layer_encoder, name)
             desired = module
             self.assertIs(actual, desired)
@@ -301,12 +305,12 @@ class TestMultiLayerEncoder(PysticheTestCase):
         )
         multi_layer_encoder.trim()
 
-        for name, module in tuple(modules.items())[: idx + 1]:
+        for name, module in modules[: idx + 1]:
             actual = getattr(multi_layer_encoder, name)
             desired = module
             self.assertIs(actual, desired)
 
-        for name in tuple(modules.keys())[idx + 1 :]:
+        for name in tuple(zip(*modules))[0][idx + 1 :]:
             with self.assertRaises(AttributeError):
                 getattr(multi_layer_encoder, name)
 
@@ -316,7 +320,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
         relu = nn.ReLU(inplace=False)
         input = torch.rand(1, 3, 128, 128)
 
-        modules = OrderedDict((("conv", conv), ("relu", relu)))
+        modules = (("conv", conv), ("relu", relu))
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         single_layer_encoder = enc.SingleLayerEncoder(multi_layer_encoder, "conv")

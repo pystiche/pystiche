@@ -1,4 +1,4 @@
-from typing import Dict, Iterator, Tuple, Union
+from typing import Iterator, Sequence, Tuple, Union
 
 import torch
 
@@ -12,20 +12,26 @@ __all__ = ["MultiOperatorLoss"]
 
 class MultiOperatorLoss(pystiche.Module):
     def __init__(
-        self, *args: Union[Dict[str, Operator], Operator], trim: bool = True
+        self, *named_ops: Sequence[Tuple[str, Operator]], trim: bool = True
     ) -> None:
-        if len(args) == 1 and isinstance(args[0], dict):
-            named_children = args[0]
+        info = (
+            "Please construct a MultiOperatorLoss with a sequence of named operators."
+        )
+        if len(named_ops) == 1:
+            if isinstance(named_ops[0], dict):
+                named_children = tuple(named_ops[0].items())
+                warn_deprecation(
+                    "input as dictionary of ", "named_ops", "0.4.0", info=info,
+                )
+            else:
+                named_children = named_ops[0]
             indexed_children = None
         else:
             warn_deprecation(
-                "variable number of input",
-                "*args",
-                "0.4.0",
-                info="Please construct a MultiOperatorLoss with a dictionary of named operators.",
+                "variable number of input", "*args", "0.4.0", info=info,
             )
             named_children = None
-            indexed_children = args
+            indexed_children = named_ops
 
         super().__init__(
             named_children=named_children, indexed_children=indexed_children

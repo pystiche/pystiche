@@ -30,9 +30,9 @@ class MultiLayerAlexNetEncoder(MultiLayerEncoder):
         base_model.load_state_dict(state_dict)
         model = base_model.features
 
-        modules = OrderedDict()
+        modules = []
         if self.preprocessing:
-            modules["preprocessing"] = get_preprocessor(self.weights)
+            modules.append(("preprocessing", get_preprocessor(self.weights)))
         block = 1
         for module in model.children():
             if isinstance(module, nn.Conv2d):
@@ -50,7 +50,7 @@ class MultiLayerAlexNetEncoder(MultiLayerEncoder):
                 # each pooling layer marks the end of the current block
                 block += 1
 
-            modules[name] = module
+            modules.append((name, module))
 
         return modules
 

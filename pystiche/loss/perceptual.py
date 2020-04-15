@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from typing import Optional
 
 import torch
@@ -22,20 +21,20 @@ class _PerceptualLoss(MultiOperatorLoss):
         regularization: Optional[RegularizationOperator] = None,
         trim: bool = True,
     ) -> None:
-        ops = []
+        named_ops = []
         if content_loss is not None:
-            ops.append((self._CONTENT_LOSS_ID, content_loss))
+            named_ops.append((self._CONTENT_LOSS_ID, content_loss))
         if style_loss is not None:
-            ops.append((self._STYLE_LOSS_ID, style_loss))
+            named_ops.append((self._STYLE_LOSS_ID, style_loss))
 
-        if not ops:
+        if not named_ops:
             msg = "PerceptualLoss requires at least content_loss or style_loss."
             raise RuntimeError(msg)
 
         if regularization is not None:
-            ops.append((self._REGULARIZATION_ID, regularization))
+            named_ops.append((self._REGULARIZATION_ID, regularization))
 
-        super().__init__(OrderedDict(ops), trim=trim)
+        super().__init__(named_ops, trim=trim)
 
     @property
     def has_content_loss(self) -> bool:

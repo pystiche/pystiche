@@ -64,9 +64,9 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
         base_model.load_state_dict(state_dict)
         model = base_model.features
 
-        modules = OrderedDict()
+        modules = []
         if self.internal_preprocessing:
-            modules["preprocessing"] = get_preprocessor(self.weights)
+            modules.append(("preprocessing", get_preprocessor(self.weights)))
 
         block = depth = 1
         for module in model.children():
@@ -86,7 +86,7 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
                 block += 1
                 depth = 1
 
-            modules[name] = module
+            modules.append((name, module))
 
         return modules
 

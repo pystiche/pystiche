@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from itertools import chain, combinations
 
 import torch
@@ -30,7 +29,7 @@ class TestMultiOp(PysticheTestCase):
                 pass
 
         named_ops = [(str(idx), TestOperator()) for idx in range(3)]
-        multi_op_loss = loss.MultiOperatorLoss(OrderedDict(named_ops))
+        multi_op_loss = loss.MultiOperatorLoss(named_ops)
 
         actuals = multi_op_loss.named_children()
         desireds = named_ops
@@ -45,16 +44,14 @@ class TestMultiOp(PysticheTestCase):
                 pass
 
         layers = [str(idx) for idx in range(3)]
-        modules = OrderedDict([(layer, nn.Module()) for layer in layers])
+        modules = [(layer, nn.Module()) for layer in layers]
         multi_layer_encoder = MultiLayerEncoder(modules)
 
-        ops = OrderedDict(
+        ops = (
             (
-                (
-                    "op",
-                    TestOperator(
-                        multi_layer_encoder.extract_single_layer_encoder(layers[0])
-                    ),
+                "op",
+                TestOperator(
+                    multi_layer_encoder.extract_single_layer_encoder(layers[0])
                 ),
             ),
         )
@@ -76,7 +73,7 @@ class TestMultiOp(PysticheTestCase):
         input = torch.tensor(0.0)
 
         named_ops = [(str(idx), TestOperator(idx + 1.0)) for idx in range(3)]
-        multi_op_loss = loss.MultiOperatorLoss(OrderedDict(named_ops))
+        multi_op_loss = loss.MultiOperatorLoss(named_ops)
 
         actual = multi_op_loss(input)
         desired = pystiche.LossDict([(name, input + op.bias) for name, op in named_ops])
@@ -91,20 +88,16 @@ class TestMultiOp(PysticheTestCase):
                 return torch.mean(input_repr)
 
         count = ForwardPassCounter()
-        modules = OrderedDict((("count", count),))
+        modules = (("count", count),)
         multi_layer_encoder = MultiLayerEncoder(modules)
 
-        ops = OrderedDict(
-            [
-                (
-                    str(idx),
-                    TestOperator(
-                        multi_layer_encoder.extract_single_layer_encoder("count")
-                    ),
-                )
-                for idx in range(3)
-            ]
-        )
+        ops = [
+            (
+                str(idx),
+                TestOperator(multi_layer_encoder.extract_single_layer_encoder("count")),
+            )
+            for idx in range(3)
+        ]
         multi_op_loss = loss.MultiOperatorLoss(ops)
 
         torch.manual_seed(0)
