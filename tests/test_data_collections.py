@@ -26,11 +26,11 @@ class TestCollection(PysticheTestCase):
         desired = images
         self.assertDictEqual(actual, desired)
 
-    def test_ImageCollection_str_smoke(self):
+    def test_ImageCollection_repr_smoke(self):
         images = {str(idx): data.Image(str(idx)) for idx in range(3)}
         collection = data.ImageCollection(images)
 
-        self.assertIsInstance(str(collection), str)
+        self.assertIsInstance(repr(collection), str)
 
     def test_DownloadableImageCollection(self):
         with get_tmp_dir() as root:
@@ -52,9 +52,9 @@ class TestImage(PysticheTestCase):
         desired = self.load_image()
         self.assertImagesAlmostEqual(actual, desired)
 
-    def test_Image_str_smoke(self):
+    def test_Image_repr_smoke(self):
         image = data.Image("image")
-        self.assertIsInstance(str(image), str)
+        self.assertIsInstance(repr(image), str)
 
     def test_DownloadableImage_generate_file(self):
         url = TEST_IMAGE_URL
@@ -137,6 +137,6 @@ class TestImage(PysticheTestCase):
             desired = self.load_image()
             self.assertImagesAlmostEqual(actual, desired)
 
-    def test_DownloadableImage_str_smoke(self):
+    def test_DownloadableImage_repr_smoke(self):
         image = data.DownloadableImage(TEST_IMAGE_URL)
-        self.assertIsInstance(str(image), str)
+        self.assertIsInstance(repr(image), str)

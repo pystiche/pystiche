@@ -15,12 +15,12 @@ from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
 class TestBase(PysticheTestCase):
-    def test_Object_str_smoke(self):
+    def test_Object_repr_smoke(self):
         class TestObject(pystiche.Object):
             pass
 
         test_object = TestObject()
-        self.assertIsInstance(str(test_object), str)
+        self.assertIsInstance(repr(test_object), str)
 
     def test_Object_repr(self):
         _properties = OrderedDict((("a", 1),))
@@ -192,11 +192,11 @@ class TestBase(PysticheTestCase):
             desired = loss * factor
             self.assertAlmostEqual(actual, desired)
 
-    def test_LossDict_str_smoke(self):
+    def test_LossDict_repr_smoke(self):
         loss_dict = pystiche.LossDict(
             (("a", torch.tensor(0.0)), ("b", torch.tensor(1.0)))
         )
-        self.assertIsInstance(str(loss_dict), str)
+        self.assertIsInstance(repr(loss_dict), str)
 
     def test_TensorKey_eq(self):
         x = torch.tensor((0.0, 0.5, 1.0))
