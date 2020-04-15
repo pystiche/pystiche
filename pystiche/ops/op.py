@@ -116,8 +116,8 @@ class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
         dct["encoder"] = self.encoder
         return dct
 
-    def __str__(self) -> str:
-        return self._build_str(named_children=())
+    def __repr__(self) -> str:
+        return self._build_repr(named_children=())
 
 
 class PixelComparisonOperator(PixelOperator, ComparisonOperator):
@@ -241,5 +241,5 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
         dct["encoder"] = self.encoder
         return dct
 
-    def __str__(self) -> str:
-        return self._build_str(named_children=())
+    def __repr__(self) -> str:
+        return self._build_repr(named_children=())

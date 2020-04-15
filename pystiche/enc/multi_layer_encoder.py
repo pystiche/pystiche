@@ -150,12 +150,12 @@ class SingleLayerEncoder(Encoder):
     def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
         return self.multi_layer_encoder.propagate_guide(guide, layers=(self.layer,))[0]
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         name = self.multi_layer_encoder.__class__.__name__
         properties = OrderedDict()
         properties["layer"] = self.layer
         properties.update(self.multi_layer_encoder.properties())
         named_children = ()
-        return self._build_str(
+        return self._build_repr(
             name=name, properties=properties, named_children=named_children
         )

@@ -10,24 +10,25 @@ import torch
 from torch import nn
 
 import pystiche
+from pystiche.misc import build_obj_str
 from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
 class TestBase(PysticheTestCase):
-    def test_Object_str_smoke(self):
-        class TestObject(pystiche.Object):
+    def test_ComplexObject_repr_smoke(self):
+        class TestObject(pystiche.ComplexObject):
             pass
 
         test_object = TestObject()
-        self.assertIsInstance(str(test_object), str)
+        self.assertIsInstance(repr(test_object), str)
 
-    def test_Object_str(self):
+    def test_ComplexObject_repr(self):
         _properties = OrderedDict((("a", 1),))
         extra_properties = OrderedDict((("b", 2),))
         _named_children = (("c", 3),)
         extra_named_children = (("d", 4),)
 
-        class TestObject(pystiche.Object):
+        class TestObject(pystiche.ComplexObject):
             def _properties(self):
                 return _properties
 
@@ -51,8 +52,8 @@ class TestBase(PysticheTestCase):
         )
         named_children = tuple(itertools.chain(_named_children, extra_named_children))
 
-        actual = str(test_object)
-        desired = test_object._build_str(
+        actual = repr(test_object)
+        desired = build_obj_str(
             name="TestObject", properties=properties, named_children=named_children
         )
         self.assertEqual(actual, desired)
@@ -191,11 +192,11 @@ class TestBase(PysticheTestCase):
             desired = loss * factor
             self.assertAlmostEqual(actual, desired)
 
-    def test_LossDict_str_smoke(self):
+    def test_LossDict_repr_smoke(self):
         loss_dict = pystiche.LossDict(
             (("a", torch.tensor(0.0)), ("b", torch.tensor(1.0)))
         )
-        self.assertIsInstance(str(loss_dict), str)
+        self.assertIsInstance(repr(loss_dict), str)
 
     def test_TensorKey_eq(self):
         x = torch.tensor((0.0, 0.5, 1.0))
@@ -492,13 +493,21 @@ class TestModules(PysticheTestCase):
         with self.assertRaises(RuntimeError):
             TestModule(named_children=named_children, indexed_children=indexed_children)
 
-    def test_Module_extra_repr_smoke(self):
+    def test_Module_repr_smoke(self):
         class TestModule(pystiche.Module):
             def forward(self):
                 pass
 
         test_module = TestModule()
-        self.assertIsInstance(test_module.extra_repr(), str)
+        self.assertIsInstance(repr(test_module), str)
+
+    def test_Module_torch_repr_smoke(self):
+        class TestModule(pystiche.Module):
+            def forward(self):
+                pass
+
+        test_module = TestModule()
+        self.assertIsInstance(test_module.torch_repr(), str)
 
     def test_SequentialModule(self):
         modules = (nn.Conv2d(3, 3, 3), nn.ReLU())

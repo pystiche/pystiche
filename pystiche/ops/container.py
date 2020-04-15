@@ -94,30 +94,30 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
             if isinstance(op, Guidance):
                 op.set_input_guide(guide)
 
-    def __str__(self) -> str:
-        def build_encoder_str():
+    def __repr__(self) -> str:
+        def build_encoder_repr():
             multi_layer_encoder = next(self.children()).encoder.multi_layer_encoder
             name = multi_layer_encoder.__class__.__name__
             properties = multi_layer_encoder.properties()
             named_children = ()
-            return self._build_str(
+            return self._build_repr(
                 name=name, properties=properties, named_children=named_children
             )
 
-        def build_op_str(op):
+        def build_op_repr(op):
             properties = op.properties()
             del properties["encoder"]
-            return op._build_str(properties=properties, named_children=())
+            return op._build_repr(properties=properties, named_children=())
 
         properties = OrderedDict()
-        properties["encoder"] = build_encoder_str()
+        properties["encoder"] = build_encoder_repr()
         properties.update(self.properties())
 
         named_children = [
-            (name, build_op_str(op)) for name, op in self.named_children()
+            (name, build_op_repr(op)) for name, op in self.named_children()
         ]
 
-        return self._build_str(properties=properties, named_children=named_children)
+        return self._build_repr(properties=properties, named_children=named_children)
 
 
 class MultiRegionOperator(SameOperatorContainer):

@@ -7,7 +7,7 @@ from .image import DownloadableImage, Image
 __all__ = ["ImageCollection", "DownloadableImageCollection"]
 
 
-class ImageCollection(pystiche.Object):
+class ImageCollection(pystiche.ComplexObject):
     def __init__(
         self, images: Dict[str, Image], root: Optional[str] = None,
     ):
