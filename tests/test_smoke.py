@@ -1,16 +1,30 @@
 import itertools
 import os
 import re
-from importlib import import_module
+import unittest
+from importlib import import_module, util
 from os import path
 
 from setuptools import find_packages
 
-import pystiche
-from utils import PysticheTestCase
+PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), ".."))
+PACKAGE_NAME = "pystiche"
+PACKAGE_ROOT = path.join(PROJECT_ROOT, PACKAGE_NAME)
 
 
-class TestSmoke(PysticheTestCase):
+def load_package_under_test():
+    spec = util.spec_from_file_location(
+        PACKAGE_NAME, path.join(PACKAGE_ROOT, "__init__.py"),
+    )
+    put = util.module_from_spec(spec)
+    spec.loader.exec_module(put)
+    return put
+
+
+package_under_test = load_package_under_test()
+
+
+class TestCase(unittest.TestCase):
     def test_import(self):
         def find_modules(dir, package=None):
             if package is not None:
@@ -27,16 +41,16 @@ class TestSmoke(PysticheTestCase):
 
         public_packages = [
             package
-            for package in find_packages(self.package_root)
+            for package in find_packages(PACKAGE_ROOT)
             if not package.startswith("_")
         ]
 
-        public_modules = find_modules(self.package_root)
+        public_modules = find_modules(PACKAGE_ROOT)
         for package in public_packages:
-            public_modules.extend(find_modules(self.package_root, package=package))
+            public_modules.extend(find_modules(PACKAGE_ROOT, package=package))
 
         for module in itertools.chain(public_packages, public_modules):
-            import_module(f"pystiche.{module}")
+            import_module(f".{module}", package=PACKAGE_NAME)
 
     def test_about(self):
         for attr in (
@@ -48,10 +62,10 @@ class TestSmoke(PysticheTestCase):
             "author",
             "author_email",
         ):
-            self.assertIsInstance(getattr(pystiche, f"__{attr}__"), str)
+            self.assertIsInstance(getattr(package_under_test, f"__{attr}__"), str)
 
     def test_name(self):
-        self.assertEqual(pystiche.__name__, self.package_name)
+        self.assertEqual(package_under_test.__name__, PACKAGE_NAME)
 
     def test_version(self):
         def is_canonical(version):
@@ -65,4 +79,12 @@ class TestSmoke(PysticheTestCase):
                 is not None
             )
 
-        self.assertTrue(is_canonical(pystiche.__version__))
+        def is_dev(version):
+            match = re.search(r"\+dev([.][\da-f]{7}([.]dirty)?)?$", version)
+            if match is not None:
+                return is_canonical(version[: match.span()[0]])
+            else:
+                return False
+
+        version = package_under_test.__version__
+        self.assertTrue(is_canonical(version) or is_dev(version))
