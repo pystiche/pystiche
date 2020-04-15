@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 import torch
 from torch import nn
 from torch.nn.functional import mse_loss
@@ -70,7 +68,7 @@ class TestContainer(PysticheTestCase):
                 pass
 
         named_ops = [(str(idx), TestOperator()) for idx in range(3)]
-        op_container = ops.OperatorContainer(OrderedDict(named_ops))
+        op_container = ops.OperatorContainer(named_ops)
 
         actuals = op_container.named_children()
         desireds = named_ops
@@ -88,7 +86,7 @@ class TestContainer(PysticheTestCase):
         input = torch.tensor(0.0)
 
         named_ops = [(str(idx), TestOperator(idx + 1.0)) for idx in range(3)]
-        op_container = ops.OperatorContainer(OrderedDict(named_ops))
+        op_container = ops.OperatorContainer(named_ops)
 
         actual = op_container(input)
         desired = pystiche.LossDict([(name, input + op.bias) for name, op in named_ops])
@@ -104,7 +102,7 @@ class TestContainer(PysticheTestCase):
                 return image + self.bias
 
         named_ops = [(str(idx), TestOperator(idx + 1.0)) for idx in range(3)]
-        op_container = ops.OperatorContainer(OrderedDict(named_ops))
+        op_container = ops.OperatorContainer(named_ops)
 
         for name, _ in named_ops:
             actual = op_container[name]
@@ -183,7 +181,7 @@ class TestContainer(PysticheTestCase):
             return TestOperator(encoder, score_weight=score_weight)
 
         layers = [str(index) for index in range(3)]
-        modules = OrderedDict([(layer, nn.Module()) for layer in layers])
+        modules = [(layer, nn.Module()) for layer in layers]
         multi_layer_encoder = MultiLayerEncoder(modules)
 
         multi_layer_enc_op = ops.MultiLayerEncodingOperator(
@@ -214,7 +212,7 @@ class TestContainer(PysticheTestCase):
         image = torch.rand(1, 3, 128, 128)
 
         layers = [str(index) for index in range(3)]
-        modules = OrderedDict([(layer, nn.Conv2d(3, 3, 1)) for layer in layers])
+        modules = [(layer, nn.Conv2d(3, 3, 1)) for layer in layers]
         multi_layer_encoder = MultiLayerEncoder(modules)
 
         multi_layer_enc_op = ops.MultiLayerEncodingOperator(
