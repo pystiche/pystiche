@@ -26,28 +26,20 @@ def get_padding(padding: str, kernel_size: Union[Tuple[int, int], int]) -> int:
     elif padding == "valid":
         return 0
     else:
-        raise NotImplementedError
+        raise ValueError
 
 
-class SanakoyeuEtAl2018Conv(nn.Module):
-    def __init__(
-        self,
-        in_channels: int,
-        out_channels: int,
-        kernel_size: Union[Tuple[int, int], int],
-        stride: Union[Tuple[int, int], int] = 2,
-        padding: str = "valid",
-    ) -> None:
-        super().__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        padding = get_padding(padding, kernel_size)
-        self.conv = nn.Conv2d(
-            in_channels, out_channels, kernel_size, stride=stride, padding=padding
-        )  # TODO: truncated init weights and bias None
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.conv(x)
+def sanakoyeu_et_al_2018_conv(
+    in_channels: int,
+    out_channels: int,
+    kernel_size: Union[Tuple[int, int], int],
+    stride: Union[Tuple[int, int], int] = 2,
+    padding: str = "valid",
+) -> nn.Conv2d:
+    padding = get_padding(padding, kernel_size)
+    return nn.Conv2d(
+        in_channels, out_channels, kernel_size, stride=stride, padding=padding
+    )
 
 
 class SanakoyeuEtAl2018ConvBlock(nn.Sequential):
@@ -68,7 +60,7 @@ class SanakoyeuEtAl2018ConvBlock(nn.Sequential):
 
         modules = []
         modules.append(
-            SanakoyeuEtAl2018Conv(
+            sanakoyeu_et_al_2018_conv(
                 in_channels, out_channels, kernel_size, stride=stride, padding=padding
             )
         )
@@ -292,7 +284,7 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     )
     modules.append(nn.ReflectionPad2d(3))
     modules.append(
-        SanakoyeuEtAl2018Conv(
+        sanakoyeu_et_al_2018_conv(
             in_channels=gf_dim,
             out_channels=output_channel,
             kernel_size=7,
@@ -353,7 +345,7 @@ class SanakoyeuEtAl2018DiscriminatorPredBlock(nn.Module):
             act=act,
             inplace=inplace,
         )
-        self.predConv = SanakoyeuEtAl2018Conv(
+        self.predConv = sanakoyeu_et_al_2018_conv(
             in_channels=output_channel,
             out_channels=1,
             kernel_size=pred_kernel_size,

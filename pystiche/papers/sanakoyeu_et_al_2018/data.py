@@ -35,28 +35,29 @@ class FiniteChangingCycleBatchSampler(InfiniteCycleBatchSampler):
         return self.num_batches[self.pos]
 
 
-
 def sanakoyeu_et_al_2018_image_transform(
     edge_size: int = 768, impl_params: bool = True
 ) -> ComposedTransform:
     class OptionalRescale(Transform):
         def __init__(
-                self, interpolation_mode: str = "bilinear",
+            self, interpolation_mode: str = "bilinear",
         ):
             super().__init__()
             self.interpolation_mode = interpolation_mode
 
         def forward(
-                self, image: torch.Tensor, max_size: float = 1800.0, min_size: float = 800.0
+            self, image: torch.Tensor, maximal_size: int = 1800, minimal_size: int = 800
         ) -> torch.Tensor:
-            if max(image.shape) > 1800.0:
-                return F.rescale(image, factor=1800.0 / max(image.shape))
-            if min(image.shape) < 800:
-                alpha = 800.0 / float(min(image.shape))
+            if max(image.shape) > maximal_size:
+                return F.rescale(image, factor=maximal_size / max(image.shape))
+            if min(image.shape) < minimal_size:
+                alpha = minimal_size / float(min(image.shape))
                 if alpha < 4.0:
                     return F.rescale(image, factor=alpha)
                 else:
-                    return F.resize(image, (800, 800), self.interpolation_mode)
+                    return F.resize(
+                        image, (minimal_size, minimal_size), self.interpolation_mode
+                    )
             return image
 
         def _properties(self) -> Dict[str, Any]:
@@ -64,7 +65,6 @@ def sanakoyeu_et_al_2018_image_transform(
             if self.interpolation_mode != "bilinear":
                 dct["interpolation_mode"] = self.interpolation_mode
             return dct
-
 
     class OptionalGrayscaleToFakegrayscale(Transform):
         def forward(self, input_image: torch.Tensor) -> torch.Tensor:
@@ -103,7 +103,6 @@ def sanakoyeu_et_al_2018_images(
     # places365_url = (
     #     "data.csail.mit.edu/places/places365/train_large_places365standard.tar"
     # )
-
 
     return None
 

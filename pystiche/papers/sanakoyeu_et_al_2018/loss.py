@@ -143,7 +143,7 @@ class SanakoyeuEtAl2018FeatureOperator(MSEEncodingOperator):
             return super().calculate_score(input_repr, target_repr, ctx)
 
 
-def sanakoyeu_et_al_2018_style_aware_content_loss(
+def sanakoyeu_et_al_2018_content_loss(
     encoder: Optional[pystiche.SequentialModule],
     impl_params: bool = True,
     score_weight=None,
@@ -218,7 +218,7 @@ def sanakoyeu_et_al_2018_generator_loss(
 ) -> SanakoyeuEtAl2018GeneratorLoss:
 
     if style_aware_content_loss is None:
-        style_aware_content_loss = sanakoyeu_et_al_2018_style_aware_content_loss(
+        style_aware_content_loss = sanakoyeu_et_al_2018_content_loss(
             encoder, impl_params=impl_params
         )
 

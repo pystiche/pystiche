@@ -20,7 +20,7 @@ from .data import (
     sanakoyeu_et_al_2018_image_loader,
     sanakoyeu_et_al_2018_images,
 )
-from .utils import sanakoyeu_et_al_2018_optimizer
+from .utils import sanakoyeu_et_al_2018_optimizer, ExponentialMovingAverage
 
 __all__ = [
     "sanakoyeu_et_al_2018_training",
@@ -32,11 +32,11 @@ __all__ = [
     "DiscriminatorLoss",
     "sanakoyeu_et_al_2018_images",
     "sanakoyeu_et_al_2018_image_loader",
-    "sanakoyeu_et_al_2018_dataset"
+    "sanakoyeu_et_al_2018_dataset",
 ]
 
 
-def default_gan_optim_loop(
+def gan_optim_loop(
     content_image_loader: DataLoader,
     style_image_loader: DataLoader,
     generator: nn.Module,
@@ -47,9 +47,7 @@ def default_gan_optim_loop(
     generator_criterion_update_fn: Callable[
         [nn.Module, nn.Module, torch.tensor, nn.ModuleDict], None
     ],
-    init_discr_success: float = 0.8,
-    init_win_rate: float = 0.8,
-    alpha: float = 0.05,
+    target_win_rate: float = 0.8,
     impl_params: bool = True,
     get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
     device: Optional[torch.device] = None,
@@ -59,10 +57,9 @@ def default_gan_optim_loop(
     generator_optimizer = get_optimizer(generator)
     style_image_loader = itertools.cycle(style_image_loader)
 
-    discr_success = init_discr_success
-    win_rate = init_win_rate
+    discriminator_success = ExponentialMovingAverage("discriminator_success")
 
-    def train_discriminator_one_step(fake_image, real_image, discr_success):
+    def train_discriminator_one_step(fake_image, real_image, discriminator_success):
         def closure():
             discriminator_optimizer.zero_grad()
             loss = discriminator_criterion(fake_image, real_image)
@@ -70,12 +67,11 @@ def default_gan_optim_loop(
             return loss
 
         discriminator_optimizer.step(closure)
-        acc = discriminator_criterion.get_current_acc()
-        discr_success = discr_success * (1.0 - alpha) + alpha * acc
+        discriminator_success.update(discriminator_criterion.get_current_acc())
 
-        return discr_success
+        return discriminator_success
 
-    def train_generator_one_step(input_image, discr_success):
+    def train_generator_one_step(input_image, discriminator_success):
         def closure():
             generator_optimizer.zero_grad()
             loss = generator_criterion(input_image)
@@ -83,29 +79,29 @@ def default_gan_optim_loop(
             return loss
 
         generator_optimizer.step(closure)
-        acc = generator_criterion["discr_loss"].get_current_acc()
-        discr_success = discr_success * (1.0 - alpha) + alpha * (1.0 - acc)
-        return discr_success
+        discriminator_success.update(
+            (1.0 - generator_criterion["discr_loss"].get_current_acc())
+        )
 
     for content_image in content_image_loader:
         content_image = content_image.to(device)
         stylized_image = generator(content_image)
 
-        if discr_success < win_rate:
+        if discriminator_success.local_avg() < target_win_rate:
             style_image = next(style_image_loader)
             style_image = style_image.to(device)
             if impl_params:
                 fake_images = torch.cat((stylized_image, content_image), 0)
             else:
                 fake_images = stylized_image
-            discr_success = train_discriminator_one_step(
-                fake_images, style_image, discr_success
+            train_discriminator_one_step(
+                fake_images, style_image, discriminator_success
             )
         else:
             generator_criterion_update_fn(
                 generator.encoder, transformer_block, content_image, generator_criterion
             )
-            discr_success = train_generator_one_step(stylized_image, discr_success)
+            train_generator_one_step(stylized_image, discriminator_success)
 
     return generator
 
@@ -163,7 +159,7 @@ def sanakoyeu_et_al_2018_training(
         criterion.update_transformer(transformer_block)
         criterion.set_content_image(content_image)
 
-    return default_gan_optim_loop(
+    return gan_optim_loop(
         content_image_loader,
         style_image_loader,
         generator,
@@ -177,10 +173,11 @@ def sanakoyeu_et_al_2018_training(
         device=device,
     )
 
+
 def sanakoyeu_et_al_2018_stylization(
     input_image: torch.Tensor,
     generator: Union[nn.Module, str],
-    impl_params: bool = True
+    impl_params: bool = True,
 ):
     device = input_image.device
     if isinstance(generator, str):
