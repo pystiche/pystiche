@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Callable, Dict, Sequence, Union
+from typing import Callable, Sequence, Tuple, Union
 
 import torch
 
@@ -18,7 +18,7 @@ __all__ = [
 
 
 class OperatorContainer(Operator):
-    def __init__(self, named_ops: Dict[str, Operator], score_weight=1e0):
+    def __init__(self, named_ops: Sequence[Tuple[str, Operator]], score_weight=1e0):
         super().__init__(score_weight=score_weight)
         self.add_named_modules(named_ops)
 
@@ -41,9 +41,10 @@ class SameOperatorContainer(OperatorContainer):
         score_weight=1e0,
     ) -> None:
         op_weights = self._parse_op_weights(op_weights, len(names))
-        named_ops = OrderedDict(
-            [(name, get_op(name, weight)) for name, weight in zip(names, op_weights)]
-        )
+        named_ops = [
+            (name, get_op(name, weight)) for name, weight in zip(names, op_weights)
+        ]
+
         super().__init__(named_ops, score_weight=score_weight)
 
     @staticmethod
@@ -124,7 +125,7 @@ class MultiRegionOperator(SameOperatorContainer):
     def __init__(
         self,
         regions: Sequence[str],
-        get_op: Callable[[Encoder, float], Operator],
+        get_op: Callable[[str, float], Operator],
         region_weights: Union[str, Sequence[float]] = "sum",
         score_weight: float = 1e0,
     ):

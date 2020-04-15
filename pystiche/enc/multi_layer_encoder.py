@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from copy import copy
-from typing import Collection, Dict, Iterator, Optional, Sequence, Tuple
+from typing import Collection, Iterator, Optional, Sequence, Tuple
 
 import torch
 from torch import nn
@@ -15,7 +15,7 @@ __all__ = ["MultiLayerEncoder", "SingleLayerEncoder"]
 
 
 class MultiLayerEncoder(pystiche.Module):
-    def __init__(self, modules: Dict[str, nn.Module]) -> None:
+    def __init__(self, modules: Sequence[Tuple[str, nn.Module]]) -> None:
         super().__init__(named_children=modules)
         self.registered_layers = set()
         # TODO: rename to storage
