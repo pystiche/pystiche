@@ -3,13 +3,18 @@ repos:
     rev: 4.3.21
     hooks:
       - id: isort
+        args: [--settings-path=pyproject.toml, --check-only]
         additional_dependencies: [toml]
   - repo: https://github.com/psf/black
     rev: stable
     hooks:
       - id: black
+        args: [--config=pyproject.toml --check]
         language_version: python3.6
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.7.9
     hooks:
       - id: flake8
+        args: [--config=.flake8]
+
+fail_fast: true
