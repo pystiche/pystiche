@@ -116,7 +116,7 @@ class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
         dct["encoder"] = self.encoder
         return dct
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return self._build_repr(named_children=())
 
 
@@ -241,5 +241,5 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
         dct["encoder"] = self.encoder
         return dct
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return self._build_repr(named_children=())
