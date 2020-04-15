@@ -24,9 +24,6 @@ class InfiniteCycleBatchSampler(Sampler):
         while True:
             yield tuple(nextn(iterator, self.batch_size))
 
-    def __len__(self) -> int:
-        return -1
-
 
 class FiniteCycleBatchSampler(InfiniteCycleBatchSampler):
     def __init__(self, data_source: Sized, num_batches: int, batch_size: int = 1):
