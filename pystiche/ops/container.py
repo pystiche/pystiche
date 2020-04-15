@@ -100,14 +100,14 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
             name = multi_layer_encoder.__class__.__name__
             properties = multi_layer_encoder.properties()
             named_children = ()
-            return self._build_str(
+            return self._build_repr(
                 name=name, properties=properties, named_children=named_children
             )
 
         def build_op_str(op):
             properties = op.properties()
             del properties["encoder"]
-            return op._build_str(properties=properties, named_children=())
+            return op._build_repr(properties=properties, named_children=())
 
         properties = OrderedDict()
         properties["encoder"] = build_encoder_str()
@@ -117,7 +117,7 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
             (name, build_op_str(op)) for name, op in self.named_children()
         ]
 
-        return self._build_str(properties=properties, named_children=named_children)
+        return self._build_repr(properties=properties, named_children=named_children)
 
 
 class MultiRegionOperator(SameOperatorContainer):

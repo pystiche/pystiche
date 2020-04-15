@@ -50,7 +50,7 @@ class Object(ABC):
         yield from self._named_children()
         yield from self.extra_named_children()
 
-    def _build_str(
+    def _build_repr(
         self,
         name: Optional[str] = None,
         properties: Optional[Dict[str, str]] = None,
@@ -72,8 +72,8 @@ class Object(ABC):
             num_indent=self._STR_INDENT,
         )
 
-    def __str__(self) -> str:
-        return self._build_str()
+    def __repr__(self) -> str:
+        return self._build_repr()
 
 
 # TODO: can this be removed for now?

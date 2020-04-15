@@ -156,6 +156,6 @@ class SingleLayerEncoder(Encoder):
         properties["layer"] = self.layer
         properties.update(self.multi_layer_encoder.properties())
         named_children = ()
-        return self._build_str(
+        return self._build_repr(
             name=name, properties=properties, named_children=named_children
         )

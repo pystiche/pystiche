@@ -10,6 +10,7 @@ import torch
 from torch import nn
 
 import pystiche
+from pystiche.misc import build_obj_str
 from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
@@ -21,7 +22,7 @@ class TestBase(PysticheTestCase):
         test_object = TestObject()
         self.assertIsInstance(str(test_object), str)
 
-    def test_Object_str(self):
+    def test_Object_repr(self):
         _properties = OrderedDict((("a", 1),))
         extra_properties = OrderedDict((("b", 2),))
         _named_children = (("c", 3),)
@@ -51,8 +52,8 @@ class TestBase(PysticheTestCase):
         )
         named_children = tuple(itertools.chain(_named_children, extra_named_children))
 
-        actual = str(test_object)
-        desired = test_object._build_str(
+        actual = repr(test_object)
+        desired = build_obj_str(
             name="TestObject", properties=properties, named_children=named_children
         )
         self.assertEqual(actual, desired)

@@ -41,6 +41,12 @@ class Module(nn.Module, Object):
     def forward(self, *args: Any, **kwargs: Any) -> Any:
         pass
 
+    def __repr__(self):
+        return Object.__repr__(self)
+
+    def torch_repr(self):
+        return nn.Module.__repr__(self)
+
     def extra_repr(self) -> str:
         return ", ".join([f"{key}={value}" for key, value in self.properties().items()])
 
