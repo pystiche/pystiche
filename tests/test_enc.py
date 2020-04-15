@@ -28,6 +28,8 @@ class TestEncoder(PysticheTestCase):
 
 class TestModels(PysticheTestCase):
     @pytest.mark.large_download
+    @pytest.mark.slow
+    @pytest.mark.flaky
     def test_AlexNetMultiLayerEncoder(self):
         asset = self.load_asset(path.join("enc", "alexnet"))
 
@@ -48,6 +50,8 @@ class TestModels(PysticheTestCase):
         self.assertDictEqual(actual, desired)
 
     @pytest.mark.large_download
+    @pytest.mark.slow
+    @pytest.mark.flaky
     def test_VGGMultiLayerEncoder(self):
         archs = ("vgg11", "vgg13", "vgg16", "vgg19")
         archs = (*archs, *[f"{arch}_bn" for arch in archs])
