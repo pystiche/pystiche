@@ -1,2 +1,2 @@
-from .modules import *
 from .misc import *
+from .modules import *

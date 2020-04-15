@@ -10,7 +10,8 @@ skip = [
   ".pytest_cache",
   "__pycache__",
   "docs/build",
-  "__init__.py",
+  "pystiche/core/__init__.py",
+  "pystiche/image/__init__.py",
 ]
 skip_glob = ["docs/source/auto_*"]
 line_length = 88
