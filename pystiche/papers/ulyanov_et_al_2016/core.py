@@ -1,20 +1,14 @@
 from typing import Callable, Optional, Tuple, Union
 
 import torch
-from torch.utils.data import DataLoader
 from torch import nn
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.optim.optimizer import Optimizer
-from torch.optim.lr_scheduler import ExponentialLR
+from torch.utils.data import DataLoader
+
 import pystiche
 from pystiche.loss import PerceptualLoss
-from pystiche.optim import (
-    OptimLogger,
-    default_transformer_epoch_optim_loop,
-)
-from ..common_utils import batch_up_image
-from .modules import ulyanov_et_al_2016_transformer, UlyanovEtAl2016Transformer
-from .loss import ulyanov_et_al_2016_perceptual_loss
+from pystiche.optim import OptimLogger, default_transformer_epoch_optim_loop
 
 from ..common_utils import batch_up_image
 from .data import (
@@ -24,7 +18,7 @@ from .data import (
     ulyanov_et_al_2016_images,
     ulyanov_et_al_2016_style_transform,
 )
-from .loss import UlyanovEtAl2016PerceptualLoss, ulyanov_et_al_2016_perceptual_loss
+from .loss import ulyanov_et_al_2016_perceptual_loss
 from .modules import UlyanovEtAl2016Transformer, ulyanov_et_al_2016_transformer
 from .utils import (
     ulyanov_et_al_2016_lr_scheduler,

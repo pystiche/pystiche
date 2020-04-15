@@ -1,9 +1,12 @@
-from typing import Union, Optional, Sequence, Any, Dict
+from typing import Any, Dict, Optional, Sequence, Union
+
 import torch
 
 from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.image import extract_batch_size
 from pystiche.loss import PerceptualLoss
+from pystiche.ops import GramOperator, MSEEncodingOperator, MultiLayerEncodingOperator
+
 from .utils import ulyanov_et_al_2016_multi_layer_encoder
 
 __all__ = [
