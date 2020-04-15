@@ -18,7 +18,7 @@ def name_to_url(name: str) -> str:
 
 
 class NPRgeneralLicense(UnknownLicense):
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return (
             "Although the authors of the NPRgeneral dataset, David Mould and "
             "Paul Rosin, claim that the license of  this images "

@@ -98,21 +98,21 @@ class TestDatasets(PysticheTestCase):
 
 
 class TestLicense(PysticheTestCase):
-    def test_UnknownLicense_str_smoke(self):
+    def test_UnknownLicense_repr_smoke(self):
         license = data.UnknownLicense()
-        self.assertIsInstance(str(license), str)
+        self.assertIsInstance(repr(license), str)
 
-    def test_NoLicense_str_smoke(self):
+    def test_NoLicense_repr_smoke(self):
         license = data.NoLicense()
-        self.assertIsInstance(str(license), str)
+        self.assertIsInstance(repr(license), str)
 
-    def test_PublicDomainLicense_str_smoke(self):
+    def test_PublicDomainLicense_repr_smoke(self):
         license = data.PublicDomainLicense(1970)
-        self.assertIsInstance(str(license), str)
+        self.assertIsInstance(repr(license), str)
 
-    def test_CreativeCommonsLicense_str_smoke(self):
+    def test_CreativeCommonsLicense_repr_smoke(self):
         license = data.CreativeCommonsLicense(("by", "sa"), "3.0")
-        self.assertIsInstance(str(license), str)
+        self.assertIsInstance(repr(license), str)
 
 
 class TestSampler(PysticheTestCase):

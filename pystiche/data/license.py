@@ -13,12 +13,12 @@ __all__ = [
 
 class License(ABC):
     @abstractmethod
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         pass
 
 
 class UnknownLicense(License):
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return (
             "The license for this image is unknown. "
             "Proceed to work with this image at your own risk."
@@ -26,7 +26,7 @@ class UnknownLicense(License):
 
 
 class NoLicense(License):
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return (
             "There is no license available for this image. "
             "Proceed to work with this image at your own risk."
@@ -37,7 +37,7 @@ class PublicDomainLicense(License):
     def __init__(self, author_death_year: int):
         self.author_death_year = author_death_year
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         years_since_author_death = str(datetime.now().year - self.author_death_year)
         return (
             f"This image is in the public domain in countries and areas, "
@@ -67,7 +67,7 @@ class CreativeCommonsLicense(License):
                 variant = "Unported"
         self.variant = variant
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return self._create_license()
 
     def _create_license(self) -> str:
