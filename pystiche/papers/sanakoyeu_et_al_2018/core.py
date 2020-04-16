@@ -220,7 +220,9 @@ def sanakoyeu_et_al_2018_training(
 
     if discriminator_criterion is None:
         fake_loss_correction_factor = 2.0 if impl_params else 1.0
-        discriminator_criterion = DiscriminatorLoss(discriminator, fake_loss_correction_factor=fake_loss_correction_factor)
+        discriminator_criterion = DiscriminatorLoss(
+            discriminator, fake_loss_correction_factor=fake_loss_correction_factor
+        )
         discriminator_criterion = discriminator_criterion.eval()
     discriminator_criterion = discriminator_criterion.to(device)
 

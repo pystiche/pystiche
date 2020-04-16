@@ -39,4 +39,3 @@ class ContentOperatorContainer(OperatorContainer):
         for op in self.children():
             if isinstance(op, ComparisonOperator):
                 op.set_target_image(image)
-

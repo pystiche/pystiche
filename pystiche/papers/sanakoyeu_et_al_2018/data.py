@@ -122,7 +122,9 @@ def sanakoyeu_et_al_2018_image_loader(
     pin_memory: bool = True,
 ):
     if batch_sampler is None:
-        batch_sampler = sanakoyeu_et_al_2018_batch_sampler(dataset, impl_params=impl_params)
+        batch_sampler = sanakoyeu_et_al_2018_batch_sampler(
+            dataset, impl_params=impl_params
+        )
 
     return DataLoader(
         dataset,

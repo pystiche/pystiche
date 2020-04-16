@@ -118,7 +118,7 @@ class DiscriminatorLoss(nn.Module):
         self,
         discriminator: SanakoyeuEtAl2018Discriminator,
         fake_loss_correction_factor: float = 1.0,
-        real_loss_correction_factor: float = 1.0
+        real_loss_correction_factor: float = 1.0,
     ) -> None:
         super().__init__()
         self.discriminator = discriminator
