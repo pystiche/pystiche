@@ -3,66 +3,66 @@ from collections import defaultdict
 from typing import Union
 
 __all__ = [
-    "Cls",
-    "UndefinedCls",
+    "OperatorCls",
+    "UndefinedOperatorCls",
     "Unary",
     "Binary",
     "cls",
-    "Domain",
-    "UndefinedDomain",
+    "OperatorDomain",
+    "UndefinedOperatorDomain",
     "Pixel",
     "Latent",
     "domain",
 ]
 
 
-# make them immutable
-class Cls(ABC):
+# TODO: this should be immutable
+class OperatorCls(ABC):
     pass
 
 
-class UndefinedCls(Cls):
+class UndefinedOperatorCls(OperatorCls):
     pass
 
 
-class Unary(Cls):
+class Unary(OperatorCls):
     pass
 
 
-class Binary(Cls):
+class Binary(OperatorCls):
     pass
 
 
-# default_dict
-TYPE_MAP = defaultdict(UndefinedCls, {"unary": Unary(), "binary": Binary()})
+TYPE_MAP = defaultdict(UndefinedOperatorCls, {"unary": Unary(), "binary": Binary()})
 
 
-def cls(cls: Union[str, Cls]) -> Cls:
-    if isinstance(cls, Cls):
+def cls(cls: Union[str, OperatorCls]) -> OperatorCls:
+    if isinstance(cls, OperatorCls):
         return cls
     return TYPE_MAP[cls]
 
 
-class Domain(ABC):
+# TODO: this should be immutable
+class OperatorDomain(ABC):
     pass
 
 
-class UndefinedDomain(Domain):
+class UndefinedOperatorDomain(OperatorDomain):
     pass
 
 
-class Pixel(Domain):
+class Pixel(OperatorDomain):
     pass
 
 
-class Latent(Domain):
+class Latent(OperatorDomain):
     pass
 
 
-DOMAIN_MAP = defaultdict(UndefinedDomain, {"pixel": Pixel(), "latet": Latent()})
+DOMAIN_MAP = defaultdict(UndefinedOperatorDomain, {"pixel": Pixel(), "latet": Latent()})
 
 
-def domain(domain: Union[str, Domain]) -> Domain:
-    if isinstance(domain, Domain):
+def domain(domain: Union[str, OperatorDomain]) -> OperatorDomain:
+    if isinstance(domain, OperatorDomain):
         return domain
     return DOMAIN_MAP[domain]

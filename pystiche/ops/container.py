@@ -21,8 +21,8 @@ class OperatorContainer(Operator):
     def __init__(
         self,
         named_ops: Sequence[Tuple[str, Operator]],
-        cls: Optional[Union[meta.Cls, str]] = None,
-        domain: Optional[Union[meta.Domain, str]] = None,
+        cls: Optional[Union[meta.OperatorCls, str]] = None,
+        domain: Optional[Union[meta.OperatorDomain, str]] = None,
         score_weight=1e0,
     ):
         super().__init__(cls=cls, domain=domain, score_weight=score_weight)
@@ -65,8 +65,8 @@ class SameOperatorContainer(OperatorContainer):
         names: Sequence[str],
         get_op: Callable[[str, float], Operator],
         op_weights: Union[str, Sequence[float]] = "sum",
-        cls: Optional[Union[meta.Cls, str]] = None,
-        domain: Optional[Union[meta.Domain, str]] = None,
+        cls: Optional[Union[meta.OperatorCls, str]] = None,
+        domain: Optional[Union[meta.OperatorDomain, str]] = None,
         score_weight=1e0,
     ) -> None:
         op_weights = self._parse_op_weights(op_weights, len(names))
@@ -99,8 +99,8 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
         layers: Sequence[str],
         get_encoding_op: Callable[[Encoder, float], EncodingOperator],
         layer_weights: Union[str, Sequence[float]] = "mean",
-        cls: Optional[Union[meta.Cls, str]] = None,
-        domain: Optional[Union[meta.Domain, str]] = meta.Latent(),
+        cls: Optional[Union[meta.OperatorCls, str]] = None,
+        domain: Optional[Union[meta.OperatorDomain, str]] = meta.Latent(),
         score_weight: float = 1e0,
     ):
         def get_op(layer, layer_weight):
@@ -148,8 +148,8 @@ class MultiRegionOperator(SameOperatorContainer):
         regions: Sequence[str],
         get_op: Callable[[str, float], Operator],
         region_weights: Union[str, Sequence[float]] = "sum",
-        cls: Optional[Union[meta.Cls, str]] = None,
-        domain: Optional[Union[meta.Domain, str]] = None,
+        cls: Optional[Union[meta.OperatorCls, str]] = None,
+        domain: Optional[Union[meta.OperatorDomain, str]] = None,
         score_weight: float = 1e0,
     ):
         super().__init__(

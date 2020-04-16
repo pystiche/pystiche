@@ -27,8 +27,8 @@ __all__ = [
 class Operator(pystiche.Module):
     def __init__(
         self,
-        cls: Optional[Union[op_meta.Cls, str]] = None,
-        domain: Optional[Union[op_meta.Domain, str]] = None,
+        cls: Optional[Union[op_meta.OperatorCls, str]] = None,
+        domain: Optional[Union[op_meta.OperatorDomain, str]] = None,
         score_weight: float = 1e0,
     ) -> None:
         super().__init__()
@@ -37,11 +37,11 @@ class Operator(pystiche.Module):
         self.score_weight = score_weight
 
     @property
-    def cls(self) -> op_meta.Cls:
+    def cls(self) -> op_meta.OperatorCls:
         return self._cls
 
     @property
-    def domain(self) -> op_meta.Domain:
+    def domain(self) -> op_meta.OperatorDomain:
         return self._domain
 
     def forward(

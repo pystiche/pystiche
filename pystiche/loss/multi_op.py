@@ -6,8 +6,7 @@ import torch
 import pystiche
 from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
 from pystiche.misc import build_deprecation_message
-from pystiche.ops import Operator
-from pystiche.ops.meta import Latent
+from pystiche.ops import Latent, Operator
 
 __all__ = ["MultiOperatorLoss"]
 

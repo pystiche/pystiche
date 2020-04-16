@@ -5,8 +5,7 @@ import numpy as np
 
 from pystiche import ComplexObject
 from pystiche.misc import zip_equal
-from pystiche.ops import Operator
-from pystiche.ops.meta import Binary
+from pystiche.ops import Binary, Operator
 
 from .level import PyramidLevel
 from .storage import ImageStorage

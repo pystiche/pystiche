@@ -1,4 +1,4 @@
-from pystiche.ops.meta import Binary
+from pystiche.ops import Binary
 
 __all__ = ["ImageStorage"]
 
