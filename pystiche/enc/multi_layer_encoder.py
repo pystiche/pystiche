@@ -18,8 +18,7 @@ class MultiLayerEncoder(pystiche.Module):
     def __init__(self, modules: Sequence[Tuple[str, nn.Module]]) -> None:
         super().__init__(named_children=modules)
         self.registered_layers = set()
-        # TODO: rename to storage
-        self._cache = dict()
+        self._storage = dict()
 
         # TODO: remove this?
         self.requires_grad_(False)
@@ -62,7 +61,7 @@ class MultiLayerEncoder(pystiche.Module):
     def forward(
         self, input: torch.Tensor, layers: Sequence[str], store=False
     ) -> Tuple[torch.Tensor, ...]:
-        storage = copy(self._cache)
+        storage = copy(self._storage)
         input_key = pystiche.TensorKey(input)
         stored_layers = [name for name, key in storage.keys() if key == input_key]
         diff_layers = set(layers) - set(stored_layers)
@@ -75,7 +74,7 @@ class MultiLayerEncoder(pystiche.Module):
                 input = storage[(name, input_key)] = module(input)
 
             if store:
-                self._cache.update(storage)
+                self._storage = storage
 
         return tuple([storage[(name, input_key)] for name in layers])
 
@@ -103,11 +102,19 @@ class MultiLayerEncoder(pystiche.Module):
         key = pystiche.TensorKey(input)
         keys = [(layer, key) for layer in self.registered_layers]
         encs = self(input, layers=self.registered_layers, store=True)
-        self._cache = dict(zip(keys, encs))
+        self._storage = dict(zip(keys, encs))
 
-    # TODO: rename to empty_storage
+    def empty_storage(self):
+        self._storage = {}
+
     def clear_cache(self):
-        self._cache = {}
+        warn_deprecation(
+            "method",
+            "clear_cache()",
+            "0.4.0",
+            info="It was renamed to empty_storage().",
+        )
+        self.empty_storage()
 
     def trim(self, layers: Optional[Collection[str]] = None):
         if layers is None:
