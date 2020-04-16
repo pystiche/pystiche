@@ -183,12 +183,12 @@ def sanakoyeu_et_al_2018_residual_block(channels: int) -> ResidualBlock:
 
 
 def sanakoyeu_et_al_2018_transformer_encoder(
-    input_channel: int = 3, gf_dim: int = 32, instance_norm: bool = True,
+    in_channels: int = 3, gf_dim: int = 32, instance_norm: bool = True,
 ) -> pystiche.SequentialModule:
     modules = (
         nn.ReflectionPad2d(15),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=input_channel,
+            in_channels=in_channels,
             out_channels=gf_dim,
             kernel_size=3,
             stride=1,
@@ -228,11 +228,11 @@ def sanakoyeu_et_al_2018_transformer_encoder(
             instance_norm=instance_norm,
         ),
     )
-    return pystiche.SequentialModule(*modules)
+    return pystiche.enc.SequentialEncoder(*modules)
 
 
 def sanakoyeu_et_al_2018_transformer_decoder(
-    output_channel: int = 3,
+    out_channels: int = 3,
     gf_dim: int = 32,
     instance_norm: bool = True,
     num_res_block: int = 9,
@@ -286,7 +286,7 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     modules.append(
         sanakoyeu_et_al_2018_conv(
             in_channels=gf_dim,
-            out_channels=output_channel,
+            out_channels=out_channels,
             kernel_size=7,
             stride=1,
             padding="valid",
@@ -295,15 +295,23 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     return pystiche.SequentialModule(*modules)
 
 
+class SanakoyeuEtAl2018Decoder(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.decoder = sanakoyeu_et_al_2018_transformer_decoder()
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        return torch.sigmoid(self.decoder(input)) * 2 - 1
+
+
 class SanakoyeuEtAl2018Generator(nn.Module):
     def __init__(self):
         super().__init__()
         self.encoder = sanakoyeu_et_al_2018_transformer_encoder()
-        self.decoder = sanakoyeu_et_al_2018_transformer_decoder()
+        self.decoder = SanakoyeuEtAl2018Decoder()
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        output = self.decoder(self.encoder(input))
-        return torch.sigmoid(output) * 2 - 1
+        return self.decoder(self.encoder(input))
 
 
 class SanakoyeuEtAl2018Discriminator(pystiche.Module):
@@ -360,7 +368,7 @@ class SanakoyeuEtAl2018DiscriminatorPredBlock(nn.Module):
 
 
 def sanakoyeu_et_al_2018_discriminator(
-    input_channel: int = 3,
+    input_channels: int = 3,
     df_dim: int = 32,
     instance_norm: bool = True,
     inplace: bool = True,
@@ -368,7 +376,7 @@ def sanakoyeu_et_al_2018_discriminator(
 
     modules = [
         SanakoyeuEtAl2018DiscriminatorPredBlock(
-            input_channel,
+            input_channels,
             df_dim * 2,
             kernel_size=5,
             pred_kernel_size=5,

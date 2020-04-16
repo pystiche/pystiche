@@ -98,9 +98,7 @@ def gan_optim_loop(
                 fake_images, style_image, discriminator_success
             )
         else:
-            generator_criterion_update_fn(
-                generator.encoder, transformer_block, content_image, generator_criterion
-            )
+            generator_criterion_update_fn(content_image, generator_criterion)
             train_generator_one_step(stylized_image, discriminator_success)
 
     return generator
@@ -152,11 +150,7 @@ def sanakoyeu_et_al_2018_training(
     if get_optimizer is None:
         get_optimizer = sanakoyeu_et_al_2018_optimizer
 
-    def generator_criterion_update_fn(
-        encoder, transformer_block, content_image, criterion
-    ):
-        criterion.update_encoder(encoder)
-        criterion.update_transformer(transformer_block)
+    def generator_criterion_update_fn(content_image, criterion):
         criterion.set_content_image(content_image)
 
     return gan_optim_loop(

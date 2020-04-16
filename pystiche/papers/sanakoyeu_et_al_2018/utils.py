@@ -1,6 +1,9 @@
+import torch
 from torch import nn, optim
 from torch.optim.optimizer import Optimizer
 from pystiche.optim.meter import FloatMeter
+from pystiche.ops.container import OperatorContainer
+from pystiche.ops.op import ComparisonOperator
 
 
 def sanakoyeu_et_al_2018_optimizer(transformer: nn.Module) -> Optimizer:
@@ -29,3 +32,11 @@ class ExponentialMovingAverage(FloatMeter):
         val = format(self.last_val)
         info = f"{val}"
         return f"{self.name} {info}"
+
+
+class ContentOperatorContainer(OperatorContainer):
+    def set_target_image(self, image: torch.Tensor):
+        for op in self.children():
+            if isinstance(op, ComparisonOperator):
+                op.set_target_image(image)
+
