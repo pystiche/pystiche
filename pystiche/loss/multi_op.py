@@ -6,7 +6,6 @@ import torch
 import pystiche
 from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
 from pystiche.misc import build_deprecation_message
-
 from pystiche.ops import Operator
 from pystiche.ops.meta import Latent
 

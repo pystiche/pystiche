@@ -1,3 +1,4 @@
+import warnings
 from abc import abstractmethod
 from collections import OrderedDict
 from typing import Any, Dict, Iterator, Optional, Tuple, Union
@@ -6,7 +7,7 @@ import torch
 
 import pystiche
 from pystiche.enc import Encoder
-from pystiche.misc import is_almost, to_engstr, warn_deprecation
+from pystiche.misc import build_deprecation_message, is_almost, to_engstr
 
 from . import meta as op_meta
 
@@ -77,7 +78,15 @@ class Operator(pystiche.Module):
 
 class RegularizationOperator(Operator):
     def __init__(self, score_weight: float = 1e0):
-        warn_deprecation()
+        msg = build_deprecation_message(
+            "The ABC RegularizationOperator",
+            "0.4.0",
+            info=(
+                "The same behavior can be achieved by passing "
+                "cls=pystiche.ops.meta.Unary() to Operator."
+            ),
+        )
+        warnings.warn(msg)
         super().__init__(cls=op_meta.Unary(), score_weight=score_weight)
 
     @abstractmethod
@@ -87,7 +96,15 @@ class RegularizationOperator(Operator):
 
 class ComparisonOperator(Operator):
     def __init__(self, score_weight: float = 1e0):
-        warn_deprecation()
+        msg = build_deprecation_message(
+            "The ABC ComparisonOperator",
+            "0.4.0",
+            info=(
+                "The same behavior can be achieved by passing "
+                "cls=pystiche.ops.meta.Binary() to Operator."
+            ),
+        )
+        warnings.warn(msg)
         super().__init__(cls=op_meta.Binary(), score_weight=score_weight)
 
     @abstractmethod
@@ -97,7 +114,15 @@ class ComparisonOperator(Operator):
 
 class PixelOperator(Operator):
     def __init__(self, score_weight: float = 1e0):
-        warn_deprecation()
+        msg = build_deprecation_message(
+            "The ABC PixelOperator",
+            "0.4.0",
+            info=(
+                "The same behavior can be achieved by passing "
+                "domain=pystiche.ops.meta.Pixel() to Operator."
+            ),
+        )
+        warnings.warn(msg)
         super().__init__(domain=op_meta.Pixel(), score_weight=score_weight)
 
     @abstractmethod
@@ -107,7 +132,15 @@ class PixelOperator(Operator):
 
 class EncodingOperator(Operator):
     def __init__(self, score_weight: float = 1e0):
-        warn_deprecation()
+        msg = build_deprecation_message(
+            "The ABC EncodingOperator",
+            "0.4.0",
+            info=(
+                "The same behavior can be achieved by passing "
+                "domain=pystiche.ops.meta.Latent() to Operator."
+            ),
+        )
+        warnings.warn(msg)
         super().__init__(domain=op_meta.Latent(), score_weight=score_weight)
 
     @abstractmethod

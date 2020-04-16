@@ -5,7 +5,6 @@ import torch
 
 import pystiche
 from pystiche.enc import Encoder, MultiLayerEncoder
-from pystiche.misc import warn_deprecation
 
 from . import meta
 from .op import EncodingOperator, Operator
@@ -165,13 +164,9 @@ class MultiRegionOperator(SameOperatorContainer):
     # def set_target_guide(self, region, guide):
     #     self[region].set_target_guide(guide)
 
-    def set_region_target_image(self, region: str, image: torch.Tensor) -> None:
+    def set_regional_target_image(self, region: str, image: torch.Tensor) -> None:
         getattr(self, region).set_target_image(image)
         self[region].set_target_image(image)
-
-    def set_target_image(self, region: str, image: torch.Tensor) -> None:
-        warn_deprecation()
-        self.set_region_target_image(region, image)
 
     # def set_input_guide(self, region, guide):
     #     self[region].set_input_guide(guide)
