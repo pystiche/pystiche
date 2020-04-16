@@ -359,4 +359,4 @@ def warn_deprecation(*args: str, **kwargs: Optional[str]):
         msg = args[0]
     else:
         msg = build_deprecation_message(*args, **kwargs)
-    warnings.warn(msg, DeprecationWarning)
+    warnings.warn(msg, UserWarning)
