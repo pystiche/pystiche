@@ -3,10 +3,10 @@ from pystiche.misc import build_deprecation_message, warn_deprecation
 
 
 def deprecation(fn):
-    name = fn.__name__
+    name = f"{fn.__name__}()"
     msg = build_deprecation_message(
         "function",
-        f"pystiche.{name}()",
+        f"pystiche.{name}",
         "0.4.0",
         info=f"It was moved to pystiche.meta.{name}.",
     )
