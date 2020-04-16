@@ -225,7 +225,7 @@ class TestContainer(PysticheTestCase):
             desired = image
             self.assertTensorAlmostEqual(actual, desired)
 
-    def test_MultiRegionOperator_set_target_image(self):
+    def test_MultiRegionOperator_set_regional_target_image(self):
         class TestOperator(ops.PixelComparisonOperator):
             def __init__(self, bias, score_weight=1e0):
                 super().__init__(score_weight=score_weight)
@@ -249,7 +249,7 @@ class TestContainer(PysticheTestCase):
         regions = [str(idx) for idx in range(3)]
         multi_region_operator = ops.MultiRegionOperator(regions, get_op)
         for region in regions:
-            multi_region_operator.set_target_image(region, image)
+            multi_region_operator.set_regional_target_image(region, image)
 
         for region in regions:
             actual = getattr(multi_region_operator, region).target_image
