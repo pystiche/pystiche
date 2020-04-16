@@ -29,7 +29,9 @@ def loss(
         torch.stack(
             [
                 binary_cross_entropy_with_logits(
-                    pred, torch.ones_like(pred) if real else torch.zeros_like(pred), reduction='sum'
+                    pred,
+                    torch.ones_like(pred) if real else torch.zeros_like(pred),
+                    reduction="sum",
                 )
                 * weight
                 for pred, weight in zip(predictions, scale_weight)
@@ -93,12 +95,17 @@ def discriminator_loss(
     real_image: torch.Tensor,
     discriminator: SanakoyeuEtAl2018Discriminator,
     scale_weight: Optional[List[float]] = None,
+    fake_loss_correction_factor: float = 1.0,
+    real_loss_correction_factor: float = 1.0,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
 
     fake_predictions = discriminator(fake_image)
     real_predictions = discriminator(real_image)
-    discr_loss = loss(fake_predictions, real=False, scale_weight=scale_weight) + loss(
-        real_predictions, real=True, scale_weight=scale_weight
+    discr_loss = (
+        loss(fake_predictions, real=False, scale_weight=scale_weight)
+        * fake_loss_correction_factor
+        + loss(real_predictions, real=True, scale_weight=scale_weight)
+        * real_loss_correction_factor
     )
     discr_acc = (
         acc(fake_predictions, real=False) + acc(real_predictions, real=True)
@@ -107,10 +114,18 @@ def discriminator_loss(
 
 
 class DiscriminatorLoss(nn.Module):
-    def __init__(self, discriminator: SanakoyeuEtAl2018Discriminator) -> None:
+    def __init__(
+        self,
+        discriminator: SanakoyeuEtAl2018Discriminator,
+        fake_loss_correction_factor: float = 1.0,
+        real_loss_correction_factor: float = 1.0
+    ) -> None:
         super().__init__()
         self.discriminator = discriminator
         self.acc = 0.0
+
+        self.fake_loss_correction_factor = fake_loss_correction_factor
+        self.real_loss_correction_factor = real_loss_correction_factor
 
     def get_current_acc(self):
         return self.acc
@@ -118,7 +133,13 @@ class DiscriminatorLoss(nn.Module):
     def forward(
         self, fake_image: torch.Tensor, real_image: torch.Tensor
     ) -> torch.Tensor:
-        loss, self.acc = discriminator_loss(fake_image, real_image, self.discriminator)
+        loss, self.acc = discriminator_loss(
+            fake_image,
+            real_image,
+            self.discriminator,
+            fake_loss_correction_factor=self.fake_loss_correction_factor,
+            real_loss_correction_factor=self.real_loss_correction_factor,
+        )
         return loss
 
 
@@ -187,8 +208,8 @@ def sanakoyeu_et_al_2018_generator_loss(
         )
 
     if transformer_loss is None:
-        transformer_loss = sanakoyeu_et_al_2018_transformer_loss(transformer_block=transformer_block,
-            impl_params=impl_params
+        transformer_loss = sanakoyeu_et_al_2018_transformer_loss(
+            transformer_block=transformer_block, impl_params=impl_params
         )
 
     content_loss = ContentOperatorContainer(

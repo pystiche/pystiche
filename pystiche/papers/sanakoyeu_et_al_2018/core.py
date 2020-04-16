@@ -143,9 +143,9 @@ def epoch_gan_optim_loop(
         else:
             generator_optimizer = generator_lr_scheduler.optimizer
 
-    def update_batch_sampler(image_loader: DataLoader):
+    def update_batch_sampler(image_loader: DataLoader, num_batches: int = int(1e5)):
         batch_sampler = sanakoyeu_et_al_2018_batch_sampler(
-            image_loader.dataset, num_batches=int(1e5)
+            image_loader.dataset, num_batches=num_batches
         )
         return DataLoader(
             image_loader.dataset,
@@ -219,7 +219,8 @@ def sanakoyeu_et_al_2018_training(
     transformer_block = transformer_block.to(device)
 
     if discriminator_criterion is None:
-        discriminator_criterion = DiscriminatorLoss(discriminator)
+        fake_loss_correction_factor = 2.0 if impl_params else 1.0
+        discriminator_criterion = DiscriminatorLoss(discriminator, fake_loss_correction_factor=fake_loss_correction_factor)
         discriminator_criterion = discriminator_criterion.eval()
     discriminator_criterion = discriminator_criterion.to(device)
 
