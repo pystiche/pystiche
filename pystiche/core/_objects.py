@@ -17,9 +17,8 @@ from typing import (
 import torch
 from torch import nn
 
+from pystiche.meta import is_scalar_tensor
 from pystiche.misc import build_fmtstr, build_obj_str, format_dict, warn_deprecation
-
-from ._meta import is_scalar_tensor
 
 __all__ = ["ComplexObject", "TensorStorage", "LossDict", "TensorKey"]
 

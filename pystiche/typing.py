@@ -23,5 +23,5 @@ warn_deprecation(
     "module",
     "pystiche.typing",
     "0.4.0",
-    info="The functionality was moved to pystiche.meta",
+    info="The functionality was moved to pystiche.meta.",
 )
