@@ -332,14 +332,13 @@ def save_state_dict(
 
 
 def build_deprecation_message(
-    type: str,
-    name: str,
+    description: str,
     version: str,
     info: Optional[str] = None,
     url: Optional[str] = None,
 ) -> str:
     msg = (
-        f"The {type} {name} is deprecated since pystiche=={version} and will be "
+        f"{description.strip()} is deprecated since pystiche=={version} and will be "
         "removed in a future release."
     )
     if info is not None:
@@ -350,6 +349,12 @@ def build_deprecation_message(
 
 
 def warn_deprecation(*args: str, **kwargs: Optional[str]):
+    msg = build_deprecation_message(
+        "META: The function warn_deprecation",
+        "0.4.0",
+        url="https://github.com/pmeier/pystiche/pull/189",
+    )
+    warnings.warn(msg, DeprecationWarning)
     if len(args) == 1 and not kwargs:
         msg = args[0]
     else:

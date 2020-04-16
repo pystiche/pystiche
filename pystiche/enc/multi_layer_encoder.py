@@ -1,3 +1,4 @@
+import warnings
 from collections import OrderedDict
 from copy import copy
 from typing import Collection, Iterator, Optional, Sequence, Tuple
@@ -6,7 +7,7 @@ import torch
 from torch import nn
 
 import pystiche
-from pystiche.misc import warn_deprecation
+from pystiche.misc import build_deprecation_message
 
 from .encoder import Encoder
 from .guides import propagate_guide
@@ -84,15 +85,15 @@ class MultiLayerEncoder(pystiche.Module):
         return SingleLayerEncoder(self, layer)
 
     def __getitem__(self, layer: str) -> "SingleLayerEncoder":
-        warn_deprecation(
-            "method",
-            "MultiLayerEncoder.__getitem__",
+        msg = build_deprecation_message(
+            "Extracting a SingleLayerEncoder with bracket indexing",
             "0.4.0",
             info=(
                 "To extract a single layer encoder use MultiLayerEncoder.extract_"
                 "single_layer_encoder() instead."
             ),
         )
+        warnings.warn(msg)
         return self.extract_single_layer_encoder(layer)
 
     def encode(self, input: torch.Tensor):
@@ -108,12 +109,12 @@ class MultiLayerEncoder(pystiche.Module):
         self._storage = {}
 
     def clear_cache(self):
-        warn_deprecation(
-            "method",
-            "clear_cache()",
+        msg = build_deprecation_message(
+            "The method clear_cache()",
             "0.4.0",
             info="It was renamed to empty_storage().",
         )
+        warnings.warn(msg)
         self.empty_storage()
 
     def trim(self, layers: Optional[Collection[str]] = None):

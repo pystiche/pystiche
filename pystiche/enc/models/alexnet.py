@@ -1,10 +1,11 @@
+import warnings
 from collections import OrderedDict
 
 from torch import nn
 from torch.utils import model_zoo
 from torchvision.models import alexnet
 
-from pystiche.misc import warn_deprecation
+from pystiche.misc import build_deprecation_message
 
 from ..multi_layer_encoder import MultiLayerEncoder
 from ..preprocessing import get_preprocessor
@@ -66,12 +67,12 @@ class MultiLayerAlexNetEncoder(MultiLayerEncoder):
 
 class AlexNetEncoder(MultiLayerAlexNetEncoder):
     def __init__(self, *args, **kwargs):
-        warn_deprecation(
-            "class",
-            "AlexNetEncoder",
+        msg = build_deprecation_message(
+            "The class AlexNetEncoder",
             "0.4.0",
             info="It was replaced by MultiLayerAlexNetEncoder.",
         )
+        warnings.warn(msg)
         super().__init__(*args, **kwargs)
 
 
@@ -82,10 +83,10 @@ def alexnet_multi_layer_encoder(
 
 
 def alexnet_encoder(*args, **kwargs):
-    warn_deprecation(
-        "function",
-        "alexnet_encoder",
+    msg = build_deprecation_message(
+        "The function alexnet_encoder",
         "0.4.0",
-        info="It was replaced by alexnet_multi_layer_encoder",
+        info="It was replaced by alexnet_multi_layer_encoder.",
     )
+    warnings.warn(msg)
     return alexnet_multi_layer_encoder(*args, **kwargs)

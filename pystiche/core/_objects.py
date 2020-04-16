@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC
 from collections import OrderedDict
 from copy import copy
@@ -18,7 +19,12 @@ import torch
 from torch import nn
 
 from pystiche.meta import is_scalar_tensor
-from pystiche.misc import build_fmtstr, build_obj_str, format_dict, warn_deprecation
+from pystiche.misc import (
+    build_deprecation_message,
+    build_fmtstr,
+    build_obj_str,
+    format_dict,
+)
 
 __all__ = ["ComplexObject", "TensorStorage", "LossDict", "TensorKey"]
 
@@ -77,9 +83,10 @@ class ComplexObject(ABC):
 
 class Object(ComplexObject):
     def __init__(self, *args, **kwargs):
-        warn_deprecation(
-            "class", "Object", "0.4", info="It was renamed to ComplexObject."
+        msg = build_deprecation_message(
+            "The class Object", "0.4", info="It was renamed to ComplexObject."
         )
+        warnings.warn(msg)
         super().__init__(*args, **kwargs)
 
 

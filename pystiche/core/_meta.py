@@ -1,18 +1,19 @@
+import warnings
+
 from pystiche import meta
-from pystiche.misc import build_deprecation_message, warn_deprecation
+from pystiche.misc import build_deprecation_message
 
 
 def deprecation(fn):
     name = f"{fn.__name__}()"
     msg = build_deprecation_message(
-        "function",
-        f"pystiche.{name}",
+        f"The function pystiche.{name}",
         "0.4.0",
         info=f"It was moved to pystiche.meta.{name}.",
     )
 
     def wrapper(*args, **kwargs):
-        warn_deprecation(msg)
+        warnings.warn(msg)
         return fn(*args, **kwargs)
 
     return wrapper

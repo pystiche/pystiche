@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, Dict, Optional, Sequence, Tuple, Union
 
 import torch
@@ -7,7 +8,7 @@ import pystiche
 import pystiche.ops.functional as F
 from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.loss import PerceptualLoss
-from pystiche.misc import warn_deprecation
+from pystiche.misc import build_deprecation_message
 from pystiche.ops import (
     MRFOperator,
     MSEEncodingOperator,
@@ -204,12 +205,12 @@ class LiWand2016PerceptualLoss(PerceptualLoss):
         style_loss: MultiLayerEncodingOperator,
         regularization: LiWand2016TotalVariationOperator,
     ):
-        warn_deprecation(
-            "class",
-            "LiWand2016PerceptualLoss",
+        msg = build_deprecation_message(
+            "The class LiWand2016PerceptualLoss",
             "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
+        warnings.warn(msg)
         super().__init__(
             content_loss, style_loss, regularization=regularization,
         )

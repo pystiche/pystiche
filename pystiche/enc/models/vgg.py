@@ -1,11 +1,12 @@
 import re
+import warnings
 from collections import OrderedDict
 
 import torchvision
 from torch import nn
 from torch.utils import model_zoo
 
-from pystiche.misc import warn_deprecation
+from pystiche.misc import build_deprecation_message
 
 from ..multi_layer_encoder import MultiLayerEncoder, SingleLayerEncoder
 from ..preprocessing import get_preprocessor
@@ -110,9 +111,8 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
             layer = f"{type}{block}"
             if depth is not None:
                 layer += f"_{depth}"
-            warn_deprecation(
-                "layer pattern",
-                old_layer,
+            msg = build_deprecation_message(
+                f"The layer pattern {old_layer}",
                 "0.4.0",
                 info=(
                     f"Please remove the underscore between the layer type and the "
@@ -120,17 +120,18 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
                 ),
                 url="https://github.com/pmeier/pystiche/issues/125",
             )
+            warnings.warn(msg)
         return super().extract_single_layer_encoder(layer)
 
 
 class VGGEncoder(MultiLayerVGGEncoder):
     def __init__(self, *args, **kwargs):
-        warn_deprecation(
-            "class",
-            "VGGEncoder",
+        msg = build_deprecation_message(
+            "The class VGGEncoder",
             "0.4.0",
             info="It was replaced by MultiLayerVGGEncoder.",
         )
+        warnings.warn(msg)
         super().__init__(*args, **kwargs)
 
 
@@ -176,12 +177,12 @@ def vgg19_bn_multi_layer_encoder(**kwargs) -> MultiLayerVGGEncoder:
 
 
 def _vgg_encoder(arch: str, **kwargs) -> MultiLayerVGGEncoder:
-    warn_deprecation(
-        "function",
-        f"{arch}_encoder",
+    msg = build_deprecation_message(
+        f"The function {arch}_encoder",
         "0.4.0",
-        info=f"It was replaced by {arch}_multi_layer_encoder",
+        info=f"It was replaced by {arch}_multi_layer_encoder.",
     )
+    warnings.warn(msg)
     return MultiLayerVGGEncoder(arch, **kwargs)
 
 
