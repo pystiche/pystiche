@@ -157,8 +157,7 @@ def default_transformer_optim_loop(
 ) -> nn.Module:
     if get_optimizer is not None:
         warn_deprecation(
-            "parameter",
-            "get_optimizer",
+            "The parameter get_optimizer",
             "0.4.0",
             info="You can achieve the same functionality by passing optimizer=get_optimizer(transformer).",
             url="https://github.com/pmeier/pystiche/pull/96",

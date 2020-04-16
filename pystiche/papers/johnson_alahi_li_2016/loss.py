@@ -192,8 +192,7 @@ class JohnsonAlahiLi2016PerceptualLoss(PerceptualLoss):
         regularization: TotalVariationOperator,
     ) -> None:
         warn_deprecation(
-            "class",
-            "JohnsonAlahiLi2016PerceptualLoss",
+            "The class JohnsonAlahiLi2016PerceptualLoss",
             "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )

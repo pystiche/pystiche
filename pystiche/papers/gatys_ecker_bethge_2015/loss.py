@@ -131,8 +131,7 @@ class GatysEckerBethge2015PerceptualLoss(PerceptualLoss):
         style_loss: GatysEckerBethge2015StyleLoss,
     ):
         warn_deprecation(
-            "class",
-            "GatysEckerBethge2015PerceptualLoss",
+            "The class GatysEckerBethge2015PerceptualLoss",
             "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )

@@ -97,8 +97,7 @@ class AverageMeter(FloatMeter):
     ):
         if show_avg is not None:
             msg = build_deprecation_message(
-                "parameter",
-                "show_avg",
+                "The parameter show_avg",
                 "0.4.0",
                 info="The average is now always shown.",
             )
@@ -109,8 +108,7 @@ class AverageMeter(FloatMeter):
 
         if use_running_avg is not None:
             warn_deprecation(
-                "parameter",
-                "use_running_avg",
+                "The parameter use_running_avg",
                 "0.4.0",
                 info="It was renamed to show_local_avg.",
             )
@@ -142,34 +140,36 @@ class AverageMeter(FloatMeter):
 
     @property
     def val(self) -> float:
-        warn_deprecation("attribute", "val", "0.4.0", info="It was renamed to last_val")
+        warn_deprecation(
+            "The attribute val", "0.4.0", info="It was renamed to last_val"
+        )
         return self.global_avg
 
     @property
     def avg(self) -> float:
         warn_deprecation(
-            "attribute", "avg", "0.4.0", info="It was renamed to global_avg"
+            "The attribute avg", "0.4.0", info="It was renamed to global_avg"
         )
         return self.global_avg
 
     @property
     def min(self) -> float:
         warn_deprecation(
-            "attribute", "min", "0.4.0", info="It was renamed to global_min"
+            "The attribute min", "0.4.0", info="It was renamed to global_min"
         )
         return self.global_avg
 
     @property
     def max(self) -> float:
         warn_deprecation(
-            "attribute", "max", "0.4.0", info="It was renamed to global_max"
+            "The attribute max", "0.4.0", info="It was renamed to global_max"
         )
         return self.global_avg
 
     @property
     def running_avg(self) -> float:
         warn_deprecation(
-            "attribute", "running_avg", "0.4.0", info="It was renamed to local_avg"
+            "The attribute running_avg", "0.4.0", info="It was renamed to local_avg"
         )
         return self.local_avg
 
@@ -189,7 +189,7 @@ class LossMeter(AverageMeter):
 class TimeMeter(AverageMeter):
     def __init__(self, name: str = "time", fmt: str = "{:3.1f}", **kwargs: Any) -> None:
         warn_deprecation(
-            "class", "TimeMeter", "0.4.0", info="Please use AverageMeter instead."
+            "The class TimeMeter", "0.4.0", info="Please use AverageMeter instead."
         )
         super().__init__(name, fmt=fmt, **kwargs)
 
@@ -273,8 +273,7 @@ class ProgressMeter(Meter):
     ) -> None:
         if num_batches is not None:
             warn_deprecation(
-                "parameter",
-                "num_batches",
+                "The parameter num_batches",
                 "0.4.0",
                 info="It was renamed to total_count.",
             )

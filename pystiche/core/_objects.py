@@ -78,7 +78,7 @@ class ComplexObject(ABC):
 class Object(ComplexObject):
     def __init__(self, *args, **kwargs):
         warn_deprecation(
-            "class", "Object", "0.4", info="It was renamed to ComplexObject."
+            "The class Object", "0.4", info="It was renamed to ComplexObject."
         )
         super().__init__(*args, **kwargs)
 

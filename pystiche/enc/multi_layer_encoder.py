@@ -85,8 +85,7 @@ class MultiLayerEncoder(pystiche.Module):
 
     def __getitem__(self, layer: str) -> "SingleLayerEncoder":
         warn_deprecation(
-            "method",
-            "MultiLayerEncoder.__getitem__",
+            "Extracting a SingleLayerEncoder with bracket indexing",
             "0.4.0",
             info=(
                 "To extract a single layer encoder use MultiLayerEncoder.extract_"
@@ -109,8 +108,7 @@ class MultiLayerEncoder(pystiche.Module):
 
     def clear_cache(self):
         warn_deprecation(
-            "method",
-            "clear_cache()",
+            "The method clear_cache()",
             "0.4.0",
             info="It was renamed to empty_storage().",
         )

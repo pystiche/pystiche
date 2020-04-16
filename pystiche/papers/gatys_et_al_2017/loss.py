@@ -148,8 +148,7 @@ class GatysEtAl2017PerceptualLoss(PerceptualLoss):
         self, content_loss: MSEEncodingOperator, style_loss: GatysEtAl2017StyleLoss,
     ):
         warn_deprecation(
-            "class",
-            "GatysEtAl2017PerceptualLoss",
+            "The class GatysEtAl2017PerceptualLoss",
             "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
@@ -187,8 +186,7 @@ class GatysEtAl2017GuidedPerceptualLoss(GuidedPerceptualLoss):
         self, content_loss: MSEEncodingOperator, style_loss: GatysEtAl2017StyleLoss,
     ):
         warn_deprecation(
-            "class",
-            "GatysEtAl2017GuidedPerceptualLoss",
+            "The class GatysEtAl2017GuidedPerceptualLoss",
             "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )

@@ -338,7 +338,7 @@ def build_deprecation_message(
     url: Optional[str] = None,
 ) -> str:
     msg = (
-        f"{description} is deprecated since pystiche=={version} and will be "
+        f"{description.strip()} is deprecated since pystiche=={version} and will be "
         "removed in a future release."
     )
     if info is not None:

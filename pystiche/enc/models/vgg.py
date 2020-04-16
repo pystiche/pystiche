@@ -111,8 +111,7 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
             if depth is not None:
                 layer += f"_{depth}"
             warn_deprecation(
-                "layer pattern",
-                old_layer,
+                f"The layer pattern {old_layer}",
                 "0.4.0",
                 info=(
                     f"Please remove the underscore between the layer type and the "
@@ -126,8 +125,7 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
 class VGGEncoder(MultiLayerVGGEncoder):
     def __init__(self, *args, **kwargs):
         warn_deprecation(
-            "class",
-            "VGGEncoder",
+            "The class VGGEncoder",
             "0.4.0",
             info="It was replaced by MultiLayerVGGEncoder.",
         )
@@ -177,10 +175,9 @@ def vgg19_bn_multi_layer_encoder(**kwargs) -> MultiLayerVGGEncoder:
 
 def _vgg_encoder(arch: str, **kwargs) -> MultiLayerVGGEncoder:
     warn_deprecation(
-        "function",
-        f"{arch}_encoder",
+        f"The function {arch}_encoder",
         "0.4.0",
-        info=f"It was replaced by {arch}_multi_layer_encoder",
+        info=f"It was replaced by {arch}_multi_layer_encoder.",
     )
     return MultiLayerVGGEncoder(arch, **kwargs)
 
