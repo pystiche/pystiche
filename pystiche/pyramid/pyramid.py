@@ -5,7 +5,7 @@ import numpy as np
 
 from pystiche import ComplexObject
 from pystiche.misc import zip_equal
-from pystiche.ops import Binary, Operator
+from pystiche.ops import Comparison, Operator
 
 from .level import PyramidLevel
 from .storage import ImageStorage
@@ -68,7 +68,7 @@ class ImagePyramid(ComplexObject):
 
     def _resize(self, level: PyramidLevel):
         for op in self._resize_ops():
-            if isinstance(op.cls, Binary):
+            if isinstance(op.cls, Comparison):
                 try:
                     resized_image = level.resize_image(
                         op.target_image, interpolation_mode=self.interpolation_mode

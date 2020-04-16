@@ -1,4 +1,4 @@
-from pystiche.ops import Binary
+from pystiche.ops import Comparison
 
 __all__ = ["ImageStorage"]
 
@@ -12,7 +12,7 @@ class ImageStorage:
             # if isinstance(op, ComparisonGuidance) and op.has_target_guide:
             #     self.target_guides[op] = op.target_guide
 
-            if isinstance(op.cls, Binary):
+            if isinstance(op.cls, Comparison):
                 try:
                     self.target_images[op] = op.target_image
                 except AttributeError:

@@ -83,11 +83,11 @@ class RegularizationOperator(Operator):
             "0.4.0",
             info=(
                 "The same behavior can be achieved by passing "
-                "cls=pystiche.ops.meta.Unary() to Operator."
+                "cls=pystiche.ops.meta.Regularization() to Operator."
             ),
         )
         warnings.warn(msg)
-        super().__init__(cls=op_meta.Unary(), score_weight=score_weight)
+        super().__init__(cls=op_meta.Regularization(), score_weight=score_weight)
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -101,11 +101,11 @@ class ComparisonOperator(Operator):
             "0.4.0",
             info=(
                 "The same behavior can be achieved by passing "
-                "cls=pystiche.ops.meta.Binary() to Operator."
+                "cls=pystiche.ops.meta.Comparison() to Operator."
             ),
         )
         warnings.warn(msg)
-        super().__init__(cls=op_meta.Binary(), score_weight=score_weight)
+        super().__init__(cls=op_meta.Comparison(), score_weight=score_weight)
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -137,11 +137,11 @@ class EncodingOperator(Operator):
             "0.4.0",
             info=(
                 "The same behavior can be achieved by passing "
-                "domain=pystiche.ops.meta.Latent() to Operator."
+                "domain=pystiche.ops.meta.Encoding() to Operator."
             ),
         )
         warnings.warn(msg)
-        super().__init__(domain=op_meta.Latent(), score_weight=score_weight)
+        super().__init__(domain=op_meta.Encoding(), score_weight=score_weight)
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -151,7 +151,9 @@ class EncodingOperator(Operator):
 class PixelRegularizationOperator(Operator):
     def __init__(self, score_weight: float = 1.0):
         super().__init__(
-            cls=op_meta.Unary(), domain=op_meta.Pixel(), score_weight=score_weight
+            cls=op_meta.Regularization(),
+            domain=op_meta.Pixel(),
+            score_weight=score_weight,
         )
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -174,7 +176,9 @@ class PixelRegularizationOperator(Operator):
 class EncodingRegularizationOperator(Operator):
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
         super().__init__(
-            cls=op_meta.Unary(), domain=op_meta.Latent(), score_weight=score_weight
+            cls=op_meta.Regularization(),
+            domain=op_meta.Encoding(),
+            score_weight=score_weight,
         )
         self.encoder = encoder
 
@@ -212,7 +216,7 @@ class EncodingRegularizationOperator(Operator):
 class PixelComparisonOperator(Operator):
     def __init__(self, score_weight: float = 1e0):
         super().__init__(
-            cls=op_meta.Binary(), domain=op_meta.Pixel(), score_weight=score_weight
+            cls=op_meta.Comparison(), domain=op_meta.Pixel(), score_weight=score_weight
         )
 
     def set_target_image(self, image: torch.Tensor):
@@ -265,7 +269,9 @@ class PixelComparisonOperator(Operator):
 class EncodingComparisonOperator(Operator):
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
         super().__init__(
-            cls=op_meta.Binary(), domain=op_meta.Latent(), score_weight=score_weight
+            cls=op_meta.Comparison(),
+            domain=op_meta.Encoding(),
+            score_weight=score_weight,
         )
         self.encoder = encoder
 

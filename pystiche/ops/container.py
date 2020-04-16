@@ -43,7 +43,7 @@ class OperatorContainer(Operator):
             if op is self:
                 continue
 
-            if isinstance(op.cls, meta.Binary):
+            if isinstance(op.cls, meta.Comparison):
                 try:
                     op.set_target_image(image)
                 except AttributeError:
@@ -100,7 +100,7 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
         get_encoding_op: Callable[[Encoder, float], EncodingOperator],
         layer_weights: Union[str, Sequence[float]] = "mean",
         cls: Optional[Union[meta.OperatorCls, str]] = None,
-        domain: Optional[Union[meta.OperatorDomain, str]] = meta.Latent(),
+        domain: Optional[Union[meta.OperatorDomain, str]] = meta.Encoding(),
         score_weight: float = 1e0,
     ):
         def get_op(layer, layer_weight):

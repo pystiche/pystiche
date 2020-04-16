@@ -5,13 +5,13 @@ from typing import Union
 __all__ = [
     "OperatorCls",
     "UndefinedOperatorCls",
-    "Unary",
-    "Binary",
+    "Regularization",
+    "Comparison",
     "cls",
     "OperatorDomain",
     "UndefinedOperatorDomain",
     "Pixel",
-    "Latent",
+    "Encoding",
     "domain",
 ]
 
@@ -25,21 +25,24 @@ class UndefinedOperatorCls(OperatorCls):
     pass
 
 
-class Unary(OperatorCls):
+class Regularization(OperatorCls):
     pass
 
 
-class Binary(OperatorCls):
+class Comparison(OperatorCls):
     pass
 
 
-TYPE_MAP = defaultdict(UndefinedOperatorCls, {"unary": Unary(), "binary": Binary()})
+TYPE_MAP = defaultdict(
+    UndefinedOperatorCls,
+    {"regularization": Regularization(), "comparison": Comparison()},
+)
 
 
-def cls(cls: Union[str, OperatorCls]) -> OperatorCls:
+def cls(name_or_cls: Union[str, OperatorCls]) -> OperatorCls:
     if isinstance(cls, OperatorCls):
         return cls
-    return TYPE_MAP[cls]
+    return TYPE_MAP[name_or_cls.lower()]
 
 
 # TODO: this should be immutable
@@ -55,14 +58,16 @@ class Pixel(OperatorDomain):
     pass
 
 
-class Latent(OperatorDomain):
+class Encoding(OperatorDomain):
     pass
 
 
-DOMAIN_MAP = defaultdict(UndefinedOperatorDomain, {"pixel": Pixel(), "latet": Latent()})
+DOMAIN_MAP = defaultdict(
+    UndefinedOperatorDomain, {"pixel": Pixel(), "encoding": Encoding()}
+)
 
 
-def domain(domain: Union[str, OperatorDomain]) -> OperatorDomain:
-    if isinstance(domain, OperatorDomain):
-        return domain
-    return DOMAIN_MAP[domain]
+def domain(name_or_domain: Union[str, OperatorDomain]) -> OperatorDomain:
+    if isinstance(name_or_domain, OperatorDomain):
+        return name_or_domain
+    return DOMAIN_MAP[name_or_domain.lower()]
