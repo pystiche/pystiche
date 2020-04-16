@@ -16,25 +16,6 @@ from pystiche.image.transforms.functional import grayscale_to_fakegrayscale
 from pystiche.image.transforms import functional as F
 
 
-class FiniteChangingCycleBatchSampler(InfiniteCycleBatchSampler):
-    def __init__(
-        self, data_source: Sized, num_batches: List[int], batch_size: int = 1,
-    ):
-        super().__init__(data_source, batch_size=batch_size)
-        self.num_batches = num_batches
-        self.pos = 0
-
-    def __iter__(self) -> Iterator[Tuple[int, ...]]:
-        iterator = super().__iter__()
-        for _ in range(self.num_batches[self.pos]):
-            yield next(iterator)
-        if self.pos < len(self.num_batches) - 1:
-            self.pos += 1
-
-    def __len__(self) -> int:
-        return self.num_batches[self.pos]
-
-
 def sanakoyeu_et_al_2018_image_transform(
     edge_size: int = 768, impl_params: bool = True
 ) -> ComposedTransform:
@@ -120,22 +101,17 @@ def sanakoyeu_et_al_2018_batch_sampler(
     impl_params: bool = True,
     num_batches: Union[int, List[int]] = None,
     batch_size: Optional[int] = None,
-) -> Union[FiniteCycleBatchSampler, FiniteChangingCycleBatchSampler]:
+) -> FiniteCycleBatchSampler:
 
     if num_batches is None:
-        num_batches = int(3e5) if impl_params else [int(2e5), int(1e5)]
+        num_batches = int(3e5) if impl_params else int(2e5)
 
     if batch_size is None:
         batch_size = 1
 
-    if isinstance(num_batches, int):
-        return FiniteCycleBatchSampler(
-            data_source, num_batches=num_batches, batch_size=batch_size
-        )
-    else:
-        return FiniteChangingCycleBatchSampler(
-            data_source, num_batches=num_batches, batch_size=batch_size
-        )
+    return FiniteCycleBatchSampler(
+        data_source, num_batches=num_batches, batch_size=batch_size
+    )
 
 
 def sanakoyeu_et_al_2018_image_loader(
@@ -146,9 +122,7 @@ def sanakoyeu_et_al_2018_image_loader(
     pin_memory: bool = True,
 ):
     if batch_sampler is None:
-        batch_sampler = sanakoyeu_et_al_2018_batch_sampler(
-            dataset, impl_params=impl_params
-        )
+        batch_sampler = sanakoyeu_et_al_2018_batch_sampler(dataset, impl_params=impl_params)
 
     return DataLoader(
         dataset,

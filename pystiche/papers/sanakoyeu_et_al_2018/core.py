@@ -4,6 +4,9 @@ import torch
 from torch.utils.data import DataLoader
 from torch import nn
 from torch.optim.optimizer import Optimizer
+from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
+from torch.optim.lr_scheduler import ExponentialLR
+from pystiche.loss.perceptual import PerceptualLoss
 from .modules import (
     SanakoyeuEtAl2018Generator,
     SanakoyeuEtAl2018Discriminator,
@@ -11,7 +14,6 @@ from .modules import (
     SanakoyeuEtAl2018TransformerBlock,
 )
 from .loss import (
-    SanakoyeuEtAl2018GeneratorLoss,
     DiscriminatorLoss,
     sanakoyeu_et_al_2018_generator_loss,
 )
@@ -41,25 +43,30 @@ def gan_optim_loop(
     style_image_loader: DataLoader,
     generator: nn.Module,
     discriminator: nn.Module,
-    transformer_block: nn.Module,
     discriminator_criterion: nn.Module,
     generator_criterion: nn.Module,
     generator_criterion_update_fn: Callable[
         [nn.Module, nn.Module, torch.tensor, nn.ModuleDict], None
     ],
-    target_win_rate: float = 0.8,
-    impl_params: bool = True,
+    discriminator_optimizer: Optional[Optimizer] = None,
+    generator_optimizer: Optional[Optimizer] = None,
     get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
+    target_win_rate: float = 0.8,
+    discriminator_success: Optional[ExponentialMovingAverage] = None,
+    impl_params: bool = True,
     device: Optional[torch.device] = None,
 ) -> nn.Module:
 
-    discriminator_optimizer = get_optimizer(discriminator)
-    generator_optimizer = get_optimizer(generator)
-    style_image_loader = itertools.cycle(style_image_loader)
+    if generator_criterion is None:
+        discriminator_optimizer = get_optimizer(discriminator)
 
-    discriminator_success = ExponentialMovingAverage("discriminator_success")
+    if generator_criterion is None:
+        generator_criterion = get_optimizer(generator)
 
-    def train_discriminator_one_step(fake_image, real_image, discriminator_success):
+    if discriminator_success is None:
+        discriminator_success = ExponentialMovingAverage("discriminator_success")
+
+    def train_discriminator_one_step(fake_image, real_image):
         def closure():
             discriminator_optimizer.zero_grad()
             loss = discriminator_criterion(fake_image, real_image)
@@ -69,9 +76,7 @@ def gan_optim_loop(
         discriminator_optimizer.step(closure)
         discriminator_success.update(discriminator_criterion.get_current_acc())
 
-        return discriminator_success
-
-    def train_generator_one_step(input_image, discriminator_success):
+    def train_generator_one_step(input_image):
         def closure():
             generator_optimizer.zero_grad()
             loss = generator_criterion(input_image)
@@ -95,11 +100,75 @@ def gan_optim_loop(
             else:
                 fake_images = stylized_image
             train_discriminator_one_step(
-                fake_images, style_image, discriminator_success
+                fake_images, style_image
             )
         else:
             generator_criterion_update_fn(content_image, generator_criterion)
-            train_generator_one_step(stylized_image, discriminator_success)
+            train_generator_one_step(stylized_image)
+
+    return generator
+
+def epoch_gan_optim_loop(
+    content_image_loader: DataLoader,
+    style_image_loader: DataLoader,
+    generator: nn.Module,
+    discriminator: nn.Module,
+    epochs: int,
+    discriminator_criterion: nn.Module,
+    generator_criterion: nn.Module,
+    generator_criterion_update_fn: Callable[
+        [nn.Module, nn.Module, torch.tensor, nn.ModuleDict], None
+    ],
+    discriminator_optimizer: Optional[Optimizer] = None,
+    generator_optimizer: Optional[Optimizer] = None,
+    discriminator_lr_scheduler: Optional[LRScheduler] = None,
+    generator_lr_scheduler: Optional[LRScheduler] = None,
+    target_win_rate: float = 0.8,
+    impl_params: bool = True,
+    device: Optional[torch.device] = None,
+) -> nn.Module:
+
+    style_image_loader = itertools.cycle(style_image_loader)
+    discriminator_success = ExponentialMovingAverage("discriminator_success")
+
+    if discriminator_optimizer is None:
+        if discriminator_lr_scheduler is None:
+            discriminator_optimizer = sanakoyeu_et_al_2018_optimizer(discriminator)
+        else:
+            discriminator_optimizer = discriminator_lr_scheduler.optimizer
+
+    if generator_optimizer is None:
+        if generator_lr_scheduler is None:
+            generator_optimizer = sanakoyeu_et_al_2018_optimizer(generator)
+        else:
+            generator_optimizer = generator_lr_scheduler.optimizer
+
+    def optim_loop(generator: nn.Module) -> nn.Module:
+        return gan_optim_loop(
+            content_image_loader,
+            style_image_loader,
+            generator,
+            discriminator,
+            discriminator_criterion,
+            generator_criterion,
+            generator_criterion_update_fn,
+            discriminator_optimizer=discriminator_optimizer,
+            generator_optimizer=generator_optimizer,
+            target_win_rate=target_win_rate,
+            discriminator_success=discriminator_success,
+            impl_params=impl_params,
+            device=device,
+        )
+
+    for epoch in range(epochs):
+        generator = optim_loop(generator)
+
+        if discriminator_lr_scheduler is not None:
+            discriminator_lr_scheduler.step(epoch)
+
+        if generator_lr_scheduler is not None:
+            generator_lr_scheduler.step(epoch)
+        content_image_loader.batch_sampler.num_batches = int(1e5)
 
     return generator
 
@@ -113,7 +182,10 @@ def sanakoyeu_et_al_2018_training(
     discriminator: Optional[SanakoyeuEtAl2018Discriminator] = None,
     transformer_block: Optional[SanakoyeuEtAl2018TransformerBlock] = None,
     discriminator_criterion: Optional[DiscriminatorLoss] = None,
-    generator_criterion: Optional[SanakoyeuEtAl2018GeneratorLoss] = None,
+    generator_criterion: Optional[PerceptualLoss] = None,
+    discriminator_lr_scheduler: Optional[ExponentialLR] = None,
+    generator_lr_scheduler: Optional[ExponentialLR] = None,
+    num_epochs: Optional[int] = None,
     get_optimizer: Optional[sanakoyeu_et_al_2018_optimizer] = None,
 ):
     if device is None:
@@ -142,7 +214,7 @@ def sanakoyeu_et_al_2018_training(
 
     if generator_criterion is None:
         generator_criterion = sanakoyeu_et_al_2018_generator_loss(
-            generator.encoder, discriminator, impl_params=impl_params
+            generator.encoder, discriminator, transformer_block, impl_params=impl_params
         )
         generator_criterion = generator_criterion.eval()
     generator_criterion = generator_criterion.to(device)
@@ -150,20 +222,35 @@ def sanakoyeu_et_al_2018_training(
     if get_optimizer is None:
         get_optimizer = sanakoyeu_et_al_2018_optimizer
 
+    if discriminator_lr_scheduler is None:
+        discriminator_optimizer = get_optimizer(discriminator)
+        discriminator_lr_scheduler = ExponentialLR(discriminator_optimizer, 0.1)
+
+    if generator_lr_scheduler is None:
+        generator_optimizer = get_optimizer(generator)
+        generator_lr_scheduler = ExponentialLR(generator_optimizer, 0.1)
+
+    if num_epochs is None:
+        if impl_params:
+            num_epochs = 1
+        else:
+            num_epochs = 2
+
     def generator_criterion_update_fn(content_image, criterion):
         criterion.set_content_image(content_image)
 
-    return gan_optim_loop(
+    return epoch_gan_optim_loop(
         content_image_loader,
         style_image_loader,
         generator,
         discriminator,
-        transformer_block,
+        num_epochs,
         discriminator_criterion,
         generator_criterion,
         generator_criterion_update_fn,
+        discriminator_lr_scheduler=discriminator_lr_scheduler,
+        generator_lr_scheduler=generator_lr_scheduler,
         impl_params=impl_params,
-        get_optimizer=get_optimizer,
         device=device,
     )
 

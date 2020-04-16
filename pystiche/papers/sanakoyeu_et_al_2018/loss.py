@@ -29,7 +29,7 @@ def loss(
         torch.stack(
             [
                 binary_cross_entropy_with_logits(
-                    pred, torch.ones_like(pred) if real else torch.zeros_like(pred),
+                    pred, torch.ones_like(pred) if real else torch.zeros_like(pred), reduction='sum'
                 )
                 * weight
                 for pred, weight in zip(predictions, scale_weight)
@@ -155,8 +155,8 @@ def sanakoyeu_et_al_2018_style_aware_content_loss(
 
 
 def sanakoyeu_et_al_2018_transformer_loss(
+    transformer_block: Optional[SanakoyeuEtAl2018TransformerBlock] = None,
     impl_params: bool = True,
-    transformer: Optional[SanakoyeuEtAl2018TransformerBlock] = None,
     score_weight=None,
 ) -> MSEEncodingOperator:
     if score_weight is None:
@@ -165,15 +165,16 @@ def sanakoyeu_et_al_2018_transformer_loss(
         else:
             score_weight = 1e0
 
-    if transformer is None:
-        transformer = SanakoyeuEtAl2018TransformerBlock()
+    if transformer_block is None:
+        transformer_block = SanakoyeuEtAl2018TransformerBlock()
 
-    return MSEEncodingOperator(transformer, score_weight=score_weight)
+    return MSEEncodingOperator(transformer_block, score_weight=score_weight)
 
 
 def sanakoyeu_et_al_2018_generator_loss(
     encoder: Optional[pystiche.SequentialModule],
     discriminator: SanakoyeuEtAl2018Discriminator,
+    transformer_block: Optional[SanakoyeuEtAl2018TransformerBlock] = None,
     impl_params: bool = True,
     style_aware_content_loss: Optional[SanakoyeuEtAl2018FeatureOperator] = None,
     transformer_loss: Optional[MSEEncodingOperator] = None,
@@ -186,7 +187,7 @@ def sanakoyeu_et_al_2018_generator_loss(
         )
 
     if transformer_loss is None:
-        transformer_loss = sanakoyeu_et_al_2018_transformer_loss(
+        transformer_loss = sanakoyeu_et_al_2018_transformer_loss(transformer_block=transformer_block,
             impl_params=impl_params
         )
 
