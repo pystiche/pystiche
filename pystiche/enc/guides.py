@@ -3,8 +3,8 @@ import torch.nn.functional as F
 from torch import nn
 
 import pystiche
+from pystiche.meta import ConvModule, PoolModule, is_conv_module, is_pool_module
 from pystiche.misc import verify_str_arg
-from pystiche.typing import ConvModule, PoolModule, is_conv_module, is_pool_module
 
 __all__ = ["propagate_guide"]
 
