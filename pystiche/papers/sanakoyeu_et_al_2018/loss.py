@@ -175,7 +175,7 @@ def sanakoyeu_et_al_2018_style_aware_content_loss(
     )
 
 
-def sanakoyeu_et_al_2018_transformer_loss(
+def sanakoyeu_et_al_2018_transformed_image_loss(
     transformer_block: Optional[SanakoyeuEtAl2018TransformerBlock] = None,
     impl_params: bool = True,
     score_weight=None,
@@ -192,13 +192,12 @@ def sanakoyeu_et_al_2018_transformer_loss(
     return MSEEncodingOperator(transformer_block, score_weight=score_weight)
 
 
-def sanakoyeu_et_al_2018_generator_loss(
+def sanakoyeu_et_al_2018_transformer_loss(
     encoder: Optional[pystiche.SequentialModule],
     discriminator: SanakoyeuEtAl2018Discriminator,
-    transformer_block: Optional[SanakoyeuEtAl2018TransformerBlock] = None,
     impl_params: bool = True,
     style_aware_content_loss: Optional[SanakoyeuEtAl2018FeatureOperator] = None,
-    transformer_loss: Optional[MSEEncodingOperator] = None,
+    transformed_image_loss: Optional[MSEEncodingOperator] = None,
     style_loss: Optional[DiscriminatorOperator] = None,
 ) -> PerceptualLoss:
 
@@ -207,16 +206,16 @@ def sanakoyeu_et_al_2018_generator_loss(
             encoder, impl_params=impl_params
         )
 
-    if transformer_loss is None:
-        transformer_loss = sanakoyeu_et_al_2018_transformer_loss(
-            transformer_block=transformer_block, impl_params=impl_params
+    if transformed_image_loss is None:
+        transformed_image_loss = sanakoyeu_et_al_2018_transformed_image_loss(
+            impl_params=impl_params
         )
 
     content_loss = ContentOperatorContainer(
         OrderedDict(
             (
                 ("style_aware_content_loss", style_aware_content_loss),
-                ("tranformer_loss", transformer_loss),
+                ("tranformed_image_loss", transformed_image_loss),
             )
         )
     )

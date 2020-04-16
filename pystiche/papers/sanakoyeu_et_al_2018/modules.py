@@ -305,7 +305,7 @@ class SanakoyeuEtAl2018Decoder(nn.Module):
         return torch.sigmoid(self.decoder(input)) * 2 - 1
 
 
-class SanakoyeuEtAl2018Generator(nn.Module):
+class SanakoyeuEtAl2018Transformer(nn.Module):
     def __init__(self):
         super().__init__()
         self.encoder = sanakoyeu_et_al_2018_transformer_encoder()
