@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict, deque
 from datetime import datetime, timedelta
@@ -6,7 +7,7 @@ from typing import Any, Callable, Collection, Optional, Union
 import torch
 
 import pystiche
-from pystiche.misc import build_deprecation_message, build_fmtstr, warn_deprecation
+from pystiche.misc import build_deprecation_message, build_fmtstr
 
 __all__ = [
     "Meter",
@@ -102,16 +103,17 @@ class AverageMeter(FloatMeter):
                 info="The average is now always shown.",
             )
             if show_avg:
-                warn_deprecation(msg)
+                warnings.warn(msg)
             else:
                 raise RuntimeError(msg)
 
         if use_running_avg is not None:
-            warn_deprecation(
+            msg = build_deprecation_message(
                 "The parameter use_running_avg",
                 "0.4.0",
                 info="It was renamed to show_local_avg.",
             )
+            warnings.warn(msg)
             show_local_avg = use_running_avg
 
         super().__init__(name=name, window_size=window_size)
@@ -140,37 +142,42 @@ class AverageMeter(FloatMeter):
 
     @property
     def val(self) -> float:
-        warn_deprecation(
+        msg = build_deprecation_message(
             "The attribute val", "0.4.0", info="It was renamed to last_val"
         )
+        warnings.warn(msg)
         return self.global_avg
 
     @property
     def avg(self) -> float:
-        warn_deprecation(
+        msg = build_deprecation_message(
             "The attribute avg", "0.4.0", info="It was renamed to global_avg"
         )
+        warnings.warn(msg)
         return self.global_avg
 
     @property
     def min(self) -> float:
-        warn_deprecation(
+        msg = build_deprecation_message(
             "The attribute min", "0.4.0", info="It was renamed to global_min"
         )
+        warnings.warn(msg)
         return self.global_avg
 
     @property
     def max(self) -> float:
-        warn_deprecation(
+        msg = build_deprecation_message(
             "The attribute max", "0.4.0", info="It was renamed to global_max"
         )
+        warnings.warn(msg)
         return self.global_avg
 
     @property
     def running_avg(self) -> float:
-        warn_deprecation(
+        msg = build_deprecation_message(
             "The attribute running_avg", "0.4.0", info="It was renamed to local_avg"
         )
+        warnings.warn(msg)
         return self.local_avg
 
 
@@ -188,9 +195,10 @@ class LossMeter(AverageMeter):
 
 class TimeMeter(AverageMeter):
     def __init__(self, name: str = "time", fmt: str = "{:3.1f}", **kwargs: Any) -> None:
-        warn_deprecation(
+        msg = build_deprecation_message(
             "The class TimeMeter", "0.4.0", info="Please use AverageMeter instead."
         )
+        warnings.warn(msg)
         super().__init__(name, fmt=fmt, **kwargs)
 
 
@@ -272,11 +280,12 @@ class ProgressMeter(Meter):
         self, total_count: Optional[int] = None, num_batches: Optional[int] = None
     ) -> None:
         if num_batches is not None:
-            warn_deprecation(
+            msg = build_deprecation_message(
                 "The parameter num_batches",
                 "0.4.0",
                 info="It was renamed to total_count.",
             )
+            warnings.warn(msg)
             total_count = num_batches
 
         self.count = 0

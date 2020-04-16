@@ -1,3 +1,5 @@
+import warnings
+
 from pystiche.meta import (
     ConvModule,
     ConvModuleMeta,
@@ -7,7 +9,7 @@ from pystiche.meta import (
     is_conv_module,
     is_pool_module,
 )
-from pystiche.misc import warn_deprecation
+from pystiche.misc import build_deprecation_message
 
 __all__ = [
     "TensorMeta",
@@ -19,8 +21,10 @@ __all__ = [
     "PoolModuleMeta",
 ]
 
-warn_deprecation(
+
+msg = build_deprecation_message(
     "The module pystiche.typing",
     "0.4.0",
     info="The functionality was moved to pystiche.meta.",
 )
+warnings.warn(msg)

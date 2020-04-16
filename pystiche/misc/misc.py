@@ -349,9 +349,13 @@ def build_deprecation_message(
 
 
 def warn_deprecation(*args: str, **kwargs: Optional[str]):
-    if len(args) == 0:
-        msg = ""
-    elif len(args) == 1 and not kwargs:
+    msg = build_deprecation_message(
+        "META: The function warn_deprecation",
+        "0.4.0",
+        url="https://github.com/pmeier/pystiche/pull/189",
+    )
+    warnings.warn(msg, DeprecationWarning)
+    if len(args) == 1 and not kwargs:
         msg = args[0]
     else:
         msg = build_deprecation_message(*args, **kwargs)

@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, Callable, Dict, Optional, Sequence, Union
 
 import torch
@@ -5,7 +6,7 @@ import torch
 import pystiche
 from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.loss import GuidedPerceptualLoss, PerceptualLoss
-from pystiche.misc import warn_deprecation
+from pystiche.misc import build_deprecation_message
 from pystiche.ops import (
     EncodingComparisonGuidance,
     EncodingOperator,
@@ -147,11 +148,12 @@ class GatysEtAl2017PerceptualLoss(PerceptualLoss):
     def __init__(
         self, content_loss: MSEEncodingOperator, style_loss: GatysEtAl2017StyleLoss,
     ):
-        warn_deprecation(
+        msg = build_deprecation_message(
             "The class GatysEtAl2017PerceptualLoss",
             "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
+        warnings.warn(msg)
         super().__init__(content_loss, style_loss)
 
 
@@ -185,11 +187,12 @@ class GatysEtAl2017GuidedPerceptualLoss(GuidedPerceptualLoss):
     def __init__(
         self, content_loss: MSEEncodingOperator, style_loss: GatysEtAl2017StyleLoss,
     ):
-        warn_deprecation(
+        msg = build_deprecation_message(
             "The class GatysEtAl2017GuidedPerceptualLoss",
             "0.4.0",
             info="It can be replaced by pystiche.loss.PerceptualLoss.",
         )
+        warnings.warn(msg)
         super().__init__(content_loss, style_loss)
 
 

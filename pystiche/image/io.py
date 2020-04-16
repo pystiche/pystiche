@@ -1,3 +1,4 @@
+import warnings
 from os import listdir, path
 from typing import Any, Optional, Tuple, Union
 
@@ -7,7 +8,7 @@ import torch
 from torchvision.transforms.functional import to_pil_image as _to_pil_image
 from torchvision.transforms.functional import to_tensor as _to_tensor
 
-from pystiche.misc import warn_deprecation
+from pystiche.misc import build_deprecation_message
 
 from .utils import (
     calculate_aspect_ratio,
@@ -89,11 +90,12 @@ def _pil_resize(
         raise RuntimeError
 
     if kwargs:
-        warn_deprecation(
+        msg = build_deprecation_message(
             "Passing additional parameters via **resize_kwargs",
             "0.4.0",
             info="The keyword arguments are ignored",
         )
+        warnings.warn(msg)
 
     return image.resize((width, height))
 

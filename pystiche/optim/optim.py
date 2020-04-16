@@ -1,4 +1,5 @@
 import time
+import warnings
 from typing import Callable, Iterable, Optional, Tuple, Union
 
 import torch
@@ -9,7 +10,7 @@ from torch.utils.data import DataLoader
 
 import pystiche
 from pystiche.image import extract_aspect_ratio, extract_image_size
-from pystiche.misc import warn_deprecation
+from pystiche.misc import build_deprecation_message
 from pystiche.pyramid import ImagePyramid
 from pystiche.pyramid.level import PyramidLevel
 
@@ -156,12 +157,13 @@ def default_transformer_optim_loop(
     ] = None,
 ) -> nn.Module:
     if get_optimizer is not None:
-        warn_deprecation(
+        msg = build_deprecation_message(
             "The parameter get_optimizer",
             "0.4.0",
             info="You can achieve the same functionality by passing optimizer=get_optimizer(transformer).",
             url="https://github.com/pmeier/pystiche/pull/96",
         )
+        warnings.warn(msg)
         optimizer = get_optimizer(transformer)
 
     if optimizer is None:

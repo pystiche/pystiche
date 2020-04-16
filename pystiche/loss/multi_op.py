@@ -1,10 +1,11 @@
+import warnings
 from typing import Iterator, Sequence, Tuple, Union
 
 import torch
 
 import pystiche
 from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
-from pystiche.misc import warn_deprecation
+from pystiche.misc import build_deprecation_message
 from pystiche.ops import EncodingOperator, Operator
 
 __all__ = ["MultiOperatorLoss"]
@@ -20,18 +21,20 @@ class MultiOperatorLoss(pystiche.Module):
         if len(named_ops) == 1:
             if isinstance(named_ops[0], dict):
                 named_children = tuple(named_ops[0].items())
-                warn_deprecation(
+                msg = build_deprecation_message(
                     "Passing named_ops as dictionary", "0.4.0", info=info,
                 )
+                warnings.warn(msg)
             else:
                 named_children = named_ops[0]
             indexed_children = None
         else:
-            warn_deprecation(
+            msg = build_deprecation_message(
                 "Passing a variable number of unnamed operators via *args",
                 "0.4.0",
                 info=info,
             )
+            warnings.warn(msg)
             named_children = None
             indexed_children = named_ops
 
@@ -73,11 +76,12 @@ class MultiOperatorLoss(pystiche.Module):
         return loss
 
     def __getitem__(self, item: Union[str, int]):
-        warn_deprecation(
+        msg = build_deprecation_message(
             "Dynamic access to the modules via bracket indexing",
             "0.4.0",
             info="If you need dynamic access to the operators, use getattr() instead.",
         )
+        warnings.warn(msg)
         if isinstance(item, str):
             return self._modules[item]
         elif isinstance(item, int):
@@ -86,7 +90,10 @@ class MultiOperatorLoss(pystiche.Module):
             raise TypeError
 
     def __delitem__(self, item: Union[str, int]):
-        warn_deprecation("Deleting modules via bracket indexing", "0.4.0")
+        msg = build_deprecation_message(
+            "Deleting modules via bracket indexing", "0.4.0"
+        )
+        warnings.warn(msg)
         if isinstance(item, str):
             del self._modules[item]
         elif isinstance(item, int):
