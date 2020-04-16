@@ -250,7 +250,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
         desired = 1
         self.assertEqual(actual, desired)
 
-    def test_MultiLayerEncoder_clear_cache(self):
+    def test_MultiLayerEncoder_empty_storage(self):
         torch.manual_seed(0)
         count = ForwardPassCounter()
         input = torch.rand(1, 3, 128, 128)
@@ -260,7 +260,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
 
         layers = ("count",)
         multi_layer_encoder(input, layers, store=True)
-        multi_layer_encoder.clear_cache()
+        multi_layer_encoder.empty_storage()
         multi_layer_encoder(input, layers)
 
         actual = count.count
