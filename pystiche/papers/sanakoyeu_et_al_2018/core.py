@@ -86,7 +86,7 @@ def gan_optim_loop(
 
         generator_optimizer.step(closure)
         discriminator_success.update(
-            (1.0 - generator_criterion["discr_loss"].get_current_acc())
+            (1.0 - generator_criterion["style_loss"].get_current_acc())
         )
 
     for content_image in content_image_loader:

@@ -1,6 +1,7 @@
 from torch import nn
 from typing import Union, Tuple, Collection, List
 import pystiche
+from pystiche.enc.encoder import SequentialEncoder
 import torch
 from ..common_utils import ResidualBlock
 
@@ -228,7 +229,7 @@ def sanakoyeu_et_al_2018_transformer_encoder(
             instance_norm=instance_norm,
         ),
     )
-    return pystiche.enc.SequentialEncoder(*modules)
+    return SequentialEncoder(modules)
 
 
 def sanakoyeu_et_al_2018_transformer_decoder(

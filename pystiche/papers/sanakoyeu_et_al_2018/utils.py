@@ -1,3 +1,4 @@
+from typing import Union
 import torch
 from torch import nn, optim
 from torch.optim.optimizer import Optimizer
@@ -16,10 +17,12 @@ class ExponentialMovingAverage(FloatMeter):
         self.alpha = alpha
         self.last_val = init_val
 
-    def calculate_val(self, val: float):
+    def calculate_val(self, val: Union[torch.tensor, float]):
+        if isinstance(val, torch.Tensor):
+            val = val.item()
         return self.last_val * (1.0 - self.alpha) + self.alpha * val
 
-    def update(self, new_val: float) -> None:
+    def update(self, new_val: Union[torch.tensor, float]) -> None:
         super().update(self.calculate_val(new_val))
 
     def local_avg(self) -> float:

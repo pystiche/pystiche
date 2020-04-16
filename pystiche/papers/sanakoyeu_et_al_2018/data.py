@@ -1,10 +1,9 @@
-from typing import Optional, Sized, Tuple, List, Iterator, Dict, Any, Union
+from typing import Optional, Sized, List, Dict, Any, Union
 import torch
 from torch.utils.data import Dataset, Sampler, DataLoader
 from pystiche.data import (
     ImageFolderDataset,
     FiniteCycleBatchSampler,
-    InfiniteCycleBatchSampler,
 )
 from pystiche.image.transforms import (
     Transform,
