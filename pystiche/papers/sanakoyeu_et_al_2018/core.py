@@ -21,6 +21,7 @@ from .data import (
     sanakoyeu_et_al_2018_dataset,
     sanakoyeu_et_al_2018_image_loader,
     sanakoyeu_et_al_2018_images,
+    sanakoyeu_et_al_2018_batch_sampler,
 )
 from .utils import sanakoyeu_et_al_2018_optimizer, ExponentialMovingAverage
 
@@ -99,14 +100,13 @@ def gan_optim_loop(
                 fake_images = torch.cat((stylized_image, content_image), 0)
             else:
                 fake_images = stylized_image
-            train_discriminator_one_step(
-                fake_images, style_image
-            )
+            train_discriminator_one_step(fake_images, style_image)
         else:
             generator_criterion_update_fn(content_image, generator_criterion)
             train_generator_one_step(stylized_image)
 
     return generator
+
 
 def epoch_gan_optim_loop(
     content_image_loader: DataLoader,
@@ -143,6 +143,17 @@ def epoch_gan_optim_loop(
         else:
             generator_optimizer = generator_lr_scheduler.optimizer
 
+    def update_batch_sampler(image_loader: DataLoader):
+        batch_sampler = sanakoyeu_et_al_2018_batch_sampler(
+            image_loader.dataset, num_batches=int(1e5)
+        )
+        return DataLoader(
+            image_loader.dataset,
+            batch_sampler=batch_sampler,
+            num_workers=image_loader.num_workers,
+            pin_memory=image_loader.pin_memory,
+        )
+
     def optim_loop(generator: nn.Module) -> nn.Module:
         return gan_optim_loop(
             content_image_loader,
@@ -168,7 +179,7 @@ def epoch_gan_optim_loop(
 
         if generator_lr_scheduler is not None:
             generator_lr_scheduler.step(epoch)
-        content_image_loader.batch_sampler.num_batches = int(1e5)
+        content_image_loader = update_batch_sampler(content_image_loader)
 
     return generator
 
