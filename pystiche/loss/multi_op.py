@@ -66,7 +66,7 @@ class MultiOperatorLoss(pystiche.Module):
         )
 
         for encoder in self._multi_layer_encoders:
-            encoder.clear_cache()
+            encoder.empty_storage()
 
         return loss
 
