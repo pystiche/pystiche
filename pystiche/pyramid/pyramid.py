@@ -5,7 +5,8 @@ import numpy as np
 
 from pystiche import ComplexObject
 from pystiche.misc import zip_equal
-from pystiche.ops import ComparisonGuidance, ComparisonOperator, Guidance, Operator
+from pystiche.ops import Operator
+from pystiche.ops.meta import Binary
 
 from .level import PyramidLevel
 from .storage import ImageStorage
@@ -68,27 +69,33 @@ class ImagePyramid(ComplexObject):
 
     def _resize(self, level: PyramidLevel):
         for op in self._resize_ops():
-            if isinstance(op, ComparisonGuidance) and op.has_target_guide:
-                resized_guide = level.resize_guide(op.target_guide)
-                op.set_target_guide(resized_guide, recalc_repr=False)
+            if isinstance(op.cls, Binary):
+                try:
+                    resized_image = level.resize_image(
+                        op.target_image, interpolation_mode=self.interpolation_mode
+                    )
+                    op.set_target_image(resized_image)
+                except AttributeError:
+                    pass
 
-            if isinstance(op, ComparisonOperator) and op.has_target_image:
-                resized_image = level.resize_image(
-                    op.target_image, interpolation_mode=self.interpolation_mode
-                )
-                op.set_target_image(resized_image)
+            # if isinstance(op, ComparisonGuidance) and op.has_target_guide:
+            #     resized_guide = level.resize_guide(op.target_guide)
+            #     op.set_target_guide(resized_guide, recalc_repr=False)
 
-            if isinstance(op, Guidance) and op.has_input_guide:
-                resized_guide = level.resize_guide(op.input_guide)
-                op.set_input_guide(resized_guide)
+            # if isinstance(op, Operator) and op.has_target_image:
+
+            # if isinstance(op, Guidance) and op.has_input_guide:
+            #     resized_guide = level.resize_guide(op.input_guide)
+            #     op.set_input_guide(resized_guide)
 
     def _resize_ops(self) -> Iterator[Operator]:
-        unique_modules = set(
-            itertools.chain(*[target.modules() for target in self._resize_targets])
+        yield from iter(
+            set(
+                itertools.chain(
+                    *[target.operators(recurse=True) for target in self._resize_targets]
+                )
+            )
         )
-        for module in unique_modules:
-            if isinstance(module, Operator):
-                yield module
 
     def _properties(self):
         dct = super()._properties()

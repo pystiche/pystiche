@@ -1,13 +1,14 @@
 from collections import OrderedDict
-from typing import Callable, Sequence, Tuple, Union
+from typing import Callable, Optional, Sequence, Tuple, Union
 
 import torch
 
 import pystiche
 from pystiche.enc import Encoder, MultiLayerEncoder
+from pystiche.misc import warn_deprecation
 
-from .guidance import ComparisonGuidance, Guidance
-from .op import ComparisonOperator, EncodingOperator, Operator
+from . import meta
+from .op import EncodingOperator, Operator
 
 __all__ = [
     "OperatorContainer",
@@ -18,14 +19,41 @@ __all__ = [
 
 
 class OperatorContainer(Operator):
-    def __init__(self, named_ops: Sequence[Tuple[str, Operator]], score_weight=1e0):
-        super().__init__(score_weight=score_weight)
+    def __init__(
+        self,
+        named_ops: Sequence[Tuple[str, Operator]],
+        cls: Optional[Union[meta.Cls, str]] = None,
+        domain: Optional[Union[meta.Domain, str]] = None,
+        score_weight=1e0,
+    ):
+        super().__init__(cls=cls, domain=domain, score_weight=score_weight)
         self.add_named_modules(named_ops)
 
     def process_input_image(self, input_image: torch.Tensor) -> pystiche.LossDict:
         return pystiche.LossDict(
             [(name, op(input_image)) for name, op in self.named_children()]
         )
+
+    # def set_target_guide(self, guide: torch.Tensor):
+    #     for op in self.children():
+    #         if isinstance(op, ComparisonGuidance):
+    #             op.set_target_guide(guide)
+
+    def set_target_image(self, image: torch.Tensor, recurse: bool = True):
+        for op in self.operators(recurse=recurse):
+            if op is self:
+                continue
+
+            if isinstance(op.cls, meta.Binary):
+                try:
+                    op.set_target_image(image)
+                except AttributeError:
+                    pass
+
+    # def set_input_guide(self, guide: torch.Tensor):
+    #     for op in self.children():
+    #         if isinstance(op, Guidance):
+    #             op.set_input_guide(guide)
 
     # TODO: can this be removed?
     def __getitem__(self, name):
@@ -38,6 +66,8 @@ class SameOperatorContainer(OperatorContainer):
         names: Sequence[str],
         get_op: Callable[[str, float], Operator],
         op_weights: Union[str, Sequence[float]] = "sum",
+        cls: Optional[Union[meta.Cls, str]] = None,
+        domain: Optional[Union[meta.Domain, str]] = None,
         score_weight=1e0,
     ) -> None:
         op_weights = self._parse_op_weights(op_weights, len(names))
@@ -45,7 +75,7 @@ class SameOperatorContainer(OperatorContainer):
             (name, get_op(name, weight)) for name, weight in zip(names, op_weights)
         ]
 
-        super().__init__(named_ops, score_weight=score_weight)
+        super().__init__(named_ops, cls=cls, domain=domain, score_weight=score_weight)
 
     @staticmethod
     def _parse_op_weights(op_weights, num_ops):
@@ -70,6 +100,8 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
         layers: Sequence[str],
         get_encoding_op: Callable[[Encoder, float], EncodingOperator],
         layer_weights: Union[str, Sequence[float]] = "mean",
+        cls: Optional[Union[meta.Cls, str]] = None,
+        domain: Optional[Union[meta.Domain, str]] = meta.Latent(),
         score_weight: float = 1e0,
     ):
         def get_op(layer, layer_weight):
@@ -77,23 +109,13 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
             return get_encoding_op(encoder, layer_weight)
 
         super().__init__(
-            layers, get_op, op_weights=layer_weights, score_weight=score_weight
+            layers,
+            get_op,
+            op_weights=layer_weights,
+            cls=cls,
+            domain=domain,
+            score_weight=score_weight,
         )
-
-    def set_target_guide(self, guide: torch.Tensor):
-        for op in self.children():
-            if isinstance(op, ComparisonGuidance):
-                op.set_target_guide(guide)
-
-    def set_target_image(self, image: torch.Tensor):
-        for op in self.children():
-            if isinstance(op, ComparisonOperator):
-                op.set_target_image(image)
-
-    def set_input_guide(self, guide: torch.Tensor):
-        for op in self.children():
-            if isinstance(op, Guidance):
-                op.set_input_guide(guide)
 
     def __repr__(self) -> str:
         def build_encoder_repr():
@@ -127,17 +149,29 @@ class MultiRegionOperator(SameOperatorContainer):
         regions: Sequence[str],
         get_op: Callable[[str, float], Operator],
         region_weights: Union[str, Sequence[float]] = "sum",
+        cls: Optional[Union[meta.Cls, str]] = None,
+        domain: Optional[Union[meta.Domain, str]] = None,
         score_weight: float = 1e0,
     ):
         super().__init__(
-            regions, get_op, op_weights=region_weights, score_weight=score_weight
+            regions,
+            get_op,
+            op_weights=region_weights,
+            cls=cls,
+            domain=domain,
+            score_weight=score_weight,
         )
 
-    def set_target_guide(self, region, guide):
-        self[region].set_target_guide(guide)
+    # def set_target_guide(self, region, guide):
+    #     self[region].set_target_guide(guide)
 
-    def set_target_image(self, region, image):
+    def set_region_target_image(self, region: str, image: torch.Tensor) -> None:
+        getattr(self, region).set_target_image(image)
         self[region].set_target_image(image)
 
-    def set_input_guide(self, region, guide):
-        self[region].set_input_guide(guide)
+    def set_target_image(self, region: str, image: torch.Tensor) -> None:
+        warn_deprecation()
+        self.set_region_target_image(region, image)
+
+    # def set_input_guide(self, region, guide):
+    #     self[region].set_input_guide(guide)

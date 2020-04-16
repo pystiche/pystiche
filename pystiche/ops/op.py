@@ -1,12 +1,14 @@
 from abc import abstractmethod
 from collections import OrderedDict
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, Optional, Tuple, Union
 
 import torch
 
 import pystiche
 from pystiche.enc import Encoder
-from pystiche.misc import is_almost, to_engstr
+from pystiche.misc import is_almost, to_engstr, warn_deprecation
+
+from . import meta as op_meta
 
 __all__ = [
     "Operator",
@@ -22,9 +24,24 @@ __all__ = [
 
 
 class Operator(pystiche.Module):
-    def __init__(self, score_weight: float = 1e0) -> None:
+    def __init__(
+        self,
+        cls: Optional[Union[op_meta.Cls, str]] = None,
+        domain: Optional[Union[op_meta.Domain, str]] = None,
+        score_weight: float = 1e0,
+    ) -> None:
         super().__init__()
+        self._cls = op_meta.cls(cls)
+        self._domain = op_meta.domain(domain)
         self.score_weight = score_weight
+
+    @property
+    def cls(self) -> op_meta.Cls:
+        return self._cls
+
+    @property
+    def domain(self) -> op_meta.Domain:
+        return self._domain
 
     def forward(
         self, input_image: torch.Tensor
@@ -35,6 +52,22 @@ class Operator(pystiche.Module):
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
+    def named_operators(
+        self, recurse: bool = False
+    ) -> Iterator[Tuple[str, "Operator"]]:
+        if recurse:
+            iterator = self.named_modules()
+        else:
+            iterator = self.named_children()
+        for name, child in iterator:
+            if isinstance(child, Operator):
+                yield name, child
+
+    # FIXME: recurse might be wrong phrase here
+    def operators(self, recurse: bool = False) -> Iterator["Operator"]:
+        for _, op in self.named_operators(recurse=recurse):
+            yield op
+
     def _properties(self) -> Dict[str, Any]:
         dct = OrderedDict()
         if not is_almost(self.score_weight, 1e0):
@@ -43,30 +76,51 @@ class Operator(pystiche.Module):
 
 
 class RegularizationOperator(Operator):
+    def __init__(self, score_weight: float = 1e0):
+        warn_deprecation()
+        super().__init__(cls=op_meta.Unary(), score_weight=score_weight)
+
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
 
 class ComparisonOperator(Operator):
+    def __init__(self, score_weight: float = 1e0):
+        warn_deprecation()
+        super().__init__(cls=op_meta.Binary(), score_weight=score_weight)
+
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
 
 class PixelOperator(Operator):
+    def __init__(self, score_weight: float = 1e0):
+        warn_deprecation()
+        super().__init__(domain=op_meta.Pixel(), score_weight=score_weight)
+
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
 
 class EncodingOperator(Operator):
+    def __init__(self, score_weight: float = 1e0):
+        warn_deprecation()
+        super().__init__(domain=op_meta.Latent(), score_weight=score_weight)
+
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
 
-class PixelRegularizationOperator(PixelOperator, RegularizationOperator):
+class PixelRegularizationOperator(Operator):
+    def __init__(self, score_weight: float = 1.0):
+        super().__init__(
+            cls=op_meta.Unary(), domain=op_meta.Pixel(), score_weight=score_weight
+        )
+
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         input_repr = self.input_image_to_repr(image)
         return self.calculate_score(input_repr)
@@ -84,9 +138,11 @@ class PixelRegularizationOperator(PixelOperator, RegularizationOperator):
         pass
 
 
-class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
+class EncodingRegularizationOperator(Operator):
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
-        super().__init__(score_weight=score_weight)
+        super().__init__(
+            cls=op_meta.Unary(), domain=op_meta.Latent(), score_weight=score_weight
+        )
         self.encoder = encoder
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -120,7 +176,12 @@ class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
         return self._build_repr(named_children=())
 
 
-class PixelComparisonOperator(PixelOperator, ComparisonOperator):
+class PixelComparisonOperator(Operator):
+    def __init__(self, score_weight: float = 1e0):
+        super().__init__(
+            cls=op_meta.Binary(), domain=op_meta.Pixel(), score_weight=score_weight
+        )
+
     def set_target_image(self, image: torch.Tensor):
         with torch.no_grad():
             repr, ctx = self.target_image_to_repr(image)
@@ -168,9 +229,11 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
         pass
 
 
-class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
+class EncodingComparisonOperator(Operator):
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
-        super().__init__(score_weight=score_weight)
+        super().__init__(
+            cls=op_meta.Binary(), domain=op_meta.Latent(), score_weight=score_weight
+        )
         self.encoder = encoder
 
     def set_target_image(self, image: torch.Tensor):
