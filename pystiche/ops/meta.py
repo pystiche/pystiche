@@ -1,6 +1,6 @@
 from abc import ABC
 from collections import defaultdict
-from typing import Union
+from typing import Optional, Union
 
 __all__ = [
     "OperatorCls",
@@ -39,10 +39,10 @@ TYPE_MAP = defaultdict(
 )
 
 
-def cls(name_or_cls: Union[str, OperatorCls]) -> OperatorCls:
-    if isinstance(cls, OperatorCls):
-        return cls
-    return TYPE_MAP[name_or_cls.lower()]
+def cls(name_or_cls: Optional[Union[str, OperatorCls]]) -> OperatorCls:
+    if isinstance(name_or_cls, OperatorCls):
+        return name_or_cls
+    return TYPE_MAP[name_or_cls]
 
 
 # TODO: this should be immutable
@@ -67,7 +67,7 @@ DOMAIN_MAP = defaultdict(
 )
 
 
-def domain(name_or_domain: Union[str, OperatorDomain]) -> OperatorDomain:
+def domain(name_or_domain: Optional[Union[str, OperatorDomain]]) -> OperatorDomain:
     if isinstance(name_or_domain, OperatorDomain):
         return name_or_domain
-    return DOMAIN_MAP[name_or_domain.lower()]
+    return DOMAIN_MAP[name_or_domain]

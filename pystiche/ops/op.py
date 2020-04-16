@@ -9,7 +9,7 @@ import pystiche
 from pystiche.enc import Encoder
 from pystiche.misc import build_deprecation_message, is_almost, to_engstr
 
-from . import meta as op_meta
+from . import meta
 
 __all__ = [
     "Operator",
@@ -27,21 +27,21 @@ __all__ = [
 class Operator(pystiche.Module):
     def __init__(
         self,
-        cls: Optional[Union[op_meta.OperatorCls, str]] = None,
-        domain: Optional[Union[op_meta.OperatorDomain, str]] = None,
+        cls: Optional[Union[meta.OperatorCls, str]] = None,
+        domain: Optional[Union[meta.OperatorDomain, str]] = None,
         score_weight: float = 1e0,
     ) -> None:
         super().__init__()
-        self._cls = op_meta.cls(cls)
-        self._domain = op_meta.domain(domain)
+        self._cls = meta.cls(cls)
+        self._domain = meta.domain(domain)
         self.score_weight = score_weight
 
     @property
-    def cls(self) -> op_meta.OperatorCls:
+    def cls(self) -> meta.OperatorCls:
         return self._cls
 
     @property
-    def domain(self) -> op_meta.OperatorDomain:
+    def domain(self) -> meta.OperatorDomain:
         return self._domain
 
     def forward(
@@ -87,7 +87,7 @@ class RegularizationOperator(Operator):
             ),
         )
         warnings.warn(msg)
-        super().__init__(cls=op_meta.Regularization(), score_weight=score_weight)
+        super().__init__(cls=meta.Regularization(), score_weight=score_weight)
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -105,7 +105,7 @@ class ComparisonOperator(Operator):
             ),
         )
         warnings.warn(msg)
-        super().__init__(cls=op_meta.Comparison(), score_weight=score_weight)
+        super().__init__(cls=meta.Comparison(), score_weight=score_weight)
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -123,7 +123,7 @@ class PixelOperator(Operator):
             ),
         )
         warnings.warn(msg)
-        super().__init__(domain=op_meta.Pixel(), score_weight=score_weight)
+        super().__init__(domain=meta.Pixel(), score_weight=score_weight)
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -141,7 +141,7 @@ class EncodingOperator(Operator):
             ),
         )
         warnings.warn(msg)
-        super().__init__(domain=op_meta.Encoding(), score_weight=score_weight)
+        super().__init__(domain=meta.Encoding(), score_weight=score_weight)
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -151,9 +151,7 @@ class EncodingOperator(Operator):
 class PixelRegularizationOperator(Operator):
     def __init__(self, score_weight: float = 1.0):
         super().__init__(
-            cls=op_meta.Regularization(),
-            domain=op_meta.Pixel(),
-            score_weight=score_weight,
+            cls=meta.Regularization(), domain=meta.Pixel(), score_weight=score_weight,
         )
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -176,8 +174,8 @@ class PixelRegularizationOperator(Operator):
 class EncodingRegularizationOperator(Operator):
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
         super().__init__(
-            cls=op_meta.Regularization(),
-            domain=op_meta.Encoding(),
+            cls=meta.Regularization(),
+            domain=meta.Encoding(),
             score_weight=score_weight,
         )
         self.encoder = encoder
@@ -216,7 +214,7 @@ class EncodingRegularizationOperator(Operator):
 class PixelComparisonOperator(Operator):
     def __init__(self, score_weight: float = 1e0):
         super().__init__(
-            cls=op_meta.Comparison(), domain=op_meta.Pixel(), score_weight=score_weight
+            cls=meta.Comparison(), domain=meta.Pixel(), score_weight=score_weight
         )
 
     def set_target_image(self, image: torch.Tensor):
@@ -269,9 +267,7 @@ class PixelComparisonOperator(Operator):
 class EncodingComparisonOperator(Operator):
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
         super().__init__(
-            cls=op_meta.Comparison(),
-            domain=op_meta.Encoding(),
-            score_weight=score_weight,
+            cls=meta.Comparison(), domain=meta.Encoding(), score_weight=score_weight,
         )
         self.encoder = encoder
 
