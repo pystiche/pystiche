@@ -37,26 +37,36 @@ class OperatorContainer(Operator):
             [(name, op(input_image)) for name, op in self.named_children()]
         )
 
-    # def set_target_guide(self, guide: torch.Tensor):
-    #     for op in self.children():
-    #         if isinstance(op, ComparisonGuidance):
-    #             op.set_target_guide(guide)
-
-    def set_target_image(self, image: torch.Tensor, recurse: bool = True):
-        for op in self.operators(recurse=recurse):
+    def _set_image_or_guide(
+        self,
+        image_or_guide: torch.Tensor,
+        condition: Callable[[Operator], bool],
+        method: str,
+    ):
+        for op in self.operators(recurse=False):
             if op is self:
                 continue
 
-            if isinstance(op.cls, meta.Comparison):
+            if condition(op):
                 try:
-                    op.set_target_image(image)
+                    getattr(op, method)(image_or_guide)
                 except AttributeError:
                     pass
 
-    # def set_input_guide(self, guide: torch.Tensor):
-    #     for op in self.children():
-    #         if isinstance(op, Guidance):
-    #             op.set_input_guide(guide)
+    def set_target_guide(self, guide: torch.Tensor):
+        self._set_image_or_guide(
+            guide, lambda op: isinstance(op.cls, meta.Comparison), "set_target_guide",
+        )
+
+    def set_target_image(self, image: torch.Tensor):
+        self._set_image_or_guide(
+            image, lambda op: isinstance(op.cls, meta.Comparison), "set_target_image",
+        )
+
+    def set_input_guide(self, guide: torch.Tensor):
+        self._set_image_or_guide(
+            guide, lambda op: True, "set_input_guide",
+        )
 
     # TODO: can this be removed?
     def __getitem__(self, name):
@@ -165,12 +175,11 @@ class MultiRegionOperator(SameOperatorContainer):
             score_weight=score_weight,
         )
 
-    # def set_target_guide(self, region, guide):
-    #     self[region].set_target_guide(guide)
+    def set_regional_target_guide(self, region: str, guide: torch.Tensor) -> None:
+        getattr(self, region).set_target_guide(guide)
 
     def set_regional_target_image(self, region: str, image: torch.Tensor) -> None:
         getattr(self, region).set_target_image(image)
-        self[region].set_target_image(image)
 
-    # def set_input_guide(self, region, guide):
-    #     self[region].set_input_guide(guide)
+    def set_regional_input_guide(self, region: str, guide: torch.Tensor) -> None:
+        getattr(self, region).set_input_guide(guide)

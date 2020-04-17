@@ -67,6 +67,9 @@ class TestContainer(PysticheTestCase):
             def process_input_image(self, image):
                 pass
 
+            def is_guided(self) -> bool:
+                return False
+
         named_ops = [(str(idx), TestOperator()) for idx in range(3)]
         op_container = ops.OperatorContainer(named_ops)
 
@@ -79,6 +82,9 @@ class TestContainer(PysticheTestCase):
             def __init__(self, bias):
                 super().__init__()
                 self.bias = bias
+
+            def is_guided(self) -> bool:
+                return False
 
             def process_input_image(self, image):
                 return image + self.bias
@@ -98,6 +104,9 @@ class TestContainer(PysticheTestCase):
                 super().__init__()
                 self.bias = bias
 
+            def is_guided(self) -> bool:
+                return False
+
             def process_input_image(self, image):
                 return image + self.bias
 
@@ -111,6 +120,9 @@ class TestContainer(PysticheTestCase):
 
     def test_SameOperatorContainer(self):
         class TestOperator(ops.Operator):
+            def is_guided(self) -> bool:
+                return False
+
             def process_input_image(self, image):
                 pass
 
@@ -126,6 +138,9 @@ class TestContainer(PysticheTestCase):
 
     def test_SameOperatorContainer_op_weights_str(self):
         class TestOperator(ops.Operator):
+            def is_guided(self) -> bool:
+                return False
+
             def process_input_image(self, image):
                 pass
 
@@ -152,6 +167,9 @@ class TestContainer(PysticheTestCase):
 
     def test_SameOperatorContainer_op_weights_seq(self):
         class TestOperator(ops.Operator):
+            def is_guided(self) -> bool:
+                return False
+
             def process_input_image(self, image):
                 pass
 
@@ -325,6 +343,9 @@ class TestOp(PysticheTestCase):
         class TestOperator(ops.Operator):
             def process_input_image(self, image):
                 return image + 1.0
+
+            def is_guided(self) -> bool:
+                return False
 
         torch.manual_seed(0)
         image = torch.rand(1, 3, 128, 128)

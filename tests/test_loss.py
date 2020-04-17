@@ -28,6 +28,9 @@ class TestMultiOp(PysticheTestCase):
             def process_input_image(self, image):
                 pass
 
+            def is_guided(self) -> bool:
+                return False
+
         named_ops = [(str(idx), TestOperator()) for idx in range(3)]
         multi_op_loss = loss.MultiOperatorLoss(named_ops)
 
@@ -69,6 +72,9 @@ class TestMultiOp(PysticheTestCase):
 
             def process_input_image(self, image):
                 return image + self.bias
+
+            def is_guided(self) -> bool:
+                return False
 
         input = torch.tensor(0.0)
 

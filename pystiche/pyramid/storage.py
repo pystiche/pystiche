@@ -5,33 +5,37 @@ __all__ = ["ImageStorage"]
 
 class ImageStorage:
     def __init__(self, ops):
-        # self.target_guides = {}
+        self.target_guides = {}
         self.target_images = {}
-        # self.input_guides = {}
+        self.input_guides = {}
         for op in ops:
-            # if isinstance(op, ComparisonGuidance) and op.has_target_guide:
-            #     self.target_guides[op] = op.target_guide
-
             if isinstance(op.cls, Comparison):
+                try:
+                    self.target_guides[op] = op.target_guide
+                except AttributeError:
+                    pass
+
                 try:
                     self.target_images[op] = op.target_image
                 except AttributeError:
                     pass
 
-            # if isinstance(op, Guidance) and op.has_input_guide:
-            #     self.input_guides[op] = op.input_guide
+            try:
+                self.input_guides[op] = op.input_guide
+            except AttributeError:
+                pass
 
     def restore(self):
         # self._clear_encoding_storage()
 
-        # for op, target_guide in self.target_guides.items():
-        #     op.set_target_guide(target_guide, recalc_repr=False)
+        for op, target_guide in self.target_guides.items():
+            op.set_target_guide(target_guide, recalc_repr=False)
 
         for op, target_image in self.target_images.items():
             op.set_target_image(target_image)
 
-        # for op, input_guide in self.input_guides.items():
-        #     op.set_input_guide(input_guide)
+        for op, input_guide in self.input_guides.items():
+            op.set_input_guide(input_guide)
 
     # def _clear_encoding_storage(self):
     #     ops = set(

@@ -4,8 +4,9 @@ from typing import Collection, Iterator, Optional, Sequence, Tuple, Union
 import numpy as np
 
 from pystiche import ComplexObject
+from pystiche.loss import MultiOperatorLoss
 from pystiche.misc import zip_equal
-from pystiche.ops import Comparison, Operator
+from pystiche.ops import Comparison, Operator, OperatorContainer
 
 from .level import PyramidLevel
 from .storage import ImageStorage
@@ -20,7 +21,7 @@ class ImagePyramid(ComplexObject):
         num_steps: Union[Sequence[int], int],
         edge: Union[Sequence[str], str] = "short",
         interpolation_mode: str = "bilinear",
-        resize_targets: Collection[Operator] = (),
+        resize_targets: Collection[Union[MultiOperatorLoss, Operator]] = (),
     ):
         self._levels = self.build_levels(edge_sizes, num_steps, edge)
         self.interpolation_mode = interpolation_mode
@@ -70,6 +71,12 @@ class ImagePyramid(ComplexObject):
         for op in self._resize_ops():
             if isinstance(op.cls, Comparison):
                 try:
+                    resized_guide = level.resize_guide(op.target_guide)
+                    op.set_target_guide(resized_guide, recalc_repr=False)
+                except AttributeError:
+                    pass
+
+                try:
                     resized_image = level.resize_image(
                         op.target_image, interpolation_mode=self.interpolation_mode
                     )
@@ -77,24 +84,30 @@ class ImagePyramid(ComplexObject):
                 except AttributeError:
                     pass
 
-            # if isinstance(op, ComparisonGuidance) and op.has_target_guide:
-            #     resized_guide = level.resize_guide(op.target_guide)
-            #     op.set_target_guide(resized_guide, recalc_repr=False)
+            try:
+                resized_guide = level.resize_guide(op.input_guide)
+                op.set_input_guide(resized_guide)
+            except AttributeError:
+                pass
 
-            # if isinstance(op, Operator) and op.has_target_image:
+    def _resize_ops(self) -> Collection[Operator]:
+        resize_ops = []
+        for target in self._resize_targets:
+            for op in target.operators(recurse=True):
+                if not isinstance(op, OperatorContainer):
+                    resize_ops.append(op)
+        return set(resize_ops)
 
-            # if isinstance(op, Guidance) and op.has_input_guide:
-            #     resized_guide = level.resize_guide(op.input_guide)
-            #     op.set_input_guide(resized_guide)
-
-    def _resize_ops(self) -> Iterator[Operator]:
-        yield from iter(
-            set(
-                itertools.chain(
-                    *[target.operators(recurse=True) for target in self._resize_targets]
-                )
-            )
-        )
+        # yield from iter(
+        #     set(
+        #         itertools.chain(
+        #             *[
+        #                 target.operators(recurse=True)
+        #                 for target in self._resize_targets
+        #             ]
+        #         )
+        #     )
+        # )
 
     def _properties(self):
         dct = super()._properties()

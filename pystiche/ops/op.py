@@ -73,7 +73,6 @@ class Operator(pystiche.Module):
             if isinstance(child, Operator):
                 yield name, child
 
-    # FIXME: recurse might be wrong phrase here
     def operators(self, recurse: bool = False) -> Iterator["Operator"]:
         for _, op in self.named_operators(recurse=recurse):
             yield op
@@ -406,7 +405,7 @@ class EncodingComparisonOperator(Operator):
     ) -> Union[torch.Tensor, pystiche.TensorStorage]:
         enc = self.encoder(image)
         if self.has_input_guide:
-            enc = self.apply_guide(image, self.input_guide)
+            enc = self.apply_guide(enc, self.input_enc_guide)
         return self.input_enc_to_repr(enc, ctx)
 
     @abstractmethod
