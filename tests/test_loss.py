@@ -7,7 +7,7 @@ import pystiche
 from pystiche import loss
 from pystiche.enc import MultiLayerEncoder, SequentialEncoder
 from pystiche.ops import (
-    EncodingRegularizationOperator,
+    EncodingOperator,
     MSEEncodingOperator,
     Operator,
     TotalVariationOperator,
@@ -28,9 +28,6 @@ class TestMultiOp(PysticheTestCase):
             def process_input_image(self, image):
                 pass
 
-            def is_guided(self) -> bool:
-                return False
-
         named_ops = [(str(idx), TestOperator()) for idx in range(3)]
         multi_op_loss = loss.MultiOperatorLoss(named_ops)
 
@@ -39,11 +36,16 @@ class TestMultiOp(PysticheTestCase):
         self.assertNamedChildrenEqual(actuals, desireds)
 
     def test_MultiOperatorLoss_trim(self):
-        class TestOperator(EncodingRegularizationOperator):
-            def input_enc_to_repr(self, image):
-                pass
+        class TestOperator(EncodingOperator):
+            def __init__(self, encoder, **kwargs):
+                super().__init__(**kwargs)
+                self._encoder = encoder
 
-            def calculate_score(self, input_repr):
+            @property
+            def encoder(self):
+                return self._encoder
+
+            def process_input_image(self, image):
                 pass
 
         layers = [str(idx) for idx in range(3)]
@@ -73,9 +75,6 @@ class TestMultiOp(PysticheTestCase):
             def process_input_image(self, image):
                 return image + self.bias
 
-            def is_guided(self) -> bool:
-                return False
-
         input = torch.tensor(0.0)
 
         named_ops = [(str(idx), TestOperator(idx + 1.0)) for idx in range(3)]
@@ -86,12 +85,17 @@ class TestMultiOp(PysticheTestCase):
         self.assertTensorDictAlmostEqual(actual, desired)
 
     def test_MultiOperatorLoss_call_encode(self):
-        class TestOperator(EncodingRegularizationOperator):
-            def input_enc_to_repr(self, image):
-                return image
+        class TestOperator(EncodingOperator):
+            def __init__(self, encoder, **kwargs):
+                super().__init__(**kwargs)
+                self._encoder = encoder
 
-            def calculate_score(self, input_repr):
-                return torch.mean(input_repr)
+            @property
+            def encoder(self):
+                return self._encoder
+
+            def process_input_image(self, image):
+                return torch.sum(image)
 
         count = ForwardPassCounter()
         modules = (("count", count),)

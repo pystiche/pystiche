@@ -6,7 +6,7 @@ import torch
 import pystiche
 from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
 from pystiche.misc import build_deprecation_message
-from pystiche.ops import Encoding, Operator
+from pystiche.ops import EncodingOperator, Operator
 
 __all__ = ["MultiOperatorLoss"]
 
@@ -64,17 +64,13 @@ class MultiOperatorLoss(pystiche.Module):
     def _collect_multi_layer_encoders(self) -> Tuple[MultiLayerEncoder, ...]:
         def encoding_ops() -> Iterator[Operator]:
             for op in self.operators(recurse=True):
-                if isinstance(op.domain, Encoding):
+                if isinstance(op, EncodingOperator):
                     yield op
 
         multi_layer_encoders = set()
         for op in encoding_ops():
-            try:
-                encoder = op.encoder
-                if isinstance(encoder, SingleLayerEncoder):
-                    multi_layer_encoders.add(encoder.multi_layer_encoder)
-            except AttributeError:
-                pass
+            if isinstance(op.encoder, SingleLayerEncoder):
+                multi_layer_encoders.add(op.encoder.multi_layer_encoder)
 
         return tuple(multi_layer_encoders)
 

@@ -1,4 +1,3 @@
-import warnings
 from abc import abstractmethod
 from collections import OrderedDict
 from typing import Any, Dict, Iterator, Optional, Tuple, Union
@@ -7,9 +6,7 @@ import torch
 
 import pystiche
 from pystiche.enc import Encoder
-from pystiche.misc import build_deprecation_message, is_almost, to_engstr
-
-from . import meta
+from pystiche.misc import is_almost, to_engstr
 
 __all__ = [
     "Operator",
@@ -25,33 +22,20 @@ __all__ = [
 
 
 class Operator(pystiche.Module):
-    def __init__(
-        self,
-        cls: Optional[Union[meta.OperatorCls, str]] = None,
-        domain: Optional[Union[meta.OperatorDomain, str]] = None,
-        score_weight: float = 1e0,
-    ) -> None:
+    def __init__(self, score_weight: float = 1e0,) -> None:
         super().__init__()
-        self._cls = meta.cls(cls)
-        self._domain = meta.domain(domain)
         self.score_weight = score_weight
 
-    @property
-    def cls(self) -> meta.OperatorCls:
-        return self._cls
+    def set_input_guide(self, guide: torch.Tensor) -> None:
+        self.register_buffer("input_guide", guide)
 
     @property
-    def domain(self) -> meta.OperatorDomain:
-        return self._domain
+    def has_input_guide(self) -> bool:
+        return "input_guide" in self._buffers
 
     @staticmethod
     def apply_guide(image: torch.Tensor, guide: torch.Tensor) -> torch.Tensor:
         return image * guide
-
-    @property
-    @abstractmethod
-    def is_guided(self) -> bool:
-        pass
 
     def forward(
         self, input_image: torch.Tensor
@@ -63,10 +47,12 @@ class Operator(pystiche.Module):
         pass
 
     def named_operators(
-        self, recurse: bool = False
+        self, recurse: bool = False,
     ) -> Iterator[Tuple[str, "Operator"]]:
         if recurse:
             iterator = self.named_modules()
+            # First module is always self so dismiss that
+            next(iterator)
         else:
             iterator = self.named_children()
         for name, child in iterator:
@@ -85,35 +71,27 @@ class Operator(pystiche.Module):
 
 
 class RegularizationOperator(Operator):
-    def __init__(self, score_weight: float = 1e0):
-        msg = build_deprecation_message(
-            "The ABC RegularizationOperator",
-            "0.4.0",
-            info=(
-                "The same behavior can be achieved by passing "
-                "cls=pystiche.ops.meta.Regularization() to Operator."
-            ),
-        )
-        warnings.warn(msg)
-        super().__init__(cls=meta.Regularization(), score_weight=score_weight)
-
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
 
 class ComparisonOperator(Operator):
-    def __init__(self, score_weight: float = 1e0):
-        msg = build_deprecation_message(
-            "The ABC ComparisonOperator",
-            "0.4.0",
-            info=(
-                "The same behavior can be achieved by passing "
-                "cls=pystiche.ops.meta.Comparison() to Operator."
-            ),
-        )
-        warnings.warn(msg)
-        super().__init__(cls=meta.Comparison(), score_weight=score_weight)
+    @abstractmethod
+    def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
+        pass
+
+    @property
+    def has_target_guide(self) -> bool:
+        return "target_guide" in self._buffers
+
+    @abstractmethod
+    def set_target_image(self, image: torch.Tensor) -> None:
+        pass
+
+    @property
+    def has_target_image(self) -> bool:
+        return "target_image" in self._buffers
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -121,57 +99,39 @@ class ComparisonOperator(Operator):
 
 
 class PixelOperator(Operator):
-    def __init__(self, score_weight: float = 1e0):
-        msg = build_deprecation_message(
-            "The ABC PixelOperator",
-            "0.4.0",
-            info=(
-                "The same behavior can be achieved by passing "
-                "domain=pystiche.ops.meta.Pixel() to Operator."
-            ),
-        )
-        warnings.warn(msg)
-        super().__init__(domain=meta.Pixel(), score_weight=score_weight)
-
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
 
 class EncodingOperator(Operator):
-    def __init__(self, score_weight: float = 1e0):
-        msg = build_deprecation_message(
-            "The ABC EncodingOperator",
-            "0.4.0",
-            info=(
-                "The same behavior can be achieved by passing "
-                "domain=pystiche.ops.meta.Encoding() to Operator."
-            ),
-        )
-        warnings.warn(msg)
-        super().__init__(domain=meta.Encoding(), score_weight=score_weight)
+    @property
+    @abstractmethod
+    def encoder(self) -> Encoder:
+        pass
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
+    def _properties(self):
+        dct = super()._properties()
+        dct["encoder"] = self.encoder
+        return dct
 
-class PixelRegularizationOperator(Operator):
-    def __init__(self, score_weight: float = 1.0):
-        super().__init__(
-            cls=meta.Regularization(), domain=meta.Pixel(), score_weight=score_weight,
+    def __repr__(self) -> str:
+        return self._build_repr(
+            named_children=[
+                (name, child)
+                for name, child in self.named_children()
+                if child is not self.encoder
+            ]
         )
 
-    def set_input_guide(self, guide: torch.Tensor) -> None:
-        self.register_buffer("input_guide", guide)
 
-    @property
-    def has_input_guide(self) -> bool:
-        return "input_guide" in self._buffers
-
-    @property
-    def is_guided(self) -> bool:
-        return self.has_input_guide
+class PixelRegularizationOperator(PixelOperator, RegularizationOperator):
+    def __init__(self, score_weight: float = 1.0):
+        super().__init__(score_weight=score_weight,)
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if self.has_input_guide:
@@ -192,28 +152,20 @@ class PixelRegularizationOperator(Operator):
         pass
 
 
-class EncodingRegularizationOperator(Operator):
+class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
-        super().__init__(
-            cls=meta.Regularization(),
-            domain=meta.Encoding(),
-            score_weight=score_weight,
-        )
-        self.encoder = encoder
+        super().__init__(score_weight=score_weight)
+        self._encoder = encoder
+
+    @property
+    def encoder(self) -> Encoder:
+        return self._encoder
 
     def set_input_guide(self, guide: torch.Tensor) -> None:
+        super().set_input_guide(guide)
         with torch.no_grad():
             enc_guide = self.encoder.propagate_guide(guide)
-        self.register_buffer("input_guide", guide)
         self.register_buffer("input_enc_guide", enc_guide)
-
-    @property
-    def has_input_guide(self) -> bool:
-        return "input_guide" in self._buffers
-
-    @property
-    def is_guided(self) -> bool:
-        return self.has_input_guide
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         input_repr = self.input_image_to_repr(image)
@@ -239,29 +191,15 @@ class EncodingRegularizationOperator(Operator):
     ) -> torch.Tensor:
         pass
 
-    def _properties(self):
-        dct = super()._properties()
-        dct["encoder"] = self.encoder
-        return dct
 
-    def __repr__(self) -> str:
-        return self._build_repr(named_children=())
-
-
-class PixelComparisonOperator(Operator):
+class PixelComparisonOperator(PixelOperator, ComparisonOperator):
     def __init__(self, score_weight: float = 1e0):
-        super().__init__(
-            cls=meta.Comparison(), domain=meta.Pixel(), score_weight=score_weight
-        )
+        super().__init__(score_weight=score_weight)
 
     def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
         self.register_buffer("target_guide", guide)
         if recalc_repr and self.has_target_image:
             self.set_target_image(self.target_image)
-
-    @property
-    def has_target_guide(self) -> bool:
-        return "target_guide" in self._buffers
 
     def set_target_image(self, image: torch.Tensor):
         with torch.no_grad():
@@ -272,10 +210,6 @@ class PixelComparisonOperator(Operator):
         self.register_buffer("target_repr", repr)
         self.register_buffer("ctx", ctx)
 
-    @property
-    def has_target_image(self) -> bool:
-        return "target_image" in self._buffers
-
     @abstractmethod
     def target_image_to_repr(
         self, image: torch.Tensor
@@ -284,17 +218,6 @@ class PixelComparisonOperator(Operator):
         Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ]:
         pass
-
-    def set_input_guide(self, guide: torch.Tensor) -> None:
-        self.register_buffer("input_guide", guide)
-
-    @property
-    def has_input_guide(self) -> bool:
-        return "input_guide" in self._buffers
-
-    @property
-    def is_guided(self) -> bool:
-        return self.has_target_guide and self.has_input_guide
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if not self.has_target_image:
@@ -326,12 +249,14 @@ class PixelComparisonOperator(Operator):
         pass
 
 
-class EncodingComparisonOperator(Operator):
+class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
-        super().__init__(
-            cls=meta.Comparison(), domain=meta.Encoding(), score_weight=score_weight,
-        )
-        self.encoder = encoder
+        super().__init__(score_weight=score_weight)
+        self._encoder = encoder
+
+    @property
+    def encoder(self) -> Encoder:
+        return self._encoder
 
     def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
         with torch.no_grad():
@@ -341,20 +266,12 @@ class EncodingComparisonOperator(Operator):
         if recalc_repr and self.has_target_image:
             self.set_target_image(self.target_image)
 
-    @property
-    def has_target_guide(self) -> bool:
-        return "target_guide" in self._buffers
-
     def set_target_image(self, image: torch.Tensor):
         with torch.no_grad():
             repr, ctx = self.target_image_to_repr(image)
         self.register_buffer("target_image", image)
         self.register_buffer("target_repr", repr)
         self.register_buffer("ctx", ctx)
-
-    @property
-    def has_target_image(self) -> bool:
-        return "target_image" in self._buffers
 
     def target_image_to_repr(
         self, image: torch.Tensor
@@ -381,14 +298,6 @@ class EncodingComparisonOperator(Operator):
             enc_guide = self.encoder.propagate_guide(guide)
         self.register_buffer("input_guide", guide)
         self.register_buffer("input_enc_guide", enc_guide)
-
-    @property
-    def has_input_guide(self) -> bool:
-        return "input_guide" in self._buffers
-
-    @property
-    def is_guided(self) -> bool:
-        return self.has_target_guide and self.has_input_guide
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if not self.has_target_image:
@@ -424,11 +333,3 @@ class EncodingComparisonOperator(Operator):
         ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ) -> torch.Tensor:
         pass
-
-    def _properties(self):
-        dct = super()._properties()
-        dct["encoder"] = self.encoder
-        return dct
-
-    def __repr__(self) -> str:
-        return self._build_repr(named_children=())
