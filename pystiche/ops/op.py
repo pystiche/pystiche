@@ -44,6 +44,15 @@ class Operator(pystiche.Module):
     def domain(self) -> meta.OperatorDomain:
         return self._domain
 
+    @staticmethod
+    def apply_guide(image: torch.Tensor, guide: torch.Tensor) -> torch.Tensor:
+        return image * guide
+
+    @property
+    @abstractmethod
+    def is_guided(self) -> bool:
+        pass
+
     def forward(
         self, input_image: torch.Tensor
     ) -> Union[torch.Tensor, pystiche.LossDict]:
@@ -154,7 +163,20 @@ class PixelRegularizationOperator(Operator):
             cls=meta.Regularization(), domain=meta.Pixel(), score_weight=score_weight,
         )
 
+    def set_input_guide(self, guide: torch.Tensor) -> None:
+        self.register_buffer("input_guide", guide)
+
+    @property
+    def has_input_guide(self) -> bool:
+        return "input_guide" in self._buffers
+
+    @property
+    def is_guided(self) -> bool:
+        return self.has_input_guide
+
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
+        if self.has_input_guide:
+            image = self.apply_guide(image, self.input_guide)
         input_repr = self.input_image_to_repr(image)
         return self.calculate_score(input_repr)
 
@@ -180,6 +202,20 @@ class EncodingRegularizationOperator(Operator):
         )
         self.encoder = encoder
 
+    def set_input_guide(self, guide: torch.Tensor) -> None:
+        with torch.no_grad():
+            enc_guide = self.encoder.propagate_guide(guide)
+        self.register_buffer("input_guide", guide)
+        self.register_buffer("input_enc_guide", enc_guide)
+
+    @property
+    def has_input_guide(self) -> bool:
+        return "input_guide" in self._buffers
+
+    @property
+    def is_guided(self) -> bool:
+        return self.has_input_guide
+
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         input_repr = self.input_image_to_repr(image)
         return self.calculate_score(input_repr)
@@ -188,6 +224,8 @@ class EncodingRegularizationOperator(Operator):
         self, image: torch.Tensor
     ) -> Union[torch.Tensor, pystiche.TensorStorage]:
         enc = self.encoder(image)
+        if self.has_input_guide:
+            enc = self.apply_guide(enc, self.input_guide)
         return self.input_enc_to_repr(enc)
 
     @abstractmethod
@@ -217,8 +255,19 @@ class PixelComparisonOperator(Operator):
             cls=meta.Comparison(), domain=meta.Pixel(), score_weight=score_weight
         )
 
+    def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
+        self.register_buffer("target_guide", guide)
+        if recalc_repr and self.has_target_image:
+            self.set_target_image(self.target_image)
+
+    @property
+    def has_target_guide(self) -> bool:
+        return "target_guide" in self._buffers
+
     def set_target_image(self, image: torch.Tensor):
         with torch.no_grad():
+            if self.has_target_guide:
+                image = self.apply_guide(image, self.target_guide)
             repr, ctx = self.target_image_to_repr(image)
         self.register_buffer("target_image", image)
         self.register_buffer("target_repr", repr)
@@ -237,13 +286,27 @@ class PixelComparisonOperator(Operator):
     ]:
         pass
 
+    def set_input_guide(self, guide: torch.Tensor) -> None:
+        self.register_buffer("input_guide", guide)
+
+    @property
+    def has_input_guide(self) -> bool:
+        return "input_guide" in self._buffers
+
+    @property
+    def is_guided(self) -> bool:
+        return self.has_target_guide and self.has_input_guide
+
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if not self.has_target_image:
             # TODO: message
             raise RuntimeError
-
         target_repr, ctx = self.target_repr, self.ctx
+
+        if self.has_input_guide:
+            image = self.apply_guide(image, self.input_guide)
         input_repr = self.input_image_to_repr(image, ctx)
+
         return self.calculate_score(input_repr, target_repr, ctx)
 
     @abstractmethod
@@ -271,6 +334,18 @@ class EncodingComparisonOperator(Operator):
         )
         self.encoder = encoder
 
+    def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
+        with torch.no_grad():
+            enc_guide = self.encoder.propagate_guide(guide)
+        self.register_buffer("target_guide", guide)
+        self.register_buffer("target_enc_guide", enc_guide)
+        if recalc_repr and self.has_target_image:
+            self.set_target_image(self.target_image)
+
+    @property
+    def has_target_guide(self) -> bool:
+        return "target_guide" in self._buffers
+
     def set_target_image(self, image: torch.Tensor):
         with torch.no_grad():
             repr, ctx = self.target_image_to_repr(image)
@@ -289,6 +364,8 @@ class EncodingComparisonOperator(Operator):
         Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ]:
         enc = self.encoder(image)
+        if self.has_target_guide:
+            enc = self.apply_guide(enc, self.target_enc_guide)
         return self.target_enc_to_repr(enc)
 
     @abstractmethod
@@ -300,11 +377,24 @@ class EncodingComparisonOperator(Operator):
     ]:
         pass
 
+    def set_input_guide(self, guide: torch.Tensor) -> None:
+        with torch.no_grad():
+            enc_guide = self.encoder.propagate_guide(guide)
+        self.register_buffer("input_guide", guide)
+        self.register_buffer("input_enc_guide", enc_guide)
+
+    @property
+    def has_input_guide(self) -> bool:
+        return "input_guide" in self._buffers
+
+    @property
+    def is_guided(self) -> bool:
+        return self.has_target_guide and self.has_input_guide
+
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if not self.has_target_image:
             # TODO: message
             raise RuntimeError
-
         target_repr, ctx = self.target_repr, self.ctx
         input_repr = self.input_image_to_repr(image, ctx)
         return self.calculate_score(input_repr, target_repr, ctx)
@@ -315,6 +405,8 @@ class EncodingComparisonOperator(Operator):
         ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
     ) -> Union[torch.Tensor, pystiche.TensorStorage]:
         enc = self.encoder(image)
+        if self.has_input_guide:
+            enc = self.apply_guide(image, self.input_guide)
         return self.input_enc_to_repr(enc, ctx)
 
     @abstractmethod
