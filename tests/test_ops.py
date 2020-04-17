@@ -1,3 +1,5 @@
+import itertools
+
 import torch
 from torch import nn
 from torch.nn.functional import mse_loss
@@ -5,16 +7,9 @@ from torch.nn.functional import mse_loss
 import pystiche
 from pystiche import ops
 from pystiche.enc import MultiLayerEncoder, SequentialEncoder, SingleLayerEncoder
+from pystiche.image.transforms.functional import transform_motif_affinely
 from pystiche.ops import functional as F
 from utils import PysticheTestCase
-
-import itertools
-
-from pystiche.image.transforms.functional import (
-    rotate_motif,
-    scale_motif,
-    transform_motif_affinely,
-)
 
 
 class TestComparison(PysticheTestCase):
