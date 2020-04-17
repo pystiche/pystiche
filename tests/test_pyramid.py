@@ -125,7 +125,7 @@ class TestPyramid(PysticheTestCase):
 
         image_pyramid = pyramid.ImagePyramid((1,), 1, resize_targets=(op,))
         try:
-            for pyramid_level in image_pyramid:
+            for _ in image_pyramid:
                 raise Exception
         except Exception:
             pass
