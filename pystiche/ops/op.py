@@ -202,11 +202,11 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
             self.set_target_image(self.target_image)
 
     def set_target_image(self, image: torch.Tensor):
+        self.register_buffer("target_image", image)
         with torch.no_grad():
             if self.has_target_guide:
                 image = self.apply_guide(image, self.target_guide)
             repr, ctx = self.target_image_to_repr(image)
-        self.register_buffer("target_image", image)
         self.register_buffer("target_repr", repr)
         self.register_buffer("ctx", ctx)
 

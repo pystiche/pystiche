@@ -139,8 +139,7 @@ class MRFOperator(EncodingComparisonOperator):
         scaling_factors = np.arange(
             -self.num_scale_steps, self.num_scale_steps + 1, dtype=np.float
         )
-        scaling_factors *= self.scale_step_width
-        scaling_factors += 1.0
+        scaling_factors = 1.0 + (scaling_factors * self.scale_step_width)
 
         rotation_angles = np.arange(
             -self.num_rotation_steps, self.num_rotation_steps + 1, dtype=np.float
