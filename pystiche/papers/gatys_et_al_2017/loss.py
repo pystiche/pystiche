@@ -8,7 +8,6 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.loss import GuidedPerceptualLoss, PerceptualLoss
 from pystiche.misc import build_deprecation_message
 from pystiche.ops import (
-    Comparison,
     EncodingOperator,
     GramOperator,
     MSEEncodingOperator,
@@ -60,7 +59,6 @@ class GatysEtAl2017StyleLoss(MultiLayerEncodingOperator):
             layers,
             get_encoding_op,
             layer_weights=layer_weights,
-            cls=Comparison(),
             score_weight=score_weight,
         )
 

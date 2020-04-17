@@ -88,6 +88,36 @@ class MRFOperator(EncodingComparisonOperator):
         if recalc_repr and self.has_target_image:
             self.set_target_image(self.target_image)
 
+    def _guide_repr(self, repr: torch.Tensor, eps=1e-6) -> torch.Tensor:
+        # Due to the guiding large areas of the images might be zero and thus many
+        # patches might carry no information. These patches can be removed from the
+        # target and input representation reducing the computing cost and memory during
+        # the loss calculation.
+
+        # Patches without information have constant values in the spatial dimensions.
+        repr_flat = torch.flatten(repr, 2)
+        constant = repr_flat[:, :, 0].unsqueeze(2)
+
+        # By checking where the spatial values do not differ from this constant in any
+        # channel, the patches with no information can be filtered out.
+        abs_diff = torch.abs(repr_flat - constant)
+        mask = torch.any(torch.flatten(abs_diff > eps, 1), dim=1)
+
+        return repr[mask]
+
+    def enc_to_repr(self, enc: torch.Tensor, is_guided: bool) -> torch.Tensor:
+        repr = pystiche.extract_patches2d(enc, self.patch_size, self.stride)
+        if not is_guided:
+            return repr
+
+        return self._guide_repr(repr)
+
+    def input_enc_to_repr(self, enc: torch.Tensor, ctx: None) -> torch.Tensor:
+        return self.enc_to_repr(enc, self.has_input_guide)
+
+    def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
+        return self.enc_to_repr(enc, self.has_target_guide), None
+
     def target_image_to_repr(self, image: torch.Tensor) -> Tuple[torch.Tensor, None]:
         # Due to the possible scaling and rotation, we only apply the guide to the
         # target image and not the encodings
@@ -125,33 +155,6 @@ class MRFOperator(EncodingComparisonOperator):
                 canvas="same",  # FIXME: this should be valid after it is implemented
             )
             yield transform
-
-    def enc_to_repr(self, enc: torch.Tensor, is_guided: bool, eps=1e-6) -> torch.Tensor:
-        repr = pystiche.extract_patches2d(enc, self.patch_size, self.stride)
-        if not is_guided:
-            return repr
-
-        # Due to the guiding large areas of the images might be zero and thus many
-        # patches might carry no information. These patches can be removed from the
-        # target and input representation reducing the computing cost and memory during
-        # the loss calculation.
-
-        # Patches without information have constant values in the spatial dimensions.
-        repr_flat = torch.flatten(repr, 2)
-        constant = repr_flat[:, :, 0].unsqueeze(2)
-
-        # By checking where the spatial values do not differ from this constant in any
-        # channel, the patches with no information can be filtered out.
-        abs_diff = torch.abs(repr_flat - constant)
-        mask = torch.any(torch.flatten(abs_diff > eps, 1), dim=1)
-
-        return repr[mask]
-
-    def input_enc_to_repr(self, enc: torch.Tensor, ctx: None) -> torch.Tensor:
-        return self.enc_to_repr(enc, self.has_input_guide)
-
-    def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
-        return self.enc_to_repr(enc, self.has_target_guide), None
 
     def calculate_score(
         self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
