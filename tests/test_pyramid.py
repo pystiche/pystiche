@@ -1,7 +1,7 @@
 import torch
 
 from pystiche import pyramid
-from pystiche.image import extract_edge_size
+from pystiche.image import edge_to_image_size, extract_aspect_ratio, extract_image_size
 from pystiche.ops import PixelComparisonOperator
 from pystiche.pyramid import level
 from utils import PysticheTestCase
@@ -87,19 +87,23 @@ class TestPyramid(PysticheTestCase):
             def calculate_score(self, input_repr, target_repr, ctx):
                 pass
 
-        edge_sizes = (32, 64)
-
         torch.manual_seed(0)
-        image = torch.rand((1, 3, 128, 128))
+        image = torch.rand((1, 3, 5, 4))
+        edge_sizes = (2, 4)
+
+        aspect_ratio = extract_aspect_ratio(image)
+        image_sizes = [
+            edge_to_image_size(edge_size, aspect_ratio) for edge_size in edge_sizes
+        ]
 
         op = TestOperator()
         op.set_target_image(image)
 
         image_pyramid = pyramid.ImagePyramid(edge_sizes, 1, resize_targets=(op,))
-        for pyramid_level, edge_size in zip(image_pyramid, edge_sizes):
-            actual = extract_edge_size(op.target_image, pyramid_level.edge)
-            desired = edge_size
-            self.assertEqual(actual, desired)
+        for pyramid_level, image_size in zip(image_pyramid, image_sizes):
+            actual = extract_image_size(op.target_image)
+            desired = image_size
+            self.assertTupleEqual(actual, desired)
 
     def test_ImagePyramid_iter_restore(self):
         class TestOperator(PixelComparisonOperator):
@@ -121,7 +125,7 @@ class TestPyramid(PysticheTestCase):
 
         image_pyramid = pyramid.ImagePyramid((1,), 1, resize_targets=(op,))
         try:
-            for pyramid_level in image_pyramid:
+            for _ in image_pyramid:
                 raise Exception
         except Exception:
             pass

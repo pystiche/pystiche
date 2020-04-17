@@ -59,12 +59,12 @@ class ImagePyramid(ComplexObject):
 
     def __iter__(self):
         image_storage = ImageStorage(self._resize_ops())
-        try:
-            for level in self._levels:
+        for level in self._levels:
+            try:
                 self._resize(level)
                 yield level
-        finally:
-            image_storage.restore()
+            finally:
+                image_storage.restore()
 
     def _resize(self, level: PyramidLevel):
         for op in self._resize_ops():
