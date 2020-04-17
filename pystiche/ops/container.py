@@ -28,6 +28,10 @@ class OperatorContainer(Operator):
         super().__init__(cls=cls, domain=domain, score_weight=score_weight)
         self.add_named_modules(named_ops)
 
+    @property
+    def is_guided(self) -> bool:
+        return all([op.is_guided for op in self.operators()])
+
     def process_input_image(self, input_image: torch.Tensor) -> pystiche.LossDict:
         return pystiche.LossDict(
             [(name, op(input_image)) for name, op in self.named_children()]
