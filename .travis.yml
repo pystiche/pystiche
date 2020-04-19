@@ -14,12 +14,10 @@ jobs:
     - name: "Tests"
       before_install:
         - REQUIREMENTS_FILE=travis_ci_torch_requirements.txt
-        - pip install BeautifulSoup4
         - python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
-        - pip install -r $REQUIREMENTS_FILE coverage codecov
+        - pip install -r $REQUIREMENTS_FILE
       install:
-        - pip install .[test]
-        - pip install --upgrade pytest
+        - pip install --upgrade .[test] coverage codecov
       script:
         - coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
       after_success: codecov

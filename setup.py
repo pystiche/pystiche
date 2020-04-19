@@ -43,7 +43,7 @@ doc_requires = (
     "matplotlib",
 )
 
-dev_requires = (*test_requires, *doc_requires, "pre-commit", "BeautifulSoup4", "pyyaml")
+dev_requires = (*test_requires, *doc_requires, "pre-commit", "pyyaml")
 
 extras_require = {
     "test": test_requires,
