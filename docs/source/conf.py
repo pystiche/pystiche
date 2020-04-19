@@ -27,7 +27,7 @@ def get_bool_env_var(name):
         return False
 
 
-run_by_travis_ci = False
+run_by_travis_ci = get_bool_env_var("TRAVIS")
 run_by_rtd = get_bool_env_var("READTHEDOCS")
 exclude_gallery = (
     get_bool_env_var("PYSTICHE_EXCLUDE_GALLERY") or run_by_travis_ci or run_by_rtd
