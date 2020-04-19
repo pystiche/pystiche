@@ -3,6 +3,10 @@ dist: bionic
 language: python
 python: 3.6
 
+branches:
+  only:
+    - "master"
+
 before_install:
   - REQUIREMENTS_FILE=travis_ci_torch_requirements.txt
   - python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
