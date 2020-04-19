@@ -5,8 +5,6 @@ from collections import namedtuple
 from urllib.parse import urljoin
 from urllib.request import urlopen
 
-from bs4 import BeautifulSoup
-
 WHL_PROPS = ("distribution", "version", "language", "abi", "platform")
 
 Whl = namedtuple("whl", (*WHL_PROPS, "url"))
@@ -15,8 +13,14 @@ Whl = namedtuple("whl", (*WHL_PROPS, "url"))
 def extract_whl_urls(
     base="https://download.pytorch.org/whl/", html="torch_stable.html"
 ):
-    soup = BeautifulSoup(urlopen(urljoin(base, html)), "html.parser")
-    return [group.get("href") for group in soup.find_all("a")]
+    content = urlopen(urljoin(base, html)).read().decode("utf-8")
+    pattern = re.compile('^<a href="[^"]*">(?P<whl>[^<]*)</a><br>$')
+    whls = []
+    for html_group in content.split("\n"):
+        match = pattern.match(html_group)
+        if match is not None:
+            whls.append(match.group("whl"))
+    return whls
 
 
 def get_torch_cpu_pattern():
@@ -131,7 +135,6 @@ def parse_input():
         args.language = get_language()
     if args.platform is None:
         args.platform = get_platform()
-
     return args
 
 
