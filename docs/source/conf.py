@@ -27,8 +27,11 @@ def get_bool_env_var(name):
         return False
 
 
+run_by_travis_ci = False
 run_by_rtd = get_bool_env_var("READTHEDOCS")
-exclude_gallery = get_bool_env_var("PYSTICHE_EXCLUDE_GALLERY") or run_by_rtd
+exclude_gallery = (
+    get_bool_env_var("PYSTICHE_EXCLUDE_GALLERY") or run_by_travis_ci or run_by_rtd
+)
 
 
 # -- Path setup --------------------------------------------------------------
@@ -41,26 +44,21 @@ exclude_gallery = get_bool_env_var("PYSTICHE_EXCLUDE_GALLERY") or run_by_rtd
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-here = path.abspath(path.dirname(__file__))
-project_root = path.abspath(path.join(here, "..", ".."))
+
+PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), "..", ".."))
 
 
 # -- Project information -----------------------------------------------------
 
 pkg_name = "pystiche"
 
-about = {}
-with open(path.join(project_root, pkg_name, "__about__.py"), "r") as fh:
+about = {"_PROJECT_ROOT": PROJECT_ROOT}
+with open(path.join(PROJECT_ROOT, pkg_name, "__about__.py"), "r") as fh:
     exec(fh.read(), about)
 
-if about["__name__"] != pkg_name:
-    raise RuntimeError
-
-project = pkg_name
+project = about["__name__"]
 copyright = f"2019 - {datetime.now().year}, {about['__author__']}"
 author = about["__author__"]
-
-# The full version, including alpha/beta/rc tags
 release = about["__version__"]
 
 
@@ -72,6 +70,7 @@ release = about["__version__"]
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
+    "sphinx.ext.coverage",
     "sphinx_autodoc_typehints",
 ]
 
@@ -90,7 +89,7 @@ if not exclude_gallery:
     extensions.append("sphinx_gallery.gen_gallery")
 
     sphinx_gallery_conf = {
-        "examples_dirs": path.join(project_root, "tutorials"),
+        "examples_dirs": path.join(PROJECT_ROOT, "tutorials"),
         "gallery_dirs": "auto_tutorials",
         "filename_pattern": os.sep + "tutorial_",
     }
