@@ -16,8 +16,17 @@ jobs:
         - REQUIREMENTS_FILE=travis_ci_torch_requirements.txt
         - python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
         - pip install -r $REQUIREMENTS_FILE
-      install:
-        - pip install --upgrade .[test] coverage codecov
-      script:
-        - coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
+      install: pip install --upgrade .[test] coverage codecov
+      script: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
       after_success: codecov
+    - name: "Docs"
+      install: pip install .[doc]
+      before_script: cd docs
+      script:
+        - make html
+        - make latex
+        - make coverage
+      after_success:
+        - cd build/coverage
+        - cat python.txt
+
