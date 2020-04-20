@@ -28,10 +28,10 @@ class OperatorContainer(Operator):
             [(name, op(input_image)) for name, op in self.named_children()]
         )
 
-    def set_target_guide(self, guide: torch.Tensor):
+    def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True):
         for op in self.operators():
             if isinstance(op, ComparisonOperator):
-                op.set_target_guide(guide)
+                op.set_target_guide(guide, recalc_repr=recalc_repr)
 
     def set_target_image(self, image: torch.Tensor):
         for op in self.operators():
