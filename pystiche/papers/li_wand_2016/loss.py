@@ -110,11 +110,15 @@ class LiWand2016MRFOperator(MRFOperator):
         self.loss_reduction = "sum"
         self.score_correction_factor = 1.0 / 2.0 if impl_params else 1.0
 
-    def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
+    def enc_to_repr(self, enc: torch.Tensor, is_guided: bool) -> torch.Tensor:
         if self.normalize_patches_grad:
-            return extract_normalized_patches2d(enc, self.patch_size, self.stride)
+            repr = extract_normalized_patches2d(enc, self.patch_size, self.stride)
         else:
-            return pystiche.extract_patches2d(enc, self.patch_size, self.stride)
+            repr = pystiche.extract_patches2d(enc, self.patch_size, self.stride)
+        if not is_guided:
+            return repr
+
+        return self._guide_repr(repr)
 
     def calculate_score(self, input_repr, target_repr, ctx):
         score = F.patch_matching_loss(

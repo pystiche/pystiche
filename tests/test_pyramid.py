@@ -1,7 +1,11 @@
 import torch
 
 from pystiche import pyramid
-from pystiche.image import edge_to_image_size, extract_aspect_ratio, extract_image_size
+from pystiche.image import (
+    calculate_aspect_ratio,
+    edge_to_image_size,
+    extract_image_size,
+)
 from pystiche.ops import PixelComparisonOperator
 from pystiche.pyramid import level
 from utils import PysticheTestCase
@@ -87,23 +91,31 @@ class TestPyramid(PysticheTestCase):
             def calculate_score(self, input_repr, target_repr, ctx):
                 pass
 
-        torch.manual_seed(0)
-        image = torch.rand((1, 3, 5, 4))
+        initial_image_size = (5, 4)
         edge_sizes = (2, 4)
 
-        aspect_ratio = extract_aspect_ratio(image)
+        torch.manual_seed(0)
+        target_guide = torch.rand((1, 3, *initial_image_size))
+        target_image = torch.rand((1, 3, *initial_image_size))
+        input_guide = torch.rand((1, 3, *initial_image_size))
+
+        aspect_ratio = calculate_aspect_ratio(initial_image_size)
         image_sizes = [
             edge_to_image_size(edge_size, aspect_ratio) for edge_size in edge_sizes
         ]
 
         op = TestOperator()
-        op.set_target_image(image)
+        op.set_target_guide(target_guide)
+        op.set_target_image(target_image)
+        op.set_input_guide(input_guide)
 
         image_pyramid = pyramid.ImagePyramid(edge_sizes, 1, resize_targets=(op,))
         for pyramid_level, image_size in zip(image_pyramid, image_sizes):
-            actual = extract_image_size(op.target_image)
-            desired = image_size
-            self.assertTupleEqual(actual, desired)
+            for attr in ("target_guide", "target_image", "input_guide"):
+                with self.subTest(attr, pyramid_level=pyramid_level):
+                    actual = extract_image_size(getattr(op, attr))
+                    desired = image_size
+                    self.assertTupleEqual(actual, desired)
 
     def test_ImagePyramid_iter_restore(self):
         class TestOperator(PixelComparisonOperator):

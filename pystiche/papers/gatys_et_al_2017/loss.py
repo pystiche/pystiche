@@ -8,7 +8,6 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.loss import GuidedPerceptualLoss, PerceptualLoss
 from pystiche.misc import build_deprecation_message
 from pystiche.ops import (
-    EncodingComparisonGuidance,
     EncodingOperator,
     GramOperator,
     MSEEncodingOperator,
@@ -106,10 +105,6 @@ def gatys_et_al_2017_style_loss(
     )
 
 
-class GuidedGramOperator(EncodingComparisonGuidance, GramOperator):
-    pass
-
-
 def gatys_et_al_2017_guided_style_loss(
     regions: Sequence[str],
     impl_params: bool = True,
@@ -123,20 +118,14 @@ def gatys_et_al_2017_guided_style_loss(
     if multi_layer_encoder is None:
         multi_layer_encoder = gatys_et_al_2017_multi_layer_encoder()
 
-    if layers is None:
-        layers = ("relu1_1", "relu2_1", "relu3_1", "relu4_1", "relu5_1")
-
-    def get_encoding_op(encoder, layer_weight):
-        return GuidedGramOperator(encoder, score_weight=layer_weight, **gram_op_kwargs)
-
     def get_region_op(region, region_weight):
-        return GatysEtAl2017StyleLoss(
-            multi_layer_encoder,
-            layers,
-            get_encoding_op,
+        return gatys_et_al_2017_style_loss(
             impl_params=impl_params,
+            multi_layer_encoder=multi_layer_encoder,
+            layers=layers,
             layer_weights=layer_weights,
             score_weight=region_weight,
+            **gram_op_kwargs,
         )
 
     return MultiRegionOperator(

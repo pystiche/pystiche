@@ -1,12 +1,4 @@
-import itertools
-
-from pystiche.enc import SingleLayerEncoder
-from pystiche.ops import (
-    ComparisonGuidance,
-    ComparisonOperator,
-    EncodingOperator,
-    Guidance,
-)
+from pystiche.ops import ComparisonOperator
 
 __all__ = ["ImageStorage"]
 
@@ -17,18 +9,17 @@ class ImageStorage:
         self.target_images = {}
         self.input_guides = {}
         for op in ops:
-            if isinstance(op, ComparisonGuidance) and op.has_target_guide:
-                self.target_guides[op] = op.target_guide
+            if isinstance(op, ComparisonOperator):
+                if op.has_target_guide:
+                    self.target_guides[op] = op.target_guide
 
-            if isinstance(op, ComparisonOperator) and op.has_target_image:
-                self.target_images[op] = op.target_image
+                if op.has_target_image:
+                    self.target_images[op] = op.target_image
 
-            if isinstance(op, Guidance) and op.has_input_guide:
+            if op.has_input_guide:
                 self.input_guides[op] = op.input_guide
 
     def restore(self):
-        self._clear_encoding_storage()
-
         for op, target_guide in self.target_guides.items():
             op.set_target_guide(target_guide, recalc_repr=False)
 
@@ -37,23 +28,3 @@ class ImageStorage:
 
         for op, input_guide in self.input_guides.items():
             op.set_input_guide(input_guide)
-
-    def _clear_encoding_storage(self):
-        ops = set(
-            itertools.chain(
-                self.target_guides.keys(),
-                self.target_images.keys(),
-                self.input_guides.keys(),
-            )
-        )
-        encoding_ops = [op for op in ops if isinstance(op, EncodingOperator)]
-        multi_layer_encoders = set(
-            [
-                op.encoder.multi_layer_encoder
-                for op in encoding_ops
-                if isinstance(op.encoder, SingleLayerEncoder)
-            ]
-        )
-
-        for multi_layer_encoder in multi_layer_encoders:
-            multi_layer_encoder.clear_cache()

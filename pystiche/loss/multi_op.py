@@ -48,17 +48,29 @@ class MultiOperatorLoss(pystiche.Module):
             for encoder in self._multi_layer_encoders:
                 encoder.trim()
 
+    def named_operators(self, recurse: bool = False) -> Iterator[Tuple[str, Operator]]:
+        if recurse:
+            iterator = self.named_modules()
+        else:
+            iterator = self.named_children()
+        for name, child in iterator:
+            if isinstance(child, Operator):
+                yield name, child
+
+    def operators(self, recurse: bool = False) -> Iterator[Operator]:
+        for _, op in self.named_operators(recurse=recurse):
+            yield op
+
     def _collect_multi_layer_encoders(self) -> Tuple[MultiLayerEncoder, ...]:
-        def encoding_ops() -> Iterator[EncodingOperator]:
-            for module in self.modules():
-                if isinstance(module, EncodingOperator):
-                    yield module
+        def encoding_ops() -> Iterator[Operator]:
+            for op in self.operators(recurse=True):
+                if isinstance(op, EncodingOperator):
+                    yield op
 
         multi_layer_encoders = set()
         for op in encoding_ops():
-            encoder = op.encoder
-            if isinstance(encoder, SingleLayerEncoder):
-                multi_layer_encoders.add(encoder.multi_layer_encoder)
+            if isinstance(op.encoder, SingleLayerEncoder):
+                multi_layer_encoders.add(op.encoder.multi_layer_encoder)
 
         return tuple(multi_layer_encoders)
 

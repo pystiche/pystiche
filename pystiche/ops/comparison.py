@@ -80,16 +80,49 @@ class MRFOperator(EncodingComparisonOperator):
         self.num_rotation_steps = num_rotation_steps
         self.rotation_step_width = rotation_step_width
 
-    def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
-        return pystiche.extract_patches2d(enc, self.patch_size, self.stride)
+    def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
+        # Since the target representation of the MRFOperator possibly comprises
+        # scaled or rotated patches, it is not useful to store the target encoding
+        # guides
+        self.register_buffer("target_guide", guide)
+        if recalc_repr and self.has_target_image:
+            self.set_target_image(self.target_image)
+
+    def _guide_repr(self, repr: torch.Tensor, eps=1e-6) -> torch.Tensor:
+        # Due to the guiding large areas of the images might be zero and thus many
+        # patches might carry no information. These patches can be removed from the
+        # target and input representation reducing the computing cost and memory during
+        # the loss calculation.
+
+        # Patches without information have constant values in the spatial dimensions.
+        repr_flat = torch.flatten(repr, 2)
+        constant = repr_flat[:, :, 0].unsqueeze(2)
+
+        # By checking where the spatial values do not differ from this constant in any
+        # channel, the patches with no information can be filtered out.
+        abs_diff = torch.abs(repr_flat - constant)
+        mask = torch.any(torch.flatten(abs_diff > eps, 1), dim=1)
+
+        return repr[mask]
+
+    def enc_to_repr(self, enc: torch.Tensor, is_guided: bool) -> torch.Tensor:
+        repr = pystiche.extract_patches2d(enc, self.patch_size, self.stride)
+        if not is_guided:
+            return repr
+
+        return self._guide_repr(repr)
 
     def input_enc_to_repr(self, enc: torch.Tensor, ctx: None) -> torch.Tensor:
-        return self.enc_to_repr(enc)
+        return self.enc_to_repr(enc, self.has_input_guide)
 
     def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
-        return self.enc_to_repr(enc), None
+        return self.enc_to_repr(enc, self.has_target_guide), None
 
     def target_image_to_repr(self, image: torch.Tensor) -> Tuple[torch.Tensor, None]:
+        # Due to the possible scaling and rotation, we only apply the guide to the
+        # target image and not the encodings
+        if self.has_target_guide:
+            image = self.apply_guide(image, self.target_guide)
         device = image.device
         reprs = []
         for transform in self._target_image_transforms():
@@ -106,8 +139,7 @@ class MRFOperator(EncodingComparisonOperator):
         scaling_factors = np.arange(
             -self.num_scale_steps, self.num_scale_steps + 1, dtype=np.float
         )
-        scaling_factors *= self.scale_step_width
-        scaling_factors += 1.0
+        scaling_factors = 1.0 + (scaling_factors * self.scale_step_width)
 
         rotation_angles = np.arange(
             -self.num_rotation_steps, self.num_rotation_steps + 1, dtype=np.float

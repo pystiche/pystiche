@@ -6,7 +6,6 @@ import torch
 import pystiche
 from pystiche.enc import Encoder, MultiLayerEncoder
 
-from .guidance import ComparisonGuidance, Guidance
 from .op import ComparisonOperator, EncodingOperator, Operator
 
 __all__ = [
@@ -18,7 +17,9 @@ __all__ = [
 
 
 class OperatorContainer(Operator):
-    def __init__(self, named_ops: Sequence[Tuple[str, Operator]], score_weight=1e0):
+    def __init__(
+        self, named_ops: Sequence[Tuple[str, Operator]], score_weight=1e0,
+    ):
         super().__init__(score_weight=score_weight)
         self.add_named_modules(named_ops)
 
@@ -26,6 +27,20 @@ class OperatorContainer(Operator):
         return pystiche.LossDict(
             [(name, op(input_image)) for name, op in self.named_children()]
         )
+
+    def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True):
+        for op in self.operators():
+            if isinstance(op, ComparisonOperator):
+                op.set_target_guide(guide, recalc_repr=recalc_repr)
+
+    def set_target_image(self, image: torch.Tensor):
+        for op in self.operators():
+            if isinstance(op, ComparisonOperator):
+                op.set_target_image(image)
+
+    def set_input_guide(self, guide: torch.Tensor):
+        for op in self.operators():
+            op.set_input_guide(guide)
 
     # TODO: can this be removed?
     def __getitem__(self, name):
@@ -77,23 +92,8 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
             return get_encoding_op(encoder, layer_weight)
 
         super().__init__(
-            layers, get_op, op_weights=layer_weights, score_weight=score_weight
+            layers, get_op, op_weights=layer_weights, score_weight=score_weight,
         )
-
-    def set_target_guide(self, guide: torch.Tensor):
-        for op in self.children():
-            if isinstance(op, ComparisonGuidance):
-                op.set_target_guide(guide)
-
-    def set_target_image(self, image: torch.Tensor):
-        for op in self.children():
-            if isinstance(op, ComparisonOperator):
-                op.set_target_image(image)
-
-    def set_input_guide(self, guide: torch.Tensor):
-        for op in self.children():
-            if isinstance(op, Guidance):
-                op.set_input_guide(guide)
 
     def __repr__(self) -> str:
         def build_encoder_repr():
@@ -130,14 +130,14 @@ class MultiRegionOperator(SameOperatorContainer):
         score_weight: float = 1e0,
     ):
         super().__init__(
-            regions, get_op, op_weights=region_weights, score_weight=score_weight
+            regions, get_op, op_weights=region_weights, score_weight=score_weight,
         )
 
-    def set_target_guide(self, region, guide):
-        self[region].set_target_guide(guide)
+    def set_regional_target_guide(self, region: str, guide: torch.Tensor) -> None:
+        getattr(self, region).set_target_guide(guide)
 
-    def set_target_image(self, region, image):
-        self[region].set_target_image(image)
+    def set_regional_target_image(self, region: str, image: torch.Tensor) -> None:
+        getattr(self, region).set_target_image(image)
 
-    def set_input_guide(self, region, guide):
-        self[region].set_input_guide(guide)
+    def set_regional_input_guide(self, region: str, guide: torch.Tensor) -> None:
+        getattr(self, region).set_input_guide(guide)
