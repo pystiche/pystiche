@@ -1,5 +1,5 @@
 Welcome to pystiche's documentation!
-=======================================
+====================================
 
 .. warning::
 
@@ -9,5 +9,6 @@ Welcome to pystiche's documentation!
 .. toctree::
   :maxdepth: 2
 
-  Getting Started <getting_started>
-  Tutorials <tutorials>
+  Installation <installation>
+  Gist <gist>
+  Usage examples <tutorials>
