@@ -1,0 +1,9 @@
+codecov:
+  ci:
+    - "travis.org"
+  require_ci_to_pass: true
+
+coverage:
+  precision: 1
+  round: down
+  range: "50...95"
