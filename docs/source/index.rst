@@ -33,4 +33,3 @@ built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
   Installation <installation>
   Gist <gist>
   Usage examples <tutorials>
-  Reference <api/modules.rst>
