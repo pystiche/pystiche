@@ -2,7 +2,7 @@ os:
   - linux
   - windows
   - osx
-#dist: bionic
+dist: bionic
 language: python
 python: 3.6
 
@@ -15,6 +15,10 @@ before_install:
   - python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
   - pip install -r $REQUIREMENTS_FILE
 
+install: pip install --upgrade .[test] coverage codecov
+script: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
+# after_success: codecov
+
 jobs:
   include:
     - name: "Code format"
@@ -24,10 +28,6 @@ jobs:
         - isort --settings-path=pyproject.toml --check-only --jobs=$(nproc) --recursive .
         - black --config=pyproject.toml --check .
         - flake8 --config=.flake8 --jobs=$(nproc) .
-    - name: "Tests"
-      install: pip install --upgrade .[test] coverage codecov
-      script: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
-      after_success: codecov
     - name: "Docs"
       install: pip install .[doc]
       before_script: cd docs
