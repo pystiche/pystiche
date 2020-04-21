@@ -260,6 +260,23 @@ class TestMisc(PysticheTestCase):
         desired = "7538cbb80cb9103606c48b806eae57d56c885c7f90b9b3be70a41160f9cbb683"
         self.assertEqual(actual, desired)
 
+    def test_get_device(self):
+        actual = misc.get_device()
+        desired = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.assertEqual(actual, desired)
+
+    def test_get_device_identity(self):
+        device = torch.device("mkldnn")
+        actual = misc.get_device(device)
+        desired = device
+        self.assertEqual(actual, desired)
+
+    def test_get_device_str(self):
+        device_name = "mkldnn"
+        actual = misc.get_device(device_name)
+        desired = torch.device(device_name)
+        self.assertEqual(actual, desired)
+
 
 class TestCuda(PysticheTestCase):
     @staticmethod
