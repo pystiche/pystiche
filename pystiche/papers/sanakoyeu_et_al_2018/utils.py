@@ -1,6 +1,7 @@
-from typing import Union
+from typing import Union, Optional, List, Any
 import torch
 from torch import nn, optim
+from torch.optim.lr_scheduler import ExponentialLR
 from torch.optim.optimizer import Optimizer
 from pystiche.optim.meter import FloatMeter
 from pystiche.ops.container import OperatorContainer
@@ -42,3 +43,30 @@ class ContentOperatorContainer(OperatorContainer):
         for op in self.children():
             if isinstance(op, ComparisonOperator):
                 op.set_target_image(image)
+
+
+class DelayedExponentialLR(
+    ExponentialLR
+):  # TODO: move to optim.lr_scheduler? used in two paper
+    def __init__(
+        self, optimizer: Optimizer, gamma: float, delay: int, **kwargs: Any
+    ) -> None:
+        self.delay = delay
+        super().__init__(optimizer, gamma, **kwargs)
+
+    def get_lr(self) -> List[float]:
+        exp = self.last_epoch - self.delay + 1
+        if exp > 0:
+            return [base_lr * self.gamma ** exp for base_lr in self.base_lrs]
+        else:
+            return self.base_lrs
+
+
+def sanakoyeu_et_al_2018_lr_scheduler(
+    optimizer: Optimizer, impl_params: bool = True,
+) -> Optional[ExponentialLR]:
+    if impl_params:
+        lr_scheduler = ExponentialLR(optimizer, 1)
+    else:
+        lr_scheduler = DelayedExponentialLR(optimizer, 0.1, 2)
+    return lr_scheduler

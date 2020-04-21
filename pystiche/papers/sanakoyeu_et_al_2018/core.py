@@ -11,7 +11,6 @@ from .modules import (
     SanakoyeuEtAl2018Transformer,
     SanakoyeuEtAl2018Discriminator,
     sanakoyeu_et_al_2018_discriminator,
-    SanakoyeuEtAl2018TransformerBlock,
 )
 from .loss import (
     DiscriminatorLoss,
@@ -21,16 +20,18 @@ from .data import (
     sanakoyeu_et_al_2018_dataset,
     sanakoyeu_et_al_2018_image_loader,
     sanakoyeu_et_al_2018_images,
-    sanakoyeu_et_al_2018_batch_sampler,
 )
-from .utils import sanakoyeu_et_al_2018_optimizer, ExponentialMovingAverage
+from .utils import (
+    sanakoyeu_et_al_2018_optimizer,
+    ExponentialMovingAverage,
+    sanakoyeu_et_al_2018_lr_scheduler,
+)
 
 __all__ = [
     "sanakoyeu_et_al_2018_training",
     "sanakoyeu_et_al_2018_stylization",
     "SanakoyeuEtAl2018Transformer",
     "sanakoyeu_et_al_2018_discriminator",
-    "SanakoyeuEtAl2018TransformerBlock",
     "sanakoyeu_et_al_2018_transformer_loss",
     "DiscriminatorLoss",
     "sanakoyeu_et_al_2018_images",
@@ -124,12 +125,15 @@ def epoch_gan_optim_loop(
     discriminator_lr_scheduler: Optional[LRScheduler] = None,
     transformer_lr_scheduler: Optional[LRScheduler] = None,
     target_win_rate: float = 0.8,
+    discriminator_success: Optional[ExponentialMovingAverage] = None,
     impl_params: bool = True,
     device: Optional[torch.device] = None,
 ) -> nn.Module:
 
     style_image_loader = itertools.cycle(style_image_loader)
-    discriminator_success = ExponentialMovingAverage("discriminator_success")
+
+    if discriminator_success is None:
+        discriminator_success = ExponentialMovingAverage("discriminator_success")
 
     if discriminator_optimizer is None:
         if discriminator_lr_scheduler is None:
@@ -142,17 +146,6 @@ def epoch_gan_optim_loop(
             transformer_optimizer = sanakoyeu_et_al_2018_optimizer(transformer)
         else:
             transformer_optimizer = transformer_lr_scheduler.optimizer
-
-    def update_batch_sampler(image_loader: DataLoader, num_batches: int = int(1e5)):
-        batch_sampler = sanakoyeu_et_al_2018_batch_sampler(
-            image_loader.dataset, num_batches=num_batches
-        )
-        return DataLoader(
-            image_loader.dataset,
-            batch_sampler=batch_sampler,
-            num_workers=image_loader.num_workers,
-            pin_memory=image_loader.pin_memory,
-        )
 
     def optim_loop(transformer: nn.Module) -> nn.Module:
         return gan_optim_loop(
@@ -179,7 +172,6 @@ def epoch_gan_optim_loop(
 
         if transformer_lr_scheduler is not None:
             transformer_lr_scheduler.step(epoch)
-        content_image_loader = update_batch_sampler(content_image_loader)
 
     return transformer
 
@@ -229,37 +221,52 @@ def sanakoyeu_et_al_2018_training(
     if get_optimizer is None:
         get_optimizer = sanakoyeu_et_al_2018_optimizer
 
-    if discriminator_lr_scheduler is None:
+    if discriminator_lr_scheduler is None and not impl_params:
         discriminator_optimizer = get_optimizer(discriminator)
-        discriminator_lr_scheduler = ExponentialLR(discriminator_optimizer, 0.1)
+        discriminator_lr_scheduler = sanakoyeu_et_al_2018_lr_scheduler(
+            discriminator_optimizer
+        )
 
-    if transformer_lr_scheduler is None:
+    if transformer_lr_scheduler is None and not impl_params:
         transformer_optimizer = get_optimizer(transformer)
-        transformer_lr_scheduler = ExponentialLR(transformer_optimizer, 0.1)
+        transformer_lr_scheduler = sanakoyeu_et_al_2018_lr_scheduler(
+            transformer_optimizer
+        )
 
-    if num_epochs is None:
-        if impl_params:
-            num_epochs = 1
-        else:
-            num_epochs = 2
+    if num_epochs is None and not impl_params:
+        num_epochs = 3
 
     def transformer_criterion_update_fn(content_image, criterion):
         criterion.set_content_image(content_image)
 
-    return epoch_gan_optim_loop(
-        content_image_loader,
-        style_image_loader,
-        transformer,
-        discriminator,
-        num_epochs,
-        discriminator_criterion,
-        transformer_criterion,
-        transformer_criterion_update_fn,
-        discriminator_lr_scheduler=discriminator_lr_scheduler,
-        transformer_lr_scheduler=transformer_lr_scheduler,
-        impl_params=impl_params,
-        device=device,
-    )
+    if impl_params:
+        return gan_optim_loop(
+            content_image_loader,
+            style_image_loader,
+            transformer,
+            discriminator,
+            discriminator_criterion,
+            transformer_criterion,
+            transformer_criterion_update_fn,
+            get_optimizer=get_optimizer,
+            impl_params=impl_params,
+            device=device,
+        )
+    else:
+        return epoch_gan_optim_loop(
+            content_image_loader,
+            style_image_loader,
+            transformer,
+            discriminator,
+            num_epochs,
+            discriminator_criterion,
+            transformer_criterion,
+            transformer_criterion_update_fn,
+            discriminator_lr_scheduler=discriminator_lr_scheduler,
+            transformer_lr_scheduler=transformer_lr_scheduler,
+            impl_params=impl_params,
+            device=device,
+        )
 
 
 def sanakoyeu_et_al_2018_stylization(

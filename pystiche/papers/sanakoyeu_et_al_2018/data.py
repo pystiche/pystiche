@@ -103,7 +103,7 @@ def sanakoyeu_et_al_2018_batch_sampler(
 ) -> FiniteCycleBatchSampler:
 
     if num_batches is None:
-        num_batches = int(3e5) if impl_params else int(2e5)
+        num_batches = int(3e5) if impl_params else int(1e5)
 
     if batch_size is None:
         batch_size = 1
