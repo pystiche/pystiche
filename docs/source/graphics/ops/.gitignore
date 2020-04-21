@@ -1,4 +1,5 @@
 *
 !.gitignore
-!*.cls
+!build.py
+!blockdiagram.cls
 !*.tex
