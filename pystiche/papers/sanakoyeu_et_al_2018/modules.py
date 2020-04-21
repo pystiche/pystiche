@@ -184,45 +184,45 @@ def sanakoyeu_et_al_2018_residual_block(channels: int) -> ResidualBlock:
 
 
 def sanakoyeu_et_al_2018_transformer_encoder(
-    in_channels: int = 3, num_channel_base: int = 32, instance_norm: bool = True,
+    in_channels: int = 3, instance_norm: bool = True,
 ) -> pystiche.SequentialModule:
     modules = (
         nn.ReflectionPad2d(15),
         SanakoyeuEtAl2018ConvBlock(
             in_channels=in_channels,
-            out_channels=num_channel_base,
+            out_channels=32,
             kernel_size=3,
             stride=1,
             padding="valid",
             instance_norm=instance_norm,
         ),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=num_channel_base,
-            out_channels=num_channel_base,
+            in_channels=32,
+            out_channels=32,
             kernel_size=3,
             stride=2,
             padding="valid",
             instance_norm=instance_norm,
         ),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=num_channel_base,
-            out_channels=num_channel_base * 2,
+            in_channels=32,
+            out_channels=64,
             kernel_size=3,
             stride=2,
             padding="valid",
             instance_norm=instance_norm,
         ),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=num_channel_base * 2,
-            out_channels=num_channel_base * 4,
+            in_channels=64,
+            out_channels=128,
             kernel_size=3,
             stride=2,
             padding="valid",
             instance_norm=instance_norm,
         ),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=num_channel_base * 4,
-            out_channels=num_channel_base * 8,
+            in_channels=128,
+            out_channels=256,
             kernel_size=3,
             stride=2,
             padding="valid",
@@ -233,20 +233,17 @@ def sanakoyeu_et_al_2018_transformer_encoder(
 
 
 def sanakoyeu_et_al_2018_transformer_decoder(
-    out_channels: int = 3,
-    num_channel_base: int = 32,
-    instance_norm: bool = True,
-    num_res_block: int = 9,
+    out_channels: int = 3, instance_norm: bool = True, num_res_block: int = 9,
 ) -> pystiche.SequentialModule:
 
     modules = []
     for i in range(num_res_block):
-        modules.append(sanakoyeu_et_al_2018_residual_block(num_channel_base * 8))
+        modules.append(sanakoyeu_et_al_2018_residual_block(256))
 
     modules.append(
         SanakoyeuEtAl2018ConvTransponseBlock(
-            in_channels=num_channel_base * 8,
-            out_channels=num_channel_base * 8,
+            in_channels=256,
+            out_channels=256,
             kernel_size=3,
             stride=2,
             padding="same",
@@ -255,8 +252,8 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     )
     modules.append(
         SanakoyeuEtAl2018ConvTransponseBlock(
-            in_channels=num_channel_base * 8,
-            out_channels=num_channel_base * 4,
+            in_channels=256,
+            out_channels=128,
             kernel_size=3,
             stride=2,
             padding="same",
@@ -265,8 +262,8 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     )
     modules.append(
         SanakoyeuEtAl2018ConvTransponseBlock(
-            in_channels=num_channel_base * 4,
-            out_channels=num_channel_base * 2,
+            in_channels=128,
+            out_channels=64,
             kernel_size=3,
             stride=2,
             padding="same",
@@ -275,8 +272,8 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     )
     modules.append(
         SanakoyeuEtAl2018ConvTransponseBlock(
-            in_channels=num_channel_base * 2,
-            out_channels=num_channel_base,
+            in_channels=64,
+            out_channels=32,
             kernel_size=3,
             stride=2,
             padding="same",
@@ -286,7 +283,7 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     modules.append(nn.ReflectionPad2d(3))
     modules.append(
         sanakoyeu_et_al_2018_conv(
-            in_channels=num_channel_base,
+            in_channels=32,
             out_channels=out_channels,
             kernel_size=7,
             stride=1,
@@ -369,32 +366,29 @@ class SanakoyeuEtAl2018DiscriminatorPredBlock(nn.Module):
 
 
 def sanakoyeu_et_al_2018_discriminator(
-    input_channels: int = 3,
-    num_channel_base: int = 32,
-    instance_norm: bool = True,
-    inplace: bool = True,
+    input_channels: int = 3, instance_norm: bool = True, inplace: bool = True,
 ) -> SanakoyeuEtAl2018Discriminator:
 
     modules = [
         SanakoyeuEtAl2018DiscriminatorPredBlock(
             input_channels,
-            num_channel_base * 2,
+            128,
             kernel_size=5,
             pred_kernel_size=5,
             instance_norm=instance_norm,
             inplace=inplace,
         ),
         SanakoyeuEtAl2018DiscriminatorPredBlock(
-            num_channel_base * 2,
-            num_channel_base * 2,
+            128,
+            128,
             kernel_size=5,
             pred_kernel_size=10,
             instance_norm=instance_norm,
             inplace=inplace,
         ),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=num_channel_base * 2,
-            out_channels=num_channel_base * 4,
+            128,
+            256,
             kernel_size=5,
             stride=2,
             padding="same",
@@ -403,16 +397,16 @@ def sanakoyeu_et_al_2018_discriminator(
             inplace=inplace,
         ),
         SanakoyeuEtAl2018DiscriminatorPredBlock(
-            num_channel_base * 4,
-            num_channel_base * 8,
+            256,
+            512,
             kernel_size=5,
             pred_kernel_size=10,
             instance_norm=instance_norm,
             inplace=inplace,
         ),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=num_channel_base * 8,
-            out_channels=num_channel_base * 8,
+            in_channels=512,
+            out_channels=512,
             kernel_size=5,
             stride=2,
             padding="same",
@@ -421,16 +415,16 @@ def sanakoyeu_et_al_2018_discriminator(
             inplace=inplace,
         ),
         SanakoyeuEtAl2018DiscriminatorPredBlock(
-            num_channel_base * 8,
-            num_channel_base * 16,
+            512,
+            1024,
             kernel_size=5,
             pred_kernel_size=6,
             instance_norm=instance_norm,
             inplace=inplace,
         ),
         SanakoyeuEtAl2018DiscriminatorPredBlock(
-            num_channel_base * 16,
-            num_channel_base * 16,
+            1024,
+            1024,
             kernel_size=5,
             pred_kernel_size=3,
             instance_norm=instance_norm,
