@@ -3,41 +3,66 @@ Operator
 
 The core components of a Neural Style Transfer (NST) are the ``content_loss`` and
 ``style_loss``. In ``pystiche`` they are implemented with
-:class:`~pystiche.ops.Operator` s.
+:class:`~pystiche.ops.op.Operator` s.
 
-Every :class:`~pystiche.ops.Operator` is callable and given an ``input_image`` it
+Every :class:`~pystiche.ops.op.Operator` is callable and given an ``input_image`` it
 calculates a weighted scalar ``score`` representing the corresponding partial loss.
 
-Each :class:`~pystiche.ops.Operator` is one of two types
-(:class:`~pystiche.ops.RegularizationOperator` or
-:class:`~pystiche.ops.ComparisonOperator`) and operates in one of two domains
-(:class:`~pystiche.ops.PixelOperator` or :class:`~pystiche.ops.EncodingOperator`). They
-are combined into four ABCs which each specific :class:`~pystiche.ops.Operator` should
-subclass.
+Each :class:`~pystiche.ops.op.Operator` is one of two types
+(:class:`~pystiche.ops.op.RegularizationOperator` or
+:class:`~pystiche.ops.op.ComparisonOperator`) and operates in one of two domains
+(:class:`~pystiche.ops.op.PixelOperator` or :class:`~pystiche.ops.op.EncodingOperator`).
+They are combined into four ``ABC`` s which each specific
+:class:`~pystiche.ops.op.Operator` should subclass.
+
+:class:`~pystiche.ops.op.RegularizationOperator` vs. :class:`~pystiche.ops.op.ComparisonOperator`
+-------------------------------------------------------------------------------------------------
+
+A :class:`~pystiche.ops.op.RegularizationOperator` calculates the ``score`` of the
+``ìnput_image`` without any context. In contrast, a
+:class:`~pystiche.ops.op.ComparisonOperator` compares the ``ìnput_image`` in some form
+with ``target_image``.
 
 
-:class:`~pystiche.ops.RegularizationOperator` vs. :class:`~pystiche.ops.ComparisonOperator`
--------------------------------------------------------------------------------------------
+:class:`~pystiche.ops.op.PixelOperator` vs. :class:`~pystiche.ops.op.EncodingOperator`
+--------------------------------------------------------------------------------------
 
-- regularization operates on the image without context
-    - usually for regulrarizers
-- comparison compares the input image to some target
-    - usually for content and style loss
+A :class:`~pystiche.ops.op.PixelOperator` performs all calculations directly on the
+pixels. In contrast, a :class:`~pystiche.ops.op.EncodingOperator` at first encodes an
+image with a given ``encoder`` and subsequently operates on these ``enc`` oding.
 
-:class:`~pystiche.ops.PixelOperator` vs. :class:`~pystiche.ops.EncodingOperator`
---------------------------------------------------------------------------------
 
-- pixel operates directly on the image (regularizer)
-- encoding operates on encodings of the image (content and style loss)
-
-:class:`~pystiche.ops.PixelRegularizationOperator`
---------------------------------------------------
-
-:class:`~pystiche.ops.EncodingRegularizationOperator`
+:class:`~pystiche.ops.op.PixelRegularizationOperator`
 -----------------------------------------------------
 
-:class:`~pystiche.ops.PixelComparisonOperator`
-----------------------------------------------
+.. image:: graphics/ops/PixelRegularizationOperator.png
+  :alt: Block diagram of PixelRegularizationOperator
 
-:class:`~pystiche.ops.EncodingComparisonOperator`
+
+Notable subclasses:
+
+- :class:`~pystiche.ops.regularization.TotalVariationOperator`
+
+:class:`~pystiche.ops.op.EncodingRegularizationOperator`
+--------------------------------------------------------
+
+.. image:: graphics/ops/EncodingRegularizationOperator.png
+  :alt: Block diagram of EncodingRegularizationOperator
+
+:class:`~pystiche.ops.op.PixelComparisonOperator`
 -------------------------------------------------
+
+.. image:: graphics/ops/PixelComparisonOperator.png
+  :alt: Block diagram of PixelComparisonOperator
+
+:class:`~pystiche.ops.op.EncodingComparisonOperator`
+----------------------------------------------------
+
+.. image:: graphics/ops/EncodingComparisonOperator.png
+  :alt: Block diagram of EncodingComparisonOperator
+
+Notable subclasses:
+
+- :class:`~pystiche.ops.comparison.MSEEncodingOperator`
+- :class:`~pystiche.ops.comparison.GramOperator`
+- :class:`~pystiche.ops.comparison.MRFOperator`

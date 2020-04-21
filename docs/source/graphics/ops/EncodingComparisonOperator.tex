@@ -1,0 +1,78 @@
+\documentclass{blockdiagram}
+
+\begin{document}
+    \begin{tikzpicture}
+        %% set_target_image()
+        
+        \node[block] (target encoder) {\code{__call__()}};
+        \blocklabel{encoder}{target encoder}
+        
+        \node[block, right=1.8cm of target encoder] (target enc to repr) {\code{target_enc_}\\\code{to_repr()}};
+        
+        \superblock[
+            (target encoder) 
+            (target encoder label) 
+            (target enc to repr)
+        ]{set_target_image()}{set target image}
+        
+        \draw[->] (target encoder) -- (target enc to repr) node[midway, anchor=south, align=left] {\code{target_}\\\code{enc}};
+        
+        
+        %% __call__()
+        
+        \node[block, below=2cm of target encoder] (input encoder) {\code{__call__()}};
+        \blocklabel{encoder}{input encoder}
+        
+        \node[block, anchor=west] (input enc to repr) at (input encoder -| target enc to repr.east) {\code{input_enc_}\\\code{to_repr()}};
+        
+        \node[block, right=1.8cm of input enc to repr] (calculate score) {\code{calculate_}\\\code{score()}};
+        
+        \node[block, right=0.5cm of calculate score, minimum width=\blockheight cm] (score weighting) {\Huge $\cdot$};
+        
+        \superblock[
+            (input encoder) 
+            (input encoder label) 
+            (input enc to repr) 
+            (calculate score) 
+            (score weighting)
+        ]{__call__()}{call}
+        
+        \draw[->] (input encoder) -- (input enc to repr) node[midway, anchor=south] {\code{input_enc}};
+        
+        \draw[->] (input enc to repr) -- (calculate score) node[midway, anchor=south, align=left] {\code{input_}\\\code{repr}};
+        \coordinate[yshift=\vertportshift cm] (target repr) at (target enc to repr.east);
+        \draw[->] (target repr) -| ($(calculate score.north) + (\horzportshift cm,0)$);
+        
+        \coordinate[yshift=-\vertportshift cm] (ctx) at (target enc to repr.east);
+        \draw[->] (ctx) -| ($(calculate score.north) + (-\horzportshift cm,0)$);
+        \coordinate[circle, minimum size=1mm, fill, inner sep=0mm] (ctx split) at (ctx -| input enc to repr);
+        \draw[->] (ctx split) -- (input enc to repr);
+        
+        \draw[->] (calculate score) -- (score weighting);
+        
+        
+        %% score_weight
+        
+        \node[align=left] (score weight) at (target enc to repr -| score weighting) {\code{score_}\\\code{weight}};
+        \draw[->] (score weight) -- (score weighting);
+        
+        
+        %% Operator
+        
+        \superblock[
+            (set target image) 
+            (set target image label) 
+            (call) 
+            (call label) 
+            (score weight)
+        ]{EncodingComparisonOperator}{Operator}
+        
+        
+        % I/O
+        
+        \draw[<-] (target encoder.west) -- ++(-0.7,0) node[anchor=east, align=left] {\code{target_}\\\code{image}};
+        \draw[<-] (input encoder.west) -- ++(-0.7,0) node[anchor=east, align=left] {\code{input_}\\\code{image}};
+        \draw[->] (score weighting.east) -- ++(0.7,0) node[anchor=west] {\code{score}};
+
+    \end{tikzpicture}
+\end{document}

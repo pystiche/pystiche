@@ -7,6 +7,7 @@
 # -- Imports -----------------------------------------------------------------
 
 import os
+import subprocess
 import warnings
 from datetime import datetime
 from distutils.util import strtobool as _strtobool
@@ -71,7 +72,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.coverage",
-    "sphinx_autodoc_typehints",
+    # "sphinx_autodoc_typehints",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -108,3 +109,39 @@ html_theme = "sphinx_rtd_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ["_static"]
+
+
+# -- Build block diagrams -----------------------------------------------------
+
+
+def build_block_diagrams(root=path.join("graphics", "ops"), dpi=600):
+    try:
+        import pdf2image
+    except ImportError:
+        raise RuntimeError
+
+    for file in os.listdir(root):
+        name, ext = path.splitext(file)
+        if ext != ".tex":
+            continue
+
+        try:
+            subprocess.check_call(
+                ("pdflatex", "-interaction=nonstopmode", "-quiet", file), cwd=root
+            )
+        except subprocess.CalledProcessError:
+            raise RuntimeError
+
+        images = pdf2image.convert_from_path(
+            path.join(root, f"{name}.pdf"), dpi=dpi, transparent=True
+        )
+        if len(images) > 1:
+            raise RuntimeError
+
+        images[0].save(path.join(root, f"{name}.png"))
+
+
+try:
+    build_block_diagrams()
+except RuntimeError:
+    warnings.warn("Build process of block diagrams failed.")
