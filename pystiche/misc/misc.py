@@ -360,3 +360,16 @@ def warn_deprecation(*args: str, **kwargs: Optional[str]):
     else:
         msg = build_deprecation_message(*args, **kwargs)
     warnings.warn(msg, UserWarning)
+
+
+def get_device(device: Optional[Union[str, torch.device]] = None) -> torch.device:
+    if isinstance(device, torch.device):
+        return device
+
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    if isinstance(device, str):
+        device = torch.device(device)
+
+    return device
