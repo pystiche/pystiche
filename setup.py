@@ -37,6 +37,7 @@ doc_requires = (
     "sphinx",
     "sphinx_autodoc_typehints",
     "sphinx_rtd_theme",
+    "pdf2image",
     "sphinx-gallery",
     # Install additional sphinx-gallery dependencies
     # https://sphinx-gallery.github.io/stable/index.html#install-via-pip
