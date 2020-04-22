@@ -5,8 +5,122 @@ from PIL import Image
 
 import torch
 
+from pystiche.image import guides as guides_
 from pystiche.image import io, utils
 from utils import PysticheTestCase, get_tmp_dir
+
+
+class TestGuides(PysticheTestCase):
+    @staticmethod
+    def get_test_rgb_triplet(channel):
+        rgb_triplet = [0] * 3
+        rgb_triplet[channel] = 255
+        return tuple(rgb_triplet)
+
+    @staticmethod
+    def get_test_guides(block_size=(10, 30)):
+        def get_guide(channel):
+            size = (1, 1, *block_size)
+            blocks = [torch.zeros(size)] * 3
+            blocks[channel] = torch.ones(size)
+            return torch.cat(blocks, dim=2)
+
+        guides = {}
+        color_map = {}
+        for channel, region in enumerate("RGB"):
+            guides[region] = get_guide(channel)
+
+            rgb_triplet = TestGuides.get_test_rgb_triplet(channel)
+            color_map[region] = rgb_triplet
+
+        return guides, color_map
+
+    @staticmethod
+    def get_test_segmentation(block_size=(10, 30)):
+        def get_colored_block(channel):
+            block = torch.zeros(1, 3, *block_size)
+            block[:, channel, :, :] = 1.0
+            return block
+
+        blocks = []
+        region_map = {}
+        for channel, region in enumerate("RGB"):
+            blocks.append(get_colored_block(channel))
+
+            rgb_triplet = TestGuides.get_test_rgb_triplet(channel)
+            region_map[rgb_triplet] = region
+
+        segmentation = torch.cat(blocks, dim=2)
+
+        return segmentation, region_map
+
+    @staticmethod
+    def write_guide(guide, file):
+        guide = guide.squeeze().byte().mul(255).numpy()
+        Image.fromarray(guide, mode="L").save(file)
+
+    def test_verify_guides(self):
+        guides, _ = self.get_test_guides()
+        guides_.verify_guides(guides)
+
+    def test_verify_guides_coverage(self):
+        guides, _ = self.get_test_guides()
+        del guides["R"]
+
+        with self.assertRaises(RuntimeError):
+            guides_.verify_guides(guides)
+
+        guides_.verify_guides(guides, verify_coverage=False)
+
+    def test_verify_guides_overlap(self):
+        guides, _ = self.get_test_guides()
+        guides["R2"] = guides["R"]
+
+        with self.assertRaises(RuntimeError):
+            guides_.verify_guides(guides)
+
+        guides_.verify_guides(guides, verify_overlap=False)
+
+    def test_read_guides(self):
+        guides, _ = self.get_test_guides()
+
+        with get_tmp_dir() as tmp_dir:
+            for region, guide in guides.items():
+                self.write_guide(guide, path.join(tmp_dir, f"{region}.png"))
+
+            actual = guides_.read_guides(tmp_dir)
+            desired = guides
+            self.assertTensorDictAlmostEqual(actual, desired)
+
+    def test_write_guides(self):
+        guides, _ = self.get_test_guides()
+
+        with get_tmp_dir() as tmp_dir:
+            guides_.write_guides(guides, tmp_dir)
+
+            actual = {
+                region: self.load_image(file=path.join(tmp_dir, f"{region}.png"))
+                for region in guides.keys()
+            }
+            desired = guides
+
+            self.assertTensorDictAlmostEqual(actual, desired)
+
+    def test_guides_to_segmentation(self):
+        guides, color_map = self.get_test_guides()
+        segmentation, _ = self.get_test_segmentation()
+
+        actual = guides_.guides_to_segmentation(guides, color_map=color_map)
+        desired = segmentation
+        self.assertTensorAlmostEqual(actual, desired)
+
+    def test_segmentation_to_guides(self):
+        guides, _ = self.get_test_guides()
+        segmentation, region_map = self.get_test_segmentation()
+
+        actual = guides_.segmentation_to_guides(segmentation, region_map=region_map)
+        desired = guides
+        self.assertTensorDictAlmostEqual(actual, desired)
 
 
 class TestIo(PysticheTestCase):
@@ -36,29 +150,6 @@ class TestIo(PysticheTestCase):
     def test_read_image_resize_other(self):
         with self.assertRaises(RuntimeError):
             io.read_image(self.default_image_file(), size="invalid_size")
-
-    def test_read_guides(self):
-        def create_guide():
-            return torch.rand(1, 1, 256, 256).gt(0.5).float()
-
-        def write_guide(guide, file):
-            guide = guide.squeeze().byte().mul(255).numpy()
-            Image.fromarray(guide, mode="L").convert("1").save(file)
-
-        torch.manual_seed(0)
-        guides = (create_guide(), create_guide(), create_guide())
-
-        with get_tmp_dir() as tmp_dir:
-            for idx, guide in enumerate(guides):
-                write_guide(guide, path.join(tmp_dir, f"region{idx}.png"))
-
-            actual = io.read_guides(tmp_dir)
-            regions = set(actual.keys())
-            desired = {f"region{idx}": guide for idx, guide in enumerate(guides)}
-
-            self.assertEqual(regions, set(desired.keys()))
-            for region in regions:
-                self.assertTensorAlmostEqual(actual[region], desired[region])
 
     def test_write_image(self):
         torch.manual_seed(0)

@@ -1,6 +1,5 @@
 import warnings
-from os import listdir, path
-from typing import Any, Optional, Tuple, Union
+from typing import Any, NoReturn, Optional, Tuple, Union
 
 from PIL import Image
 
@@ -40,7 +39,6 @@ __all__ = [
     "import_from_pil",
     "export_to_pil",
     "read_image",
-    "read_guides",
     "write_image",
     "show_image",
 ]
@@ -130,19 +128,16 @@ def read_image(
 
 def read_guides(
     dir: str, device: Union[torch.device, str] = "cpu", make_batched: bool = True,
-):
-    def import_image(file):
-        image = Image.open(path.join(dir, file)).convert("1")
-        return import_from_pil(image, device=device, make_batched=make_batched)
-
-    return {path.splitext(file)[0]: import_image(file) for file in listdir(dir)}
+) -> NoReturn:
+    msg = "The function read_guides was moved to pystiche.image.guides in 0.4.0."
+    raise RuntimeError(msg)
 
 
 @force_single_image
 def write_image(
-    image: torch.Tensor, file: str, mode: Optional[str] = None, **kwargs: Any
+    image: torch.Tensor, file: str, mode: Optional[str] = None, **save_kwargs: Any
 ):
-    export_to_pil(image, mode=mode).save(file, **kwargs)
+    export_to_pil(image, mode=mode).save(file, **save_kwargs)
 
 
 @force_single_image

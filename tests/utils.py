@@ -28,7 +28,14 @@ class PysticheImageBackend(pyimagetest.ImageBackend):
     def import_image(self, file):
         pil_image = Image.open(file)
         np_image = np.array(pil_image, dtype=np.float32) / 255.0
-        pystiche_image = torch.from_numpy(np_image).permute((2, 0, 1)).unsqueeze(0)
+
+        pystiche_image = torch.from_numpy(np_image)
+        if pystiche_image.dim() == 2:
+            pystiche_image = pystiche_image.unsqueeze(0)
+        elif pystiche_image.dim() == 3:
+            pystiche_image = pystiche_image.permute((2, 0, 1))
+        pystiche_image = pystiche_image.unsqueeze(0)
+
         return pystiche_image
 
     def export_image(self, image):
