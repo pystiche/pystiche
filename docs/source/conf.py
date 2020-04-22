@@ -89,9 +89,9 @@ if not exclude_gallery:
     extensions.append("sphinx_gallery.gen_gallery")
 
     sphinx_gallery_conf = {
-        "examples_dirs": path.join(PROJECT_ROOT, "tutorials"),
-        "gallery_dirs": "auto_tutorials",
-        "filename_pattern": os.sep + "tutorial_",
+        "examples_dirs": path.join(PROJECT_ROOT, "examples"),
+        "gallery_dirs": "auto_examples",
+        "filename_pattern": os.sep + "example_",
     }
 else:
     warnings.warn("Sphinx gallery is excluded and will not be built!", UserWarning)
