@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Optional, Tuple, Union
+from typing import Any, NoReturn, Optional, Tuple, Union
 
 from PIL import Image
 
@@ -124,6 +124,13 @@ def read_image(
         image = _pil_resize(image, size, interpolation_mode, **resize_kwargs)
 
     return import_from_pil(image, device=device, make_batched=make_batched)
+
+
+def read_guides(
+    dir: str, device: Union[torch.device, str] = "cpu", make_batched: bool = True,
+) -> NoReturn:
+    msg = "The function read_guides was moved to pystiche.image.guides in 0.4.0."
+    raise RuntimeError(msg)
 
 
 @force_single_image
