@@ -45,6 +45,12 @@ __all__ = [
     "show_image",
 ]
 
+_PIL_RESAMPLE_MAP = {
+    "nearest": Image.NEAREST,
+    "bilinear": Image.BILINEAR,
+    "bicubic": Image.BICUBIC,
+}
+
 
 def import_from_pil(
     image: Image.Image,
@@ -78,7 +84,10 @@ def export_to_pil(
 
 
 def _pil_resize(
-    image: Image.Image, size: Union[int, Tuple[int, int]], **kwargs: Any
+    image: Image.Image,
+    size: Union[int, Tuple[int, int]],
+    interpolation_mode: str,
+    **kwargs: Any,
 ) -> Image.Image:
     if is_image_size(size):
         height, width = size
@@ -93,11 +102,11 @@ def _pil_resize(
         msg = build_deprecation_message(
             "Passing additional parameters via **resize_kwargs",
             "0.4.0",
-            info="The keyword arguments are ignored",
+            info="The keyword arguments are ignored.",
         )
         warnings.warn(msg)
 
-    return image.resize((width, height))
+    return image.resize((width, height), resample=_PIL_RESAMPLE_MAP[interpolation_mode])
 
 
 def read_image(
@@ -105,6 +114,7 @@ def read_image(
     device: Union[torch.device, str] = "cpu",
     make_batched: bool = True,
     size: Optional[Union[int, Tuple[int, int]]] = None,
+    interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
 ) -> torch.Tensor:
     if isinstance(device, str):
@@ -113,7 +123,7 @@ def read_image(
     image = Image.open(file)
 
     if size is not None:
-        image = _pil_resize(image, size, **resize_kwargs)
+        image = _pil_resize(image, size, interpolation_mode, **resize_kwargs)
 
     return import_from_pil(image, device=device, make_batched=make_batched)
 
@@ -140,11 +150,12 @@ def show_image(
     image: torch.Tensor,
     mode: Optional[str] = None,
     size: Optional[Union[int, Tuple[int, int]]] = None,
+    interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
 ):
     image = export_to_pil(image, mode=mode)
 
     if size is not None:
-        image = _pil_resize(image, size, **resize_kwargs)
+        image = _pil_resize(image, size, interpolation_mode, **resize_kwargs)
 
     _show_pil_image(image)
