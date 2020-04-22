@@ -34,7 +34,7 @@ def _create_motif_shearing_matrix(
         (0.0, np.cos(angle), 0.0),
         (0.0, 0.0, 1.0),
     )
-    return torch.tensor(shearing_matrix)
+    return torch.tensor(shearing_matrix, dtype=torch.float32)
 
 
 def _create_motif_rotation_matrix(
@@ -48,7 +48,7 @@ def _create_motif_rotation_matrix(
         (np.sin(angle), np.cos(angle), 0.0),
         (0.0, 0.0, 1.0),
     )
-    return torch.tensor(rotation_matrix)
+    return torch.tensor(rotation_matrix, dtype=torch.float32)
 
 
 def _create_motif_scaling_matrix(
@@ -56,7 +56,7 @@ def _create_motif_scaling_matrix(
 ) -> torch.Tensor:
     factor_vert, factor_horz = to_2d_arg(factor)
     scaling_matrix = ((factor_horz, 0.0, 0.0), (0.0, factor_vert, 0.0), (0.0, 0.0, 1.0))
-    return torch.tensor(scaling_matrix)
+    return torch.tensor(scaling_matrix, dtype=torch.float32)
 
 
 def _create_motif_translation_matrix(
@@ -70,7 +70,7 @@ def _create_motif_translation_matrix(
         (0.0, 1.0, translation_vert),
         (0.0, 0.0, 1.0),
     )
-    return torch.tensor(translation_matrix)
+    return torch.tensor(translation_matrix, dtype=torch.float32)
 
 
 def _calculate_image_center(image_size: Tuple[int, int]) -> Tuple[float, float]:
