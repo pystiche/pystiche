@@ -49,6 +49,7 @@ __all__ = [
     "save_state_dict",
     "build_deprecation_message",
     "warn_deprecation",
+    "get_device",
 ]
 
 
