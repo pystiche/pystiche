@@ -38,7 +38,7 @@ class FeatureReconstructionOperator(EncodingComparisonOperator):
         return F.mse_loss(input_repr, target_repr)
 
 
-class MSEEncodingOperator(EncodingComparisonOperator):
+class MSEEncodingOperator(FeatureReconstructionOperator):
     def __init__(self, *args, **kwargs):
         msg = build_deprecation_message(
             "The class MSEEncodingOperator",
