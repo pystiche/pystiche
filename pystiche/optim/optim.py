@@ -30,7 +30,6 @@ def default_image_optimizer(input_image: torch.Tensor) -> Optimizer:
 def default_image_optim_loop(
     input_image: torch.Tensor,
     criterion: nn.Module,
-    # TODO: use optimizer instead of get_optimizer
     get_optimizer: Optional[Callable[[torch.Tensor], Optimizer]] = None,
     num_steps: Union[int, Iterable[int]] = 500,
     preprocessor: Optional[nn.Module] = None,
