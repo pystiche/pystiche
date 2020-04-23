@@ -1,16 +1,11 @@
 from torch import nn
-from typing import Union, Tuple, Collection, List
+from typing import Union, Tuple, Collection, Dict
+from collections import OrderedDict
 import pystiche
 from pystiche.enc.encoder import SequentialEncoder
+from pystiche.enc.multi_layer_encoder import MultiLayerEncoder, SingleLayerEncoder
 import torch
 from ..common_utils import ResidualBlock
-
-
-def get_norm_module(out_channels: int, instance_norm: bool) -> nn.Module:
-    if instance_norm:
-        return nn.InstanceNorm2d(out_channels)
-    else:
-        return nn.BatchNorm2d(out_channels)
 
 
 def get_padding(padding: str, kernel_size: Union[Tuple[int, int], int]) -> int:
@@ -51,7 +46,6 @@ class SanakoyeuEtAl2018ConvBlock(nn.Sequential):
         kernel_size: Union[Tuple[int, int], int],
         stride: Union[Tuple[int, int], int] = 1,
         padding: str = "valid",
-        instance_norm: bool = True,
         use_act: bool = True,
         act: str = "relu",
         inplace: bool = True,
@@ -66,7 +60,7 @@ class SanakoyeuEtAl2018ConvBlock(nn.Sequential):
             )
         )
 
-        modules.append(get_norm_module(out_channels, instance_norm))
+        modules.append(nn.InstanceNorm2d(out_channels))
 
         if use_act:
             if act == "relu":
@@ -113,7 +107,6 @@ class SanakoyeuEtAl2018ConvTransponseBlock(nn.Sequential):
         kernel_size: Union[Tuple[int, int], int],
         stride: Union[Tuple[int, int], int] = 1,
         padding: str = "valid",
-        instance_norm: bool = True,
         use_act: bool = True,
         act: str = "relu",
         inplace: bool = True,
@@ -128,7 +121,7 @@ class SanakoyeuEtAl2018ConvTransponseBlock(nn.Sequential):
             )
         )
 
-        modules.append(get_norm_module(out_channels, instance_norm))
+        modules.append(nn.InstanceNorm2d(out_channels))
 
         if use_act:
             if act == "relu":
@@ -155,7 +148,6 @@ def sanakoyeu_et_al_2018_residual_block(channels: int) -> ResidualBlock:
     in_channels = out_channels = channels
     kernel_size = 3
     padding = same_size_padding(kernel_size)
-    instance_norm = True
 
     residual = nn.Sequential(
         nn.ReflectionPad2d(padding),
@@ -165,7 +157,6 @@ def sanakoyeu_et_al_2018_residual_block(channels: int) -> ResidualBlock:
             kernel_size,
             stride=1,
             padding="valid",
-            instance_norm=instance_norm,
             use_act=False,
         ),
         nn.ReflectionPad2d(padding),
@@ -175,7 +166,6 @@ def sanakoyeu_et_al_2018_residual_block(channels: int) -> ResidualBlock:
             kernel_size,
             stride=1,
             padding="valid",
-            instance_norm=instance_norm,
             use_act=False,
         ),
     )
@@ -184,7 +174,7 @@ def sanakoyeu_et_al_2018_residual_block(channels: int) -> ResidualBlock:
 
 
 def sanakoyeu_et_al_2018_transformer_encoder(
-    in_channels: int = 3, instance_norm: bool = True,
+    in_channels: int = 3,
 ) -> pystiche.SequentialModule:
     modules = (
         nn.ReflectionPad2d(15),
@@ -194,46 +184,25 @@ def sanakoyeu_et_al_2018_transformer_encoder(
             kernel_size=3,
             stride=1,
             padding="valid",
-            instance_norm=instance_norm,
         ),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=32,
-            out_channels=32,
-            kernel_size=3,
-            stride=2,
-            padding="valid",
-            instance_norm=instance_norm,
+            in_channels=32, out_channels=32, kernel_size=3, stride=2, padding="valid",
         ),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=32,
-            out_channels=64,
-            kernel_size=3,
-            stride=2,
-            padding="valid",
-            instance_norm=instance_norm,
+            in_channels=32, out_channels=64, kernel_size=3, stride=2, padding="valid",
         ),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=64,
-            out_channels=128,
-            kernel_size=3,
-            stride=2,
-            padding="valid",
-            instance_norm=instance_norm,
+            in_channels=64, out_channels=128, kernel_size=3, stride=2, padding="valid",
         ),
         SanakoyeuEtAl2018ConvBlock(
-            in_channels=128,
-            out_channels=256,
-            kernel_size=3,
-            stride=2,
-            padding="valid",
-            instance_norm=instance_norm,
+            in_channels=128, out_channels=256, kernel_size=3, stride=2, padding="valid",
         ),
     )
     return SequentialEncoder(modules)
 
 
 def sanakoyeu_et_al_2018_transformer_decoder(
-    out_channels: int = 3, instance_norm: bool = True, num_res_block: int = 9,
+    out_channels: int = 3, num_res_block: int = 9,
 ) -> pystiche.SequentialModule:
 
     modules = []
@@ -242,42 +211,22 @@ def sanakoyeu_et_al_2018_transformer_decoder(
 
     modules.append(
         SanakoyeuEtAl2018ConvTransponseBlock(
-            in_channels=256,
-            out_channels=256,
-            kernel_size=3,
-            stride=2,
-            padding="same",
-            instance_norm=instance_norm,
+            in_channels=256, out_channels=256, kernel_size=3, stride=2, padding="same",
         )
     )
     modules.append(
         SanakoyeuEtAl2018ConvTransponseBlock(
-            in_channels=256,
-            out_channels=128,
-            kernel_size=3,
-            stride=2,
-            padding="same",
-            instance_norm=instance_norm,
+            in_channels=256, out_channels=128, kernel_size=3, stride=2, padding="same",
         )
     )
     modules.append(
         SanakoyeuEtAl2018ConvTransponseBlock(
-            in_channels=128,
-            out_channels=64,
-            kernel_size=3,
-            stride=2,
-            padding="same",
-            instance_norm=instance_norm,
+            in_channels=128, out_channels=64, kernel_size=3, stride=2, padding="same",
         )
     )
     modules.append(
         SanakoyeuEtAl2018ConvTransponseBlock(
-            in_channels=64,
-            out_channels=32,
-            kernel_size=3,
-            stride=2,
-            padding="same",
-            instance_norm=instance_norm,
+            in_channels=64, out_channels=32, kernel_size=3, stride=2, padding="same",
         )
     )
     modules.append(nn.ReflectionPad2d(3))
@@ -312,134 +261,10 @@ class SanakoyeuEtAl2018Transformer(nn.Module):
         return self.decoder(self.encoder(input))
 
 
-class SanakoyeuEtAl2018Discriminator(pystiche.Module):
-    def __init__(self, pred_module, *modules: nn.Module):
-        self.pred_module = pred_module
-        super().__init__(indexed_children=modules)
-
-    def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
-        pred = []
-        for i, module in enumerate(self.children()):
-            if isinstance(module, self.pred_module):
-                x, scale_pred = module(x)
-                pred.append(scale_pred)
-            else:
-                x = module(x)
-        return pred
-
-
-class SanakoyeuEtAl2018DiscriminatorPredBlock(nn.Module):
-    def __init__(
-        self,
-        input_channel: int,
-        output_channel: int,
-        kernel_size: Union[Tuple[int, int], int],
-        pred_kernel_size: Union[Tuple[int, int], int],
-        padding: str = "same",
-        instance_norm: bool = True,
-        act: str = "lrelu",
-        inplace: bool = True,
-    ):
-        super().__init__()
-        self.forwardBlock = SanakoyeuEtAl2018ConvBlock(
-            in_channels=input_channel,
-            out_channels=output_channel,
-            kernel_size=kernel_size,
-            stride=2,
-            padding=padding,
-            instance_norm=instance_norm,
-            act=act,
-            inplace=inplace,
-        )
-        self.predConv = sanakoyeu_et_al_2018_conv(
-            in_channels=output_channel,
-            out_channels=1,
-            kernel_size=pred_kernel_size,
-            stride=1,
-            padding=padding,
-        )
-
-    def forward(self, input: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        output = self.forwardBlock(input)
-        pred = self.predConv(output)
-        return output, pred
-
-
-def sanakoyeu_et_al_2018_discriminator(
-    input_channels: int = 3, instance_norm: bool = True, inplace: bool = True,
-) -> SanakoyeuEtAl2018Discriminator:
-
-    modules = [
-        SanakoyeuEtAl2018DiscriminatorPredBlock(
-            input_channels,
-            128,
-            kernel_size=5,
-            pred_kernel_size=5,
-            instance_norm=instance_norm,
-            inplace=inplace,
-        ),
-        SanakoyeuEtAl2018DiscriminatorPredBlock(
-            128,
-            128,
-            kernel_size=5,
-            pred_kernel_size=10,
-            instance_norm=instance_norm,
-            inplace=inplace,
-        ),
-        SanakoyeuEtAl2018ConvBlock(
-            128,
-            256,
-            kernel_size=5,
-            stride=2,
-            padding="same",
-            instance_norm=instance_norm,
-            act="lrelu",
-            inplace=inplace,
-        ),
-        SanakoyeuEtAl2018DiscriminatorPredBlock(
-            256,
-            512,
-            kernel_size=5,
-            pred_kernel_size=10,
-            instance_norm=instance_norm,
-            inplace=inplace,
-        ),
-        SanakoyeuEtAl2018ConvBlock(
-            in_channels=512,
-            out_channels=512,
-            kernel_size=5,
-            stride=2,
-            padding="same",
-            instance_norm=instance_norm,
-            act="lrelu",
-            inplace=inplace,
-        ),
-        SanakoyeuEtAl2018DiscriminatorPredBlock(
-            512,
-            1024,
-            kernel_size=5,
-            pred_kernel_size=6,
-            instance_norm=instance_norm,
-            inplace=inplace,
-        ),
-        SanakoyeuEtAl2018DiscriminatorPredBlock(
-            1024,
-            1024,
-            kernel_size=5,
-            pred_kernel_size=3,
-            instance_norm=instance_norm,
-            inplace=inplace,
-        ),
-    ]
-    return SanakoyeuEtAl2018Discriminator(
-        SanakoyeuEtAl2018DiscriminatorPredBlock, *modules
-    )
-
-
 class SanakoyeuEtAl2018TransformerBlock(nn.Module):
     def __init__(
         self,
-        input_channel: int = 3,
+        in_channels: int = 3,
         kernel_size: Union[Tuple[int, int], int] = 10,
         stride: Union[Tuple[int, int], int] = 1,
         padding: str = "same",
@@ -456,7 +281,7 @@ class SanakoyeuEtAl2018TransformerBlock(nn.Module):
             )
         else:
             self.forwardBlock = nn.Conv2d(
-                input_channel, 3, kernel_size, stride=stride, padding=padding,
+                in_channels, 3, kernel_size, stride=stride, padding=padding,
             )
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
@@ -464,3 +289,136 @@ class SanakoyeuEtAl2018TransformerBlock(nn.Module):
             return self.forwardBlock(input)
         else:
             return nn.utils.weight_norm(self.forwardBlock(input))
+
+
+def sanakoyeu_et_al_2018_discriminator_encoder_modules(
+    in_channels: int = 3, inplace: bool = True,
+) -> Dict[str, nn.Sequential]:
+
+    modules = OrderedDict(
+        {
+            "scale_0": SanakoyeuEtAl2018ConvBlock(
+                in_channels,
+                128,
+                kernel_size=5,
+                stride=2,
+                padding="same",
+                act="lrelu",
+                inplace=inplace,
+            ),
+            "scale_1": SanakoyeuEtAl2018ConvBlock(
+                128,
+                128,
+                kernel_size=5,
+                stride=2,
+                padding="same",
+                act="lrelu",
+                inplace=inplace,
+            ),
+            "scale_2": SanakoyeuEtAl2018ConvBlock(
+                128,
+                256,
+                kernel_size=5,
+                stride=2,
+                padding="same",
+                act="lrelu",
+                inplace=inplace,
+            ),
+            "scale_3": SanakoyeuEtAl2018ConvBlock(
+                256,
+                512,
+                kernel_size=5,
+                stride=2,
+                padding="same",
+                act="lrelu",
+                inplace=inplace,
+            ),
+            "scale_4": SanakoyeuEtAl2018ConvBlock(
+                in_channels=512,
+                out_channels=512,
+                kernel_size=5,
+                stride=2,
+                padding="same",
+                act="lrelu",
+                inplace=inplace,
+            ),
+            "scale_5": SanakoyeuEtAl2018ConvBlock(
+                512,
+                1024,
+                kernel_size=5,
+                stride=2,
+                padding="same",
+                act="lrelu",
+                inplace=inplace,
+            ),
+            "scale_6": SanakoyeuEtAl2018ConvBlock(
+                1024,
+                1024,
+                kernel_size=5,
+                stride=2,
+                padding="same",
+                act="lrelu",
+                inplace=inplace,
+            ),
+        }
+    )
+    return modules
+
+
+def sanakoyeu_et_al_2018_prediction_module(
+    in_channels: int, kernel_size: Union[Tuple[int, int], int], padding: str = "same"
+):
+    return sanakoyeu_et_al_2018_conv(
+        in_channels=in_channels,
+        out_channels=1,
+        kernel_size=kernel_size,
+        stride=1,
+        padding=padding,
+    )
+
+
+class SanakoyeuEtAl2018DiscriminatorEncoder(MultiLayerEncoder):
+    def __init__(self) -> None:
+        super().__init__(
+            self._extract_modules(sanakoyeu_et_al_2018_discriminator_encoder_modules())
+        )
+
+    def _extract_modules(self, wrapped_modules: Dict[str, nn.Sequential]):
+        modules = OrderedDict()
+        block = 0
+        for sequential in wrapped_modules.values():
+            for module in sequential._modules.values():
+                if isinstance(module, nn.Conv2d):
+                    name = f"conv{block}"
+                elif isinstance(module, nn.InstanceNorm2d):
+                    name = f"inst_n{block}"
+                else:  # isinstance(module, nn.LeakyReLU):
+                    name = f"lrelu{block}"
+                    # each LeakyReLU layer marks the end of the current block
+                    block += 1
+
+                modules[name] = module
+        return modules
+
+
+class SanakoyeuEtAl2018Discriminator(object):
+    def __init__(self) -> None:
+        self.multi_layer_encoder = SanakoyeuEtAl2018DiscriminatorEncoder()
+        self.prediction_modules = OrderedDict(
+            {
+                "lrelu0": sanakoyeu_et_al_2018_prediction_module(128, 5),
+                "lrelu1": sanakoyeu_et_al_2018_prediction_module(128, 10),
+                "lrelu3": sanakoyeu_et_al_2018_prediction_module(512, 10),
+                "lrelu5": sanakoyeu_et_al_2018_prediction_module(1024, 6),
+                "lrelu6": sanakoyeu_et_al_2018_prediction_module(1024, 3),
+            }
+        )
+
+    def get_prediction_module(self, layer: str):
+        return self.prediction_modules[layer]
+
+    def get_discriminator_parameters(self):
+        parameters = list(self.multi_layer_encoder.parameters())
+        for module in self.prediction_modules.values():
+            parameters += list(module.parameters())
+        return parameters

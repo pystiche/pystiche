@@ -7,13 +7,11 @@ from torch.optim.optimizer import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 from torch.optim.lr_scheduler import ExponentialLR
 from pystiche.loss.perceptual import PerceptualLoss
-from .modules import (
-    SanakoyeuEtAl2018Transformer,
-    SanakoyeuEtAl2018Discriminator,
-    sanakoyeu_et_al_2018_discriminator,
-)
+from .modules import SanakoyeuEtAl2018Transformer, SanakoyeuEtAl2018Discriminator
 from .loss import (
-    DiscriminatorLoss,
+    SanakoyeuEtAl2018DiscriminatorLoss,
+    sanakoyeu_et_al_2018_discriminator_operator,
+    MultiLayerDicriminatorEncodingOperator,
     sanakoyeu_et_al_2018_transformer_loss,
 )
 from .data import (
@@ -31,9 +29,10 @@ __all__ = [
     "sanakoyeu_et_al_2018_training",
     "sanakoyeu_et_al_2018_stylization",
     "SanakoyeuEtAl2018Transformer",
-    "sanakoyeu_et_al_2018_discriminator",
+    "SanakoyeuEtAl2018Discriminator",
     "sanakoyeu_et_al_2018_transformer_loss",
-    "DiscriminatorLoss",
+    "SanakoyeuEtAl2018DiscriminatorLoss",
+    "sanakoyeu_et_al_2018_discriminator_operator",
     "sanakoyeu_et_al_2018_images",
     "sanakoyeu_et_al_2018_image_loader",
     "sanakoyeu_et_al_2018_dataset",
@@ -58,53 +57,60 @@ def gan_optim_loop(
     impl_params: bool = True,
     device: Optional[torch.device] = None,
 ) -> nn.Module:
+    if isinstance(style_image_loader, DataLoader):
+        style_image_loader = itertools.cycle(style_image_loader)
 
-    if discriminator_criterion is None:
-        discriminator_optimizer = get_optimizer(discriminator)
+    if discriminator_optimizer is None:
+        discriminator_optimizer = get_optimizer(
+            discriminator.get_discriminator_parameters()
+        )
 
-    if transformer_criterion is None:
-        transformer_criterion = get_optimizer(transformer)
+    if transformer_optimizer is None:
+        transformer_optimizer = get_optimizer(transformer)
 
     if discriminator_success is None:
         discriminator_success = ExponentialMovingAverage("discriminator_success")
 
-    def train_discriminator_one_step(fake_image, real_image):
+    def train_discriminator_one_step(
+        output_image: torch.Tensor,
+        style_image: torch.Tensor,
+        content_image: Optional[torch.Tensor] = None,
+    ):
         def closure():
             discriminator_optimizer.zero_grad()
-            loss = discriminator_criterion(fake_image, real_image)
+            loss = discriminator_criterion(output_image, style_image, content_image)
             loss.backward()
             return loss
 
         discriminator_optimizer.step(closure)
         discriminator_success.update(discriminator_criterion.get_current_acc())
 
-    def train_transformer_one_step(input_image):
+    def train_transformer_one_step(output_image: torch.Tensor):
         def closure():
             transformer_optimizer.zero_grad()
-            loss = transformer_criterion(input_image)
+            loss = transformer_criterion(output_image)
             loss.backward()
             return loss
 
         transformer_optimizer.step(closure)
         discriminator_success.update(
-            (1.0 - transformer_criterion["style_loss"].get_current_acc())
+            (1.0 - transformer_criterion["style_loss"].get_discriminator_acc())
         )
 
     for content_image in content_image_loader:
         content_image = content_image.to(device)
-        stylized_image = transformer(content_image)
+        output_image = transformer(content_image)
 
         if discriminator_success.local_avg() < target_win_rate:
             style_image = next(style_image_loader)
             style_image = style_image.to(device)
             if impl_params:
-                fake_images = torch.cat((stylized_image, content_image), 0)
+                train_discriminator_one_step(output_image, style_image, content_image=content_image)
             else:
-                fake_images = stylized_image
-            train_discriminator_one_step(fake_images, style_image)
+                train_discriminator_one_step(output_image, style_image)
         else:
             transformer_criterion_update_fn(content_image, transformer_criterion)
-            train_transformer_one_step(stylized_image)
+            train_transformer_one_step(output_image)
 
     return transformer
 
@@ -137,7 +143,9 @@ def epoch_gan_optim_loop(
 
     if discriminator_optimizer is None:
         if discriminator_lr_scheduler is None:
-            discriminator_optimizer = sanakoyeu_et_al_2018_optimizer(discriminator)
+            discriminator_optimizer = sanakoyeu_et_al_2018_optimizer(
+                discriminator.get_discriminator_parameters()
+            )
         else:
             discriminator_optimizer = discriminator_lr_scheduler.optimizer
 
@@ -183,7 +191,7 @@ def sanakoyeu_et_al_2018_training(
     device: Optional[torch.device] = None,
     transformer: Optional[SanakoyeuEtAl2018Transformer] = None,
     discriminator: Optional[SanakoyeuEtAl2018Discriminator] = None,
-    discriminator_criterion: Optional[DiscriminatorLoss] = None,
+    discriminator_criterion: Optional[MultiLayerDicriminatorEncodingOperator] = None,
     transformer_criterion: Optional[PerceptualLoss] = None,
     discriminator_lr_scheduler: Optional[ExponentialLR] = None,
     transformer_lr_scheduler: Optional[ExponentialLR] = None,
@@ -199,42 +207,24 @@ def sanakoyeu_et_al_2018_training(
     transformer = transformer.to(device)
 
     if discriminator is None:
-        discriminator = sanakoyeu_et_al_2018_discriminator()
+        discriminator = sanakoyeu_et_al_2018_discriminator_operator()
         discriminator = discriminator.train()
     discriminator = discriminator.to(device)
 
     if discriminator_criterion is None:
-        fake_loss_correction_factor = 2.0 if impl_params else 1.0
-        discriminator_criterion = DiscriminatorLoss(
-            discriminator, fake_loss_correction_factor=fake_loss_correction_factor
-        )
+        discriminator_criterion = SanakoyeuEtAl2018DiscriminatorLoss(discriminator)
         discriminator_criterion = discriminator_criterion.eval()
     discriminator_criterion = discriminator_criterion.to(device)
 
     if transformer_criterion is None:
         transformer_criterion = sanakoyeu_et_al_2018_transformer_loss(
-            transformer.encoder, discriminator, impl_params=impl_params
+            transformer.encoder, impl_params=impl_params, style_loss=discriminator
         )
         transformer_criterion = transformer_criterion.eval()
     transformer_criterion = transformer_criterion.to(device)
 
     if get_optimizer is None:
         get_optimizer = sanakoyeu_et_al_2018_optimizer
-
-    if discriminator_lr_scheduler is None and not impl_params:
-        discriminator_optimizer = get_optimizer(discriminator)
-        discriminator_lr_scheduler = sanakoyeu_et_al_2018_lr_scheduler(
-            discriminator_optimizer
-        )
-
-    if transformer_lr_scheduler is None and not impl_params:
-        transformer_optimizer = get_optimizer(transformer)
-        transformer_lr_scheduler = sanakoyeu_et_al_2018_lr_scheduler(
-            transformer_optimizer
-        )
-
-    if num_epochs is None and not impl_params:
-        num_epochs = 3
 
     def transformer_criterion_update_fn(content_image, criterion):
         criterion.set_content_image(content_image)
@@ -253,6 +243,23 @@ def sanakoyeu_et_al_2018_training(
             device=device,
         )
     else:
+        if discriminator_lr_scheduler is None:
+            discriminator_optimizer = get_optimizer(
+                discriminator.get_discriminator_parameters()
+            )
+            discriminator_lr_scheduler = sanakoyeu_et_al_2018_lr_scheduler(
+                discriminator_optimizer
+            )
+
+        if transformer_lr_scheduler is None:
+            transformer_optimizer = get_optimizer(transformer)
+            transformer_lr_scheduler = sanakoyeu_et_al_2018_lr_scheduler(
+                transformer_optimizer
+            )
+
+        if num_epochs is None:
+            num_epochs = 3
+
         return epoch_gan_optim_loop(
             content_image_loader,
             style_image_loader,

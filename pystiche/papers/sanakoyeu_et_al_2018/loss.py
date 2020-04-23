@@ -1,146 +1,208 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Sequence, Union, Callable, Tuple
 from collections import OrderedDict
 
+import torch.nn as nn
 import torch
-from torch import nn
 from torch.nn.functional import binary_cross_entropy_with_logits
 
 import pystiche
 from pystiche.papers.sanakoyeu_et_al_2018.modules import (
     SanakoyeuEtAl2018TransformerBlock,
 )
-from pystiche.ops import RegularizationOperator
-from pystiche.papers.sanakoyeu_et_al_2018.modules import SanakoyeuEtAl2018Discriminator
+from pystiche.ops import (
+    MultiLayerEncodingOperator,
+    EncodingOperator,
+    EncodingRegularizationOperator,
+)
+from pystiche.papers.sanakoyeu_et_al_2018.modules import (
+    SanakoyeuEtAl2018DiscriminatorEncoder,
+    SanakoyeuEtAl2018Discriminator,
+)
 from pystiche.ops.comparison import MSEEncodingOperator
 from pystiche.enc import Encoder
 from pystiche.loss.perceptual import PerceptualLoss
 from .utils import ContentOperatorContainer
 
 
-def loss(
-    predictions: List[torch.Tensor],
-    real: bool,
-    scale_weight: Optional[List[float]] = None,
-) -> torch.Tensor:
-    if scale_weight is None:
-        scale_weight = [1.0] * len(predictions)
-    assert len(scale_weight) == len(predictions)
-    return torch.sum(
-        torch.stack(
-            [
-                binary_cross_entropy_with_logits(
-                    pred,
-                    torch.ones_like(pred) if real else torch.zeros_like(pred),
-                    reduction="sum",
-                )
-                * weight
-                for pred, weight in zip(predictions, scale_weight)
-            ]
-        )
-    )
-
-
-def acc(predictions: List[torch.Tensor], real: bool) -> torch.Tensor:
-    def get_acc_mask(pred: torch.Tensor, real: bool = True):
-        if real:
-            return torch.masked_fill(
-                torch.zeros_like(pred), pred > torch.zeros_like(pred), 1
-            )
-        else:
-            return torch.masked_fill(
-                torch.zeros_like(pred), pred < torch.zeros_like(pred), 1
-            )
-
-    scale_acc = torch.sum(
-        torch.stack([torch.mean(get_acc_mask(pred, real=real)) for pred in predictions])
-    )
-    return scale_acc / len(predictions)
-
-
-class DiscriminatorOperator(RegularizationOperator):
+class DiscriminatorEncodingOperator(EncodingRegularizationOperator):
     def __init__(
-        self, discriminator: SanakoyeuEtAl2018Discriminator, score_weight: float = 1e0
+        self,
+        encoder: SanakoyeuEtAl2018DiscriminatorEncoder,
+        prediction_module: nn.Module,
+        score_weight: float = 1e0,
+        real: Optional[bool] = True,
     ) -> None:
-        super().__init__(score_weight=score_weight)
-        self.discriminator = discriminator
-        self.acc = 0.0
+        super().__init__(encoder, score_weight=score_weight)
+        self.pred_module = prediction_module
+        self.acc = torch.empty(1)
+        self.real = real
 
-    def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
-        input_pred = self.discriminator(image)
-        return self.calculate_score(input_pred)
+    def input_enc_to_repr(
+        self, enc: torch.Tensor
+    ) -> Union[torch.Tensor, pystiche.TensorStorage]:
+        return self.pred_module(enc)
 
-    def calculate_score(self, input_pred: List[torch.Tensor]) -> torch.Tensor:
-        self.acc = acc(input_pred, real=True)
-        return loss(input_pred, real=True)
+    def process_input_image(
+        self, image: torch.Tensor, real: Optional[bool] = None
+    ) -> torch.Tensor:
+        return self.calculate_score(
+            self.input_image_to_repr(image), real if real is not None else self.real
+        )
+
+    def _loss(self, prediction: torch.Tensor, real: bool) -> torch.Tensor:
+        return binary_cross_entropy_with_logits(
+            prediction,
+            torch.ones_like(prediction) if real else torch.zeros_like(prediction),
+        )
+
+    def _acc(self, prediction: torch.Tensor, real: bool) -> torch.Tensor:
+        def get_acc_mask(prediction: torch.Tensor, real: bool):
+            if real:
+                return torch.masked_fill(
+                    torch.zeros_like(prediction),
+                    prediction > torch.zeros_like(prediction),
+                    1,
+                )
+            else:
+                return torch.masked_fill(
+                    torch.zeros_like(prediction),
+                    prediction < torch.zeros_like(prediction),
+                    1,
+                )
+
+        return torch.mean(get_acc_mask(prediction, real))
+
+    def calculate_score(
+        self, prediction: torch.Tensor, real: bool = True
+    ) -> torch.Tensor:
+        self.acc = self._acc(prediction, real)
+        return self._loss(prediction, real=real)
+
+    def forward(
+        self, input_image: torch.Tensor, real: bool = True
+    ) -> Union[torch.Tensor, pystiche.LossDict]:
+        return self.process_input_image(input_image, real=real) * self.score_weight
 
     def get_current_acc(self):
         return self.acc
 
 
-def sanakoyeu_et_al_2018_discriminator_loss(
-    discriminator: SanakoyeuEtAl2018Discriminator,
-    impl_params: bool = True,
-    score_weight=None,
-) -> RegularizationOperator:
-    if score_weight is None:
-        if impl_params:
-            score_weight = 1e0
-        else:
-            score_weight = 1e-3
-    return DiscriminatorOperator(discriminator, score_weight=score_weight)
-
-
-def discriminator_loss(
-    fake_image: torch.Tensor,
-    real_image: torch.Tensor,
-    discriminator: SanakoyeuEtAl2018Discriminator,
-    scale_weight: Optional[List[float]] = None,
-    fake_loss_correction_factor: float = 1.0,
-    real_loss_correction_factor: float = 1.0,
-) -> Tuple[torch.Tensor, torch.Tensor]:
-
-    fake_predictions = discriminator(fake_image)
-    real_predictions = discriminator(real_image)
-    discr_loss = (
-        loss(fake_predictions, real=False, scale_weight=scale_weight)
-        * fake_loss_correction_factor
-        + loss(real_predictions, real=True, scale_weight=scale_weight)
-        * real_loss_correction_factor
-    )
-    discr_acc = (
-        acc(fake_predictions, real=False) + acc(real_predictions, real=True)
-    ) / 2
-    return discr_loss, discr_acc
-
-
-class DiscriminatorLoss(nn.Module):
+class MultiLayerDicriminatorEncodingOperator(MultiLayerEncodingOperator):
     def __init__(
         self,
         discriminator: SanakoyeuEtAl2018Discriminator,
-        fake_loss_correction_factor: float = 1.0,
-        real_loss_correction_factor: float = 1.0,
-    ) -> None:
+        layers: Sequence[str],
+        get_encoding_op: Callable[[Encoder, float], EncodingOperator],
+        layer_weights: Union[str, Sequence[float]] = "sum",
+        score_weight: float = 1e0,
+    ):
+        super().__init__(
+            discriminator.multi_layer_encoder,
+            layers,
+            get_encoding_op,
+            layer_weights=layer_weights,
+            score_weight=score_weight,
+        )
+        self.discriminator = discriminator
+
+    def get_discriminator_acc(self) -> torch.Tensor:
+        acc = []
+        for op in self._modules.values():
+            if isinstance(op, DiscriminatorEncodingOperator):
+                acc.append(op.get_current_acc())
+        return torch.mean(torch.stack(acc))
+
+    def get_discriminator_parameters(self):
+        return self.discriminator.get_discriminator_parameters()
+
+    def process_input_image(
+        self, input_image: torch.Tensor, real: Optional[bool] = None
+    ) -> pystiche.LossDict:
+        return pystiche.LossDict(
+            [(name, op(input_image, real)) for name, op in self.named_children()]
+        )
+
+    def forward(
+        self, input_image: torch.Tensor, real: Optional[bool] = None
+    ) -> Tuple[Union[torch.Tensor, pystiche.LossDict], torch.Tensor]:
+        return self.process_input_image(input_image, real) * self.score_weight
+
+
+def sanakoyeu_et_al_2018_discriminator_loss(
+    discriminator_operator: MultiLayerDicriminatorEncodingOperator,
+    output_photo: torch.Tensor,
+    input_painting: torch.Tensor,
+    input_photo: Optional[torch.Tensor] = None,
+) -> Tuple[torch.Tensor, torch.Tensor]:
+
+    loss = discriminator_operator(input_painting, real=True)
+    acc = discriminator_operator.get_discriminator_acc()
+    for key, value in zip(loss.keys(), discriminator_operator(output_photo, real=False).values()):
+        loss[key] = loss[key] + value
+
+    acc += discriminator_operator.get_discriminator_acc()
+    if input_photo is not None:
+        for key, value in zip(loss.keys(), discriminator_operator(input_photo, real=False).values()):
+            loss[key] = loss[key] + value
+        acc += discriminator_operator.get_discriminator_acc()
+        return loss, acc / 3
+    return loss, acc / 2
+
+
+class SanakoyeuEtAl2018DiscriminatorLoss(nn.Module):
+    def __init__(self, discriminator: SanakoyeuEtAl2018Discriminator,) -> None:
         super().__init__()
         self.discriminator = discriminator
         self.acc = 0.0
-
-        self.fake_loss_correction_factor = fake_loss_correction_factor
-        self.real_loss_correction_factor = real_loss_correction_factor
 
     def get_current_acc(self):
         return self.acc
 
     def forward(
-        self, fake_image: torch.Tensor, real_image: torch.Tensor
+        self,
+        output_photo: torch.Tensor,
+        input_painting: torch.Tensor,
+        input_photo: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        loss, self.acc = discriminator_loss(
-            fake_image,
-            real_image,
-            self.discriminator,
-            fake_loss_correction_factor=self.fake_loss_correction_factor,
-            real_loss_correction_factor=self.real_loss_correction_factor,
+        loss, self.acc = sanakoyeu_et_al_2018_discriminator_loss(
+            self.discriminator, output_photo, input_painting, input_photo
         )
         return loss
+
+
+def sanakoyeu_et_al_2018_discriminator_operator(
+    impl_params: bool = True,
+    discriminator: Optional[SanakoyeuEtAl2018Discriminator] = None,
+    layers: Optional[Sequence[str]] = None,
+    layer_weights: Union[str, Sequence[float]] = "sum",
+    score_weight: float = None,
+):
+    if score_weight is None:
+        if impl_params:
+            score_weight = 1e0
+        else:
+            score_weight = 1e-3
+
+    if discriminator is None:
+        discriminator = SanakoyeuEtAl2018Discriminator()
+
+    if layers is None:
+        layers = ("lrelu0", "lrelu1", "lrelu3", "lrelu5", "lrelu6")
+
+    def get_encoding_op(encoder, layer_weight):
+        return DiscriminatorEncodingOperator(
+            encoder,
+            discriminator.get_prediction_module(encoder.layer),
+            score_weight=layer_weight,
+        )
+
+    return MultiLayerDicriminatorEncodingOperator(
+        discriminator,
+        layers,
+        get_encoding_op,
+        layer_weights=layer_weights,
+        score_weight=score_weight,
+    )
 
 
 class SanakoyeuEtAl2018FeatureOperator(MSEEncodingOperator):
@@ -194,11 +256,10 @@ def sanakoyeu_et_al_2018_transformed_image_loss(
 
 def sanakoyeu_et_al_2018_transformer_loss(
     encoder: Optional[pystiche.SequentialModule],
-    discriminator: SanakoyeuEtAl2018Discriminator,
     impl_params: bool = True,
     style_aware_content_loss: Optional[SanakoyeuEtAl2018FeatureOperator] = None,
     transformed_image_loss: Optional[MSEEncodingOperator] = None,
-    style_loss: Optional[DiscriminatorOperator] = None,
+    style_loss: Optional[MultiLayerDicriminatorEncodingOperator] = None,
 ) -> PerceptualLoss:
 
     if style_aware_content_loss is None:
@@ -221,8 +282,6 @@ def sanakoyeu_et_al_2018_transformer_loss(
     )
 
     if style_loss is None:
-        style_loss = sanakoyeu_et_al_2018_discriminator_loss(
-            discriminator, impl_params=impl_params
-        )
+        style_loss = sanakoyeu_et_al_2018_discriminator_operator()
 
     return PerceptualLoss(content_loss, style_loss)

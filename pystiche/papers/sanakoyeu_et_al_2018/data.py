@@ -16,7 +16,7 @@ from pystiche.image.transforms import functional as F
 
 
 def sanakoyeu_et_al_2018_image_transform(
-    edge_size: int = 768, impl_params: bool = True
+    edge_size: int = 512, impl_params: bool = True  # TODO: change edge_size to 768
 ) -> ComposedTransform:
     class OptionalRescale(Transform):
         def __init__(
@@ -55,8 +55,7 @@ def sanakoyeu_et_al_2018_image_transform(
                 return input_image
 
     transforms = []
-    if impl_params:
-        transforms.append(OptionalRescale())
+    transforms.append(OptionalRescale())
     transforms.append(ValidRandomCrop((edge_size, edge_size)))
     transforms.append(OptionalGrayscaleToFakegrayscale())
     return ComposedTransform(*transforms)

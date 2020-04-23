@@ -8,8 +8,16 @@ from pystiche.ops.container import OperatorContainer
 from pystiche.ops.op import ComparisonOperator
 
 
-def sanakoyeu_et_al_2018_optimizer(transformer: nn.Module) -> Optimizer:
-    return optim.Adam(transformer.parameters(), lr=2e-4)
+def sanakoyeu_et_al_2018_optimizer(
+    params: Union[nn.Module, List[torch.Tensor]]
+) -> Optimizer:
+    if isinstance(params, nn.Module):
+        params = params.parameters()
+    return optim.Adam(params, lr=2e-4)
+
+
+def sanakoyeu_et_al_2018_lr_scheduler(optimizer: Optimizer) -> Optional[ExponentialLR]:
+    return DelayedExponentialLR(optimizer, 0.1, 2)
 
 
 class ExponentialMovingAverage(FloatMeter):
@@ -60,13 +68,3 @@ class DelayedExponentialLR(
             return [base_lr * self.gamma ** exp for base_lr in self.base_lrs]
         else:
             return self.base_lrs
-
-
-def sanakoyeu_et_al_2018_lr_scheduler(
-    optimizer: Optimizer, impl_params: bool = True,
-) -> Optional[ExponentialLR]:
-    if impl_params:
-        lr_scheduler = ExponentialLR(optimizer, 1)
-    else:
-        lr_scheduler = DelayedExponentialLR(optimizer, 0.1, 2)
-    return lr_scheduler
