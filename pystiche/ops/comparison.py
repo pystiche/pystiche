@@ -1,4 +1,5 @@
 import itertools
+import warnings
 from typing import Iterator, Sequence, Tuple, Union
 
 import numpy as np
@@ -8,15 +9,20 @@ import torch
 import pystiche
 from pystiche.enc import Encoder
 from pystiche.image.transforms import TransformMotifAffinely
-from pystiche.misc import to_2d_arg
+from pystiche.misc import build_deprecation_message, to_2d_arg
 
 from . import functional as F
 from .op import EncodingComparisonOperator
 
-__all__ = ["MSEEncodingOperator", "GramOperator", "MRFOperator"]
+__all__ = [
+    "FeatureReconstructionOperator",
+    "MSEEncodingOperator",
+    "GramOperator",
+    "MRFOperator",
+]
 
 
-class MSEEncodingOperator(EncodingComparisonOperator):
+class FeatureReconstructionOperator(EncodingComparisonOperator):
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         return enc
 
@@ -30,6 +36,17 @@ class MSEEncodingOperator(EncodingComparisonOperator):
         self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
     ) -> torch.Tensor:
         return F.mse_loss(input_repr, target_repr)
+
+
+class MSEEncodingOperator(EncodingComparisonOperator):
+    def __init__(self, *args, **kwargs):
+        msg = build_deprecation_message(
+            "The class MSEEncodingOperator",
+            "0.4.0",
+            info="It was renamed to FeatureReconstructionOperator.",
+        )
+        warnings.warn(msg)
+        super().__init__(*args, **kwargs)
 
 
 class GramOperator(EncodingComparisonOperator):
