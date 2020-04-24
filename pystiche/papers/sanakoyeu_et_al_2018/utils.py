@@ -17,7 +17,7 @@ def sanakoyeu_et_al_2018_optimizer(
 
 
 def sanakoyeu_et_al_2018_lr_scheduler(optimizer: Optimizer) -> Optional[ExponentialLR]:
-    return DelayedExponentialLR(optimizer, 0.1, 2)
+    return DelayedExponentialLR(optimizer, gamma=0.1, delay=2)
 
 
 class ExponentialMovingAverage(FloatMeter):

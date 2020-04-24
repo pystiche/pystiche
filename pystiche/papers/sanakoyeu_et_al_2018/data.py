@@ -16,7 +16,7 @@ from pystiche.image.transforms import functional as F
 
 
 def sanakoyeu_et_al_2018_image_transform(
-    edge_size: int = 512, impl_params: bool = True  # TODO: change edge_size to 768
+    edge_size: int = 512,  # TODO: change edge_size to 768
 ) -> ComposedTransform:
     class OptionalRescale(Transform):
         def __init__(
@@ -87,10 +87,10 @@ def sanakoyeu_et_al_2018_images(
 
 
 def sanakoyeu_et_al_2018_dataset(
-    root: str, impl_params: bool = True, transform: Optional[Transform] = None,
+    root: str, transform: Optional[Transform] = None,
 ):
     if transform is None:
-        transform = sanakoyeu_et_al_2018_image_transform(impl_params=impl_params)
+        transform = sanakoyeu_et_al_2018_image_transform()
     return ImageFolderDataset(root, transform=transform)
 
 

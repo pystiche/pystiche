@@ -6,6 +6,7 @@ from torch import nn
 from torch.optim.optimizer import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 from torch.optim.lr_scheduler import ExponentialLR
+from pystiche.ops.container import MultiLayerEncodingOperator
 from pystiche.loss.perceptual import PerceptualLoss
 from .modules import SanakoyeuEtAl2018Transformer, SanakoyeuEtAl2018Discriminator
 from .loss import (
@@ -43,7 +44,7 @@ def gan_optim_loop(
     content_image_loader: DataLoader,
     style_image_loader: DataLoader,
     transformer: nn.Module,
-    discriminator: nn.Module,
+    discriminator_operator: MultiLayerEncodingOperator,
     discriminator_criterion: nn.Module,
     transformer_criterion: nn.Module,
     transformer_criterion_update_fn: Callable[
@@ -62,7 +63,7 @@ def gan_optim_loop(
 
     if discriminator_optimizer is None:
         discriminator_optimizer = get_optimizer(
-            discriminator.get_discriminator_parameters()
+            discriminator_operator.get_discriminator_parameters()
         )
 
     if transformer_optimizer is None:
@@ -105,7 +106,9 @@ def gan_optim_loop(
             style_image = next(style_image_loader)
             style_image = style_image.to(device)
             if impl_params:
-                train_discriminator_one_step(output_image, style_image, content_image=content_image)
+                train_discriminator_one_step(
+                    output_image, style_image, content_image=content_image
+                )
             else:
                 train_discriminator_one_step(output_image, style_image)
         else:
@@ -119,7 +122,7 @@ def epoch_gan_optim_loop(
     content_image_loader: DataLoader,
     style_image_loader: DataLoader,
     transformer: nn.Module,
-    discriminator: nn.Module,
+    discriminator_operator: MultiLayerEncodingOperator,
     epochs: int,
     discriminator_criterion: nn.Module,
     transformer_criterion: nn.Module,
@@ -144,7 +147,7 @@ def epoch_gan_optim_loop(
     if discriminator_optimizer is None:
         if discriminator_lr_scheduler is None:
             discriminator_optimizer = sanakoyeu_et_al_2018_optimizer(
-                discriminator.get_discriminator_parameters()
+                discriminator_operator.get_discriminator_parameters()
             )
         else:
             discriminator_optimizer = discriminator_lr_scheduler.optimizer
@@ -160,7 +163,7 @@ def epoch_gan_optim_loop(
             content_image_loader,
             style_image_loader,
             transformer,
-            discriminator,
+            discriminator_operator,
             discriminator_criterion,
             transformer_criterion,
             transformer_criterion_update_fn,
@@ -190,8 +193,8 @@ def sanakoyeu_et_al_2018_training(
     impl_params: bool = True,
     device: Optional[torch.device] = None,
     transformer: Optional[SanakoyeuEtAl2018Transformer] = None,
-    discriminator: Optional[SanakoyeuEtAl2018Discriminator] = None,
-    discriminator_criterion: Optional[MultiLayerDicriminatorEncodingOperator] = None,
+    discriminator_operator: Optional[MultiLayerDicriminatorEncodingOperator] = None,
+    discriminator_criterion: Optional[SanakoyeuEtAl2018DiscriminatorLoss] = None,
     transformer_criterion: Optional[PerceptualLoss] = None,
     discriminator_lr_scheduler: Optional[ExponentialLR] = None,
     transformer_lr_scheduler: Optional[ExponentialLR] = None,
@@ -206,19 +209,21 @@ def sanakoyeu_et_al_2018_training(
         transformer = transformer.train()
     transformer = transformer.to(device)
 
-    if discriminator is None:
-        discriminator = sanakoyeu_et_al_2018_discriminator_operator()
-        discriminator = discriminator.train()
-    discriminator = discriminator.to(device)
+    if discriminator_operator is None:
+        discriminator_operator = sanakoyeu_et_al_2018_discriminator_operator()
 
     if discriminator_criterion is None:
-        discriminator_criterion = SanakoyeuEtAl2018DiscriminatorLoss(discriminator)
+        discriminator_criterion = SanakoyeuEtAl2018DiscriminatorLoss(
+            discriminator_operator
+        )
         discriminator_criterion = discriminator_criterion.eval()
     discriminator_criterion = discriminator_criterion.to(device)
 
     if transformer_criterion is None:
         transformer_criterion = sanakoyeu_et_al_2018_transformer_loss(
-            transformer.encoder, impl_params=impl_params, style_loss=discriminator
+            transformer.encoder,
+            impl_params=impl_params,
+            style_loss=discriminator_operator,
         )
         transformer_criterion = transformer_criterion.eval()
     transformer_criterion = transformer_criterion.to(device)
@@ -234,7 +239,7 @@ def sanakoyeu_et_al_2018_training(
             content_image_loader,
             style_image_loader,
             transformer,
-            discriminator,
+            discriminator_operator,
             discriminator_criterion,
             transformer_criterion,
             transformer_criterion_update_fn,
@@ -245,7 +250,7 @@ def sanakoyeu_et_al_2018_training(
     else:
         if discriminator_lr_scheduler is None:
             discriminator_optimizer = get_optimizer(
-                discriminator.get_discriminator_parameters()
+                discriminator_operator.get_discriminator_parameters()
             )
             discriminator_lr_scheduler = sanakoyeu_et_al_2018_lr_scheduler(
                 discriminator_optimizer
@@ -264,7 +269,7 @@ def sanakoyeu_et_al_2018_training(
             content_image_loader,
             style_image_loader,
             transformer,
-            discriminator,
+            discriminator_operator,
             num_epochs,
             discriminator_criterion,
             transformer_criterion,

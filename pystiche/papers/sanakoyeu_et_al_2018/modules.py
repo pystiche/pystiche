@@ -3,12 +3,14 @@ from typing import Union, Tuple, Collection, Dict
 from collections import OrderedDict
 import pystiche
 from pystiche.enc.encoder import SequentialEncoder
-from pystiche.enc.multi_layer_encoder import MultiLayerEncoder, SingleLayerEncoder
+from pystiche.enc.multi_layer_encoder import MultiLayerEncoder
 import torch
 from ..common_utils import ResidualBlock
 
 
-def get_padding(padding: str, kernel_size: Union[Tuple[int, int], int]) -> int:
+def get_padding(
+    padding: str, kernel_size: Union[Tuple[int, int], int]
+) -> int:  # TODO: move this to pystiche.? used in two papers
     def elementwise(fn, inputs):
         if isinstance(inputs, Collection):
             return tuple([fn(input) for input in inputs])
@@ -378,9 +380,13 @@ def sanakoyeu_et_al_2018_prediction_module(
 
 
 class SanakoyeuEtAl2018DiscriminatorEncoder(MultiLayerEncoder):
-    def __init__(self) -> None:
+    def __init__(self, in_channels: int = 3) -> None:
         super().__init__(
-            self._extract_modules(sanakoyeu_et_al_2018_discriminator_encoder_modules())
+            self._extract_modules(
+                sanakoyeu_et_al_2018_discriminator_encoder_modules(
+                    in_channels=in_channels
+                )
+            )
         )
 
     def _extract_modules(self, wrapped_modules: Dict[str, nn.Sequential]):
@@ -402,8 +408,10 @@ class SanakoyeuEtAl2018DiscriminatorEncoder(MultiLayerEncoder):
 
 
 class SanakoyeuEtAl2018Discriminator(object):
-    def __init__(self) -> None:
-        self.multi_layer_encoder = SanakoyeuEtAl2018DiscriminatorEncoder()
+    def __init__(self, in_channels: int = 3) -> None:
+        self.multi_layer_encoder = SanakoyeuEtAl2018DiscriminatorEncoder(
+            in_channels=in_channels
+        )
         self.prediction_modules = OrderedDict(
             {
                 "lrelu0": sanakoyeu_et_al_2018_prediction_module(128, 5),
