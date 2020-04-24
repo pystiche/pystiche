@@ -182,10 +182,10 @@ show_image(input_image, title="Input image")
 
 ########################################################################################
 # Finally we run the NST and afterwards show the result and save it.
-# sphinx_gallery_thumbnail_number = 4
 
 output_image = default_image_optim_loop(input_image, criterion, num_steps=500)
 
+# sphinx_gallery_thumbnail_number = 4
 show_image(output_image, title="Output image")
 write_image(output_image, "nst_with_pystiche.jpg")
 

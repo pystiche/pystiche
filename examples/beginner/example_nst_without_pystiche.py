@@ -388,9 +388,9 @@ for step in range(1, num_steps + 1):
 output_image = input_image.detach()
 
 ########################################################################################
-# sphinx_gallery_thumbnail_number = 4
 # After the NST we show the resulting image and save it.
 
+# sphinx_gallery_thumbnail_number = 4
 show_image(output_image, title="Output image")
 write_image(output_image, path.join(image_root, "nst_without_pystiche.jpg"))
 

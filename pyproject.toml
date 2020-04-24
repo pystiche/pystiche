@@ -29,6 +29,7 @@ known_third_party = [
   "pyimagetest",
   "pytest",
   "requests",
+  "sphinx_gallery",
 ]
 known_pytorch = ["torch", "torchvision"]
 known_first_party = ["pystiche", "utils"]

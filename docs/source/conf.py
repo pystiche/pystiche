@@ -13,6 +13,7 @@ from distutils.util import strtobool
 from os import path
 
 
+from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 
 # -- Run config --------------------------------------------------------------
 
@@ -92,6 +93,13 @@ sphinx_gallery_conf = {
     "gallery_dirs": "auto_examples",
     "filename_pattern": os.sep + "example_",
     "plot_gallery": plot_gallery,
+    "subsection_order": ExplicitOrder(
+        [
+            path.join("..", "..", "examples", sub_gallery)
+            for sub_gallery in ("beginner", "advanced")
+        ]
+    ),
+    "within_subsection_order": ExampleTitleSortKey,
 }
 
 
