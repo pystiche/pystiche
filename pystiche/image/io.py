@@ -25,14 +25,21 @@ from .utils import (
 try:
     import matplotlib.pyplot as plt
 
-    def _show_pil_image(image: Image.Image) -> None:
-        plt.imshow(image)
+    def _show_pil_image(image: Image.Image, title: Optional[str] = None) -> None:
+        fig, ax = plt.subplots()
+        ax.axis("off")
+        if title is not None:
+            ax.set_title(title)
+
+        cmap = "gray" if image.mode in ("L", "1") else None
+        ax.imshow(image, cmap=cmap)
+        plt.show()
 
 
 except ImportError:
 
-    def _show_pil_image(image: Image.Image) -> None:
-        image.show()
+    def _show_pil_image(image: Image.Image, title: Optional[str] = None) -> None:
+        image.show(title=title)
 
 
 __all__ = [
@@ -140,17 +147,23 @@ def write_image(
     export_to_pil(image, mode=mode).save(file, **save_kwargs)
 
 
-@force_single_image
 def show_image(
-    image: torch.Tensor,
+    image: Union[torch.Tensor, str],
+    title: Optional[str] = None,
     mode: Optional[str] = None,
     size: Optional[Union[int, Tuple[int, int]]] = None,
     interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
 ):
-    image = export_to_pil(image, mode=mode)
+    if isinstance(image, torch.Tensor):
+        image = export_to_pil(image, mode=mode)
+    elif isinstance(image, str):
+        image = Image.open(image)
+    else:
+        # TODO
+        raise TypeError
 
     if size is not None:
         image = _pil_resize(image, size, interpolation_mode, **resize_kwargs)
 
-    _show_pil_image(image)
+    _show_pil_image(image, title=title)

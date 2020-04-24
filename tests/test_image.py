@@ -164,9 +164,12 @@ class TestIo(PysticheTestCase):
         self.assertImagesAlmostEqual(actual, desired)
 
     @mock.patch("pystiche.image.io._show_pil_image")
-    def test_show_image_smoke(self, plt_mock):
+    def test_show_image_smoke(self, show_pil_image_mock):
         image = self.load_image()
         io.show_image(image)
+        io.show_image(self.default_image_file())
+        with self.assertRaises(TypeError):
+            io.show_image(None)
         io.show_image(image, size=100)
         io.show_image(image, size=(100, 200))
 
