@@ -1,4 +1,5 @@
 import warnings
+from os import path
 from typing import Any, NoReturn, Optional, Tuple, Union
 
 from PIL import Image
@@ -125,7 +126,7 @@ def read_image(
     if isinstance(device, str):
         device = torch.device(device)
 
-    image = Image.open(file)
+    image = Image.open(path.expanduser(file))
 
     if size is not None:
         image = _pil_resize(image, size, interpolation_mode, **resize_kwargs)
@@ -158,7 +159,7 @@ def show_image(
     if isinstance(image, torch.Tensor):
         image = export_to_pil(image, mode=mode)
     elif isinstance(image, str):
-        image = Image.open(image)
+        image = Image.open(path.expanduser(image))
     else:
         # TODO
         raise TypeError
