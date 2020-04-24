@@ -25,14 +25,19 @@ from .utils import (
 try:
     import matplotlib.pyplot as plt
 
-    def _show_pil_image(image: Image.Image) -> None:
-        plt.imshow(image)
+    def _show_pil_image(image: Image.Image, title: Optional[str] = None) -> None:
+        fig, ax = plt.subplots()
+        if title is not None:
+            ax.set_title(title)
+
+        ax.imshow(image)
+        plt.show()
 
 
 except ImportError:
 
-    def _show_pil_image(image: Image.Image) -> None:
-        image.show()
+    def _show_pil_image(image: Image.Image, title: Optional[str] = None) -> None:
+        image.show(title=title)
 
 
 __all__ = [
@@ -143,6 +148,7 @@ def write_image(
 @force_single_image
 def show_image(
     image: torch.Tensor,
+    title: Optional[str] = None,
     mode: Optional[str] = None,
     size: Optional[Union[int, Tuple[int, int]]] = None,
     interpolation_mode: str = "bilinear",
@@ -153,4 +159,4 @@ def show_image(
     if size is not None:
         image = _pil_resize(image, size, interpolation_mode, **resize_kwargs)
 
-    _show_pil_image(image)
+    _show_pil_image(image, title=title)
