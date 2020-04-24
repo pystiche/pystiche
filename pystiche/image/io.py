@@ -147,16 +147,21 @@ def write_image(
     export_to_pil(image, mode=mode).save(file, **save_kwargs)
 
 
-@force_single_image
 def show_image(
-    image: torch.Tensor,
+    image: Union[torch.Tensor, str],
     title: Optional[str] = None,
     mode: Optional[str] = None,
     size: Optional[Union[int, Tuple[int, int]]] = None,
     interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
 ):
-    image = export_to_pil(image, mode=mode)
+    if isinstance(image, torch.Tensor):
+        image = export_to_pil(image, mode=mode)
+    elif isinstance(image, str):
+        image = Image.open(image)
+    else:
+        # TODO
+        raise TypeError
 
     if size is not None:
         image = _pil_resize(image, size, interpolation_mode, **resize_kwargs)
