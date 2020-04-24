@@ -1,11 +1,13 @@
-from typing import Union, Optional, List, Any
+from typing import Any, List, Optional, Union
+
 import torch
 from torch import nn, optim
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.optim.optimizer import Optimizer
-from pystiche.optim.meter import FloatMeter
+
 from pystiche.ops.container import OperatorContainer
 from pystiche.ops.op import ComparisonOperator
+from pystiche.optim.meter import FloatMeter
 
 
 def sanakoyeu_et_al_2018_optimizer(

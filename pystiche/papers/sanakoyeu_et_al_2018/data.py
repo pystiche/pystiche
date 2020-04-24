@@ -1,18 +1,13 @@
-from typing import Optional, Sized, List, Dict, Any, Union
+from typing import Any, Dict, List, Optional, Sized, Union
+
 import torch
-from torch.utils.data import Dataset, Sampler, DataLoader
-from pystiche.data import (
-    ImageFolderDataset,
-    FiniteCycleBatchSampler,
-)
-from pystiche.image.transforms import (
-    Transform,
-    ComposedTransform,
-    ValidRandomCrop,
-)
+from torch.utils.data import DataLoader, Dataset, Sampler
+
+from pystiche.data import FiniteCycleBatchSampler, ImageFolderDataset
 from pystiche.image import extract_num_channels
-from pystiche.image.transforms.functional import grayscale_to_fakegrayscale
+from pystiche.image.transforms import ComposedTransform, Transform, ValidRandomCrop
 from pystiche.image.transforms import functional as F
+from pystiche.image.transforms.functional import grayscale_to_fakegrayscale
 
 
 def sanakoyeu_et_al_2018_image_transform(

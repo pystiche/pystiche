@@ -1,29 +1,32 @@
-from typing import Optional, Callable, Union
 import itertools
+from typing import Callable, Optional, Union
+
 import torch
-from torch.utils.data import DataLoader
 from torch import nn
-from torch.optim.optimizer import Optimizer
-from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 from torch.optim.lr_scheduler import ExponentialLR
-from pystiche.ops.container import MultiLayerEncodingOperator
+from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
+from torch.optim.optimizer import Optimizer
+from torch.utils.data import DataLoader
+
 from pystiche.loss.perceptual import PerceptualLoss
-from .modules import SanakoyeuEtAl2018Transformer, SanakoyeuEtAl2018Discriminator
-from .loss import (
-    SanakoyeuEtAl2018DiscriminatorLoss,
-    sanakoyeu_et_al_2018_discriminator_operator,
-    MultiLayerDicriminatorEncodingOperator,
-    sanakoyeu_et_al_2018_transformer_loss,
-)
+from pystiche.ops.container import MultiLayerEncodingOperator
+
 from .data import (
     sanakoyeu_et_al_2018_dataset,
     sanakoyeu_et_al_2018_image_loader,
     sanakoyeu_et_al_2018_images,
 )
+from .loss import (
+    MultiLayerDicriminatorEncodingOperator,
+    SanakoyeuEtAl2018DiscriminatorLoss,
+    sanakoyeu_et_al_2018_discriminator_operator,
+    sanakoyeu_et_al_2018_transformer_loss,
+)
+from .modules import SanakoyeuEtAl2018Discriminator, SanakoyeuEtAl2018Transformer
 from .utils import (
-    sanakoyeu_et_al_2018_optimizer,
     ExponentialMovingAverage,
     sanakoyeu_et_al_2018_lr_scheduler,
+    sanakoyeu_et_al_2018_optimizer,
 )
 
 __all__ = [

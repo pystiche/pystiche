@@ -1,10 +1,13 @@
-from torch import nn
-from typing import Union, Tuple, Collection, Dict
 from collections import OrderedDict
+from typing import Collection, Dict, Tuple, Union
+
+import torch
+from torch import nn
+
 import pystiche
 from pystiche.enc.encoder import SequentialEncoder
 from pystiche.enc.multi_layer_encoder import MultiLayerEncoder
-import torch
+
 from ..common_utils import ResidualBlock
 
 

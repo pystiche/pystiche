@@ -1,26 +1,25 @@
-from typing import Optional, Sequence, Union, Callable, Tuple
 from collections import OrderedDict
+from typing import Callable, Optional, Sequence, Tuple, Union
 
-import torch.nn as nn
 import torch
+import torch.nn as nn
 from torch.nn.functional import binary_cross_entropy_with_logits
 
 import pystiche
-from pystiche.papers.sanakoyeu_et_al_2018.modules import (
-    SanakoyeuEtAl2018TransformerBlock,
-)
-from pystiche.ops import (
-    MultiLayerEncodingOperator,
-    EncodingOperator,
-    EncodingRegularizationOperator,
-)
-from pystiche.papers.sanakoyeu_et_al_2018.modules import (
-    SanakoyeuEtAl2018DiscriminatorEncoder,
-    SanakoyeuEtAl2018Discriminator,
-)
-from pystiche.ops.comparison import MSEEncodingOperator
 from pystiche.enc import Encoder
 from pystiche.loss.perceptual import PerceptualLoss
+from pystiche.ops import (
+    EncodingOperator,
+    EncodingRegularizationOperator,
+    MultiLayerEncodingOperator,
+)
+from pystiche.ops.comparison import MSEEncodingOperator
+from pystiche.papers.sanakoyeu_et_al_2018.modules import (
+    SanakoyeuEtAl2018Discriminator,
+    SanakoyeuEtAl2018DiscriminatorEncoder,
+    SanakoyeuEtAl2018TransformerBlock,
+)
+
 from .utils import ContentOperatorContainer
 
 
