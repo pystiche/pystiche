@@ -31,7 +31,8 @@ try:
         if title is not None:
             ax.set_title(title)
 
-        ax.imshow(image)
+        cmap = "gray" if image.mode in ("L", "1") else None
+        ax.imshow(image, cmap=cmap)
         plt.show()
 
 
