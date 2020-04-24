@@ -1,12 +1,25 @@
 """
-NST via image-based optimisation without pystiche
-=================================================
+Neural Style Transfer without ``pystiche``
+==========================================
+
+This example showcases how a basic Neural Style Transfer (NST), i.e. image-based
+optimization, could be performed without ``pystiche``.
+
+.. note::
+
+    This is an *example how to implement an NST* and **not** a
+    *tutorial on how NST works*. As such, it will not explain why a specific choice was
+    made or how a component works.
 """
 
-###############################################################################
-# We start of the tutorial by importing all necessary packages. Next to torch and
-# torchvision, we use PIL and matplotlib.pyplot to read, write, and display images.
+########################################################################################
+# Setup
+# -----
+#
+# We start this example by importing everything we need and setting the device we will
+# be working on.
 
+import itertools
 from collections import OrderedDict
 from os import path
 
@@ -14,153 +27,382 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 import torch
-import torch.nn.functional as Fnn
 import torchvision
-import torchvision.transforms.functional as Fv
 from torch import nn, optim
+from torch.nn.functional import mse_loss
 from torchvision import transforms
 from torchvision.models import vgg19
+from torchvision.transforms.functional import resize
 
-print("I'm working with torch version " + torch.__version__)
-
-
-print("I'm working with torchvision version " + torchvision.__version__)
-
-
-###############################################################################
-# The NST algorithm involves a neural network as part of an optimisation problem. Thus
-# it is really helpful to do all calculations on a GPU to speed up the process. This
-# tutorial requires only about 2.5 GB of memory.
-#
-# For this tutorial all operations are executed on a GPU if one is available. If that is
-# not the case it will still work correctly but significantly slower.
+print(f"I'm working with torch=={torch.__version__}")
+print(f"I'm working with torchvision=={torchvision.__version__}")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("I'm working on device: " + str(device))
+print(f"I'm working with {device}")
 
-###############################################################################
-
-
-class Encoder(nn.Sequential):
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.eval()
-
-    def forward(self):
-        pass
-
-
-###############################################################################
-# Before we can finally dive into the actual NST, two more preliminary steps have to be
-# taken care of. The ``torchvision`` package already offers some transformations, but
-# we define some additonal ones.
+########################################################################################
+# Perceptual Loss
+# ---------------
 #
-# .. note::
-#    The functionality of all transformations listed below could be achieved with the
-#    ``transforms.Lambda()`` transformation. Unfortunately,
-#    ``print(transforms.Lambda())`` would not display any information of what it is
-#    doing. Since one of the goals of this tutorial is clarity, this is avoided here.
+# The core component of every NST are the ``ContentLoss`` and the ``StyleLoss``.
+# Combined they make up the perceptual loss, i.e. the optimization criterion. In this
+# example we use the ``feature_reconstruction_loss`` introduced by Mahendran and
+# Vedaldi :cite:`MV2014` as well as the ``gram_loss`` introduced by Gatys, Ecker, and
+# Bethge :cite:`GEB2016` .
 
 
-class Transform(object):
-    def __repr__(self):
-        return "{0}({1})".format(self.__class__.__name__, self.extra_repr())
-
-    def extra_repr(self):
-        return ""
+def mean(sized):
+    return sum(sized) / len(sized)
 
 
-class ToCpu(Transform):
-    def __call__(self, tensor_image):
-        return tensor_image.cpu()
+def feature_reconstruction_loss(input, target):
+    return mse_loss(input, target)
 
 
-class EnforceFloatPixelValueRange(Transform):
-    def __call__(self, tensor_image):
-        return torch.clamp(tensor_image, 0.0, 1.0)
+class ContentLoss(nn.Module):
+    def forward(self, input_encs, target_encs):
+        layer_losses = [
+            feature_reconstruction_loss(input, target)
+            for input, target in zip(input_encs, target_encs)
+        ]
+        return mean(layer_losses)
 
 
-class AddFakeBatchDim(Transform):
-    def __call__(self, tensor_image):
-        return tensor_image.unsqueeze(0)
+def gram_matrix(x, normalize=True):
+    x = torch.flatten(x, 2)
+    G = torch.bmm(x, x.transpose(1, 2))
+    if normalize:
+        return G / x.size()[-1]
+    else:
+        return G
 
 
-class RemoveFakeBatchDim(Transform):
-    def __call__(self, tensor_image):
-        return tensor_image.squeeze(0)
+def gram_loss(input, target):
+    return mse_loss(gram_matrix(input), gram_matrix(target))
 
 
-###############################################################################
-# To apply all neceessary transformations conveniently, we bundle them together within
-# a ``transforms.Compose`` container. We define a ``preprocessor`` that performs the
-# following steps:
+class StyleLoss(nn.Module):
+    def forward(self, input_encs, target_encs):
+        layer_losses = [
+            gram_loss(input, target) for input, target in zip(input_encs, target_encs)
+        ]
+        return mean(layer_losses)
+
+
+########################################################################################
+# Multi-layer Encoder
+# -------------------
+# The ``ContentLoss`` and the ``StyleLoss`` operate on the encodings of an image rather
+# than on the image itself. These encodings are generated by a pretrained model. For
+# that purpose we define a ``MultiLayerEncoder`` with the given properties:
 #
-# 1. Given an ``PIL`` image it is cast it into a ``torch.Tensor`` and the dimensions
-#    are rearranged to ``CxHxW``.
-# 2. A fake batch dimensions is added to be able to pass the image into our encoder.
+# 1. Given an image and a set of layers, the ``MultiLayerEncoder`` should return the
+#    encodings of every given layer.
+# 2. Since the encodings have to be generated in every optimization step they should be
+#    calculated in a single forward pass to keep the processing costs low.
+# 3. To reduce the static memory requirement, the ``MultiLayerEncoder`` should be
+#    ``trim`` mable in order to remove unused layers.
 
-preprocessor = transforms.Compose((transforms.ToTensor(), AddFakeBatchDim()))
-print("I'm working with the following preprocessor:")
-print(preprocessor)
 
-###############################################################################
-# The ``postprocessor`` is also defined as ``transforms.Compose`` and performs the
-# steps of the ``preprocessor`` in reverse as well as two additonal steps:
+class MultiLayerEncoder(nn.Sequential):
+    def forward(self, image, layer_cfgs):
+        storage = {}
+        last_layer = self._find_last_layer(layer_cfgs)
+        for layer, module in self.named_children():
+            image = storage[layer] = module(image)
+            if layer == last_layer:
+                break
+
+        return [[storage[layer] for layer in layers] for layers in layer_cfgs]
+
+    def children_names(self):
+        for name, module in self.named_children():
+            yield name
+
+    def _find_last_layer(self, layer_cfgs):
+        # find all unique requested layers
+        req_layers = set(itertools.chain(*layer_cfgs))
+        try:
+            # find the deepest requested layer by indexing the layers within
+            # the multi layer encoder
+            children_names = list(self.children_names())
+            return sorted(req_layers, key=children_names.index)[-1]
+        except ValueError as error:
+            layer = str(error).split()[0]
+        raise ValueError(f"Layer {layer} is not part of the multi-layer encoder.")
+
+    def trim(self, layer_cfgs):
+        last_layer = self._find_last_layer(layer_cfgs)
+        children_names = list(self.children_names())
+        del self[children_names.index(last_layer) + 1 :]
+
+
+########################################################################################
+# The pretrained models the ``MultiLayerEncoder`` is based on are usually trained on
+# preprocessed images. In PyTorch all models expect images
+# `normalized <https://pytorch.org/docs/stable/torchvision/models.html>`_ by a
+# per-channel ``mean`` and standard deviation (``std``).
+
+
+class Normalize(nn.Module):
+    def __init__(self, mean, std):
+        super().__init__()
+        self.register_buffer("mean", torch.tensor(mean).view(1, -1, 1, 1))
+        self.register_buffer("std", torch.tensor(std).view(1, -1, 1, 1))
+
+    def forward(self, image):
+        return (image - self.mean) / self.std
+
+
+class TorchNormalize(Normalize):
+    def __init__(self):
+        super().__init__((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+
+
+########################################################################################
+# In a last step we need to specify the structure of ``MultiLayerEncoder``. For this
+# example we use a ``VGGMultiLayerEncoder`` based on the ``VGG19`` architeture
+# introduced by Simonyan and Zisserman :cite:`SZ2014`.
+
+
+class VGGMultiLayerEncoder(MultiLayerEncoder):
+    def __init__(self, vgg_net, preprocessing=True):
+        modules = OrderedDict()
+
+        if preprocessing:
+            modules["preprocessing"] = TorchNormalize()
+
+        block = depth = 1
+        for module in vgg_net.features.children():
+            if isinstance(module, nn.Conv2d):
+                layer = f"conv{block}_{depth}"
+            elif isinstance(module, nn.BatchNorm2d):
+                layer = f"bn{block}_{depth}"
+            elif isinstance(module, nn.ReLU):
+                # without inplace=False the encodings of the previous layer would no
+                # longer be accessible after the ReLU layer is executed
+                module = nn.ReLU(inplace=False)
+                layer = f"relu{block}_{depth}"
+                # each ReLU layer increases the depth of the current block by one
+                depth += 1
+            elif isinstance(module, nn.MaxPool2d):
+                layer = f"pool{block}"
+                # each max pooling layer marks the end of the current block
+                block += 1
+                depth = 1
+            else:
+                # FIXME
+                raise RuntimeError
+
+            modules[layer] = module
+
+        super().__init__(modules)
+
+
+def vgg19_multi_layer_encoder(preprocessing=True):
+    return VGGMultiLayerEncoder(vgg19(pretrained=True), preprocessing=preprocessing)
+
+
+multi_layer_encoder = vgg19_multi_layer_encoder().to(device)
+print(multi_layer_encoder)
+
+
+########################################################################################
+# Images
+# ------
 #
-# 1. The image is moved to the CPU before performing any other actions, since the
-#    transformations are not defined to work on the GPU.
-# 2. Before converting the tensor back to a ``PIL`` image we enforce the float value
-#    range for pixels. Since the optimization is unconstrained, it might have created
-#    values outside the closed interval :math:`\left[ 0 ,\, 1\right]`.
+# Before we can load the content and style image, we need to define some basic I/O
+# utilities. We use ``PIL`` for the file I/O and ``matplotlib.pyplot`` to show the
+# images.
+#
+# At import a fake batch dimension is added to the images to be able to pass it through
+# the ``MultiLayerEncoder`` without further modification. This dimensions is upon
+# export removed again.
 
-postprocessor = transforms.Compose(
-    (
-        ToCpu(),
-        RemoveFakeBatchDim(),
-        EnforceFloatPixelValueRange(),
-        transforms.ToPILImage(),
-    )
+import_from_pil = transforms.Compose(
+    [
+        transforms.ToTensor(),
+        transforms.Lambda(lambda x: x.unsqueeze(0)),
+        transforms.Lambda(lambda x: x.to(device)),
+    ]
 )
-print("I'm working with the following postprocessor:")
-print(postprocessor)
 
-###############################################################################
-# As a last preliminary step we define some image I/O functions that help us read,
-# write, and show images. These helper functions incorporate the above defined
-# ``preprocessor`` and ``postprocessor`` so that we don't have to call them explicitly.
-#
-# :func:`read_image` resizes the input image so that the smallest side is
-# ``image_size`` pixels wide while keeping the aspect ratio constant. The default value
-# is set to ``image_size=500`` since Gatys et. al. reported in a follow up paper that
-#
-#   for the VGG-19 network, there is a sweet spot around :math:`500^2` pixels for the
-#   size of the input images, such that the stylisation is appealing but the content is
-#   well-preserved.
+export_to_pil = transforms.Compose(
+    [
+        transforms.Lambda(lambda x: x.cpu()),
+        transforms.Lambda(lambda x: x.squeeze(0)),
+        transforms.Lambda(lambda x: x.clamp(0.0, 1.0)),
+        transforms.ToPILImage(),
+    ]
+)
 
 
-def read_image(file, image_size=500):
+def read_image(file, size=500):
     image = Image.open(file)
-    image = Fv.resize(image, image_size)
-    return preprocessor(image)
+    image = resize(image, size)
+    return import_from_pil(image)
 
 
 def write_image(image, file):
-    image = postprocessor(image)
+    image = export_to_pil(image)
     image.save(file)
 
 
-def show_image(image, title=None, show_axis=False):
+def show_image(image, title=None):
     _, ax = plt.subplots()
-
-    ax.imshow(image)
-    if not show_axis:
-        ax.axis("off")
+    ax.axis("off")
     if title is not None:
         ax.set_title(title)
 
+    image = export_to_pil(image)
+    ax.imshow(image)
 
-###############################################################################
-# Now we put the previously defined encoder to use by creating the target content and
-# style encodings for a different set of layers. The layer configuration is taken from
-# Gatys et. al.. Since we now know which layers we want to use, unused ones are removed
-# from the encoder with the :meth:`~Encoder.trim` method.
+
+########################################################################################
+# .. note::
+#
+#   By default all images will be resized to ``size=500`` pixels on the shorter edge.
+#   If you have more memory than X.X GB available you can increase this to obtain
+#   higher resolution results.
+
+
+########################################################################################
+# With the I/O utilities set up, we now load and show the images that will be used in
+# the NST.
+#
+# .. note::
+#
+#   By default the image files should be placed in ``../images/`` relative to this file.
+#   Adapt ``image_root`` if you want to use another directory.
+#
+# .. note::
+#
+#   You can download the default images here:
+#
+#   - `Content image <https://github.com/pmeier/pystiche>`_
+#   - `Style image <https://github.com/pmeier/pystiche>`_
+
+# FIXME:
+# image_root = path.abspath(path.join("..", "images"))
+image_root = path.expanduser(path.join("~", ".cache", "pystiche"))
+content_image = read_image(path.join(image_root, "dancing.jpg"))
+show_image(content_image, title="Content image")
+
+
+########################################################################################
+
+style_image = read_image(path.join(image_root, "picasso.jpg"))
+show_image(style_image, title="Style image")
+
+########################################################################################
+# Neural Style Transfer
+# ---------------------
+#
+# At first we chose the ``content_layers`` and ``style_layers`` on which the encodings
+# will be are compared. With them we ``trim`` the ``multi_layer_encoder`` to remove
+# unused layers that otherwise occupy memory.
+#
+# Afterwards we calculate the target content and style encodings and detach them from
+# the computation graph. This enables us to use them in every optimization step without
+# the need to recalculate them.
+
+content_layers = ("relu4_2",)
+style_layers = ("relu1_1", "relu2_1", "relu3_1", "relu4_1", "relu5_1")
+layer_cfgs = (content_layers, style_layers)
+
+multi_layer_encoder.trim(layer_cfgs)
+
+target_content_encs = multi_layer_encoder(content_image, (content_layers,))[0]
+target_content_encs = [enc.detach() for enc in target_content_encs]
+
+target_style_encs = multi_layer_encoder(style_image, (style_layers,))[0]
+target_style_encs = [enc.detach() for enc in target_style_encs]
+
+
+########################################################################################
+# We instantiate the ``ContentLoss`` and ``StyleLoss`` and select a corresponding
+# weight.
+
+content_criterion = ContentLoss()
+content_weight = 1e0
+
+style_criterion = StyleLoss()
+style_weight = 1e4
+
+
+########################################################################################
+# As a last preliminary step we create the input image and instantiate the optimizer.
+# We start from the ``content_image`` since this way the NST converges quickly.
+
+input_image = content_image.clone()
+show_image(input_image, "Input image")
+
+optimizer = optim.LBFGS([input_image.requires_grad_(True)], max_iter=1)
+
+
+########################################################################################
+# .. note::
+#
+#   If you want to start from a white noise image instead use
+#
+#   .. code-block:: python
+#
+#     input_image = torch.rand_like(content_image)
+
+
+########################################################################################
+# Finally we run the NST. The loss calculation has to happen inside a ``closure``
+# since the ``LBFGS`` optimizer could need to
+# `reevaluate it multiple times per optimization step <https://pytorch.org/docs/stable/optim.html#optimizer-step-closure>`_
+# . This structure is also valid for all other optimizers.
+
+num_steps = 500
+
+for step in range(1, num_steps + 1):
+
+    def closure():
+        optimizer.zero_grad()
+
+        input_encs = multi_layer_encoder(input_image, layer_cfgs)
+        input_content_encs, input_style_encs = input_encs
+
+        content_score = content_criterion(input_content_encs, target_content_encs)
+        content_score *= content_weight
+
+        style_score = style_criterion(input_style_encs, target_style_encs)
+        style_score *= style_weight
+
+        loss = content_score + style_score
+        loss.backward()
+
+        if step % 50 == 0:
+            print(f"Step {step}")
+            print(f"Content loss: {content_score.item():.3e}")
+            print(f"Style loss:   {style_score.item():.3e}")
+            print("-----------------------")
+
+        return loss
+
+    optimizer.step(closure)
+
+output_image = input_image.detach()
+
+########################################################################################
+# sphinx_gallery_thumbnail_number = 4
+# After the NST we show the resulting image and save it.
+
+show_image(output_image, title="Output image")
+write_image(output_image, path.join(image_root, "nst_without_pystiche.jpg"))
+
+########################################################################################
+# Conclusion
+# ----------
+#
+# As hopefully has become clear even an NST in its simplest form requires quite a lot
+# of utilities and boilerplate code. This makes the it hard to maintain and keep bug
+# free as it is easy to lose track of everything.
+#
+# Judging by the lines of code one could (falsely) conclude that the actual NST is just
+# an appendix. If you feel the same you can stop worrying now: in
+# `this follow-up example <>` we showcase how to achieve the same result with
+# ``pystiche``.
