@@ -9,28 +9,27 @@
 import os
 import warnings
 from datetime import datetime
-from distutils.util import strtobool as _strtobool
+from distutils.util import strtobool
 from os import path
 
-
-def strtobool(val):
-    return bool(_strtobool(val))
 
 
 # -- Run config --------------------------------------------------------------
 
 
-def get_bool_env_var(name):
+def get_bool_env_var(name, default=False):
     try:
-        return strtobool(os.environ[name])
+        return bool(strtobool(os.environ[name]))
     except KeyError:
-        return False
+        return default
 
 
 run_by_travis_ci = get_bool_env_var("TRAVIS")
 run_by_rtd = get_bool_env_var("READTHEDOCS")
-exclude_gallery = (
-    get_bool_env_var("PYSTICHE_EXCLUDE_GALLERY") or run_by_travis_ci or run_by_rtd
+plot_gallery = (
+    get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True)
+    and not run_by_travis_ci
+    and not run_by_rtd
 )
 
 
@@ -86,16 +85,14 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # -- Sphinx gallery configuration --------------------------------------------
 
-if not exclude_gallery:
-    extensions.append("sphinx_gallery.gen_gallery")
+extensions.append("sphinx_gallery.gen_gallery")
 
-    sphinx_gallery_conf = {
-        "examples_dirs": path.join(PROJECT_ROOT, "examples"),
-        "gallery_dirs": "auto_examples",
-        "filename_pattern": os.sep + "example_",
-    }
-else:
-    warnings.warn("Sphinx gallery is excluded and will not be built!", UserWarning)
+sphinx_gallery_conf = {
+    "examples_dirs": path.join(PROJECT_ROOT, "examples"),
+    "gallery_dirs": "auto_examples",
+    "filename_pattern": os.sep + "example_",
+    "plot_gallery": plot_gallery,
+}
 
 
 # -- Options for HTML output -------------------------------------------------
