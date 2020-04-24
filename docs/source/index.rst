@@ -10,5 +10,5 @@ Welcome to pystiche's documentation!
   :maxdepth: 2
 
   Getting Started <getting_started>
-  Examples <auto_examples/index.rst>
+  Examples <galleries/examples/index.rst>
   Literature <literature>

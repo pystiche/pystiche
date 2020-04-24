@@ -90,7 +90,7 @@ extensions.append("sphinx_gallery.gen_gallery")
 
 sphinx_gallery_conf = {
     "examples_dirs": path.join(PROJECT_ROOT, "examples"),
-    "gallery_dirs": "auto_examples",
+    "gallery_dirs": path.join("galleries", "examples"),
     "filename_pattern": os.sep + "example_",
     "plot_gallery": plot_gallery,
     "subsection_order": ExplicitOrder(
