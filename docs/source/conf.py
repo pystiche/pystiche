@@ -12,7 +12,6 @@ from datetime import datetime
 from distutils.util import strtobool
 from os import path
 
-
 from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 
 # -- Run config --------------------------------------------------------------
@@ -59,7 +58,7 @@ with open(path.join(PROJECT_ROOT, pkg_name, "__about__.py"), "r") as fh:
 project = about["__name__"]
 copyright = f"2019 - {datetime.now().year}, {about['__author__']}"
 author = about["__author__"]
-release = about["__version__"]
+version = release = about["__version__"]
 
 
 # -- General configuration ---------------------------------------------------
@@ -71,8 +70,8 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.coverage",
-    "sphinx_autodoc_typehints",
     "sphinxcontrib.bibtex",
+    # "sphinx_autodoc_typehints",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -92,6 +91,8 @@ sphinx_gallery_conf = {
     "examples_dirs": path.join(PROJECT_ROOT, "examples"),
     "gallery_dirs": path.join("galleries", "examples"),
     "filename_pattern": os.sep + "example_",
+    "line_numbers": True,
+    "remove_config_comments": True,
     "plot_gallery": plot_gallery,
     "subsection_order": ExplicitOrder(
         [
@@ -101,6 +102,16 @@ sphinx_gallery_conf = {
     ),
     "within_subsection_order": ExampleTitleSortKey,
 }
+
+# Remove matplotlib agg warnings from generated doc when using plt.show
+warnings.filterwarnings(
+    "ignore",
+    category=UserWarning,
+    message=(
+        "Matplotlib is currently using agg, which is a non-GUI backend, so cannot show "
+        "the figure."
+    ),
+)
 
 
 # -- Options for HTML output -------------------------------------------------

@@ -1,5 +1,5 @@
-Welcome to pystiche's documentation!
-=======================================
+Welcome to ``pystiche`` 's documentation!
+=========================================
 
 .. warning::
 

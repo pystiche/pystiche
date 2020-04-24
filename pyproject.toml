@@ -12,7 +12,7 @@ skip = [
   "docs/build",
   "pystiche/image/__init__.py",
 ]
-skip_glob = ["docs/source/auto_*"]
+skip_glob = ["docs/source/galleries/*"]
 line_length = 88
 use_parentheses = true
 multi_line_output = 3
@@ -50,6 +50,6 @@ exclude = '''
   | \.pytest_cache
   | __pycache__
   | docs/build
-  | docs/source/auto_*
+  | docs/source/galleries/*
 )/
 '''
