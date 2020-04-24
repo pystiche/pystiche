@@ -27,6 +27,7 @@ try:
 
     def _show_pil_image(image: Image.Image, title: Optional[str] = None) -> None:
         fig, ax = plt.subplots()
+        ax.axis("off")
         if title is not None:
             ax.set_title(title)
 
