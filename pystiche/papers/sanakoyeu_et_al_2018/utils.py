@@ -23,15 +23,19 @@ def sanakoyeu_et_al_2018_lr_scheduler(optimizer: Optimizer) -> Optional[Exponent
 
 
 class ExponentialMovingAverage(FloatMeter):
-    def __init__(self, name: str, init_val: float = 0.8, alpha: float = 0.05):
+    def __init__(
+        self, name: str, init_val: float = 0.8, smoothing_factor: float = 0.05
+    ):
         super().__init__(name)
-        self.alpha = alpha
+        self.smoothing_factor = smoothing_factor
         self.last_val = init_val
 
     def calculate_val(self, val: Union[torch.tensor, float]):
         if isinstance(val, torch.Tensor):
             val = val.item()
-        return self.last_val * (1.0 - self.alpha) + self.alpha * val
+        return (
+            self.last_val * (1.0 - self.smoothing_factor) + self.smoothing_factor * val
+        )
 
     def update(self, new_val: Union[torch.tensor, float]) -> None:
         super().update(self.calculate_val(new_val))

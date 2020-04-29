@@ -5,23 +5,14 @@ import torch
 from torch import nn
 
 import pystiche
+from ..common_utils import same_size_padding
 from pystiche.enc.encoder import SequentialEncoder
 from pystiche.enc.multi_layer_encoder import MultiLayerEncoder
 
 from ..common_utils import ResidualBlock
 
 
-def get_padding(
-    padding: str, kernel_size: Union[Tuple[int, int], int]
-) -> int:  # TODO: move this to pystiche.? used in two papers
-    def elementwise(fn, inputs):
-        if isinstance(inputs, Collection):
-            return tuple([fn(input) for input in inputs])
-        return fn(inputs)
-
-    def same_size_padding(kernel_size):
-        return elementwise(lambda x: (x - 1) // 2, kernel_size)
-
+def get_padding(padding: str, kernel_size: Union[Tuple[int, int], int]) -> int:
     if padding == "same":
         return same_size_padding(kernel_size)
     elif padding == "valid":
@@ -247,13 +238,22 @@ def sanakoyeu_et_al_2018_transformer_decoder(
     return pystiche.SequentialModule(*modules)
 
 
+class SanakoyeuEtAl2018DecoderSigmoidOutput(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        return torch.sigmoid(input) * 2 - 1
+
+
 class SanakoyeuEtAl2018Decoder(nn.Module):
     def __init__(self):
         super().__init__()
         self.decoder = sanakoyeu_et_al_2018_transformer_decoder()
+        self.output_module = SanakoyeuEtAl2018DecoderSigmoidOutput()
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        return torch.sigmoid(self.decoder(input)) * 2 - 1
+        return self.output_module(self.decoder(input))
 
 
 class SanakoyeuEtAl2018Transformer(nn.Module):
@@ -415,15 +415,13 @@ class SanakoyeuEtAl2018Discriminator(object):
         self.multi_layer_encoder = SanakoyeuEtAl2018DiscriminatorEncoder(
             in_channels=in_channels
         )
-        self.prediction_modules = OrderedDict(
-            {
-                "lrelu0": sanakoyeu_et_al_2018_prediction_module(128, 5),
-                "lrelu1": sanakoyeu_et_al_2018_prediction_module(128, 10),
-                "lrelu3": sanakoyeu_et_al_2018_prediction_module(512, 10),
-                "lrelu5": sanakoyeu_et_al_2018_prediction_module(1024, 6),
-                "lrelu6": sanakoyeu_et_al_2018_prediction_module(1024, 3),
-            }
-        )
+        self.prediction_modules = {
+            "lrelu0": sanakoyeu_et_al_2018_prediction_module(128, 5),
+            "lrelu1": sanakoyeu_et_al_2018_prediction_module(128, 10),
+            "lrelu3": sanakoyeu_et_al_2018_prediction_module(512, 10),
+            "lrelu5": sanakoyeu_et_al_2018_prediction_module(1024, 6),
+            "lrelu6": sanakoyeu_et_al_2018_prediction_module(1024, 3),
+        }
 
     def get_prediction_module(self, layer: str):
         return self.prediction_modules[layer]

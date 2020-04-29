@@ -16,7 +16,6 @@ from pystiche.ops import (
 from pystiche.ops.comparison import MSEEncodingOperator
 from pystiche.papers.sanakoyeu_et_al_2018.modules import (
     SanakoyeuEtAl2018Discriminator,
-    SanakoyeuEtAl2018DiscriminatorEncoder,
     SanakoyeuEtAl2018TransformerBlock,
 )
 
@@ -26,7 +25,7 @@ from .utils import ContentOperatorContainer
 class DiscriminatorEncodingOperator(EncodingRegularizationOperator):
     def __init__(
         self,
-        encoder: SanakoyeuEtAl2018DiscriminatorEncoder,
+        encoder: Encoder,
         prediction_module: nn.Module,
         score_weight: float = 1e0,
         real: Optional[bool] = True,

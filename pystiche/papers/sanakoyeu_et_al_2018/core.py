@@ -8,8 +8,8 @@ from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
+from pystiche.misc import get_device
 from pystiche.loss.perceptual import PerceptualLoss
-from pystiche.ops.container import MultiLayerEncodingOperator
 
 from .data import (
     sanakoyeu_et_al_2018_dataset,
@@ -43,11 +43,10 @@ __all__ = [
 ]
 
 
-def gan_optim_loop(
+def sanakoyeu_et_al_2018_gan_optim_loop(
     content_image_loader: DataLoader,
     style_image_loader: DataLoader,
     transformer: nn.Module,
-    discriminator_operator: MultiLayerEncodingOperator,
     discriminator_criterion: nn.Module,
     transformer_criterion: nn.Module,
     transformer_criterion_update_fn: Callable[
@@ -66,7 +65,7 @@ def gan_optim_loop(
 
     if discriminator_optimizer is None:
         discriminator_optimizer = get_optimizer(
-            discriminator_operator.get_discriminator_parameters()
+            discriminator_criterion.discriminator_operator.get_discriminator_parameters()
         )
 
     if transformer_optimizer is None:
@@ -78,11 +77,11 @@ def gan_optim_loop(
     def train_discriminator_one_step(
         output_image: torch.Tensor,
         style_image: torch.Tensor,
-        content_image: Optional[torch.Tensor] = None,
+        input_image: Optional[torch.Tensor] = None,
     ):
         def closure():
             discriminator_optimizer.zero_grad()
-            loss = discriminator_criterion(output_image, style_image, content_image)
+            loss = discriminator_criterion(output_image, style_image, input_image)
             loss.backward()
             return loss
 
@@ -102,30 +101,28 @@ def gan_optim_loop(
         )
 
     for content_image in content_image_loader:
-        content_image = content_image.to(device)
-        output_image = transformer(content_image)
+        input_image = content_image.to(device)
+        output_image = transformer(input_image)
 
         if discriminator_success.local_avg() < target_win_rate:
             style_image = next(style_image_loader)
             style_image = style_image.to(device)
-            if impl_params:
-                train_discriminator_one_step(
-                    output_image, style_image, content_image=content_image
-                )
-            else:
-                train_discriminator_one_step(output_image, style_image)
+            train_discriminator_one_step(
+                output_image,
+                style_image,
+                input_image=input_image if impl_params else None,
+            )
         else:
-            transformer_criterion_update_fn(content_image, transformer_criterion)
+            transformer_criterion_update_fn(input_image, transformer_criterion)
             train_transformer_one_step(output_image)
 
     return transformer
 
 
-def epoch_gan_optim_loop(
+def sanakoyeu_et_al_2018_epoch_gan_optim_loop(
     content_image_loader: DataLoader,
     style_image_loader: DataLoader,
     transformer: nn.Module,
-    discriminator_operator: MultiLayerEncodingOperator,
     epochs: int,
     discriminator_criterion: nn.Module,
     transformer_criterion: nn.Module,
@@ -150,7 +147,7 @@ def epoch_gan_optim_loop(
     if discriminator_optimizer is None:
         if discriminator_lr_scheduler is None:
             discriminator_optimizer = sanakoyeu_et_al_2018_optimizer(
-                discriminator_operator.get_discriminator_parameters()
+                discriminator_criterion.discriminator_operator.get_discriminator_parameters()
             )
         else:
             discriminator_optimizer = discriminator_lr_scheduler.optimizer
@@ -162,11 +159,10 @@ def epoch_gan_optim_loop(
             transformer_optimizer = transformer_lr_scheduler.optimizer
 
     def optim_loop(transformer: nn.Module) -> nn.Module:
-        return gan_optim_loop(
+        return sanakoyeu_et_al_2018_gan_optim_loop(
             content_image_loader,
             style_image_loader,
             transformer,
-            discriminator_operator,
             discriminator_criterion,
             transformer_criterion,
             transformer_criterion_update_fn,
@@ -204,14 +200,14 @@ def sanakoyeu_et_al_2018_training(
     num_epochs: Optional[int] = None,
     get_optimizer: Optional[sanakoyeu_et_al_2018_optimizer] = None,
 ):
-    if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = get_device(device)
 
     if transformer is None:
         transformer = SanakoyeuEtAl2018Transformer()
         transformer = transformer.train()
     transformer = transformer.to(device)
 
+    print(transformer)
     if discriminator_operator is None:
         discriminator_operator = sanakoyeu_et_al_2018_discriminator_operator()
 
@@ -238,11 +234,10 @@ def sanakoyeu_et_al_2018_training(
         criterion.set_content_image(content_image)
 
     if impl_params:
-        return gan_optim_loop(
+        return sanakoyeu_et_al_2018_gan_optim_loop(
             content_image_loader,
             style_image_loader,
             transformer,
-            discriminator_operator,
             discriminator_criterion,
             transformer_criterion,
             transformer_criterion_update_fn,
@@ -268,11 +263,10 @@ def sanakoyeu_et_al_2018_training(
         if num_epochs is None:
             num_epochs = 3
 
-        return epoch_gan_optim_loop(
+        return sanakoyeu_et_al_2018_epoch_gan_optim_loop(
             content_image_loader,
             style_image_loader,
             transformer,
-            discriminator_operator,
             num_epochs,
             discriminator_criterion,
             transformer_criterion,

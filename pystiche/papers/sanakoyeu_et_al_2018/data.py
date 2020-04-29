@@ -41,7 +41,9 @@ def sanakoyeu_et_al_2018_image_transform(
                 dct["interpolation_mode"] = self.interpolation_mode
             return dct
 
-    class OptionalGrayscaleToFakegrayscale(Transform):
+    class OptionalGrayscaleToFakegrayscale(
+        Transform
+    ):  # TODO: add this to common_utils?
         def forward(self, input_image: torch.Tensor) -> torch.Tensor:
             is_grayscale = extract_num_channels(input_image) == 1
             if is_grayscale:
@@ -49,10 +51,11 @@ def sanakoyeu_et_al_2018_image_transform(
             else:
                 return input_image
 
-    transforms = []
-    transforms.append(OptionalRescale())
-    transforms.append(ValidRandomCrop((edge_size, edge_size)))
-    transforms.append(OptionalGrayscaleToFakegrayscale())
+    transforms = (
+        OptionalRescale(),
+        ValidRandomCrop((edge_size, edge_size)),
+        OptionalGrayscaleToFakegrayscale(),
+    )
     return ComposedTransform(*transforms)
 
 
@@ -97,7 +100,7 @@ def sanakoyeu_et_al_2018_batch_sampler(
 ) -> FiniteCycleBatchSampler:
 
     if num_batches is None:
-        num_batches = int(3e5) if impl_params else int(1e5)
+        num_batches = 300_000 if impl_params else 100_000
 
     if batch_size is None:
         batch_size = 1
