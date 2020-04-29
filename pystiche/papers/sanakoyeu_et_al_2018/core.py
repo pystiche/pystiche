@@ -22,7 +22,7 @@ from .loss import (
     sanakoyeu_et_al_2018_discriminator_operator,
     sanakoyeu_et_al_2018_transformer_loss,
 )
-from .modules import SanakoyeuEtAl2018Discriminator, SanakoyeuEtAl2018Transformer
+from .modules import SanakoyeuEtAl2018Transformer
 from .utils import (
     ExponentialMovingAverage,
     sanakoyeu_et_al_2018_lr_scheduler,
@@ -33,7 +33,6 @@ __all__ = [
     "sanakoyeu_et_al_2018_training",
     "sanakoyeu_et_al_2018_stylization",
     "SanakoyeuEtAl2018Transformer",
-    "SanakoyeuEtAl2018Discriminator",
     "sanakoyeu_et_al_2018_transformer_loss",
     "SanakoyeuEtAl2018DiscriminatorLoss",
     "sanakoyeu_et_al_2018_discriminator_operator",
@@ -65,7 +64,7 @@ def sanakoyeu_et_al_2018_gan_optim_loop(
 
     if discriminator_optimizer is None:
         discriminator_optimizer = get_optimizer(
-            discriminator_criterion.discriminator_operator.get_discriminator_parameters()
+            discriminator_criterion.discriminator.parameters()
         )
 
     if transformer_optimizer is None:
@@ -147,7 +146,7 @@ def sanakoyeu_et_al_2018_epoch_gan_optim_loop(
     if discriminator_optimizer is None:
         if discriminator_lr_scheduler is None:
             discriminator_optimizer = sanakoyeu_et_al_2018_optimizer(
-                discriminator_criterion.discriminator_operator.get_discriminator_parameters()
+                discriminator_criterion.discriminator.parameters()
             )
         else:
             discriminator_optimizer = discriminator_lr_scheduler.optimizer
@@ -192,7 +191,7 @@ def sanakoyeu_et_al_2018_training(
     impl_params: bool = True,
     device: Optional[torch.device] = None,
     transformer: Optional[SanakoyeuEtAl2018Transformer] = None,
-    discriminator_operator: Optional[MultiLayerDicriminatorEncodingOperator] = None,
+    discriminator: Optional[MultiLayerDicriminatorEncodingOperator] = None,
     discriminator_criterion: Optional[SanakoyeuEtAl2018DiscriminatorLoss] = None,
     transformer_criterion: Optional[PerceptualLoss] = None,
     discriminator_lr_scheduler: Optional[ExponentialLR] = None,
@@ -207,22 +206,17 @@ def sanakoyeu_et_al_2018_training(
         transformer = transformer.train()
     transformer = transformer.to(device)
 
-    print(transformer)
-    if discriminator_operator is None:
-        discriminator_operator = sanakoyeu_et_al_2018_discriminator_operator()
+    if discriminator is None:
+        discriminator = sanakoyeu_et_al_2018_discriminator_operator()
 
     if discriminator_criterion is None:
-        discriminator_criterion = SanakoyeuEtAl2018DiscriminatorLoss(
-            discriminator_operator
-        )
+        discriminator_criterion = SanakoyeuEtAl2018DiscriminatorLoss(discriminator)
         discriminator_criterion = discriminator_criterion.eval()
     discriminator_criterion = discriminator_criterion.to(device)
 
     if transformer_criterion is None:
         transformer_criterion = sanakoyeu_et_al_2018_transformer_loss(
-            transformer.encoder,
-            impl_params=impl_params,
-            style_loss=discriminator_operator,
+            transformer.encoder, impl_params=impl_params, style_loss=discriminator,
         )
         transformer_criterion = transformer_criterion.eval()
     transformer_criterion = transformer_criterion.to(device)
@@ -247,9 +241,7 @@ def sanakoyeu_et_al_2018_training(
         )
     else:
         if discriminator_lr_scheduler is None:
-            discriminator_optimizer = get_optimizer(
-                discriminator_operator.get_discriminator_parameters()
-            )
+            discriminator_optimizer = get_optimizer(discriminator.parameters())
             discriminator_lr_scheduler = sanakoyeu_et_al_2018_lr_scheduler(
                 discriminator_optimizer
             )

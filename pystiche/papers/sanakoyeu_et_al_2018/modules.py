@@ -408,26 +408,3 @@ class SanakoyeuEtAl2018DiscriminatorEncoder(MultiLayerEncoder):
 
                 modules[name] = module
         return modules
-
-
-class SanakoyeuEtAl2018Discriminator(object):
-    def __init__(self, in_channels: int = 3) -> None:
-        self.multi_layer_encoder = SanakoyeuEtAl2018DiscriminatorEncoder(
-            in_channels=in_channels
-        )
-        self.prediction_modules = {
-            "lrelu0": sanakoyeu_et_al_2018_prediction_module(128, 5),
-            "lrelu1": sanakoyeu_et_al_2018_prediction_module(128, 10),
-            "lrelu3": sanakoyeu_et_al_2018_prediction_module(512, 10),
-            "lrelu5": sanakoyeu_et_al_2018_prediction_module(1024, 6),
-            "lrelu6": sanakoyeu_et_al_2018_prediction_module(1024, 3),
-        }
-
-    def get_prediction_module(self, layer: str):
-        return self.prediction_modules[layer]
-
-    def get_discriminator_parameters(self):
-        parameters = list(self.multi_layer_encoder.parameters())
-        for module in self.prediction_modules.values():
-            parameters += list(module.parameters())
-        return parameters

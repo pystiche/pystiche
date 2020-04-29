@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Callable, Optional, Sequence, Tuple, Union
+from typing import Callable, Optional, Sequence, Tuple, Union, Dict
 
 import torch
 import torch.nn as nn
@@ -15,7 +15,8 @@ from pystiche.ops import (
 )
 from pystiche.ops.comparison import MSEEncodingOperator
 from pystiche.papers.sanakoyeu_et_al_2018.modules import (
-    SanakoyeuEtAl2018Discriminator,
+    SanakoyeuEtAl2018DiscriminatorEncoder,
+    sanakoyeu_et_al_2018_prediction_module,
     SanakoyeuEtAl2018TransformerBlock,
 )
 
@@ -88,20 +89,20 @@ class DiscriminatorEncodingOperator(EncodingRegularizationOperator):
 class MultiLayerDicriminatorEncodingOperator(MultiLayerEncodingOperator):
     def __init__(
         self,
-        discriminator: SanakoyeuEtAl2018Discriminator,
+        encoder: SanakoyeuEtAl2018DiscriminatorEncoder,
         layers: Sequence[str],
         get_encoding_op: Callable[[Encoder, float], EncodingOperator],
         layer_weights: Union[str, Sequence[float]] = "sum",
         score_weight: float = 1e0,
     ):
         super().__init__(
-            discriminator.multi_layer_encoder,
+            encoder,
             layers,
             get_encoding_op,
             layer_weights=layer_weights,
             score_weight=score_weight,
         )
-        self.discriminator = discriminator
+        self.encoder_parameters = encoder.parameters()
 
     def get_discriminator_acc(self) -> torch.Tensor:
         acc = []
@@ -110,8 +111,12 @@ class MultiLayerDicriminatorEncodingOperator(MultiLayerEncodingOperator):
                 acc.append(op.get_current_acc())
         return torch.mean(torch.stack(acc))
 
-    def get_discriminator_parameters(self):
-        return self.discriminator.get_discriminator_parameters()
+    def parameters(self):
+        parameters = list(self.encoder_parameters)
+        for op in self.operators():
+            if isinstance(op, DiscriminatorEncodingOperator):
+                parameters += list(op.pred_module.parameters())
+        return parameters
 
     def process_input_image(
         self, input_image: torch.Tensor, real: Optional[bool] = None
@@ -129,32 +134,50 @@ class MultiLayerDicriminatorEncodingOperator(MultiLayerEncodingOperator):
 def sanakoyeu_et_al_2018_discriminator_operator(
     in_channels: int = 3,
     impl_params: bool = True,
-    discriminator: Optional[SanakoyeuEtAl2018Discriminator] = None,
+    encoder: Optional[SanakoyeuEtAl2018DiscriminatorEncoder] = None,
     layers: Optional[Sequence[str]] = None,
+    prediction_modules: Optional[Dict[str, nn.Module]] = None,
     layer_weights: Union[str, Sequence[float]] = "sum",
     score_weight: float = None,
 ) -> MultiLayerDicriminatorEncodingOperator:
+
+    if encoder is None:
+        encoder = SanakoyeuEtAl2018DiscriminatorEncoder(in_channels=in_channels)
+
     if score_weight is None:
         if impl_params:
             score_weight = 1e0
         else:
             score_weight = 1e-3
 
-    if discriminator is None:
-        discriminator = SanakoyeuEtAl2018Discriminator(in_channels=in_channels)
-
     if layers is None:
         layers = ("lrelu0", "lrelu1", "lrelu3", "lrelu5", "lrelu6")
 
+    if prediction_modules is None:
+        prediction_modules = {
+            "lrelu0": sanakoyeu_et_al_2018_prediction_module(128, 5),
+            "lrelu1": sanakoyeu_et_al_2018_prediction_module(128, 10),
+            "lrelu3": sanakoyeu_et_al_2018_prediction_module(512, 10),
+            "lrelu5": sanakoyeu_et_al_2018_prediction_module(1024, 6),
+            "lrelu6": sanakoyeu_et_al_2018_prediction_module(1024, 3),
+        }
+
+    assert tuple(prediction_modules.keys()) == layers, (
+        "The keys in prediction_modules should match "
+        "the entries in layers. However layers "
+        + str(layers)
+        + " and keys: "
+        + str(tuple(prediction_modules.keys()))
+        + " are given. "
+    )
+
     def get_encoding_op(encoder, layer_weight):
         return DiscriminatorEncodingOperator(
-            encoder,
-            discriminator.get_prediction_module(encoder.layer),
-            score_weight=layer_weight,
+            encoder, prediction_modules[encoder.layer], score_weight=layer_weight,
         )
 
     return MultiLayerDicriminatorEncodingOperator(
-        discriminator,
+        encoder,
         layers,
         get_encoding_op,
         layer_weights=layer_weights,
@@ -163,36 +186,34 @@ def sanakoyeu_et_al_2018_discriminator_operator(
 
 
 def sanakoyeu_et_al_2018_discriminator_loss(
-    discriminator_operator: MultiLayerDicriminatorEncodingOperator,
+    discriminator: MultiLayerDicriminatorEncodingOperator,
     output_photo: torch.Tensor,
     input_painting: torch.Tensor,
     input_photo: Optional[torch.Tensor] = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
 
-    loss = discriminator_operator(input_painting, real=True)
-    acc = discriminator_operator.get_discriminator_acc()
+    loss = discriminator(input_painting, real=True)
+    acc = discriminator.get_discriminator_acc()
     for key, value in zip(
-        loss.keys(), discriminator_operator(output_photo, real=False).values()
+        loss.keys(), discriminator(output_photo, real=False).values()
     ):
         loss[key] = loss[key] + value
 
-    acc += discriminator_operator.get_discriminator_acc()
+    acc += discriminator.get_discriminator_acc()
     if input_photo is not None:
         for key, value in zip(
-            loss.keys(), discriminator_operator(input_photo, real=False).values()
+            loss.keys(), discriminator(input_photo, real=False).values()
         ):
             loss[key] = loss[key] + value
-        acc += discriminator_operator.get_discriminator_acc()
+        acc += discriminator.get_discriminator_acc()
         return loss, acc / 3
     return loss, acc / 2
 
 
 class SanakoyeuEtAl2018DiscriminatorLoss(nn.Module):
-    def __init__(
-        self, discriminator_operator: MultiLayerDicriminatorEncodingOperator
-    ) -> None:
+    def __init__(self, discriminator: MultiLayerDicriminatorEncodingOperator) -> None:
         super().__init__()
-        self.discriminator_operator = discriminator_operator
+        self.discriminator = discriminator
         self.acc = 0.0
 
     def get_current_acc(self):
@@ -205,7 +226,7 @@ class SanakoyeuEtAl2018DiscriminatorLoss(nn.Module):
         input_photo: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         loss, self.acc = sanakoyeu_et_al_2018_discriminator_loss(
-            self.discriminator_operator, output_photo, input_painting, input_photo
+            self.discriminator, output_photo, input_painting, input_photo
         )
         return loss
 
