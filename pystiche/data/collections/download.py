@@ -1,8 +1,8 @@
+import os
 from os import path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 import requests
-from PIL import Image
 
 import torch
 from torch import nn
@@ -24,13 +24,14 @@ class DownloadableImage(_Image):
         license: Optional[License] = None,
         md5: Optional[str] = None,
         file: Optional[str] = None,
+        guides: Optional["DownloadableImageCollection"] = None,
         transform: Optional[nn.Module] = None,
         note: Optional[str] = None,
     ):
         if file is None:
             file = self.generate_file(url, title, author)
 
-        super().__init__(file, transform=transform, note=note)
+        super().__init__(file, guides=guides, transform=transform, note=note)
         self.url = url
         self.title = title
         self.author = author
@@ -58,6 +59,14 @@ class DownloadableImage(_Image):
     def download(self, root: Optional[str] = None, overwrite: bool = False):
         if root is None:
             root = pystiche.home()
+
+        if self.guides is not None:
+            dir = path.join(root, path.splitext(path.basename(self.file))[0])
+            os.makedirs(dir, exist_ok=True)
+            for region, guide in self.guides:
+                if isinstance(guide, DownloadableImage):
+                    guide.download(root=dir, overwrite=overwrite)
+
         file = path.join(root, self.file)
 
         def _download(file: str):
@@ -68,14 +77,14 @@ class DownloadableImage(_Image):
             _download(file)
             return
 
-        overwrite_msg = "If you want to overwrite it, set overwrite=True."
+        msg_overwrite = "If you want to overwrite it, set overwrite=True."
 
         if self.md5 is None:
             if overwrite:
                 _download(file)
                 return
             else:
-                msg = f"{file} already exists in {root}. {overwrite_msg}"
+                msg = f"{file} already exists in {root}. {msg_overwrite}"
                 raise FileExistsError(msg)
 
         if not check_md5(file, self.md5):
@@ -85,7 +94,7 @@ class DownloadableImage(_Image):
             else:
                 msg = (
                     f"{file} with a different MD5 hash already exists in {root}. "
-                    f"{overwrite_msg}"
+                    f"{msg_overwrite}"
                 )
                 raise FileExistsError(msg)
 
@@ -125,5 +134,5 @@ class DownloadableImageCollection(_ImageCollection):
             self.download(root=root, overwrite=overwrite)
 
     def download(self, root: Optional[str] = None, overwrite: bool = False):
-        for image in self._images.values():
+        for _, image in self:
             image.download(root=root, overwrite=overwrite)
