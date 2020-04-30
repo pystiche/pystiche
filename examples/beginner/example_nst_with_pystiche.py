@@ -146,7 +146,7 @@ size = 500
 
 ########################################################################################
 
-content_image = images["bird"].read(size=size, device=device)
+content_image = images["bird1"].read(size=size, device=device)
 show_image(content_image, title="Content image")
 
 
@@ -189,7 +189,10 @@ show_image(input_image, title="Input image")
 ########################################################################################
 # Finally we run the NST with the
 # :func:`~pystiche.optim.optim.default_image_optim_loop`.
-# The optimization runs for ``num_steps``. In every step perceptual loss is calculated
+# The optimization runs on each ``level`` for ``level.num_steps``.
+#
+#
+# In every step perceptual loss is calculated
 # with the ``criterion`` and propagated backward to the ``input_image``. If
 # ``get_optimizer`` is not specified, as is the case here, the
 # :func:`~pystiche.optim.optim.default_image_optimizer`, i.e.
