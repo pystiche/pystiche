@@ -2,31 +2,36 @@ from os import path
 from typing import Any, Callable, Dict, Optional
 
 import requests
-from PIL import Image as PILImage
+from PIL import Image
 
 import torch
+from torch import nn
 from torchvision.datasets.utils import check_md5
 
 import pystiche
-from pystiche.data.license import License, UnknownLicense
-from pystiche.image import read_image
 
-__all__ = ["Image", "DownloadableImage"]
+from ..license import License, UnknownLicense
+from ._core import _Image, _ImageCollection
 
 
-class Image(pystiche.ComplexObject):
+class DownloadableImage(_Image):
     def __init__(
         self,
-        file: str,
+        url: str,
         title: Optional[str] = None,
         author: Optional[str] = None,
         date: Optional[str] = None,
         license: Optional[License] = None,
-        transform: Optional[Callable[[PILImage.Image], PILImage.Image]] = None,
-        note: Optional[str] = None,
         md5: Optional[str] = None,
+        file: Optional[str] = None,
+        transform: Optional[nn.Module] = None,
+        note: Optional[str] = None,
     ):
-        self.file = file
+        if file is None:
+            file = self.generate_file(url, title, author)
+
+        super().__init__(file, transform=transform, note=note)
+        self.url = url
         self.title = title
         self.author = author
         self.date = date
@@ -35,43 +40,7 @@ class Image(pystiche.ComplexObject):
             license = UnknownLicense()
         self.license = license
 
-        self.transform = transform
-        self.note = note
         self.md5 = md5
-
-    def read(
-        self, root: Optional[str] = None, **read_image_kwargs: Any,
-    ) -> torch.Tensor:
-        if root is None:
-            root = pystiche.home()
-        return read_image(path.join(root, self.file), **read_image_kwargs)
-
-    def _properties(self) -> Dict[str, Any]:
-        dct = super()._properties()
-        dct["file"] = self.file
-        dct["title"] = self.title if self.title is not None else "unknown"
-        dct["author"] = self.author if self.author is not None else "unknown"
-        dct["date"] = self.date if self.date is not None else "unknown"
-        dct["license"] = self.license
-        if self.note is not None:
-            dct["note"] = self.note
-        return dct
-
-
-class DownloadableImage(Image):
-    def __init__(
-        self,
-        url: str,
-        title: Optional[str] = None,
-        author: Optional[str] = None,
-        file: Optional[str] = None,
-        **image_kwargs: Any,
-    ):
-        if file is None:
-            file = self.generate_file(url, title, author)
-
-        super().__init__(file, title=title, author=author, **image_kwargs)
-        self.url = url
 
     @staticmethod
     def generate_file(url: str, title: Optional[str], author: Optional[str]) -> str:
@@ -91,35 +60,32 @@ class DownloadableImage(Image):
             root = pystiche.home()
         file = path.join(root, self.file)
 
-        def download_and_transform(file: str):
+        def _download(file: str):
             with open(file, "wb") as fh:
                 fh.write(requests.get(self.url).content)
 
-            if self.transform is not None:
-                self.transform(PILImage.open(file)).save(file)
-
         if not path.isfile(file):
-            download_and_transform(file)
+            _download(file)
             return
 
-        msg_tail = "If you want to overwrite it, set overwrite=True."
+        overwrite_msg = "If you want to overwrite it, set overwrite=True."
 
         if self.md5 is None:
             if overwrite:
-                download_and_transform(file)
+                _download(file)
                 return
             else:
-                msg = f"{file} already exists in {root}. {msg_tail}"
+                msg = f"{file} already exists in {root}. {overwrite_msg}"
                 raise FileExistsError(msg)
 
         if not check_md5(file, self.md5):
             if overwrite:
-                download_and_transform(file)
+                _download(file)
                 return
             else:
                 msg = (
                     f"{file} with a different MD5 hash already exists in {root}. "
-                    f"{msg_tail}"
+                    f"{overwrite_msg}"
                 )
                 raise FileExistsError(msg)
 
@@ -139,4 +105,25 @@ class DownloadableImage(Image):
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
         dct["url"] = self.url
+        dct["title"] = self.title if self.title is not None else "unknown"
+        dct["author"] = self.author if self.author is not None else "unknown"
+        dct["date"] = self.date if self.date is not None else "unknown"
+        dct["license"] = self.license
         return dct
+
+
+class DownloadableImageCollection(_ImageCollection):
+    def __init__(
+        self,
+        images: Dict[str, DownloadableImage],
+        root: Optional[str] = None,
+        download: bool = True,
+        overwrite: bool = False,
+    ):
+        super().__init__(images)
+        if download:
+            self.download(root=root, overwrite=overwrite)
+
+    def download(self, root: Optional[str] = None, overwrite: bool = False):
+        for image in self._images.values():
+            image.download(root=root, overwrite=overwrite)
