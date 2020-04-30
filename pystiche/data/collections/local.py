@@ -23,7 +23,7 @@ class LocalImage(_Image):
 
     @staticmethod
     def _collect_guides(file) -> Optional["LocalImageCollection"]:
-        dir = path.basename(path.splitext(file)[0])
+        dir = path.splitext(file)[0]
         if not path.isdir(dir):
             return None
 

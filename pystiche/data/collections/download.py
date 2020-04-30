@@ -57,21 +57,25 @@ class DownloadableImage(_Image):
         return name + ext
 
     def download(self, root: Optional[str] = None, overwrite: bool = False):
+        def _download(file: str):
+            with open(file, "wb") as fh:
+                fh.write(requests.get(self.url).content)
+
         if root is None:
             root = pystiche.home()
 
+        file = self.file
+        if not path.isabs(file) and root is not None:
+            if root is None:
+                root = pystiche.home()
+            file = path.join(root, file)
+
         if self.guides is not None:
-            dir = path.join(root, path.splitext(path.basename(self.file))[0])
+            dir = path.splitext(file)[0]
             os.makedirs(dir, exist_ok=True)
             for region, guide in self.guides:
                 if isinstance(guide, DownloadableImage):
                     guide.download(root=dir, overwrite=overwrite)
-
-        file = path.join(root, self.file)
-
-        def _download(file: str):
-            with open(file, "wb") as fh:
-                fh.write(requests.get(self.url).content)
 
         if not path.isfile(file):
             _download(file)
@@ -101,12 +105,16 @@ class DownloadableImage(_Image):
     def read(
         self,
         root: Optional[str] = None,
-        download: bool = True,
+        download: Optional[bool] = None,
         overwrite: bool = False,
         **read_image_kwargs: Any,
     ) -> torch.Tensor:
         if root is None:
             root = pystiche.home()
+        if download is None:
+            file_exists = path.isfile(path.join(root, self.file))
+            md5_available = self.md5 is not None
+            download = False if file_exists and not md5_available else True
         if download:
             self.download(root=root, overwrite=overwrite)
         return super().read(root=root, **read_image_kwargs)
@@ -122,17 +130,20 @@ class DownloadableImage(_Image):
 
 
 class DownloadableImageCollection(_ImageCollection):
-    def __init__(
-        self,
-        images: Dict[str, DownloadableImage],
-        root: Optional[str] = None,
-        download: bool = True,
-        overwrite: bool = False,
-    ):
-        super().__init__(images)
-        if download:
-            self.download(root=root, overwrite=overwrite)
-
     def download(self, root: Optional[str] = None, overwrite: bool = False):
         for _, image in self:
             image.download(root=root, overwrite=overwrite)
+
+    def read(
+        self,
+        root: Optional[str] = None,
+        download: Optional[bool] = None,
+        overwrite: bool = False,
+        **read_image_kwargs: Any,
+    ):
+        return {
+            name: image.read(
+                root=root, download=download, overwrite=overwrite, **read_image_kwargs
+            )
+            for name, image in self
+        }
