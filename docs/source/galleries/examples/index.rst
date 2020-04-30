@@ -74,7 +74,7 @@ Advanced
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Image-based optimization with image pyramid">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example showcases how an image pyramid is integrated in an NST in pystiche .">
 
 .. only:: html
 
