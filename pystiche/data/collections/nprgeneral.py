@@ -2,8 +2,7 @@ from collections import OrderedDict
 from urllib.parse import urljoin
 
 from ..license import UnknownLicense
-from .collection import DownloadableImageCollection
-from .image import DownloadableImage
+from .download import DownloadableImage, DownloadableImageCollection
 
 __all__ = ["NPRgeneral"]
 
@@ -20,10 +19,10 @@ def name_to_url(name: str) -> str:
 class NPRgeneralLicense(UnknownLicense):
     def __repr__(self) -> str:
         return (
-            "Although the authors of the NPRgeneral dataset, David Mould and "
-            "Paul Rosin, claim that the license of  this images "
-            "'permits distribution of modified versions', the actual license is "
-            "unknown. Proceed to work with this image at your own risk."
+            "Although the authors of the NPRgeneral dataset, David Mould and Paul "
+            "Rosin, claim that the license of this image 'permits distribution of "
+            "modified versions', the actual license is unknown. Proceed to work with "
+            "this image at your own risk."
         )
 
 
