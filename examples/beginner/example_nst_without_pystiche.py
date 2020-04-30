@@ -369,9 +369,8 @@ image_root = path.expanduser(path.join("~", ".cache", "pystiche"))
 #
 #   You can download the default images here:
 #
-#   FIXME
-#   - `Content image <https://github.com/pmeier/pystiche>`_
-#   - `Style image <https://github.com/pmeier/pystiche>`_
+#   - `Content image <https://free-images.com/md/71c4/bird_wildlife_australian_bird.jpg>`_
+#   - `Style image <https://cdn.pixabay.com/photo/2017/07/03/20/17/abstract-2468874_960_720.jpg>`_
 
 
 ########################################################################################

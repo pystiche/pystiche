@@ -38,17 +38,15 @@ device = get_device()
 print(f"I'm working with {device}")
 
 images = demo_images()
+images.download()
 
 
 ########################################################################################
 # .. note::
 #
-#   During the first run all demo images are downloaded upfront. If you only want to
-#   download the images used in this example at runtime use
-#
-#   .. code-block:: python
-#
-#     images = demo_images(download=False)
+#   ``ìmages.download()`` downloads **all** demo images upfront. If you only want to
+#   download the images for this example remove this line. They will be downloaded at
+#   runtime instead.
 
 
 ########################################################################################
