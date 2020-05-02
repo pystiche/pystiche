@@ -1,5 +1,5 @@
-Welcome to pystiche's documentation!
-=======================================
+Welcome to ``pystiche`` 's documentation!
+=========================================
 
 .. warning::
 
@@ -10,4 +10,5 @@ Welcome to pystiche's documentation!
   :maxdepth: 2
 
   Getting Started <getting_started>
-  Tutorials <tutorials>
+  Examples <galleries/examples/index.rst>
+  Literature <literature>

@@ -36,6 +36,7 @@ test_requires = ("pytest", "pyimagetest", "pillow_affine", "dill", "pytest-subte
 doc_requires = (
     "sphinx",
     "sphinx_autodoc_typehints",
+    "sphinxcontrib-bibtex",
     "sphinx_rtd_theme",
     "sphinx-gallery",
     # Install additional sphinx-gallery dependencies

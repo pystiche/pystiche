@@ -9,28 +9,27 @@
 import os
 import warnings
 from datetime import datetime
-from distutils.util import strtobool as _strtobool
+from distutils.util import strtobool
 from os import path
 
-
-def strtobool(val):
-    return bool(_strtobool(val))
-
+from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 
 # -- Run config --------------------------------------------------------------
 
 
-def get_bool_env_var(name):
+def get_bool_env_var(name, default=False):
     try:
-        return strtobool(os.environ[name])
+        return bool(strtobool(os.environ[name]))
     except KeyError:
-        return False
+        return default
 
 
 run_by_travis_ci = get_bool_env_var("TRAVIS")
 run_by_rtd = get_bool_env_var("READTHEDOCS")
-exclude_gallery = (
-    get_bool_env_var("PYSTICHE_EXCLUDE_GALLERY") or run_by_travis_ci or run_by_rtd
+plot_gallery = (
+    get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True)
+    and not run_by_travis_ci
+    and not run_by_rtd
 )
 
 
@@ -59,7 +58,7 @@ with open(path.join(PROJECT_ROOT, pkg_name, "__about__.py"), "r") as fh:
 project = about["__name__"]
 copyright = f"2019 - {datetime.now().year}, {about['__author__']}"
 author = about["__author__"]
-release = about["__version__"]
+version = release = about["__version__"]
 
 
 # -- General configuration ---------------------------------------------------
@@ -71,7 +70,8 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.coverage",
-    "sphinx_autodoc_typehints",
+    "sphinxcontrib.bibtex",
+    # "sphinx_autodoc_typehints",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -85,16 +85,33 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # -- Sphinx gallery configuration --------------------------------------------
 
-if not exclude_gallery:
-    extensions.append("sphinx_gallery.gen_gallery")
+extensions.append("sphinx_gallery.gen_gallery")
 
-    sphinx_gallery_conf = {
-        "examples_dirs": path.join(PROJECT_ROOT, "tutorials"),
-        "gallery_dirs": "auto_tutorials",
-        "filename_pattern": os.sep + "tutorial_",
-    }
-else:
-    warnings.warn("Sphinx gallery is excluded and will not be built!", UserWarning)
+sphinx_gallery_conf = {
+    "examples_dirs": path.join(PROJECT_ROOT, "examples"),
+    "gallery_dirs": path.join("galleries", "examples"),
+    "filename_pattern": os.sep + "example_",
+    "line_numbers": True,
+    "remove_config_comments": True,
+    "plot_gallery": plot_gallery,
+    "subsection_order": ExplicitOrder(
+        [
+            path.join("..", "..", "examples", sub_gallery)
+            for sub_gallery in ("beginner", "advanced")
+        ]
+    ),
+    "within_subsection_order": ExampleTitleSortKey,
+}
+
+# Remove matplotlib agg warnings from generated doc when using plt.show
+warnings.filterwarnings(
+    "ignore",
+    category=UserWarning,
+    message=(
+        "Matplotlib is currently using agg, which is a non-GUI backend, so cannot show "
+        "the figure."
+    ),
+)
 
 
 # -- Options for HTML output -------------------------------------------------

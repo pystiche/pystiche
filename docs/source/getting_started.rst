@@ -76,6 +76,5 @@ You can run ``make`` without arguments to get a list of all available ``$TARGET`
 
   Running ``make $TARGET`` by default triggers a
   `sphinx gallery <https://sphinx-gallery.github.io/stable/index.html>`_ build, which
-  will take some time to complete. To exclude all galleries set the environment
-  variable ``PYSTICHE_EXCLUDE_GALLERY`` to anything that evaluates to ``True``, i.e.
-  ``export PYSTICHE_EXCLUDE_GALLERY=True``.
+  will take some time to complete. To exlucde this from the build set the environment
+  variable ``PYSTICHE_PLOT_GALLERY`` to anything that evaluates to ``False`` with FIXME.
