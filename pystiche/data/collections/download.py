@@ -1,3 +1,4 @@
+import os
 from os import path
 from typing import Any, Dict, Optional
 
@@ -64,7 +65,7 @@ class DownloadableImage(_Image):
 
     def download(self, root: Optional[str] = None, overwrite: bool = False):
         def _download(file: str):
-            # FIXME: makedirs?
+            os.makedirs(path.dirname(file), exist_ok=True)
             with open(file, "wb") as fh:
                 fh.write(requests.get(self.url).content)
 
