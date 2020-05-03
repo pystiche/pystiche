@@ -55,6 +55,48 @@ def demo_images() -> DownloadableImageCollection:
                 license=PublicDomainLicense(),
                 md5="5b60cd1724395f7a0c21dc6dd006f8ae",
             ),
+            "lemgo_castle": DownloadableImage(
+                "https://free-images.com/lg/7a43/lemgo_brake_castle_bridge.jpg",
+                file="lemgo_castle.jpg",
+                author="Christian Hänsel",
+                date="23.03.2014",
+                md5="9db982e6c5cd17d5c0a9e93171d4df29",
+                guides=DownloadableImageCollection(
+                    {
+                        "building": DownloadableImage(
+                            "building.png",  # FIXME
+                            md5="35843acf145f4402d01bb2e1911def7e",
+                        ),
+                        "sky": DownloadableImage(
+                            "sky.png", md5="c0c956429c52069302c29a3737d6d211",  # FIXME
+                        ),
+                    },
+                ),
+            ),
+            "segovia_fortress": DownloadableImage(
+                "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&dl=birmingham-museums-trust-sJr8LDyEf7k-unsplash.jpg",
+                file="segovia_fortress.jpg",
+                title="Alcazar Segovia",
+                author="David Roberts",
+                date="1836",
+                license=PublicDomainLicense(1864),
+                md5="fb66841d673afed12e849641f0723acf",
+                guides=DownloadableImageCollection(
+                    {
+                        "building": DownloadableImage(
+                            "building.png",  # FIXME
+                            md5="11fd272d7439539bbcfd3e765497a4a6",
+                        ),
+                        "sky": DownloadableImage(
+                            "sky.png", md5="4a216b582d9ab10a8919344e2596cf6b",  # FIXME
+                        ),
+                        "surroundings": DownloadableImage(
+                            "surroundings.png",  # FIXME
+                            md5="bbc45cc9126a68c89c7408eccbf973c3",
+                        ),
+                    }
+                ),
+            ),
         }
     )
 
