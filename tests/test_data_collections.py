@@ -59,10 +59,7 @@ class TestDownload(PysticheTestCase):
             )
             image.download(root)
 
-            name, ext = path.splitext(image.file)
-            file = path.join(root, path.basename(name), guide.file)
-
-            actual = self.load_image(file=file)
+            actual = self.load_image(file=path.join(root, guide.file))
             desired = self.load_image()
             self.assertImagesAlmostEqual(actual, desired)
 
