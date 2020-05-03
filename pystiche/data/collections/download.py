@@ -88,7 +88,7 @@ class DownloadableImage(_Image):
                 _download(file)
                 return
             else:
-                msg = f"{file} already exists in {root}. {msg_overwrite}"
+                msg = f"{path.basename(file)} already exists in {root}. {msg_overwrite}"
                 raise FileExistsError(msg)
 
         if not check_md5(file, self.md5):
@@ -97,8 +97,8 @@ class DownloadableImage(_Image):
                 return
             else:
                 msg = (
-                    f"{file} with a different MD5 hash already exists in {root}. "
-                    f"{msg_overwrite}"
+                    f"{path.basename(file)} with a different MD5 hash already exists "
+                    f"in {root}. {msg_overwrite}"
                 )
                 raise FileExistsError(msg)
 
