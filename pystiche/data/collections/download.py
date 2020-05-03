@@ -25,11 +25,18 @@ class DownloadableImage(_Image):
         md5: Optional[str] = None,
         file: Optional[str] = None,
         guides: Optional["DownloadableImageCollection"] = None,
+        prefix_guide_files: bool = True,
         transform: Optional[nn.Module] = None,
         note: Optional[str] = None,
     ):
         if file is None:
             file = self.generate_file(url, title, author)
+
+        if guides is not None and prefix_guide_files:
+            prefix = path.splitext(path.basename(file))[0]
+            for _, guide in guides:
+                if not path.isabs(guide.file):
+                    guide.file = path.join(prefix, guide.file)
 
         super().__init__(file, guides=guides, transform=transform, note=note)
         self.url = url
@@ -58,24 +65,21 @@ class DownloadableImage(_Image):
 
     def download(self, root: Optional[str] = None, overwrite: bool = False):
         def _download(file: str):
+            os.makedirs(path.dirname(file), exist_ok=True)
             with open(file, "wb") as fh:
                 fh.write(requests.get(self.url).content)
 
         if root is None:
             root = pystiche.home()
 
+        if self.guides is not None:
+            self.guides.download(root=root, overwrite=overwrite)
+
         file = self.file
         if not path.isabs(file) and root is not None:
             if root is None:
                 root = pystiche.home()
             file = path.join(root, file)
-
-        if self.guides is not None:
-            dir = path.splitext(file)[0]
-            os.makedirs(dir, exist_ok=True)
-            for region, guide in self.guides:
-                if isinstance(guide, DownloadableImage):
-                    guide.download(root=dir, overwrite=overwrite)
 
         if not path.isfile(file):
             _download(file)
