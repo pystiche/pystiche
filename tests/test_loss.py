@@ -13,6 +13,7 @@ from pystiche.ops import (
     Operator,
     PixelComparisonOperator,
     TotalVariationOperator,
+    FeatureReconstructionOperator,
 )
 from utils import ForwardPassCounter, PysticheTestCase
 
@@ -151,8 +152,12 @@ class TestPerceptual(PysticheTestCase):
     def test_PerceptualLoss_set_content_image(self):
         torch.manual_seed(0)
         image = torch.rand(1, 1, 100, 100)
-        content_loss = MSEEncodingOperator(SequentialEncoder((nn.Conv2d(1, 1, 1),)))
-        style_loss = MSEEncodingOperator(SequentialEncoder((nn.Conv2d(1, 1, 1),)))
+        content_loss = FeatureReconstructionOperator(
+            SequentialEncoder((nn.Conv2d(1, 1, 1),))
+        )
+        style_loss = FeatureReconstructionOperator(
+            SequentialEncoder((nn.Conv2d(1, 1, 1),))
+        )
 
         perceptual_loss = loss.PerceptualLoss(style_loss=style_loss)
         with self.assertRaises(RuntimeError):
@@ -172,8 +177,12 @@ class TestPerceptual(PysticheTestCase):
     def test_PerceptualLoss_set_style_image(self):
         torch.manual_seed(0)
         image = torch.rand(1, 1, 100, 100)
-        content_loss = MSEEncodingOperator(SequentialEncoder((nn.Conv2d(1, 1, 1),)))
-        style_loss = MSEEncodingOperator(SequentialEncoder((nn.Conv2d(1, 1, 1),)))
+        content_loss = FeatureReconstructionOperator(
+            SequentialEncoder((nn.Conv2d(1, 1, 1),))
+        )
+        style_loss = FeatureReconstructionOperator(
+            SequentialEncoder((nn.Conv2d(1, 1, 1),))
+        )
 
         perceptual_loss = loss.PerceptualLoss(content_loss=content_loss)
         with self.assertRaises(RuntimeError):
