@@ -2,6 +2,7 @@ import contextlib
 import logging
 import sys
 import time
+from datetime import datetime
 from typing import Callable, Optional, Tuple, Union
 
 import torch
@@ -58,7 +59,8 @@ class OptimLogger:
 
     def __init__(self, logger: Optional[logging.Logger] = None):
         if logger is None:
-            logger = default_logger()
+            name = f"pystiche_{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+            logger = default_logger(name=name)
         self.logger = logger
 
         self._environ_indent_offset = 0
