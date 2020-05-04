@@ -7,6 +7,7 @@ __all__ = [
     "UnknownLicense",
     "NoLicense",
     "PublicDomainLicense",
+    "PixabayLicense",
     "CreativeCommonsLicense",
 ]
 
@@ -45,6 +46,11 @@ class PublicDomainLicense(License):
             f"{years_since_author_death} years. Check your local laws before "
             f"proceeding."
         )
+
+
+class PixabayLicense(License):
+    def __repr__(self) -> str:
+        return "Pixabay (https://pixabay.com/service/license/)"
 
 
 class CreativeCommonsLicense(License):
