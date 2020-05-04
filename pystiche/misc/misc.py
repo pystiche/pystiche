@@ -252,9 +252,9 @@ def build_obj_str(
     **kwargs: Any,
 ):
     msg = build_deprecation_message(
-        "The function build_object_str",
+        "The function build_obj_str",
         "0.4.0",
-        info="It was renamed to build_complex_object_repr.",
+        info="It was renamed to build_complex_obj_repr.",
     )
     warnings.warn(msg)
 
