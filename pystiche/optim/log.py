@@ -54,7 +54,7 @@ def default_logger(name: Optional[str] = None, log_file: Optional[str] = None):
 class OptimLogger:
     INDENT = 2
     SEP_LINE_LENGTH = 80
-    SEP_CHARS = ("#", "=", "-", ".")
+    SEP_CHARS = ("#", "*", "=", "-", "^", '"')
 
     def __init__(self, logger: Optional[logging.Logger] = None):
         if logger is None:
