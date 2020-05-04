@@ -315,7 +315,7 @@ class TestHome(PysticheTestCase):
             self.assertTrue(path.exists(desired) and path.isdir(desired))
         finally:
             if pystiche_home is None:
-                os.unsetenv("PYSTICHE_HOME")
+                del os.environ["PYSTICHE_HOME"]
             else:
                 os.environ["PYSTICHE_HOME"] = pystiche_home
             os.rmdir(tmp_dir)
