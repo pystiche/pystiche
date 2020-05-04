@@ -4,6 +4,7 @@ import sys
 from collections import namedtuple
 from urllib.parse import urljoin
 from urllib.request import urlopen
+from platform import platform as _get_platform
 
 WHL_PROPS = ("distribution", "version", "language", "abi", "platform")
 
@@ -90,9 +91,14 @@ def get_language():
     return f"cp{major}{minor}"
 
 
-def get_platform():
-    # FIXME: use _get_platform() to make this dynamic
-    return "linux_x86_64"
+def get_system():
+    platform = _get_platform(aliased=True, terse=True)
+    # FIXME
+    print(platform)
+    if platform.startswith("Linux"):
+        return "linux_x86_64"
+    else:
+        raise RuntimeError
 
 
 def parse_input():
@@ -134,7 +140,7 @@ def parse_input():
     if args.language is None:
         args.language = get_language()
     if args.platform is None:
-        args.platform = get_platform()
+        args.platform = get_system()
     return args
 
 
