@@ -40,6 +40,7 @@ __all__ = [
     "build_fmtstr",
     "format_dict",
     "verify_str_arg",
+    "build_object_str",
     "build_complex_object_repr",
     "is_almost",
     "make_reproducible",
