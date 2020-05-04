@@ -10,7 +10,7 @@ import torch
 from torch import nn
 
 import pystiche
-from pystiche.misc import build_complex_object_repr
+from pystiche.misc import build_complex_obj_repr
 from utils import PysticheTestCase, skip_if_cuda_not_available
 
 
@@ -53,7 +53,7 @@ class TestObjects(PysticheTestCase):
         named_children = tuple(itertools.chain(_named_children, extra_named_children))
 
         actual = repr(test_object)
-        desired = build_complex_object_repr(
+        desired = build_complex_obj_repr(
             name="TestObject", properties=properties, named_children=named_children
         )
         self.assertEqual(actual, desired)

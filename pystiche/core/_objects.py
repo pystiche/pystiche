@@ -20,7 +20,7 @@ from torch import nn
 
 from pystiche.meta import is_scalar_tensor
 from pystiche.misc import (
-    build_complex_object_repr,
+    build_complex_obj_repr,
     build_deprecation_message,
     build_fmtstr,
     format_dict,
@@ -70,7 +70,7 @@ class ComplexObject(ABC):
         if named_children is None:
             named_children = tuple(self.named_children())
 
-        return build_complex_object_repr(
+        return build_complex_obj_repr(
             name,
             properties=properties,
             named_children=named_children,

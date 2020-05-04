@@ -40,8 +40,8 @@ __all__ = [
     "build_fmtstr",
     "format_dict",
     "verify_str_arg",
-    "build_object_str",
-    "build_complex_object_repr",
+    "build_obj_str",
+    "build_complex_obj_repr",
     "is_almost",
     "make_reproducible",
     "get_input_image",
@@ -202,7 +202,7 @@ def verify_str_arg(
     return arg
 
 
-def build_complex_object_repr(
+def build_complex_obj_repr(
     name: str,
     properties: Dict[str, Any] = None,
     named_children: Sequence[Tuple[str, Any]] = (),
@@ -245,7 +245,7 @@ def build_complex_object_repr(
     return "\n".join([prefix] + body + [postfix])
 
 
-def build_object_str(
+def build_obj_str(
     name: str,
     properties: Dict[str, Any] = None,
     properties_threshold: Optional[int] = None,
@@ -269,7 +269,7 @@ def build_object_str(
     else:
         line_length = 80
 
-    return build_complex_object_repr(name, line_length=line_length, **kwargs)
+    return build_complex_obj_repr(name, line_length=line_length, **kwargs)
 
 
 def is_almost(actual: float, desired: float, eps=1e-6):
