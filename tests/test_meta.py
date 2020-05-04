@@ -4,7 +4,8 @@ import torch
 from torch import nn
 
 from pystiche import meta
-from utils import PysticheTestCase
+
+from .utils import PysticheTestCase
 
 
 def extract_module_names(pattern):

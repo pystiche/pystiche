@@ -8,7 +8,8 @@ from pystiche.image import (
 )
 from pystiche.ops import PixelComparisonOperator
 from pystiche.pyramid import level
-from utils import PysticheTestCase
+
+from .utils import PysticheTestCase
 
 
 class TestLevel(PysticheTestCase):

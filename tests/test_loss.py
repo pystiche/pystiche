@@ -14,7 +14,8 @@ from pystiche.ops import (
     PixelComparisonOperator,
     TotalVariationOperator,
 )
-from utils import ForwardPassCounter, PysticheTestCase
+
+from .utils import ForwardPassCounter, PysticheTestCase
 
 
 # copied from

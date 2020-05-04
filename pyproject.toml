@@ -32,7 +32,7 @@ known_third_party = [
   "sphinx_gallery",
 ]
 known_pytorch = ["torch", "torchvision"]
-known_first_party = ["pystiche", "utils"]
+known_first_party = ["pystiche"]
 sections= ["FUTURE", "STDLIB", "THIRDPARTY", "PYTORCH", "FIRSTPARTY", "LOCALFOLDER"]
 
 [tool.black]

@@ -11,7 +11,8 @@ from torch import nn
 
 import pystiche
 from pystiche.misc import build_complex_obj_repr
-from utils import PysticheTestCase, skip_if_cuda_not_available
+
+from .utils import PysticheTestCase, skip_if_cuda_not_available
 
 
 class TestObjects(PysticheTestCase):
@@ -314,7 +315,7 @@ class TestHome(PysticheTestCase):
             self.assertTrue(path.exists(desired) and path.isdir(desired))
         finally:
             if pystiche_home is None:
-                os.unsetenv("PYSTICHE_HOME")
+                del os.environ["PYSTICHE_HOME"]
             else:
                 os.environ["PYSTICHE_HOME"] = pystiche_home
             os.rmdir(tmp_dir)

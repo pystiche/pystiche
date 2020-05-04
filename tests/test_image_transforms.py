@@ -15,7 +15,8 @@ from pystiche.image import (
     make_single_image,
     transforms,
 )
-from utils import PysticheTestCase
+
+from .utils import PysticheTestCase
 
 
 class PysticheTransfromTestCase(PysticheTestCase):

@@ -9,7 +9,8 @@ from torch import nn
 
 from pystiche import data
 from pystiche.image import read_image, write_image
-from utils import PysticheTestCase, get_tmp_dir
+
+from .utils import PysticheTestCase, get_tmp_dir
 
 
 class TestDownload(PysticheTestCase):

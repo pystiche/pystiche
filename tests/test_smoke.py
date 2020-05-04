@@ -2,12 +2,12 @@ import contextlib
 import itertools
 import os
 import re
-import shutil
-import tempfile
 import unittest
 from importlib import import_module, util
 from os import path
 from setuptools import find_packages
+
+from .utils import get_tmp_dir
 
 PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), ".."))
 PACKAGE_NAME = "pystiche"
@@ -102,44 +102,42 @@ class TestSmoke(unittest.TestCase):
 class TestGit(unittest.TestCase):
     @staticmethod
     @contextlib.contextmanager
-    def get_tmp_git_dir(**mkdtemp_kwargs):
-        tmp_git_dir = tempfile.mkdtemp(**mkdtemp_kwargs)
-        try:
+    def get_tmp_git_repo(**mkdtemp_kwargs):
+        with get_tmp_dir(**mkdtemp_kwargs) as tmp_git_repo:
             if git.is_available():
-                git.run("init", cwd=tmp_git_dir)
+                git.run("init", cwd=tmp_git_repo)
             else:
-                os.mkdir(path.join(tmp_git_dir, ".git"))
-            yield tmp_git_dir
-        finally:
-            shutil.rmtree(tmp_git_dir)
+                os.mkdir(path.join(tmp_git_repo, ".git"))
+            yield tmp_git_repo
 
     def test_git_is_available_smoke(self):
         self.assertIsInstance(git.is_available(), bool)
 
     def test_git_is_repo(self):
-        with self.get_tmp_git_dir() as repo:
+        with get_tmp_dir() as no_repo:
+            self.assertFalse(git.is_repo(no_repo))
+
+        with self.get_tmp_git_repo() as repo:
             self.assertTrue(git.is_repo(repo))
 
     @skip_if_git_not_available
     def test_git_is_dirty(self):
-        with self.get_tmp_git_dir() as repo:
-            with open(path.join(repo, "dirty"), "wb"):
-                pass
-
+        with self.get_tmp_git_repo() as repo:
+            file = "dirty"
+            open(path.join(repo, file), "wb").close()
             self.assertFalse(git.is_dirty(repo))
 
-            git.run("add", "dirty", cwd=repo)
-
+            git.run("add", file, cwd=repo)
             self.assertTrue(git.is_dirty(repo))
 
     @skip_if_git_not_available
     def test_git_hash(self):
-        with self.get_tmp_git_dir() as repo:
-            with open(path.join(repo, "dirty"), "wb"):
-                pass
-            git.run("add", "dirty", cwd=repo)
-            git.run("config", "user.name", "'pystiche test suite'", cwd=repo)
-            git.run("config", "user.email", "'testsuite@pystiche.org'", cwd=repo)
+        with self.get_tmp_git_repo() as repo:
+            file = "dirty"
+            open(path.join(repo, file), "wb").close()
+            git.run("add", file, cwd=repo)
+            git.run("config", "user.name", "'git test'", cwd=repo)
+            git.run("config", "user.email", "'git@test.org'", cwd=repo)
             git.run("commit", "-m", "'test commit'", cwd=repo)
 
             self.assertIsNotNone(re.match(r"^[0-9a-f]{7}$", git.hash(repo)))
