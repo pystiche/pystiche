@@ -55,7 +55,6 @@ def sanakoyeu_et_al_2018_gan_optim_loop(
     transformer_optimizer: Optional[Optimizer] = None,
     get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
     target_win_rate: float = 0.8,
-    discriminator_success: Optional[ExponentialMovingAverage] = None,
     impl_params: bool = True,
     device: Optional[torch.device] = None,
 ) -> nn.Module:
@@ -70,7 +69,7 @@ def sanakoyeu_et_al_2018_gan_optim_loop(
     if transformer_optimizer is None:
         transformer_optimizer = get_optimizer(transformer)
 
-    if discriminator_success is None:
+    if not "discriminator_success" in locals():
         discriminator_success = ExponentialMovingAverage("discriminator_success")
 
     def train_discriminator_one_step(
@@ -133,15 +132,11 @@ def sanakoyeu_et_al_2018_epoch_gan_optim_loop(
     discriminator_lr_scheduler: Optional[LRScheduler] = None,
     transformer_lr_scheduler: Optional[LRScheduler] = None,
     target_win_rate: float = 0.8,
-    discriminator_success: Optional[ExponentialMovingAverage] = None,
     impl_params: bool = True,
     device: Optional[torch.device] = None,
 ) -> nn.Module:
 
     style_image_loader = itertools.cycle(style_image_loader)
-
-    if discriminator_success is None:
-        discriminator_success = ExponentialMovingAverage("discriminator_success")
 
     if discriminator_optimizer is None:
         if discriminator_lr_scheduler is None:
@@ -168,7 +163,6 @@ def sanakoyeu_et_al_2018_epoch_gan_optim_loop(
             discriminator_optimizer=discriminator_optimizer,
             transformer_optimizer=transformer_optimizer,
             target_win_rate=target_win_rate,
-            discriminator_success=discriminator_success,
             impl_params=impl_params,
             device=device,
         )

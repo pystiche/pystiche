@@ -111,13 +111,6 @@ class MultiLayerDicriminatorEncodingOperator(MultiLayerEncodingOperator):
                 acc.append(op.get_current_acc())
         return torch.mean(torch.stack(acc))
 
-    def parameters(self):
-        parameters = list(self.encoder_parameters)
-        for op in self.operators():
-            if isinstance(op, DiscriminatorEncodingOperator):
-                parameters += list(op.pred_module.parameters())
-        return parameters
-
     def process_input_image(
         self, input_image: torch.Tensor, real: Optional[bool] = None
     ) -> pystiche.LossDict:

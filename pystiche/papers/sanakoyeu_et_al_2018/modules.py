@@ -370,18 +370,6 @@ def sanakoyeu_et_al_2018_discriminator_encoder_modules(
     return modules
 
 
-def sanakoyeu_et_al_2018_prediction_module(
-    in_channels: int, kernel_size: Union[Tuple[int, int], int], padding: str = "same"
-):
-    return sanakoyeu_et_al_2018_conv(
-        in_channels=in_channels,
-        out_channels=1,
-        kernel_size=kernel_size,
-        stride=1,
-        padding=padding,
-    )
-
-
 class SanakoyeuEtAl2018DiscriminatorEncoder(MultiLayerEncoder):
     def __init__(self, in_channels: int = 3) -> None:
         super().__init__(
@@ -408,3 +396,15 @@ class SanakoyeuEtAl2018DiscriminatorEncoder(MultiLayerEncoder):
 
                 modules[name] = module
         return modules
+
+
+def sanakoyeu_et_al_2018_prediction_module(
+    in_channels: int, kernel_size: Union[Tuple[int, int], int], padding: str = "same"
+):
+    return sanakoyeu_et_al_2018_conv(
+        in_channels=in_channels,
+        out_channels=1,
+        kernel_size=kernel_size,
+        stride=1,
+        padding=padding,
+    )
