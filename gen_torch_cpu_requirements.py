@@ -2,9 +2,9 @@ import argparse
 import re
 import sys
 from collections import namedtuple
+from platform import platform as _get_platform
 from urllib.parse import urljoin
 from urllib.request import urlopen
-from platform import platform as _get_platform
 
 WHL_PROPS = ("distribution", "version", "language", "abi", "platform")
 
