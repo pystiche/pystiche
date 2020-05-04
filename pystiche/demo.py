@@ -48,8 +48,7 @@ def demo_images():
                 file="mosaic.jpg",
                 author="Marie-Lan Nguyen",
                 date="2006",
-                # FIXME
-                license=PublicDomainLicense(1900),
+                license=PublicDomainLicense(),
                 md5="5b60cd1724395f7a0c21dc6dd006f8ae",
             ),
         }
