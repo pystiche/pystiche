@@ -1,0 +1,38 @@
+name: Code format
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - ".flake8"
+      - ".github/workflows/lint.yml"
+
+jobs:
+  check_code_format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.6"
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: pip install isort black flake8
+
+      - name: Check with isort
+        run: isort --settings-path=pyproject.toml --check-only --jobs=$(nproc) --recursive .
+
+      - name: Check with black
+        run: black --config=pyproject.toml --check .
+
+      - name: Check with flake8
+        run: flake8 --config=.flake8 --jobs=$(nproc) .

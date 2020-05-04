@@ -1,0 +1,48 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+    paths:
+      - "pystiche/**"
+      - "docs/**"
+      - ".github/workflows/build_docs.yml"
+
+jobs:
+  build_docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.6"
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install torch for CPU
+        run: |
+          REQUIREMENTS_FILE=github_actions_torch_requirements.txt
+          python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
+          pip install -r $REQUIREMENTS_FILE
+
+      - name: Install dependencies
+        run: pip install .[doc]
+
+      - name: Build html
+        working-directory: docs
+        run: make html
+
+      - name: Build latex
+        working-directory: docs
+        run: make latex
+
+      - name: Build coverage
+        working-directory: docs
+        run: |
+          make coverage
+          cat build/coverage/python.txt
