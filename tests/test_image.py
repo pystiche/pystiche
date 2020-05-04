@@ -7,7 +7,8 @@ import torch
 
 from pystiche.image import guides as guides_
 from pystiche.image import io, utils
-from utils import PysticheTestCase, get_tmp_dir
+
+from .utils import PysticheTestCase, get_tmp_dir
 
 
 class TestGuides(PysticheTestCase):

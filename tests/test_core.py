@@ -11,7 +11,8 @@ from torch import nn
 
 import pystiche
 from pystiche.misc import build_complex_obj_repr
-from utils import PysticheTestCase, skip_if_cuda_not_available
+
+from ._utils import PysticheTestCase, skip_if_cuda_not_available
 
 
 class TestObjects(PysticheTestCase):

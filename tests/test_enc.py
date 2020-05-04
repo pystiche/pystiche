@@ -8,7 +8,8 @@ from torch import nn
 import pystiche
 from pystiche import enc
 from pystiche.image.transforms import CaffePreprocessing, TorchPreprocessing
-from utils import ForwardPassCounter, PysticheTestCase
+
+from .utils import ForwardPassCounter, PysticheTestCase
 
 
 class TestEncoder(PysticheTestCase):

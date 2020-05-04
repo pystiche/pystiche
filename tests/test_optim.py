@@ -10,7 +10,8 @@ from torch.optim.optimizer import Optimizer
 
 import pystiche
 from pystiche import optim
-from utils import PysticheTestCase
+
+from .utils import PysticheTestCase
 
 
 class TestLog(PysticheTestCase):

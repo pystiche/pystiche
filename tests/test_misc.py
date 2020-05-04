@@ -4,7 +4,8 @@ import unittest
 import torch
 
 from pystiche.misc import cuda, misc
-from utils import PysticheTestCase, skip_if_cuda_not_available
+
+from .utils import PysticheTestCase, skip_if_cuda_not_available
 
 
 class TestMisc(PysticheTestCase):

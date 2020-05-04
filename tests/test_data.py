@@ -3,7 +3,8 @@ import os
 from os import path
 
 from pystiche import data
-from utils import PysticheTestCase, get_tmp_dir
+
+from .utils import PysticheTestCase, get_tmp_dir
 
 
 class TestDatasets(PysticheTestCase):

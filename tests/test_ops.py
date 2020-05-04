@@ -9,7 +9,8 @@ from pystiche import ops
 from pystiche.enc import MultiLayerEncoder, SequentialEncoder, SingleLayerEncoder
 from pystiche.image.transforms.functional import transform_motif_affinely
 from pystiche.ops import functional as F
-from utils import PysticheTestCase
+
+from .utils import PysticheTestCase
 
 
 class TestComparison(PysticheTestCase):
