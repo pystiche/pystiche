@@ -31,15 +31,9 @@ def get_torch_cpu_pattern():
     abi = r"(?P<abi>\w+)"
     platform = r"(?P<platform>\w+)"
 
-    if platform.startswith("macosx"):
-        # The macOS binaries are CPU-only by default
-        pattern = re.compile(
-            fr"{distribution}-{version}-{language}-{abi}-{platform}[.]whl"
-        )
-    else:
-        pattern = re.compile(
-            fr"cpu/{distribution}-{version}(%2Bcpu)?-{language}-{abi}-{platform}[.]whl"
-        )
+    pattern = re.compile(
+        fr"(cpu/)?{distribution}-{version}(%2Bcpu)?-{language}-{abi}-{platform}[.]whl"
+    )
 
     if set(pattern.groupindex.keys()) == set(WHL_PROPS):
         return pattern
