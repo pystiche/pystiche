@@ -7,6 +7,8 @@ __all__ = [
     "UnknownLicense",
     "NoLicense",
     "PublicDomainLicense",
+    "ExpiredCopyrightLicense",
+    "PixabayLicense",
     "CreativeCommonsLicense",
 ]
 
@@ -34,6 +36,15 @@ class NoLicense(License):
 
 
 class PublicDomainLicense(License):
+    def __repr__(self) -> str:
+        return (
+            "The copyright holder released this image into the public domain. This "
+            "grants anyone the right to use this image for any purpose, without any "
+            "conditions, unless such conditions are required by law."
+        )
+
+
+class ExpiredCopyrightLicense(PublicDomainLicense):
     def __init__(self, author_death_year: int):
         self.author_death_year = author_death_year
 
@@ -45,6 +56,11 @@ class PublicDomainLicense(License):
             f"{years_since_author_death} years. Check your local laws before "
             f"proceeding."
         )
+
+
+class PixabayLicense(License):
+    def __repr__(self) -> str:
+        return "Pixabay (https://pixabay.com/service/license/)"
 
 
 class CreativeCommonsLicense(License):

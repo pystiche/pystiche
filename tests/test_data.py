@@ -107,7 +107,15 @@ class TestLicense(PysticheTestCase):
         self.assertIsInstance(repr(license), str)
 
     def test_PublicDomainLicense_repr_smoke(self):
-        license = data.PublicDomainLicense(1970)
+        license = data.PublicDomainLicense()
+        self.assertIsInstance(repr(license), str)
+
+    def test_ExpiredCopyrightLicense_repr_smoke(self):
+        license = data.ExpiredCopyrightLicense(1970)
+        self.assertIsInstance(repr(license), str)
+
+    def test_Pixabay_repr_smoke(self):
+        license = data.PixabayLicense()
         self.assertIsInstance(repr(license), str)
 
     def test_CreativeCommonsLicense_repr_smoke(self):
