@@ -4,7 +4,7 @@ from pystiche.data import (
     CreativeCommonsLicense,
     DownloadableImage,
     DownloadableImageCollection,
-    PublicDomainLicense,
+    ExpiredCopyrightLicense,
 )
 
 __all__ = ["gatys_ecker_bethge_2015_images"]
@@ -27,7 +27,7 @@ def gatys_ecker_bethge_2015_images(
             title="Shipwreck of the Minotaur",
             author="J. M. W. Turner",
             date="ca. 1810",
-            license=PublicDomainLicense(1851),
+            license=ExpiredCopyrightLicense(1851),
             md5="4fb76d6f6fc1678cb74e858324d4d0cb",
             file="shipwreck_of_the_minotaur__turner.jpg",
         ),
@@ -36,7 +36,7 @@ def gatys_ecker_bethge_2015_images(
             title="Starry Night",
             author="Vincent van Gogh",
             date="ca. 1889",
-            license=PublicDomainLicense(1890),
+            license=ExpiredCopyrightLicense(1890),
             md5="372e5bc438e3e8d0eb52cc6f7ef44760",
         ),
         "the_scream": DownloadableImage(
@@ -44,7 +44,7 @@ def gatys_ecker_bethge_2015_images(
             title="The Scream",
             author="Edvard Munch",
             date="ca. 1893",
-            license=PublicDomainLicense(1944),
+            license=ExpiredCopyrightLicense(1944),
             md5="46ef64eea5a7b2d13dbadd420b531249",
         ),
         "femme_nue_assise": DownloadableImage(
@@ -52,7 +52,7 @@ def gatys_ecker_bethge_2015_images(
             title="Figure dans un Fauteuil",
             author="Pablo Ruiz Picasso",
             date="ca. 1909",
-            license=PublicDomainLicense(1973),
+            license=ExpiredCopyrightLicense(1973),
             md5="ba14b947b225d9e5c59520a814376944",
         ),
         "composition_vii": DownloadableImage(
@@ -60,7 +60,7 @@ def gatys_ecker_bethge_2015_images(
             title="Composition VII",
             author="Wassily Kandinsky",
             date="1913",
-            license=PublicDomainLicense(1944),
+            license=ExpiredCopyrightLicense(1944),
             md5="bfcbc420684bf27d2d8581fa8cc9522f",
         ),
     }

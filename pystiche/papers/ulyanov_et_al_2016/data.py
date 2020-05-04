@@ -10,7 +10,7 @@ from pystiche.data import (
     DownloadableImageCollection,
     FiniteCycleBatchSampler,
     ImageFolderDataset,
-    PublicDomainLicense,
+    ExpiredCopyrightLicense,
 )
 from pystiche.image import extract_num_channels
 from pystiche.image.transforms import (
@@ -104,7 +104,7 @@ def ulyanov_et_al_2016_images(
             title="CheHigh",
             author="Alberto Korda",
             date="1960",
-            license=PublicDomainLicense(1960),
+            license=ExpiredCopyrightLicense(1960),
             md5="cffc0768090c5a705cbb30fdc24c3e64",
             file="CheHigh.jpg",
         ),
@@ -113,7 +113,7 @@ def ulyanov_et_al_2016_images(
             title="The Tower of Babel",
             author="Pieter Bruegel",
             date="1563",
-            license=PublicDomainLicense(1563),
+            license=ExpiredCopyrightLicense(1563),
             md5="1e113716c8aad6c2ca826ae0b83ffc76",
             file="the_tower_of_babel.jpg",
         ),
@@ -172,7 +172,7 @@ def ulyanov_et_al_2016_images(
             title="Portrait of Jean Metzinger",
             author="Jean Metzinger",
             date="1906",
-            license=PublicDomainLicense(1906),
+            license=ExpiredCopyrightLicense(1906),
             md5="3539d50d2808b8eec5b05f892d8cf1e1",
             file="jean_metzinger.jpg",
         ),

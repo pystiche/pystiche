@@ -7,7 +7,7 @@ from pystiche.data import (
     DownloadableImage,
     DownloadableImageCollection,
     NoLicense,
-    PublicDomainLicense,
+    ExpiredCopyrightLicense,
 )
 
 __all__ = ["li_wand_2016_images"]
@@ -115,7 +115,7 @@ def li_wand_2016_images(
             title="Self-Portrait",
             author="Pablo Ruiz Picasso",
             date="1907",
-            license=PublicDomainLicense(1973),
+            license=ExpiredCopyrightLicense(1973),
             note=image_note("https://www.pablo-ruiz-picasso.net/images/works/57.jpg"),
             md5="4bd9c963fd52feaa940083f07e259aea",
         ),
@@ -134,7 +134,7 @@ def li_wand_2016_images(
             title="Composition VIII",
             author="Wassily Kandinsky",
             date="1923",
-            license=PublicDomainLicense(1944),
+            license=ExpiredCopyrightLicense(1944),
             md5="c39077aaa181fd40d7f2cd00c9c09619",
         ),
     }

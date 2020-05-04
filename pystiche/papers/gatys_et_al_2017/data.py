@@ -4,7 +4,7 @@ from pystiche.data import (
     CreativeCommonsLicense,
     DownloadableImage,
     DownloadableImageCollection,
-    PublicDomainLicense,
+    ExpiredCopyrightLicense,
 )
 
 __all__ = ["gatys_et_al_2017_images"]
@@ -31,7 +31,7 @@ def gatys_et_al_2017_images(
             title="Wheat Field with Cypresses",
             author="Vincent van Gogh",
             date="1889",
-            license=PublicDomainLicense(1890),
+            license=ExpiredCopyrightLicense(1890),
             md5="bfd085d7e800459c8ffb44fa404f73c3",
         ),
         "schultenhof": DownloadableImage(
@@ -47,7 +47,7 @@ def gatys_et_al_2017_images(
             title="Starry Night Over the Rhone",
             author="Vincent Willem van Gogh",
             date="1888",
-            license=PublicDomainLicense(1890),
+            license=ExpiredCopyrightLicense(1890),
             md5="406681ec165fa55c26cb6f988907fe11",
         ),
     }
