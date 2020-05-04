@@ -98,7 +98,7 @@ def get_platform():
     elif system == "Windows":
         return "win_amd64"
     elif system == "Darwin":
-        major, minor, patch = platform.mac_ver()[0]
+        major, minor, patch = platform.mac_ver()[0].split(".")
         return f"macosx_{major}_{minor}_x86_64"
     else:
         msg = (
