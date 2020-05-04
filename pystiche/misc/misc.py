@@ -40,7 +40,7 @@ __all__ = [
     "build_fmtstr",
     "format_dict",
     "verify_str_arg",
-    "build_obj_str",
+    "build_complex_object_repr",
     "is_almost",
     "make_reproducible",
     "get_input_image",
@@ -201,7 +201,7 @@ def verify_str_arg(
     return arg
 
 
-def build_obj_str(
+def build_complex_object_repr(
     name: str,
     properties: Dict[str, Any] = None,
     named_children: Sequence[Tuple[str, Any]] = (),
@@ -226,9 +226,7 @@ def build_obj_str(
         len(body) + (num_indent if named_children else len(prefix) + len(postfix))
         > line_length
     )
-    multiline_body = any(
-        [len(str(value).splitlines()) > 1 for value in properties.values()]
-    )
+    multiline_body = len(str(body).splitlines()) > 1
 
     if body_too_long or multiline_body:
         body = format_properties(properties, ",\n")
@@ -244,6 +242,33 @@ def build_obj_str(
             body.append(indent(line))
 
     return "\n".join([prefix] + body + [postfix])
+
+
+def build_object_str(
+    name: str,
+    properties: Dict[str, Any] = None,
+    properties_threshold: Optional[int] = None,
+    **kwargs: Any,
+):
+    msg = build_deprecation_message(
+        "The function build_object_str",
+        "0.4.0",
+        info="It was renamed to build_complex_object_repr.",
+    )
+    warnings.warn(msg)
+
+    if properties_threshold is not None:
+        msg = build_deprecation_message(
+            "The parameter properties_threshold",
+            "0.4.0",
+            info="The line breaks are now controlled by the line_length parameter.",
+        )
+        warnings.warn(msg)
+        line_length = 0 if len(properties) > properties_threshold else 10_000
+    else:
+        line_length = 80
+
+    return build_complex_object_repr(name, line_length=line_length, **kwargs)
 
 
 def is_almost(actual: float, desired: float, eps=1e-6):
