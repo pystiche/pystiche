@@ -1,4 +1,5 @@
 import argparse
+import platform
 import re
 import sys
 from collections import namedtuple
@@ -29,8 +30,9 @@ def get_torch_cpu_pattern():
     language = r"(?P<language>\w+)"
     abi = r"(?P<abi>\w+)"
     platform = r"(?P<platform>\w+)"
+
     pattern = re.compile(
-        fr"cpu/{distribution}-{version}(%2Bcpu)?-{language}-{abi}-{platform}[.]whl"
+        fr"(cpu/)?{distribution}-{version}(%2Bcpu)?-{language}-{abi}-{platform}[.]whl"
     )
 
     if set(pattern.groupindex.keys()) == set(WHL_PROPS):
@@ -60,9 +62,12 @@ def select_link(whls, distribution, language, abi, platform):
         if selected_whls:
             return selected_whls
 
-        # TODO: include message
-        # valid_vals = set([getattr(whl, attr) for whl in whls])
-        raise RuntimeError
+        valid_vals = sorted(set([getattr(whl, attr) for whl in whls]))
+        msg = (
+            f"'{val}' is invalid for attribute '{attr}'. "
+            f"Valid values are ({' ,'.join(valid_vals)})"
+        )
+        raise RuntimeError(msg)
 
     whls = select(whls, "distribution", distribution)
     whls = select(whls, "language", language)
@@ -91,8 +96,21 @@ def get_language():
 
 
 def get_platform():
-    # FIXME: use _get_platform() to make this dynamic
-    return "linux_x86_64"
+    system = platform.system()
+    if system == "Linux":
+        return "linux_x86_64"
+    elif system == "Windows":
+        return "win_amd64"
+    elif system == "Darwin":
+        major = 10
+        minor = 9 if sys.version_info >= (3, 6) else 6
+        return f"macosx_{major}_{minor}_x86_64"
+    else:
+        msg = (
+            f"System '{system}' is not recognized. Try setting it manually with "
+            "--platform"
+        )
+        raise RuntimeError(msg)
 
 
 def parse_input():
