@@ -8,12 +8,11 @@ from pystiche import loss
 from pystiche.enc import MultiLayerEncoder, SequentialEncoder
 from pystiche.ops import (
     EncodingOperator,
-    MSEEncodingOperator,
+    FeatureReconstructionOperator,
     MultiRegionOperator,
     Operator,
     PixelComparisonOperator,
     TotalVariationOperator,
-    FeatureReconstructionOperator,
 )
 from utils import ForwardPassCounter, PysticheTestCase
 
