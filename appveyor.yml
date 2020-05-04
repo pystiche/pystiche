@@ -1,0 +1,29 @@
+branches:
+  only:
+    - master
+
+environment:
+  matrix:
+    - PYTHON: "C:\\Python36"
+    - PYTHON: "C:\\Python36-x64"
+    - PYTHON: "C:\\Python37"
+    - PYTHON: "C:\\Python37-x64"
+    - PYTHON: "C:\\Python38"
+    - PYTHON: "C:\\Python38-x64"
+
+init:
+  - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - mklink %PYTHON%\python3.exe %PYTHON%\python.exe
+  - python3 --version
+  - pip3 --version
+
+build: false
+
+install:
+  - sh .ci/install.sh
+
+test_script:
+  - sh .ci/test.sh
+
+on_success:
+  - sh .ci/after_success.sh
