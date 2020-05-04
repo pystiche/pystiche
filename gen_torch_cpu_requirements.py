@@ -61,9 +61,12 @@ def select_link(whls, distribution, language, abi, platform):
         if selected_whls:
             return selected_whls
 
-        # TODO: include message
-        # valid_vals = set([getattr(whl, attr) for whl in whls])
-        raise RuntimeError
+        valid_vals = sorted(set([getattr(whl, attr) for whl in whls]))
+        msg = (
+            f"'{val}' is invalid for attribute '{attr}'. "
+            f"Valid values are ({' ,'.join(valid_vals)})"
+        )
+        raise RuntimeError(msg)
 
     whls = select(whls, "distribution", distribution)
     whls = select(whls, "language", language)
@@ -98,7 +101,8 @@ def get_platform():
     elif system == "Windows":
         return "win_amd64"
     elif system == "Darwin":
-        major, minor, patch = platform.mac_ver()[0].split(".")
+        major = 10
+        minor = 9 if sys.version_info >= (3, 6) else 6
         return f"macosx_{major}_{minor}_x86_64"
     else:
         msg = (
