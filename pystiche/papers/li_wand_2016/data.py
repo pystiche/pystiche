@@ -6,8 +6,8 @@ from pystiche.data import (
     CreativeCommonsLicense,
     DownloadableImage,
     DownloadableImageCollection,
-    NoLicense,
     ExpiredCopyrightLicense,
+    NoLicense,
 )
 
 __all__ = ["li_wand_2016_images"]

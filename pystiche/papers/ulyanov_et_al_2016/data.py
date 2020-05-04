@@ -8,9 +8,9 @@ from pystiche.data import (
     CreativeCommonsLicense,
     DownloadableImage,
     DownloadableImageCollection,
+    ExpiredCopyrightLicense,
     FiniteCycleBatchSampler,
     ImageFolderDataset,
-    ExpiredCopyrightLicense,
 )
 from pystiche.image import extract_num_channels
 from pystiche.image.transforms import (

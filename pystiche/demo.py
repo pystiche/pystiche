@@ -1,8 +1,8 @@
 from pystiche.data import (
     DownloadableImage,
     DownloadableImageCollection,
-    PublicDomainLicense,
     PixabayLicense,
+    PublicDomainLicense,
 )
 
 __all__ = ["demo_images"]
