@@ -12,27 +12,8 @@ before_install:
   - python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
   - pip install -r $REQUIREMENTS_FILE
 
-jobs:
-  include:
-    - name: "Code format"
-      before_install: skip
-      install: pip install isort black flake8
-      script:
-        - isort --settings-path=pyproject.toml --check-only --jobs=$(nproc) --recursive .
-        - black --config=pyproject.toml --check .
-        - flake8 --config=.flake8 --jobs=$(nproc) .
-    - name: "Tests"
-      install: pip install --upgrade .[test] coverage codecov
-      script: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
-      after_success: codecov
-    - name: "Docs"
-      install: pip install .[doc]
-      before_script: cd docs
-      script:
-        - make html
-        - make latex
-        - make coverage
-      after_success:
-        - cd build/coverage
-        - cat python.txt
+install: pip install --upgrade .[test] coverage codecov
 
+script: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
+
+after_success: codecov

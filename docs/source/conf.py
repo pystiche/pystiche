@@ -24,13 +24,14 @@ def get_bool_env_var(name, default=False):
         return default
 
 
+run_by_github_actions = get_bool_env_var("GITHUB_ACTIONS")
 run_by_travis_ci = get_bool_env_var("TRAVIS")
 run_by_rtd = get_bool_env_var("READTHEDOCS")
-plot_gallery = (
-    get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True)
-    and not run_by_travis_ci
-    and not run_by_rtd
+run_by_ci = (
+    run_by_github_actions or run_by_travis_ci or run_by_rtd or get_bool_env_var("CI")
 )
+
+plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not run_by_ci
 
 
 # -- Path setup --------------------------------------------------------------
