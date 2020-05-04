@@ -20,7 +20,7 @@ optimization, could be performed with ``pystiche``.
 # be working on.
 
 import pystiche
-from pystiche.demo import demo_images
+from pystiche.demo import demo_images, demo_logger
 from pystiche.enc import vgg19_multi_layer_encoder
 from pystiche.image import show_image, write_image
 from pystiche.loss import PerceptualLoss
@@ -197,8 +197,15 @@ show_image(input_image, title="Input image")
 # ``get_optimizer`` is not specified, as is the case here, the
 # :func:`~pystiche.optim.optim.default_image_optimizer`, i.e.
 # :class:`~torch.optim.lbfgs.LBFGS` is used.
+#
+# .. note::
+#
+#   By default ``pystiche`` logs the time during an optimization. In order to reduce
+#   the clutter, we use the minimal ``demo_logger`` here.
 
-output_image = default_image_optim_loop(input_image, criterion, num_steps=500)
+output_image = default_image_optim_loop(
+    input_image, criterion, num_steps=500, logger=demo_logger()
+)
 
 
 ########################################################################################
