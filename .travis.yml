@@ -1,19 +1,28 @@
-os: linux
-dist: bionic
-language: python
-python: 3.6
-
 branches:
   only:
     - "master"
 
-before_install:
-  - REQUIREMENTS_FILE=travis_ci_torch_requirements.txt
-  - python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
-  - pip install -r $REQUIREMENTS_FILE
+os: linux
+dist: bionic
 
-install: pip install --upgrade .[test] coverage codecov
+language: python
+python:
+  - 3.6
+  - 3.7
+  - 3.8
 
-script: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
+jobs:
+  fast_finish: true
+  include:
+    - os: osx
+      language: shell
 
-after_success: codecov
+before_install: chmod +x .ci/install.sh
+install: ./.ci/install.sh
+
+before_script:
+  - chmod +x .ci/test.sh
+  - chmod +x .ci/after_success.sh
+script: ./.ci/test.sh
+
+after_success: ./.ci/after_success.sh
