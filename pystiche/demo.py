@@ -1,11 +1,15 @@
+import logging
+import sys
+
 from pystiche.data import (
     DownloadableImage,
     DownloadableImageCollection,
     PixabayLicense,
     PublicDomainLicense,
 )
+from pystiche.optim import OptimLogger
 
-__all__ = ["demo_images"]
+__all__ = ["demo_images", "demo_logger"]
 
 
 def demo_images():
@@ -53,3 +57,14 @@ def demo_images():
             ),
         }
     )
+
+
+def demo_logger():
+    logger = logging.getLogger("demo_logger")
+    logger.setLevel(logging.INFO)
+
+    sh = logging.StreamHandler(sys.stdout)
+    sh.setLevel(logging.INFO)
+    logger.addHandler(sh)
+
+    return OptimLogger(logger)

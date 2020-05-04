@@ -19,7 +19,7 @@ the overall result :cite:`LW2016,GEB+2017`.
 # be working on.
 
 import pystiche
-from pystiche.demo import demo_images
+from pystiche.demo import demo_images, demo_logger
 from pystiche.enc import vgg19_multi_layer_encoder
 from pystiche.image import show_image, write_image
 from pystiche.loss import PerceptualLoss
@@ -140,7 +140,9 @@ show_image(input_image, title="Input image")
 # :func:`~pystiche.optim.optim.default_image_optimizer`, i.e.
 # :class:`~torch.optim.lbfgs.LBFGS` is used.
 
-output_image = default_image_pyramid_optim_loop(input_image, criterion, pyramid)
+output_image = default_image_pyramid_optim_loop(
+    input_image, criterion, pyramid, logger=demo_logger()
+)
 
 # sphinx_gallery_thumbnail_number = 4
 show_image(output_image, title="Output image")
