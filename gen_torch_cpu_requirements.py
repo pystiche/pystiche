@@ -5,6 +5,7 @@ from collections import namedtuple
 from platform import platform as _get_platform
 from urllib.parse import urljoin
 from urllib.request import urlopen
+import platform
 
 WHL_PROPS = ("distribution", "version", "language", "abi", "platform")
 
@@ -91,14 +92,21 @@ def get_language():
     return f"cp{major}{minor}"
 
 
-def get_system():
-    platform = _get_platform(aliased=True, terse=True)
-    # FIXME
-    print(platform)
-    if platform.startswith("Linux"):
+def get_platform():
+    system = platform.system()
+    if system == "Linux":
         return "linux_x86_64"
+    elif system == "Windows":
+        return "win_amd64"
+    elif system == "MacOS":
+        major, minor, patch = platform.mac_ver()[0]
+        return f"macosx_{major}_{minor}_x86_64"
     else:
-        raise RuntimeError
+        msg = (
+            f"System '{system}' is not recognized. Try setting it manually with "
+            "--platform"
+        )
+        raise RuntimeError(msg)
 
 
 def parse_input():
@@ -140,7 +148,7 @@ def parse_input():
     if args.language is None:
         args.language = get_language()
     if args.platform is None:
-        args.platform = get_system()
+        args.platform = get_platform()
     return args
 
 
