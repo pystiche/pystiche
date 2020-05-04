@@ -41,6 +41,7 @@ __all__ = [
     "format_dict",
     "verify_str_arg",
     "build_obj_str",
+    "build_complex_obj_repr",
     "is_almost",
     "make_reproducible",
     "get_input_image",
@@ -201,36 +202,39 @@ def verify_str_arg(
     return arg
 
 
-def build_obj_str(
+def build_complex_obj_repr(
     name: str,
     properties: Dict[str, Any] = None,
     named_children: Sequence[Tuple[str, Any]] = (),
-    properties_threshold: int = 4,
+    line_length: int = 80,
     num_indent: int = 2,
 ):
-    prefix = f"{name}("
-    postfix = ")"
-
-    if properties is None:
-        properties = {}
-
-    num_properties = len(properties)
-    multiline_properties = any(
-        [len(str(value).splitlines()) > 1 for value in properties.values()]
-    )
-
-    if not multiline_properties and num_properties < properties_threshold:
-        properties = ", ".join([f"{key}={value}" for key, value in properties.items()])
-
-        if not named_children:
-            return prefix + properties + postfix
-    else:
-        properties = ",\n".join([f"{key}={value}" for key, value in properties.items()])
+    def format_properties(properties, sep):
+        return sep.join([f"{key}={value}" for key, value in properties.items()])
 
     def indent(line):
         return " " * num_indent + line
 
-    body = [indent(line) for line in properties.splitlines()]
+    if properties is None:
+        properties = {}
+
+    prefix = f"{name}("
+    postfix = ")"
+
+    body = format_properties(properties, ", ")
+
+    body_too_long = (
+        len(body) + (num_indent if named_children else len(prefix) + len(postfix))
+        > line_length
+    )
+    multiline_body = len(str(body).splitlines()) > 1
+
+    if body_too_long or multiline_body:
+        body = format_properties(properties, ",\n")
+    elif not named_children:
+        return prefix + body + postfix
+
+    body = [indent(line) for line in body.splitlines()]
 
     for name, module in named_children:
         lines = str(module).splitlines()
@@ -239,6 +243,33 @@ def build_obj_str(
             body.append(indent(line))
 
     return "\n".join([prefix] + body + [postfix])
+
+
+def build_obj_str(
+    name: str,
+    properties: Dict[str, Any] = None,
+    properties_threshold: Optional[int] = None,
+    **kwargs: Any,
+):
+    msg = build_deprecation_message(
+        "The function build_obj_str",
+        "0.4.0",
+        info="It was renamed to build_complex_obj_repr.",
+    )
+    warnings.warn(msg)
+
+    if properties_threshold is not None:
+        msg = build_deprecation_message(
+            "The parameter properties_threshold",
+            "0.4.0",
+            info="The line breaks are now controlled by the line_length parameter.",
+        )
+        warnings.warn(msg)
+        line_length = 0 if len(properties) > properties_threshold else 10_000
+    else:
+        line_length = 80
+
+    return build_complex_obj_repr(name, line_length=line_length, **kwargs)
 
 
 def is_almost(actual: float, desired: float, eps=1e-6):
