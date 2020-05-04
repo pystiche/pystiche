@@ -20,9 +20,9 @@ from torch import nn
 
 from pystiche.meta import is_scalar_tensor
 from pystiche.misc import (
+    build_complex_object_repr,
     build_deprecation_message,
     build_fmtstr,
-    build_complex_object_repr,
     format_dict,
 )
 
