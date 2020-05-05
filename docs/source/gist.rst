@@ -3,7 +3,8 @@ Gist
 
 In general, a Neural StyleTransfer (NST) merges the content of one image and the style of another into a new stylized image.
 
-### IMAGE
+.. image:: graphics/banner/banner.jpg
+    :alt: pystiche banner
 
 This process is controlled by optimizing a multi-goal criterion called
 *perceptual loss*. This perceptual loss usually comprises a ``content_loss`` and a
