@@ -19,7 +19,7 @@ about = {"git": git, "_PROJECT_ROOT": PROJECT_ROOT}
 with open(path.join(PACKAGE_ROOT, "__about__.py"), "r") as fh:
     exec(fh.read(), about)
 
-with open(path.join(PROJECT_ROOT, "README.md"), "r") as fh:
+with open(path.join(PROJECT_ROOT, "README.rst"), "r") as fh:
     long_description = fh.read()
 
 install_requires = (
@@ -68,7 +68,7 @@ setup(
     author=about["__author__"],
     author_email=about["__author_email__"],
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     packages=find_packages(where=PROJECT_ROOT, exclude=("docs", "test", "tutorials")),
     install_requires=install_requires,
     extras_require=extras_require,
