@@ -31,14 +31,17 @@ built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
 Getting started
 ---------------
 
-``pystiche`` is a proper Python package and can be installed with ``pip``. It is not
-yet listed on `PyPI <https://pypi.org/>`_, since it will be reviewed at
-`pyOpenSci <https://github.com/pmeier/pystiche/issues/93>`_ . You can install the
-latest version with
+``pystiche`` is a proper Python package and can be installed with ``pip``. To install
+the latest version run
 
 .. code-block:: sh
 
   pip install git+https://github.com/pmeier/pystiche
+
+.. note::
+
+  ``pystiche`` is not yet listed on `PyPI <https://pypi.org/>`_, since it will be
+  reviewed at `pyOpenSci <https://github.com/pmeier/pystiche/issues/93>`_ .
 
 For extended installation instructions and usage examples please consult the
 documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/latest>`_ .
