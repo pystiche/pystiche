@@ -18,10 +18,10 @@
 ``pystiche``
 ============
 
-``pystiche`` is framework for
+``pystiche`` is a framework for
 `Neural Style Transfer (NST) <https://github.com/ycjing/Neural-Style-Transfer-Papers>`_
-built upon `PyTorch <https://pytorch.org>`_ . The name of the project is a pun on
-`pastiche <https://en.wikipedia.org/wiki/Pastiche>`_ meaning:
+built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
+*pastiche* `meaning <https://en.wikipedia.org/wiki/Pastiche>`_:
 
     A pastiche is a work of visual art [...] that imitates the style or character of
     the work of one or more other artists. Unlike parody, pastiche celebrates, rather
