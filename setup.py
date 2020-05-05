@@ -36,7 +36,7 @@ doc_requires = (
     "sphinx < 3.0.0",
     "sphinxcontrib-bibtex",
     "sphinx_autodoc_typehints",
-    "sphinx-gallery",
+    "sphinx-gallery>=FIXME",
     # Install additional sphinx-gallery dependencies
     # https://sphinx-gallery.github.io/stable/index.html#install-via-pip
     "matplotlib",
