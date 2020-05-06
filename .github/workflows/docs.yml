@@ -23,8 +23,8 @@ jobs:
 
       - name: Install latex requirements
         run: |
-          apt update -y
-          apt install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+          sudo apt update -y
+          sudo apt install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
 
       - name: Checkout repository
         uses: actions/checkout@v2
