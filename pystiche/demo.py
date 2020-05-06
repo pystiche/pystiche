@@ -29,7 +29,7 @@ def demo_images():
                 author="gholmz0",
                 date="09.03.2013",
                 license=PixabayLicense(),
-                md5="d42444d3cd0afa47f07066cd083d6cea",
+                md5="36e5fef725943a5d1d22b5048095da86",
             ),
             "paint": DownloadableImage(
                 "https://cdn.pixabay.com/photo/2017/07/03/20/17/abstract-2468874_960_720.jpg",
@@ -45,7 +45,7 @@ def demo_images():
                 author="12019",
                 date="09.04.2012",
                 license=PixabayLicense(),
-                md5="dda3e1d0f93f783de823b4f91129d44e",
+                md5="8c5b608bd579d931e2cfe7229840fe9b",
             ),
             "mosaic": DownloadableImage(
                 "https://upload.wikimedia.org/wikipedia/commons/2/23/Mosaic_ducks_Massimo.jpg",
