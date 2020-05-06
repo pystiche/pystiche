@@ -18,10 +18,10 @@
 ``pystiche``
 ============
 
-``pystiche`` is framework for
+``pystiche`` is a framework for
 `Neural Style Transfer (NST) <https://github.com/ycjing/Neural-Style-Transfer-Papers>`_
-built upon `PyTorch <https://pytorch.org>`_ . The name of the project is a pun on
-`pastiche <https://en.wikipedia.org/wiki/Pastiche>`_ meaning:
+built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
+*pastiche* `meaning <https://en.wikipedia.org/wiki/Pastiche>`_:
 
     A pastiche is a work of visual art [...] that imitates the style or character of
     the work of one or more other artists. Unlike parody, pastiche celebrates, rather
@@ -31,14 +31,17 @@ built upon `PyTorch <https://pytorch.org>`_ . The name of the project is a pun o
 Getting started
 ---------------
 
-``pystiche`` is a proper Python package and can be installed with ``pip``. It is not
-yet listed on `PyPI <https://pypi.org/>`_, since it will be reviewed at
-`pyOpenSci <https://github.com/pmeier/pystiche/issues/93>`_ . You can install the
-latest version with
+``pystiche`` is a proper Python package and can be installed with ``pip``. To install
+the latest version run
 
 .. code-block:: sh
 
   pip install git+https://github.com/pmeier/pystiche
+
+.. note::
+
+  ``pystiche`` is not yet listed on `PyPI <https://pypi.org/>`_, since it will be
+  reviewed at `pyOpenSci <https://github.com/pmeier/pystiche/issues/93>`_ .
 
 For extended installation instructions and usage examples please consult the
 documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/latest>`_ .
