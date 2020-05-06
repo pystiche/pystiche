@@ -45,10 +45,10 @@ jobs:
 
       - name: Build latex
         working-directory: docs
-        run: make latex
+        run: make latexpdf
 
       - name: Upload latex build
         uses: actions/upload-artifact@v2
         with:
-          name: latexpdf
+          name: latex
           path: docs/build/latex/pystiche.pdf
