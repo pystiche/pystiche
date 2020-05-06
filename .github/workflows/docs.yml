@@ -33,16 +33,19 @@ jobs:
       - name: Install dependencies
         run: pip install .[doc]
 
-      - name: Build html
-        working-directory: docs
-        run: make html
+      - name: Build docs
+        uses: ammaraskar/sphinx-action@0.4
+        with:
+          docs-folder: "docs/"
 
-      - name: Build latex
-        working-directory: docs
-        run: make latex
+      - name: Upload HTML build
+        uses: actions/upload-artifact@v2
+        with:
+          name: html
+          path: docs/build/html
 
-      - name: Build coverage
-        working-directory: docs
-        run: |
-          make coverage
-          cat build/coverage/python.txt
+      - name: Upload Latex build
+          uses: actions/upload-artifact@v2
+          with:
+            name: latex
+            path: docs/build/latex/pystiche.pdf
