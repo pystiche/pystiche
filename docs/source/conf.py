@@ -97,6 +97,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # -- Sphinx gallery configuration --------------------------------------------
 
 if download_gallery:
+    print("Downloading pre-built galleries")
+
     base = "https://store.hs-owl.de:443/ssf/s/readFile/share/14247/-6115318448666630413/publicLink/"
     file = "galleries.zip"
     with open(file, "wb") as fh:
