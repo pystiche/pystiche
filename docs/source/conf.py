@@ -8,10 +8,13 @@
 
 import os
 import warnings
+import zipfile
 from datetime import datetime
 from distutils.util import strtobool
 from os import path
+from urllib.parse import urljoin
 
+import requests
 from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 
 # -- Run config --------------------------------------------------------------
@@ -31,13 +34,15 @@ run_by_rtd = get_bool_env_var("READTHEDOCS")
 run_by_ci = (
     run_by_github_actions
     or run_by_travis_ci
-    or run_by_rtd
     or run_by_appveyor
+    or run_by_rtd
     or get_bool_env_var("CI")
 )
 
 plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not run_by_ci
-
+download_gallery = (
+    get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY", default=not plot_gallery) or run_by_ci
+)
 
 # -- Path setup --------------------------------------------------------------
 
@@ -90,6 +95,16 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Sphinx gallery configuration --------------------------------------------
+
+if download_gallery:
+    base = "https://store.hs-owl.de:443/ssf/s/readFile/share/14247/-6115318448666630413/publicLink/"
+    file = "galleries.zip"
+    with open(file, "wb") as fh:
+        fh.write(requests.get(urljoin(base, file)).content)
+
+    with zipfile.ZipFile(file, "r") as zipfh:
+        zipfh.extractall(".")
+    os.remove(file)
 
 extensions.append("sphinx_gallery.gen_gallery")
 
