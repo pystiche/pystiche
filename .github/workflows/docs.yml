@@ -33,19 +33,22 @@ jobs:
       - name: Install dependencies
         run: pip install .[doc]
 
-      - name: Build docs
-        uses: ammaraskar/sphinx-action@0.4
-        with:
-          docs-folder: "docs/"
+      - name: Build html
+        working-directory: docs
+        run: make html
 
-      - name: Upload HTML build
+      - name: Upload html build
         uses: actions/upload-artifact@v2
         with:
           name: html
           path: docs/build/html
 
-      - name: Upload Latex build
+      - name: Build latex
+        working-directory: docs
+        run: make latex
+
+      - name: Upload latex build
         uses: actions/upload-artifact@v2
         with:
-          name: latex
+          name: latexpdf
           path: docs/build/latex/pystiche.pdf
