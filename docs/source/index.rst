@@ -28,9 +28,11 @@ built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
   regularly for updates.
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
+  :caption: Contents
 
   Installation <installation>
   Gist <gist>
-  Examples <galleries/examples/index.rst>
-  Literature <literature>
+  Examples <galleries/examples/index>
+  Package Reference <api/index>
+  Literature Reference <literature>
