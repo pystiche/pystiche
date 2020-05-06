@@ -369,13 +369,13 @@ image_root = path.expanduser(path.join("~", ".cache", "pystiche"))
 #
 #   You can download the default images here:
 #
-#   - `Content image <https://free-images.com/md/71c4/bird_wildlife_australian_bird.jpg>`_
+#   - `Content image <"https://cdn.pixabay.com/photo/2016/01/14/11/26/bird-1139734_960_720.jpg">`_
 #   - `Style image <https://cdn.pixabay.com/photo/2017/07/03/20/17/abstract-2468874_960_720.jpg>`_
 
 
 ########################################################################################
 
-content_image = read_image(path.join(image_root, "bird.jpg"))
+content_image = read_image(path.join(image_root, "bird1.jpg"))
 show_image(content_image, title="Content image")
 
 
