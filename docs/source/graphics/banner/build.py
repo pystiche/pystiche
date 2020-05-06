@@ -1,9 +1,6 @@
 import torch
-from pystiche.image import (
-    read_image,
-    write_image,
-    extract_image_size,
-)
+
+from pystiche.image import extract_image_size, read_image, write_image
 
 
 def main(images, space_width_factor=0.1, annotation_width_factor=0.2):
