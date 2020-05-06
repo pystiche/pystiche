@@ -21,6 +21,15 @@ jobs:
         with:
           python-version: "3.6"
 
+      - name: Install latex requirements
+        run: |
+          apt update -y
+          apt install -y \
+            latexmk \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-fonts-recommended
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
