@@ -9,7 +9,7 @@ on:
     paths:
       - "pystiche/**"
       - "docs/**"
-      - ".github/workflows/build_docs.yml"
+      - ".github/workflows/docs.yml"
 
 jobs:
   build_docs:
@@ -20,6 +20,11 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: "3.6"
+
+      - name: Install latex requirements
+        run: |
+          sudo apt update -y
+          sudo apt install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -37,12 +42,18 @@ jobs:
         working-directory: docs
         run: make html
 
+      - name: Upload html build
+        uses: actions/upload-artifact@v2
+        with:
+          name: html
+          path: docs/build/html
+
       - name: Build latex
         working-directory: docs
-        run: make latex
+        run: make latexpdf
 
-      - name: Build coverage
-        working-directory: docs
-        run: |
-          make coverage
-          cat build/coverage/python.txt
+      - name: Upload latex build
+        uses: actions/upload-artifact@v2
+        with:
+          name: latex
+          path: docs/build/latex/pystiche.pdf
