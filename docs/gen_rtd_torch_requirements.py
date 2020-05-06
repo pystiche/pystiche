@@ -29,6 +29,7 @@ def parse_rtd_config(file=".readthedocs.yml"):
         return path.join(PROJECT_ROOT, requirement_files[0])
 
     def extract_language(data):
+
         python_data = data["python"]
         python_version = str(python_data["version"])
         return f"cp{python_version.replace('.', '')}"
