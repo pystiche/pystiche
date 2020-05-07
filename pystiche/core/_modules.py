@@ -50,10 +50,6 @@ class Module(nn.Module, ComplexObject):
             [(str(idx), module) for idx, module in enumerate(modules)]
         )
 
-    @abstractmethod
-    def forward(self, *args: Any, **kwargs: Any) -> Any:
-        pass
-
     def __repr__(self):
         return ComplexObject.__repr__(self)
 

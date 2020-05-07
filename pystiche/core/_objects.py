@@ -109,6 +109,9 @@ class TensorStorage(nn.Module, ComplexObject):
         raise RuntimeError(msg)
 
 
+from typing import cast, Iterable
+
+
 class LossDict(OrderedDict):
     def __init__(
         self, losses: Sequence[Tuple[str, Union[torch.Tensor, "LossDict"]]] = (),
@@ -131,6 +134,9 @@ class LossDict(OrderedDict):
             raise TypeError
 
     def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
+        def sum(partial_losses: Iterable[torch.Tensor]):
+            return cast(torch.Tensor, sum(partial_losses))
+
         if max_depth == 0:
             return sum(self.values())
 
@@ -140,14 +146,16 @@ class LossDict(OrderedDict):
 
         agg_names = [".".join(split[:max_depth]) for split in splits]
         key_map = dict(zip(self.keys(), agg_names))
-        agg_losses = {name: [] for name in set(agg_names)}
+        agg_losses: Dict[str, List[torch.Tensor]] = {
+            name: [] for name in set(agg_names)
+        }
         for name, loss in self.items():
             agg_losses[key_map[name]].append(loss)
 
         return LossDict([(name, sum(agg_losses[name])) for name in agg_names])
 
     def total(self) -> torch.Tensor:
-        return self.aggregate(0)
+        return cast(torch.Tensor, self.aggregate(0))
 
     def backward(self, *args, **kwargs) -> None:
         self.total().backward(*args, **kwargs)
@@ -165,7 +173,9 @@ class LossDict(OrderedDict):
     # TODO: can this be moved in __str__?
     def format(self, max_depth: Optional[int] = None, **format_dict_kwargs: Any) -> str:
         if max_depth is not None:
-            dct = self.aggregate(max_depth)
+            if max_depth == 0:
+                return str(self.total())
+            dct = cast(LossDict, self.aggregate(max_depth))
         else:
             dct = self
 
