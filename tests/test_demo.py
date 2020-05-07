@@ -3,7 +3,7 @@ from os import path
 
 import pytest
 
-from torchvision.datasets.utils import check_integrity
+from torchvision.datasets.utils import calculate_md5
 
 from pystiche import demo
 
@@ -28,8 +28,19 @@ class TestDemo(PysticheTestCase):
 
             for image_or_guide in itertools.chain(images, *guides):
                 with self.subTest(image_or_guide=image_or_guide):
+                    file = path.join(root, image_or_guide.file)
+
                     self.assertTrue(
-                        check_integrity(
-                            path.join(root, image_or_guide.file), md5=image_or_guide.md5
-                        )
+                        path.exists(file), msg=f"File {file} does not exist."
+                    )
+
+                    actual = calculate_md5(file)
+                    desired = image_or_guide.md5
+                    self.assertEqual(
+                        actual,
+                        desired,
+                        msg=(
+                            f"The actual and desired MD5 hash of the image mismatch: "
+                            "{actual} != {desired}"
+                        ),
                     )
