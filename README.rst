@@ -6,7 +6,7 @@
     * - package
       - |license| |status|
     * - code
-      - |black| |lint|
+      - |black| |mypy| |lint|
     * - tests
       - |linux_macos| |windows| |coverage|
     * - docs
@@ -61,6 +61,11 @@ documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/lat
   image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
     :alt: black
+
+.. |mypy|
+  image:: http://www.mypy-lang.org/static/mypy_badge.svg
+    :target: http://mypy-lang.org/
+    :alt: mypy
 
 .. |lint|
   image:: https://github.com/pmeier/pystiche/workflows/Lint/badge.svg
