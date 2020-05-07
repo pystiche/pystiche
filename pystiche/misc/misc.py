@@ -53,33 +53,40 @@ __all__ = [
     "get_device",
 ]
 
+from typing import Callable, TypeVar
+
 
 def prod(iterable: Iterable) -> Any:
     return reduce(mul, iterable)
 
 
-def _to_nd_arg(x: Any, dims: int) -> Any:
-    if x is None:
-        return None
-
-    if isinstance(x, Sized):
-        assert len(x) == dims
-        y = x
-    else:
-        y = itertools.repeat(x, dims)
-    return tuple(y)
+T = TypeVar("T")
 
 
-def to_1d_arg(x: Any) -> Any:
-    return _to_nd_arg(x, 1)
+def _to_nd_arg(dims: int) -> Callable[[Union[T, Sequence[T]]], Tuple[T, ...]]:
+    def to_nd_arg(x: Union[T, Sequence[T]]) -> Tuple[T, ...]:
+        if x is None:
+            msg = build_deprecation_message(
+                "Passing None as argument",
+                "0.4.0",
+                info="If you need this behavior, please implement it in the caller.",
+            )
+            warnings.warn(msg)
+            return None
+
+        if isinstance(x, Sequence):
+            if len(x) != dims:
+                raise RuntimeError
+            return tuple(x)
+        else:
+            return tuple(itertools.repeat(x, dims))
+
+    return to_nd_arg
 
 
-def to_2d_arg(x: Any) -> Any:
-    return _to_nd_arg(x, 2)
-
-
-def to_3d_arg(x: Any) -> Any:
-    return _to_nd_arg(x, 3)
+to_1d_arg = _to_nd_arg(1)
+to_2d_arg = _to_nd_arg(2)
+to_3d_arg = _to_nd_arg(3)
 
 
 def zip_equal(*sequences: Sequence) -> Iterable:
@@ -204,7 +211,7 @@ def verify_str_arg(
 
 def build_complex_obj_repr(
     name: str,
-    properties: Dict[str, Any] = None,
+    properties: Optional[Dict[str, Any]] = None,
     named_children: Sequence[Tuple[str, Any]] = (),
     line_length: int = 80,
     num_indent: int = 2,
@@ -247,7 +254,7 @@ def build_complex_obj_repr(
 
 def build_obj_str(
     name: str,
-    properties: Dict[str, Any] = None,
+    properties: Optional[Dict[str, Any]] = None,
     properties_threshold: Optional[int] = None,
     **kwargs: Any,
 ):
@@ -258,7 +265,7 @@ def build_obj_str(
     )
     warnings.warn(msg)
 
-    if properties_threshold is not None:
+    if properties is not None and properties_threshold is not None:
         msg = build_deprecation_message(
             "The parameter properties_threshold",
             "0.4.0",
@@ -280,14 +287,19 @@ def make_reproducible(seed: int = 0) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    if torch.backends.cudnn.is_available():
+        # Both attributes are dynamically assigned to the module. See
+        # https://github.com/pytorch/pytorch/blob/a1eaaea288cf51abcd69eb9b0993b1aa9c0ce41f/torch/backends/cudnn/__init__.py#L115-L129
+        # The type errors are ignored, since this is still the recommended practice.
+        # https://pytorch.org/docs/stable/notes/randomness.html#cudnn
+        torch.backends.cudnn.deterministic = True  # type: ignore
+        torch.backends.cudnn.benchmark = False  # type: ignore
 
 
 def get_input_image(
     starting_point: Union[str, torch.Tensor] = "content",
-    content_image: Optional[torch.tensor] = None,
-    style_image: Optional[torch.tensor] = None,
+    content_image: Optional[torch.Tensor] = None,
+    style_image: Optional[torch.Tensor] = None,
 ):
     if isinstance(starting_point, torch.Tensor):
         return starting_point
@@ -314,8 +326,11 @@ def get_input_image(
     raise RuntimeError
 
 
+from typing import Iterator
+
+
 @contextlib.contextmanager
-def get_tmp_dir(**mkdtemp_kwargs) -> ContextManager[str]:
+def get_tmp_dir(**mkdtemp_kwargs: Any) -> Iterator[str]:
     tmp_dir = tempfile.mkdtemp(**mkdtemp_kwargs)
     try:
         yield tmp_dir
@@ -332,7 +347,7 @@ def get_sha256_hash(file: str, chunk_size: int = 4096) -> str:
 
 
 def save_state_dict(
-    input: Union[Dict[str, torch.Tensor], nn.Module()],
+    input: Union[Dict[str, torch.Tensor], nn.Module],
     name: str,
     root: Optional[str] = None,
     ext=".pth",
@@ -342,7 +357,7 @@ def save_state_dict(
     if isinstance(input, nn.Module):
         state_dict = input.state_dict()
     else:
-        state_dict = input
+        state_dict = OrderedDict(input)
 
     if to_cpu:
         state_dict = OrderedDict(
@@ -380,18 +395,25 @@ def build_deprecation_message(
     return msg
 
 
-def warn_deprecation(*args: str, **kwargs: Optional[str]):
+def warn_deprecation(
+    msg_or_description: str,
+    version: Optional[str] = None,
+    info: Optional[str] = None,
+    url: Optional[str] = None,
+):
     msg = build_deprecation_message(
         "META: The function warn_deprecation",
         "0.4.0",
         url="https://github.com/pmeier/pystiche/pull/189",
     )
     warnings.warn(msg, DeprecationWarning)
-    if len(args) == 1 and not kwargs:
-        msg = args[0]
+
+    if version is not None:
+        description = msg_or_description
+        msg = build_deprecation_message(description, version, info=info, url=url)
     else:
-        msg = build_deprecation_message(*args, **kwargs)
-    warnings.warn(msg, UserWarning)
+        msg = msg_or_description
+    warnings.warn(msg)
 
 
 def get_device(device: Optional[Union[str, torch.device]] = None) -> torch.device:
