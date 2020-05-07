@@ -60,4 +60,4 @@ jobs:
         run: pip install .[dev]
 
       - name: Check with mypy
-        run: mypy --config-file=mypy.ini pystiche/
+        run: mypy --config-file=mypy.ini
