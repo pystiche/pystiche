@@ -6,6 +6,7 @@ from typing import (
     Any,
     Dict,
     Hashable,
+    Iterable,
     Iterator,
     List,
     NoReturn,
@@ -13,6 +14,7 @@ from typing import (
     Sequence,
     Tuple,
     Union,
+    cast,
 )
 
 import torch
@@ -107,9 +109,6 @@ class TensorStorage(nn.Module, ComplexObject):
             "for storage and cannot be called."
         )
         raise RuntimeError(msg)
-
-
-from typing import cast, Iterable
 
 
 class LossDict(OrderedDict):

@@ -11,13 +11,14 @@ from operator import mul
 from os import path
 from typing import (
     Any,
-    ContextManager,
+    Callable,
     Dict,
     Iterable,
+    Iterator,
     Optional,
     Sequence,
-    Sized,
     Tuple,
+    TypeVar,
     Union,
 )
 
@@ -52,8 +53,6 @@ __all__ = [
     "warn_deprecation",
     "get_device",
 ]
-
-from typing import Callable, TypeVar
 
 
 def prod(iterable: Iterable) -> Any:
@@ -324,9 +323,6 @@ def get_input_image(
         raise RuntimeError("starting_point is 'random', but no image is given")
 
     raise RuntimeError
-
-
-from typing import Iterator
 
 
 @contextlib.contextmanager
