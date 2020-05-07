@@ -235,7 +235,7 @@ def johnson_alahi_li_2016_transformer_decoder(
         else:
 
             def value_range_delimiter(x: torch.Tensor) -> torch.Tensor:
-                # sgm(2*x) == (tanh(x) + 1) / 2
+                # sgm(2*input) == (tanh(input) + 1) / 2
                 return torch.sigmoid(2.0 * x)
 
         class ValueRangeDelimiter(nn.Module):

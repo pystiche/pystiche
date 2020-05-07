@@ -155,7 +155,7 @@ def _create_affine_transform_matrix(
 
 
 def _calculate_full_bounding_box_size(vertices: torch.Tensor) -> Tuple[int, int]:
-    # TODO: rename x and y
+    # TODO: rename input and y
     # FIXME
     x, y = torch.max(torch.abs(vertices), 1).values.tolist()  # type: ignore
     return tuple([int(np.ceil(2.0 * val)) for val in (y, x)])  # type: ignore

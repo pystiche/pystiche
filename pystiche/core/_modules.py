@@ -36,7 +36,7 @@ class Module(nn.Module, Object):
         )
 
     @abstractmethod
-    def forward(self, *args: Any, **kwargs: Any) -> Any:
+    def forward(self, *input: Any, **kwargs: Any) -> Any:
         pass
 
     def extra_repr(self) -> str:
@@ -47,7 +47,7 @@ class SequentialModule(Module):
     def __init__(self, *modules: nn.Module):
         super().__init__(indexed_children=modules)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore  # FIXME
+    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore[override]
         for module in self.children():
-            x = module(x)
-        return x
+            input = module(input)
+        return input

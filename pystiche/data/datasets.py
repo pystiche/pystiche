@@ -1,4 +1,4 @@
-from typing import Any, Optional, Callable
+from typing import Any, Optional, Callable, Iterator, List, Tuple, cast
 import os
 import torch
 from torch import nn
@@ -13,17 +13,20 @@ __all__ = [
 ]
 
 
+# TODO: can this be implemented as decorator?
 class Unsupervised:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         if not isinstance(self, VisionDataset):
             raise RuntimeError
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # type: ignore[call-arg]
 
-    def __getitem__(self, index):
-        return super().__getitem__(index)[0]
+    def __getitem__(self, index: int) -> Any:
+        return super().__getitem__(index)[0]  # type: ignore[misc]
 
 
-def walkupto(top: str, depth: Optional[int] = None, **kwargs: Any):
+def walkupto(
+    top: str, depth: Optional[int] = None, **kwargs: Any
+) -> Iterator[Tuple[str, List[str], List[str]]]:
     if depth is None:
         yield from os.walk(top, **kwargs)
         return
@@ -39,10 +42,10 @@ class ImageFolderDataset(Dataset):
     def __init__(
         self,
         root: str,
-        transform: [nn.Module] = None,
+        transform: Optional[nn.Module] = None,
         depth: Optional[int] = None,
         importer: Optional[Callable[[str], torch.Tensor]] = None,
-    ):
+    ) -> None:
         self.root = os.path.abspath(os.path.expanduser(root))
         self.image_files = self._collect_image_files(depth)
         self.transform = transform
@@ -54,7 +57,7 @@ class ImageFolderDataset(Dataset):
 
         self.importer = importer
 
-    def _collect_image_files(self, depth: Optional[int]):
+    def _collect_image_files(self, depth: Optional[int]) -> Tuple[str, ...]:
         image_files = tuple(
             [
                 os.path.join(root, file)
@@ -72,10 +75,10 @@ class ImageFolderDataset(Dataset):
 
         return image_files
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.image_files)
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> torch.Tensor:
         file = self.image_files[idx]
         image = self.importer(file)
 

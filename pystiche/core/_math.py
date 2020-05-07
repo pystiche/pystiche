@@ -7,6 +7,6 @@ def possqrt(x: torch.Tensor) -> torch.Tensor:
 
 
 # FIXME: move this to pystiche_replication
-# def msqrt(x: torch.Tensor) -> torch.Tensor:
-#     e, v = torch.symeig(x, eigenvectors=True)
+# def msqrt(input: torch.Tensor) -> torch.Tensor:
+#     e, v = torch.symeig(input, eigenvectors=True)
 #     return torch.chain_matmul(v, torch.diag(e), v.t())

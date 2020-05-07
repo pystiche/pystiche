@@ -9,7 +9,7 @@ __all__ = ["Transform", "ComposedTransform"]
 
 class Transform(pystiche.Module):
     @abstractmethod
-    def forward(self, input: torch.Tensor) -> torch.Tensor:
+    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore[override]
         pass
 
     def __add__(
@@ -22,10 +22,10 @@ class ComposedTransform(Transform):
     def __init__(self, *transforms: Transform):
         super().__init__(indexed_children=transforms)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
         for module in self.children():
-            x = module(x)
-        return x
+            input = module(input)
+        return input
 
     def __add__(
         self, other: Union["Transform", "ComposedTransform"]
