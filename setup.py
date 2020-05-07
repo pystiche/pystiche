@@ -30,7 +30,6 @@ install_requires = (
     "requests",
     "typing_extensions",
 )
-
 test_requires = ("pytest", "pyimagetest", "pillow_affine", "dill", "pytest-subtests")
 
 doc_requires = (
@@ -44,7 +43,16 @@ doc_requires = (
     "matplotlib",
 )
 
-dev_requires = (*test_requires, *doc_requires, "pre-commit", "pyyaml")
+dev_requires = (
+    *test_requires,
+    *doc_requires,
+    "isort",
+    "black",
+    "flake8",
+    "mypy",
+    "pre-commit",
+    "pyyaml",
+)
 
 extras_require = {
     "test": test_requires,
