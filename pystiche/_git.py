@@ -21,9 +21,9 @@ def is_repo(dir: str) -> bool:
     return path.exists(path.join(dir, ".git"))
 
 
-def is_dirty(dir: str):
+def is_dirty(dir: str) -> bool:
     return bool(run("status", "-uno", "--porcelain", cwd=dir))
 
 
-def hash(dir: str):
+def hash(dir: str) -> str:
     return run("rev-parse", "--short", "HEAD", cwd=dir)

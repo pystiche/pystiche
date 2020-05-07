@@ -1,6 +1,6 @@
+import contextlib
 import warnings
-from contextlib import contextmanager
-from typing import Callable
+from typing import Any, Callable, Iterator
 
 __all__ = [
     "CudaOutOfMemoryError",
@@ -18,9 +18,9 @@ class CudaOutOfMemoryWarning(RuntimeWarning):
     pass
 
 
-@contextmanager
-def use_cuda_out_of_memory_error():
-    def is_cuda_out_of_memory_error(error):
+@contextlib.contextmanager
+def use_cuda_out_of_memory_error() -> Iterator[None]:
+    def is_cuda_out_of_memory_error(error: RuntimeError) -> bool:
         return str(error).startswith("CUDA out of memory")
 
     try:
@@ -33,7 +33,7 @@ def use_cuda_out_of_memory_error():
 
 
 def abort_if_cuda_memory_exausts(fn: Callable) -> Callable:
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             with use_cuda_out_of_memory_error():
                 return fn(*args, **kwargs)

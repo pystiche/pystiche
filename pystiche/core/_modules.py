@@ -1,6 +1,5 @@
 import warnings
-from abc import abstractmethod
-from typing import Any, Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple
 
 import torch
 from torch import nn
@@ -50,14 +49,10 @@ class Module(nn.Module, ComplexObject):
             [(str(idx), module) for idx, module in enumerate(modules)]
         )
 
-    @abstractmethod
-    def forward(self, *args: Any, **kwargs: Any) -> Any:
-        pass
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ComplexObject.__repr__(self)
 
-    def torch_repr(self):
+    def torch_repr(self) -> str:
         return nn.Module.__repr__(self)
 
     def extra_repr(self) -> str:

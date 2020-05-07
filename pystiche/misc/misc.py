@@ -11,13 +11,14 @@ from operator import mul
 from os import path
 from typing import (
     Any,
-    ContextManager,
+    Callable,
     Dict,
     Iterable,
+    Iterator,
     Optional,
     Sequence,
-    Sized,
     Tuple,
+    TypeVar,
     Union,
 )
 
@@ -58,28 +59,33 @@ def prod(iterable: Iterable) -> Any:
     return reduce(mul, iterable)
 
 
-def _to_nd_arg(x: Any, dims: int) -> Any:
-    if x is None:
-        return None
-
-    if isinstance(x, Sized):
-        assert len(x) == dims
-        y = x
-    else:
-        y = itertools.repeat(x, dims)
-    return tuple(y)
+T = TypeVar("T")
 
 
-def to_1d_arg(x: Any) -> Any:
-    return _to_nd_arg(x, 1)
+def _to_nd_arg(dims: int) -> Callable[[Union[T, Sequence[T]]], Tuple[T, ...]]:
+    def to_nd_arg(x: Union[T, Sequence[T]]) -> Tuple[T, ...]:
+        if x is None:
+            msg = build_deprecation_message(  # type: ignore[unreachable]
+                "Passing None as argument",
+                "0.4.0",
+                info="If you need this behavior, please implement it in the caller.",
+            )
+            warnings.warn(msg)
+            return None
+
+        if isinstance(x, Sequence):
+            if len(x) != dims:
+                raise RuntimeError
+            return tuple(x)
+        else:
+            return tuple(itertools.repeat(x, dims))
+
+    return to_nd_arg
 
 
-def to_2d_arg(x: Any) -> Any:
-    return _to_nd_arg(x, 2)
-
-
-def to_3d_arg(x: Any) -> Any:
-    return _to_nd_arg(x, 3)
+to_1d_arg = _to_nd_arg(1)
+to_2d_arg = _to_nd_arg(2)
+to_3d_arg = _to_nd_arg(3)
 
 
 def zip_equal(*sequences: Sequence) -> Iterable:
@@ -119,7 +125,7 @@ def to_engstr(
     return sigstr + expstr
 
 
-# TODO: has this function any purpose?git
+# TODO: has this function any purpose?
 def to_tuplestr(sequence: Sequence) -> str:
     sequence = [str(item) for item in sequence]
     if len(sequence) == 0:
@@ -131,7 +137,7 @@ def to_tuplestr(sequence: Sequence) -> str:
     return f"({values})"
 
 
-def to_engtuplestr(sequence: Sequence, **kwargs) -> str:
+def to_engtuplestr(sequence: Sequence, **kwargs: Any) -> str:
     return to_tuplestr([to_engstr(item, **kwargs) for item in sequence])
 
 
@@ -144,7 +150,7 @@ def build_fmtstr(
     field_len: Optional[Union[int, str]] = None,
     precision: Optional[Union[int, str]] = None,
     type: Optional[str] = None,
-):
+) -> str:
     fmtstr = r"{"
     if id is not None:
         fmtstr += str(id)
@@ -162,7 +168,9 @@ def build_fmtstr(
 
 
 # FIXME: this should be able to handle multi line values
-def format_dict(dct: Dict[str, Any], sep=": ", key_align="<", value_align="<"):
+def format_dict(
+    dct: Dict[str, Any], sep: str = ": ", key_align: str = "<", value_align: str = "<"
+) -> str:
     key_field_len, val_field_len = [
         max(lens)
         for lens in zip(*[(len(key), len(str(val))) for key, val in dct.items()])
@@ -177,7 +185,7 @@ def format_dict(dct: Dict[str, Any], sep=": ", key_align="<", value_align="<"):
 
 
 def verify_str_arg(
-    arg: str, param: str = None, valid_args: Sequence[str] = None
+    arg: Any, param: Optional[str] = None, valid_args: Optional[Sequence[str]] = None
 ) -> str:
     if not isinstance(arg, str):
         if param is None:
@@ -204,15 +212,15 @@ def verify_str_arg(
 
 def build_complex_obj_repr(
     name: str,
-    properties: Dict[str, Any] = None,
+    properties: Optional[Dict[str, Any]] = None,
     named_children: Sequence[Tuple[str, Any]] = (),
     line_length: int = 80,
     num_indent: int = 2,
-):
-    def format_properties(properties, sep):
+) -> str:
+    def format_properties(properties: Dict[str, Any], sep: str) -> str:
         return sep.join([f"{key}={value}" for key, value in properties.items()])
 
-    def indent(line):
+    def indent(line: str) -> str:
         return " " * num_indent + line
 
     if properties is None:
@@ -247,10 +255,10 @@ def build_complex_obj_repr(
 
 def build_obj_str(
     name: str,
-    properties: Dict[str, Any] = None,
+    properties: Optional[Dict[str, Any]] = None,
     properties_threshold: Optional[int] = None,
     **kwargs: Any,
-):
+) -> str:
     msg = build_deprecation_message(
         "The function build_obj_str",
         "0.4.0",
@@ -258,7 +266,7 @@ def build_obj_str(
     )
     warnings.warn(msg)
 
-    if properties_threshold is not None:
+    if properties is not None and properties_threshold is not None:
         msg = build_deprecation_message(
             "The parameter properties_threshold",
             "0.4.0",
@@ -272,7 +280,7 @@ def build_obj_str(
     return build_complex_obj_repr(name, line_length=line_length, **kwargs)
 
 
-def is_almost(actual: float, desired: float, eps=1e-6):
+def is_almost(actual: float, desired: float, eps: float = 1e-6) -> bool:
     return abs(actual - desired) < eps
 
 
@@ -280,15 +288,20 @@ def make_reproducible(seed: int = 0) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    if torch.backends.cudnn.is_available():
+        # Both attributes are dynamically assigned to the module. See
+        # https://github.com/pytorch/pytorch/blob/a1eaaea288cf51abcd69eb9b0993b1aa9c0ce41f/torch/backends/cudnn/__init__.py#L115-L129
+        # The type errors are ignored, since this is still the recommended practice.
+        # https://pytorch.org/docs/stable/notes/randomness.html#cudnn
+        torch.backends.cudnn.deterministic = True  # type: ignore
+        torch.backends.cudnn.benchmark = False  # type: ignore
 
 
 def get_input_image(
     starting_point: Union[str, torch.Tensor] = "content",
-    content_image: Optional[torch.tensor] = None,
-    style_image: Optional[torch.tensor] = None,
-):
+    content_image: Optional[torch.Tensor] = None,
+    style_image: Optional[torch.Tensor] = None,
+) -> torch.Tensor:
     if isinstance(starting_point, torch.Tensor):
         return starting_point
 
@@ -315,7 +328,7 @@ def get_input_image(
 
 
 @contextlib.contextmanager
-def get_tmp_dir(**mkdtemp_kwargs) -> ContextManager[str]:
+def get_tmp_dir(**mkdtemp_kwargs: Any) -> Iterator[str]:
     tmp_dir = tempfile.mkdtemp(**mkdtemp_kwargs)
     try:
         yield tmp_dir
@@ -332,17 +345,17 @@ def get_sha256_hash(file: str, chunk_size: int = 4096) -> str:
 
 
 def save_state_dict(
-    input: Union[Dict[str, torch.Tensor], nn.Module()],
+    input: Union[Dict[str, torch.Tensor], nn.Module],
     name: str,
     root: Optional[str] = None,
-    ext=".pth",
+    ext: str = ".pth",
     to_cpu: bool = True,
     hash_len: int = 8,
 ) -> str:
     if isinstance(input, nn.Module):
         state_dict = input.state_dict()
     else:
-        state_dict = input
+        state_dict = OrderedDict(input)
 
     if to_cpu:
         state_dict = OrderedDict(
@@ -380,18 +393,25 @@ def build_deprecation_message(
     return msg
 
 
-def warn_deprecation(*args: str, **kwargs: Optional[str]):
+def warn_deprecation(
+    msg_or_description: str,
+    version: Optional[str] = None,
+    info: Optional[str] = None,
+    url: Optional[str] = None,
+) -> None:
     msg = build_deprecation_message(
         "META: The function warn_deprecation",
         "0.4.0",
         url="https://github.com/pmeier/pystiche/pull/189",
     )
     warnings.warn(msg, DeprecationWarning)
-    if len(args) == 1 and not kwargs:
-        msg = args[0]
+
+    if version is not None:
+        description = msg_or_description
+        msg = build_deprecation_message(description, version, info=info, url=url)
     else:
-        msg = build_deprecation_message(*args, **kwargs)
-    warnings.warn(msg, UserWarning)
+        msg = msg_or_description
+    warnings.warn(msg)
 
 
 def get_device(device: Optional[Union[str, torch.device]] = None) -> torch.device:

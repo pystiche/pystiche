@@ -1,10 +1,11 @@
 import warnings
+from typing import Any, Callable
 
 from pystiche import meta
 from pystiche.misc import build_deprecation_message
 
 
-def deprecation(fn):
+def deprecation(fn: Callable) -> Callable:
     name = f"{fn.__name__}()"
     msg = build_deprecation_message(
         f"The function pystiche.{name}",
@@ -12,7 +13,7 @@ def deprecation(fn):
         info=f"It was moved to pystiche.meta.{name}.",
     )
 
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         warnings.warn(msg)
         return fn(*args, **kwargs)
 

@@ -10,10 +10,11 @@ on:
       - "**.py"
       - "pyproject.toml"
       - ".flake8"
+      - "mypy.ini"
       - ".github/workflows/lint.yml"
 
 jobs:
-  check_code_format:
+  code_format:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,3 +37,27 @@ jobs:
 
       - name: Check with flake8
         run: flake8 --config=.flake8 --jobs=$(nproc) .
+
+  static_typing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.6"
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install torch for CPU
+        run: |
+          REQUIREMENTS_FILE=github_actions_torch_requirements.txt
+          python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
+          pip install -r $REQUIREMENTS_FILE
+
+      - name: Install dependencies
+        run: pip install .[dev]
+
+      - name: Check with mypy
+        run: mypy --config-file=mypy.ini
