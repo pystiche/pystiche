@@ -52,8 +52,8 @@ documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/lat
 
 .. |status|
   image:: https://www.repostatus.org/badges/latest/active.svg
-    :alt: Project Status: Active
     :target: https://www.repostatus.org/#active
+    :alt: Project Status: Active
 
 .. |black|
   image:: https://img.shields.io/badge/code%20style-black-000000.svg
@@ -67,6 +67,7 @@ documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/lat
 
 .. |lint|
   image:: https://github.com/pmeier/pystiche/workflows/Lint/badge.svg
+    :target: https://github.com/pmeier/pystiche/actions?query=workflow%3ALint+branch%3Amaster
     :alt: Lint status via GitHub Actions
 
 .. |linux_macos|
