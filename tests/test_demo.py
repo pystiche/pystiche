@@ -1,9 +1,13 @@
-from .utils import PysticheTestCase, get_tmp_dir
-import pytest
-from pystiche import demo
-from torchvision.datasets.utils import check_integrity
-from os import path
 import itertools
+from os import path
+
+import pytest
+
+from torchvision.datasets.utils import check_integrity
+
+from pystiche import demo
+
+from .utils import PysticheTestCase, get_tmp_dir
 
 
 class TestDemo(PysticheTestCase):
