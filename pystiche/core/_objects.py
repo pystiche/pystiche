@@ -134,11 +134,11 @@ class LossDict(OrderedDict):
             raise TypeError
 
     def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
-        def sum(partial_losses: Iterable[torch.Tensor]):
+        def sum_partial_losses(partial_losses: Iterable[torch.Tensor]):
             return cast(torch.Tensor, sum(partial_losses))
 
         if max_depth == 0:
-            return sum(self.values())
+            return sum_partial_losses(self.values())
 
         splits = [name.split(".") for name in self.keys()]
         if not any([len(split) >= max_depth for split in splits]):
@@ -152,7 +152,9 @@ class LossDict(OrderedDict):
         for name, loss in self.items():
             agg_losses[key_map[name]].append(loss)
 
-        return LossDict([(name, sum(agg_losses[name])) for name in agg_names])
+        return LossDict(
+            [(name, sum_partial_losses(agg_losses[name])) for name in agg_names]
+        )
 
     def total(self) -> torch.Tensor:
         return cast(torch.Tensor, self.aggregate(0))
