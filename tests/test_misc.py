@@ -34,7 +34,7 @@ class TestMisc(PysticheTestCase):
         self.assertTupleEqual(actual, desired)
 
         val = (0, 0)
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(RuntimeError):
             misc.to_1d_arg(val)
 
     def test_to_2d_arg(self):
@@ -54,7 +54,7 @@ class TestMisc(PysticheTestCase):
         self.assertTupleEqual(actual, desired)
 
         val = (0,)
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(RuntimeError):
             misc.to_2d_arg(val)
 
     def test_to_3d_arg(self):
@@ -74,7 +74,7 @@ class TestMisc(PysticheTestCase):
         self.assertTupleEqual(actual, desired)
 
         val = (0,)
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(RuntimeError):
             misc.to_3d_arg(val)
 
     def test_zip_equal(self):
