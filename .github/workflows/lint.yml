@@ -50,6 +50,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Install torch for CPU
+        run: |
+          REQUIREMENTS_FILE=github_actions_torch_requirements.txt
+          python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
+          pip install -r $REQUIREMENTS_FILE
+
       - name: Install dependencies
         run: pip install .[dev]
 
