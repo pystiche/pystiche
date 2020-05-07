@@ -65,7 +65,7 @@ T = TypeVar("T")
 def _to_nd_arg(dims: int) -> Callable[[Union[T, Sequence[T]]], Tuple[T, ...]]:
     def to_nd_arg(x: Union[T, Sequence[T]]) -> Tuple[T, ...]:
         if x is None:
-            msg = build_deprecation_message(
+            msg = build_deprecation_message(  # type: ignore[unreachable]
                 "Passing None as argument",
                 "0.4.0",
                 info="If you need this behavior, please implement it in the caller.",
@@ -125,7 +125,7 @@ def to_engstr(
     return sigstr + expstr
 
 
-# TODO: has this function any purpose?git
+# TODO: has this function any purpose?
 def to_tuplestr(sequence: Sequence) -> str:
     sequence = [str(item) for item in sequence]
     if len(sequence) == 0:
@@ -137,7 +137,7 @@ def to_tuplestr(sequence: Sequence) -> str:
     return f"({values})"
 
 
-def to_engtuplestr(sequence: Sequence, **kwargs) -> str:
+def to_engtuplestr(sequence: Sequence, **kwargs: Any) -> str:
     return to_tuplestr([to_engstr(item, **kwargs) for item in sequence])
 
 
@@ -150,7 +150,7 @@ def build_fmtstr(
     field_len: Optional[Union[int, str]] = None,
     precision: Optional[Union[int, str]] = None,
     type: Optional[str] = None,
-):
+) -> str:
     fmtstr = r"{"
     if id is not None:
         fmtstr += str(id)
@@ -168,7 +168,9 @@ def build_fmtstr(
 
 
 # FIXME: this should be able to handle multi line values
-def format_dict(dct: Dict[str, Any], sep=": ", key_align="<", value_align="<"):
+def format_dict(
+    dct: Dict[str, Any], sep: str = ": ", key_align: str = "<", value_align: str = "<"
+) -> str:
     key_field_len, val_field_len = [
         max(lens)
         for lens in zip(*[(len(key), len(str(val))) for key, val in dct.items()])
@@ -183,7 +185,7 @@ def format_dict(dct: Dict[str, Any], sep=": ", key_align="<", value_align="<"):
 
 
 def verify_str_arg(
-    arg: str, param: str = None, valid_args: Sequence[str] = None
+    arg: Any, param: Optional[str] = None, valid_args: Optional[Sequence[str]] = None
 ) -> str:
     if not isinstance(arg, str):
         if param is None:
@@ -214,11 +216,11 @@ def build_complex_obj_repr(
     named_children: Sequence[Tuple[str, Any]] = (),
     line_length: int = 80,
     num_indent: int = 2,
-):
-    def format_properties(properties, sep):
+) -> str:
+    def format_properties(properties: Dict[str, Any], sep: str) -> str:
         return sep.join([f"{key}={value}" for key, value in properties.items()])
 
-    def indent(line):
+    def indent(line: str) -> str:
         return " " * num_indent + line
 
     if properties is None:
@@ -256,7 +258,7 @@ def build_obj_str(
     properties: Optional[Dict[str, Any]] = None,
     properties_threshold: Optional[int] = None,
     **kwargs: Any,
-):
+) -> str:
     msg = build_deprecation_message(
         "The function build_obj_str",
         "0.4.0",
@@ -278,7 +280,7 @@ def build_obj_str(
     return build_complex_obj_repr(name, line_length=line_length, **kwargs)
 
 
-def is_almost(actual: float, desired: float, eps=1e-6):
+def is_almost(actual: float, desired: float, eps: float = 1e-6) -> bool:
     return abs(actual - desired) < eps
 
 
@@ -299,7 +301,7 @@ def get_input_image(
     starting_point: Union[str, torch.Tensor] = "content",
     content_image: Optional[torch.Tensor] = None,
     style_image: Optional[torch.Tensor] = None,
-):
+) -> torch.Tensor:
     if isinstance(starting_point, torch.Tensor):
         return starting_point
 
@@ -346,7 +348,7 @@ def save_state_dict(
     input: Union[Dict[str, torch.Tensor], nn.Module],
     name: str,
     root: Optional[str] = None,
-    ext=".pth",
+    ext: str = ".pth",
     to_cpu: bool = True,
     hash_len: int = 8,
 ) -> str:
@@ -396,7 +398,7 @@ def warn_deprecation(
     version: Optional[str] = None,
     info: Optional[str] = None,
     url: Optional[str] = None,
-):
+) -> None:
     msg = build_deprecation_message(
         "META: The function warn_deprecation",
         "0.4.0",

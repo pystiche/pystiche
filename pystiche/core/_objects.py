@@ -46,12 +46,10 @@ class ComplexObject(ABC):
         return dct
 
     def _named_children(self) -> Iterator[Tuple[str, Any]]:
-        return
-        yield
+        return iter(())
 
     def extra_named_children(self) -> Iterator[Tuple[str, Any]]:
-        return
-        yield
+        return iter(())
 
     def named_children(self) -> Iterator[Tuple[str, Any]]:
         yield from self._named_children()
@@ -84,18 +82,17 @@ class ComplexObject(ABC):
 
 
 class Object(ComplexObject):
-    def __init__(self, *args, **kwargs):
+    def __init__(self) -> None:
         msg = build_deprecation_message(
             "The class Object", "0.4", info="It was renamed to ComplexObject."
         )
         warnings.warn(msg)
-        super().__init__(*args, **kwargs)
 
 
 # TODO: can this be removed for now?
 #  If not it should subclass pystiche.Module and thus should be moved to ._modules
 class TensorStorage(nn.Module, ComplexObject):
-    def __init__(self, **attrs: Dict[str, Any]) -> None:
+    def __init__(self, **attrs: Any) -> None:
         super().__init__()
         for name, attr in attrs.items():
             if isinstance(attr, torch.Tensor):
@@ -133,7 +130,7 @@ class LossDict(OrderedDict):
             raise TypeError
 
     def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
-        def sum_partial_losses(partial_losses: Iterable[torch.Tensor]):
+        def sum_partial_losses(partial_losses: Iterable[torch.Tensor]) -> torch.Tensor:
             return cast(torch.Tensor, sum(partial_losses))
 
         if max_depth == 0:
@@ -158,7 +155,7 @@ class LossDict(OrderedDict):
     def total(self) -> torch.Tensor:
         return cast(torch.Tensor, self.aggregate(0))
 
-    def backward(self, *args, **kwargs) -> None:
+    def backward(self, *args: Any, **kwargs: Any) -> None:
         self.total().backward(*args, **kwargs)
 
     def item(self) -> float:
@@ -167,7 +164,7 @@ class LossDict(OrderedDict):
     def __float__(self) -> float:
         return self.item()
 
-    def __mul__(self, other) -> "LossDict":
+    def __mul__(self, other: Any) -> "LossDict":
         other = float(other)
         return LossDict([(name, loss * other) for name, loss in self.items()])
 
@@ -206,14 +203,14 @@ class TensorKey:
     def key(self) -> Tuple[Hashable, ...]:
         return self._key
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, torch.Tensor):
             other = TensorKey(other)
-        elif not isinstance(other, TensorKey):
-            # FIXME
-            raise TypeError
+        if isinstance(other, TensorKey):
+            return self.key == other.key
 
-        return self.key == other.key
+        # FIXME
+        raise TypeError
 
     def __hash__(self) -> int:
         return hash(self.key)

@@ -49,10 +49,10 @@ class Module(nn.Module, ComplexObject):
             [(str(idx), module) for idx, module in enumerate(modules)]
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ComplexObject.__repr__(self)
 
-    def torch_repr(self):
+    def torch_repr(self) -> str:
         return nn.Module.__repr__(self)
 
     def extra_repr(self) -> str:
