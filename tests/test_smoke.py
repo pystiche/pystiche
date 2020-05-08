@@ -65,6 +65,7 @@ class TestSmoke(unittest.TestCase):
         for attr in (
             "name",
             "description",
+            "base_version",
             "version",
             "url",
             "license",
@@ -94,6 +95,9 @@ class TestSmoke(unittest.TestCase):
                 return is_canonical(version[: match.span()[0]])
             else:
                 return False
+
+        base_version = package_under_test.__base_version__
+        self.assertTrue(is_canonical(base_version))
 
         version = package_under_test.__version__
         self.assertTrue(is_canonical(version) or is_dev(version))
