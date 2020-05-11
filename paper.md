@@ -9,7 +9,7 @@ authors:
   - name: Philip Meier
     orcid: 0000-0002-5184-1622
     affiliation: "1, 2"
-  - name: Author Volker Lohweg
+  - name: Volker Lohweg
     affiliation: "1, 2"
 affiliations:
  - name: inIT -- Institute Industrial IT
