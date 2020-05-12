@@ -41,6 +41,6 @@ class TestDemo(PysticheTestCase):
                         desired,
                         msg=(
                             f"The actual and desired MD5 hash of the image mismatch: "
-                            "{actual} != {desired}"
+                            f"{actual} != {desired}"
                         ),
                     )
