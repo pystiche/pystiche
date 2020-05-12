@@ -7,8 +7,8 @@
 # -- Imports -----------------------------------------------------------------
 
 import os
+import shutil
 import warnings
-import zipfile
 from datetime import datetime
 from distutils.util import strtobool
 from os import path
@@ -16,6 +16,8 @@ from urllib.parse import urljoin
 
 import requests
 from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
+
+import pystiche
 
 # -- Run config --------------------------------------------------------------
 
@@ -99,13 +101,18 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 if download_gallery:
     print("Downloading pre-built galleries")
 
-    base = "https://store.hs-owl.de:443/ssf/s/readFile/share/14247/-6115318448666630413/publicLink/"
-    file = "galleries.zip"
-    with open(file, "wb") as fh:
-        fh.write(requests.get(urljoin(base, file)).content)
+    base = "https://download.pystiche.org/galleries/"
+    file = (
+        "master.zip"
+        if pystiche.__about__._IS_DEV_VERSION
+        else f"v{pystiche.__base_version__}.zip"
+    )
 
-    with zipfile.ZipFile(file, "r") as zipfh:
-        zipfh.extractall(".")
+    headers = {"User-Agent": "Mozilla/5.0"}
+    with open(file, "wb") as fh:
+        fh.write(requests.get(urljoin(base, file), headers=headers).content)
+
+    shutil.unpack_archive(file, extract_dir=".")
     os.remove(file)
 
 extensions.append("sphinx_gallery.gen_gallery")
