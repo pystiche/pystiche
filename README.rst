@@ -18,7 +18,9 @@
 ``pystiche``
 ============
 
-``pystiche`` is a framework for
+``pystiche`` (pronounced
+`/ˈpaɪˈstiʃ/ <http://ipa-reader.xyz/?text=%CB%88pa%C9%AA%CB%88sti%CA%83>`_ ) is a
+framework for
 `Neural Style Transfer (NST) <https://github.com/ycjing/Neural-Style-Transfer-Papers>`_
 built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
 *pastiche* `meaning <https://en.wikipedia.org/wiki/Pastiche>`_:
