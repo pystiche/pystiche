@@ -1,0 +1,71 @@
+% Encoding: UTF-8
+
+@InProceedings{GEB2016,
+  author    = {Gatys, Leon A. and Ecker, Alexander. S. and Bethge, Matthias},
+  booktitle = {{IEEE} Conference on Computer Vision and Pattern Recognition (CVPR)},
+  title     = {Image Style Transfer Using Convolutional Neural Networks},
+  year      = {2016},
+  abstract  = {Rendering the semantic content of an image in different styles is a difficult image processing task. Arguably, a major limiting factor for previous approaches has been the lack of image representations that explicitly represent semantic information and, thus, allow to separate image content from style. Here we use image representations derived from Convolutional Neural Networks optimised for object recognition, which make high level image information explicit. We introduce A Neural Algorithm of Artistic Style that can separate and recombine the image content and style of natural images. The algorithm allows us to produce new images of high perceptual quality that combine the content of an arbitrary photograph with the appearance of numerous wellknown artworks. Our results provide new insights into the deep image representations learned by Convolutional Neural Networks and demonstrate their potential for high level image synthesis and manipulation.},
+  doi       = {10.1109/CVPR.2016.265},
+  eprint    = {1508.06576},
+}
+
+@Article{SZ2014,
+  author   = {Simonyan, Karen and Zisserman, Andrew},
+  journal  = {Computing Research Repository (CoRR)},
+  title    = {Very Deep Convolutional Networks for Large-Scale Image Recognition},
+  year     = {2014},
+  volume   = {abs/1409.1556},
+  abstract = {In this work we investigate the effect of the convolutional network depth on its accuracy in the large-scale image recognition setting. Our main contribution is a thorough evaluation of networks of increasing depth using an architecture with very small (3x3) convolution filters, which shows that a significant improvement on the prior-art configurations can be achieved by pushing the depth to 16-19 weight layers. These findings were the basis of our ImageNet Challenge 2014 submission, where our team secured the first and the second places in the localisation and classification tracks respectively. We also show that our representations generalise well to other datasets, where they achieve state-of-the-art results. We have made our two best-performing ConvNet models publicly available to facilitate further research on the use of deep visual representations in computer vision.},
+  eprint   = {1409.1556},
+}
+
+@Article{MV2014,
+  author   = {Mahendran, Aravindh and Vedaldi, Andrea},
+  journal  = {Computing Research Repository (CoRR)},
+  title    = {Understanding Deep Image Representations by Inverting Them},
+  year     = {2014},
+  volume   = {abs/1412.0035},
+  abstract = {Image representations, from SIFT and Bag of Visual Words to Convolutional Neural Networks (CNNs), are a crucial component of almost any image understanding system. Nevertheless, our understanding of them remains limited. In this paper we conduct a direct analysis of the visual information contained in representations by asking the following question: given an encoding of an image, to which extent is it possible to reconstruct the image itself? To answer this question we contribute a general framework to invert representations. We show that this method can invert representations such as HOG and SIFT more accurately than recent alternatives while being applicable to CNNs too. We then use this technique to study the inverse of recent state-of-the-art CNN image representations for the first time. Among our findings, we show that several layers in CNNs retain photographically accurate information about the image, with different degrees of geometric and photometric invariance.},
+  eprint   = {1412.0035},
+}
+
+@InProceedings{LW2016,
+  author    = {Li, Chuan and Wand, Michael},
+  booktitle = {{IEEE} Conference on Computer Vision and Pattern Recognition (CVPR)},
+  title     = {Combining Markov Random Fields and Convolutional Neural Networks for Image Synthesis},
+  year      = {2016},
+  abstract  = {This paper studies a combination of generative Markov random field (MRF) models and discriminatively trained deep convolutional neural networks (dCNNs) for synthesizing 2D images. The generative MRF acts on higher-levels of a dCNN feature pyramid, controlling the image layout at an abstract level. We apply the method to both photographic and non-photo-realistic (artwork) synthesis tasks. The MRF regularizer prevents over-excitation artifacts and reduces implausible feature mixtures common to previous dCNN inversion approaches, permitting synthesizing photographic content with increased visual plausibility. Unlike standard MRF-based texture synthesis, the combined system can both match and adapt local features with considerable variability, yielding results far out of reach of classic generative MRF methods.},
+  doi       = {10.1109/CVPR.2016.272},
+  eprint    = {1601.04589},
+}
+
+@InProceedings{GEB+2017,
+  author    = {Gatys, Leon A. and Ecker, Alexander S. and Bethge, Matthias and Hertzmann, Aaron and Shechtman, Eli},
+  booktitle = {{IEEE} Conference on Computer Vision and Pattern Recognition (CVPR)},
+  title     = {Controlling Perceptual Factors in Neural Style Transfer},
+  year      = {2017},
+  abstract  = {Neural Style Transfer has shown very exciting results enabling new forms of image manipulation. Here we extend the existing method to introduce control over spatial location, colour information and across spatial scale. We demonstrate how this enhances the method by allowing high-resolution controlled stylisation and helps to alleviate common failure cases such as applying ground textures to sky regions. Furthermore, by decomposing style into these perceptual factors we enable the combination of style information from multiple sources to generate new, perceptually appealing styles from existing ones. We also describe how these methods can be used to more efficiently produce large size, high-quality stylisation. Finally we show how the introduced control measures can be applied in recent methods for Fast Neural Style Transfer.},
+  doi       = {10.1109/CVPR.2017.397},
+  eprint    = {1611.07865},
+}
+
+@InProceedings{SID2017,
+  author    = {Semmo, Amir and Isenberg, Tobias and Döllner, Jürgen},
+  booktitle = {Proceedings of the Symposium on Non-Photorealistic Animation and Rendering (NPAR)},
+  title     = {Neural Style Transfer: A Paradigm Shift for Image-Based Artistic Rendering?},
+  year      = {2017},
+  abstract  = {In this meta paper we discuss image-based artistic rendering (IB-AR) based on neural style transfer (NST) and argue, while NST may represent a paradigm shift for IB-AR, that it also has to evolve as an interactive tool that considers the design aspects and mechanisms of artwork production. IB-AR received significant attention in the past decades for visual communication, covering a plethora of techniques to mimic the appeal of artistic media. Example-based rendering represents one the most promising paradigms in IB-AR to (semi-)automatically simulate artistic media with high fidelity, but so far has been limited because it relies on pre-defined image pairs for training or informs only low-level image features for texture transfers. Advancements in deep learning showed to alleviate these limitations by matching content and style statistics via activations of neural network layers, thus making a generalized style transfer practicable. We categorize style transfers within the taxonomy of IB-AR, then propose a semiotic structure to derive a technical research agenda for NSTs with respect to the grand challenges of NPAR. We finally discuss the potentials of NSTs, thereby identifying applications such as casual creativity and art production.},
+  doi       = {10.1145/3092919.3092920},
+  url       = {https://doi.org/10.1145/3092919.3092920},
+}
+
+@InProceedings{PGM+2019,
+  author    = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and Kopf, Andreas and Yang, Edward and DeVito, Zachary and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
+  title     = {{PyTorch}: An Imperative Style, High-Performance Deep Learning Library},
+  booktitle = {Advances in Neural Information Processing Systems (NIPS) 32},
+  year      = {2019},
+  url       = {http://papers.neurips.cc/paper/9015-pytorch-an-imperative-style-high-performance-deep-learning-library.pdf},
+}
+
+@Comment{jabref-meta: databaseType:bibtex;}
