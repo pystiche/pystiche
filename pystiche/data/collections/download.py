@@ -66,8 +66,9 @@ class DownloadableImage(_Image):
     def download(self, root: Optional[str] = None, overwrite: bool = False):
         def _download(file: str):
             os.makedirs(path.dirname(file), exist_ok=True)
+            headers = {"User-Agent": "Mozilla/5.0"}
             with open(file, "wb") as fh:
-                fh.write(requests.get(self.url).content)
+                fh.write(requests.get(self.url, headers=headers).content)
 
         if root is None:
             root = pystiche.home()
