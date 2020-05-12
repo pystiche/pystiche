@@ -99,8 +99,6 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # -- Sphinx gallery configuration --------------------------------------------
 
 if download_gallery:
-    print("Downloading pre-built galleries")
-
     base = "https://download.pystiche.org/galleries/"
     file = (
         "master.zip"
@@ -108,9 +106,13 @@ if download_gallery:
         else f"v{pystiche.__base_version__}.zip"
     )
 
+    url = urljoin(base, file)
     headers = {"User-Agent": "Mozilla/5.0"}
+
+    print(f"Downloading pre-built galleries from {url}")
+
     with open(file, "wb") as fh:
-        fh.write(requests.get(urljoin(base, file), headers=headers).content)
+        fh.write(requests.get(url, headers=headers).content)
 
     shutil.unpack_archive(file, extract_dir=".")
     os.remove(file)
