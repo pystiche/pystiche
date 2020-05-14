@@ -12,7 +12,7 @@ from pystiche.optim import OptimLogger
 __all__ = ["demo_images", "demo_logger"]
 
 
-def demo_images():
+def demo_images() -> DownloadableImageCollection:
     return DownloadableImageCollection(
         {
             "dancing": DownloadableImage(
@@ -59,7 +59,7 @@ def demo_images():
     )
 
 
-def demo_logger():
+def demo_logger() -> OptimLogger:
     logger = logging.getLogger("demo_logger")
     logger.setLevel(logging.INFO)
 
