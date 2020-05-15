@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import torch
 
 from pystiche.misc import is_almost, to_engstr
@@ -19,7 +21,7 @@ class TotalVariationOperator(PixelRegularizationOperator):
     def calculate_score(self, input_repr: torch.Tensor) -> torch.Tensor:
         return F.total_variation_loss(input_repr, exponent=self.exponent)
 
-    def _properties(self):
+    def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
         if not is_almost(self.exponent, 2.0):
             dct["exponent"] = to_engstr(self.exponent)
