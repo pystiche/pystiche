@@ -45,7 +45,9 @@ class Operator(pystiche.Module):
         return self.process_input_image(input_image) * self.score_weight
 
     @abstractmethod
-    def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
+    def process_input_image(
+        self, image: torch.Tensor
+    ) -> Union[torch.Tensor, pystiche.LossDict]:
         pass
 
     def named_operators(

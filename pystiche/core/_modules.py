@@ -12,7 +12,7 @@ __all__ = ["Module", "SequentialModule"]
 
 
 class Module(nn.Module, ComplexObject):
-    _buffers: Dict[str, Optional[torch.Tensor]]
+    _buffers: Dict[str, torch.Tensor]
 
     def __init__(
         self,
