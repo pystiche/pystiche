@@ -18,6 +18,7 @@ import requests
 from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 
 import pystiche
+import torch
 
 # -- Run config --------------------------------------------------------------
 
@@ -45,6 +46,12 @@ plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not r
 download_gallery = (
     get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY", default=not plot_gallery) or run_by_ci
 )
+
+if plot_gallery and not torch.cuda.is_available():
+    print(
+        "The galleries will be built, but CUDA is not available. "
+        "This will take a long time."
+    )
 
 # -- Path setup --------------------------------------------------------------
 
