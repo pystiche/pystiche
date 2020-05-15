@@ -1,5 +1,5 @@
 import warnings
-from typing import Optional, Sequence, Tuple
+from typing import Dict, Optional, Sequence, Tuple
 
 import torch
 from torch import nn
@@ -12,6 +12,8 @@ __all__ = ["Module", "SequentialModule"]
 
 
 class Module(nn.Module, ComplexObject):
+    _buffers: Dict[str, Optional[torch.Tensor]]
+
     def __init__(
         self,
         named_children: Optional[Sequence[Tuple[str, nn.Module]]] = None,
