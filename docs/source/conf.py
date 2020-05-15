@@ -17,8 +17,9 @@ from urllib.parse import urljoin
 import requests
 from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 
-import pystiche
 import torch
+
+import pystiche
 
 # -- Run config --------------------------------------------------------------
 
