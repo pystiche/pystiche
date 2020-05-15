@@ -140,15 +140,11 @@ class PixelRegularizationOperator(PixelOperator, RegularizationOperator):
         return self.calculate_score(input_repr)
 
     @abstractmethod
-    def input_image_to_repr(
-        self, image: torch.Tensor
-    ) -> Union[torch.Tensor, pystiche.TensorStorage]:
+    def input_image_to_repr(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
     @abstractmethod
-    def calculate_score(
-        self, input_repr: Union[torch.Tensor, pystiche.TensorStorage]
-    ) -> torch.Tensor:
+    def calculate_score(self, input_repr: torch.Tensor) -> torch.Tensor:
         pass
 
 
@@ -171,24 +167,18 @@ class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
         input_repr = self.input_image_to_repr(image)
         return self.calculate_score(input_repr)
 
-    def input_image_to_repr(
-        self, image: torch.Tensor
-    ) -> Union[torch.Tensor, pystiche.TensorStorage]:
+    def input_image_to_repr(self, image: torch.Tensor) -> torch.Tensor:
         enc = self.encoder(image)
         if self.has_input_guide:
             enc = self.apply_guide(enc, self.input_guide)
         return self.input_enc_to_repr(enc)
 
     @abstractmethod
-    def input_enc_to_repr(
-        self, enc: torch.Tensor
-    ) -> Union[torch.Tensor, pystiche.TensorStorage]:
+    def input_enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         pass
 
     @abstractmethod
-    def calculate_score(
-        self, input_repr: Union[torch.Tensor, pystiche.TensorStorage]
-    ) -> torch.Tensor:
+    def calculate_score(self, input_repr: torch.Tensor) -> torch.Tensor:
         pass
 
 
@@ -214,8 +204,7 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
     def target_image_to_repr(
         self, image: torch.Tensor
     ) -> Tuple[
-        Union[torch.Tensor, pystiche.TensorStorage],
-        Optional[Union[torch.Tensor, pystiche.TensorStorage]],
+        torch.Tensor, Optional[torch.Tensor],
     ]:
         pass
 
@@ -233,18 +222,16 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
 
     @abstractmethod
     def input_image_to_repr(
-        self,
-        image: torch.Tensor,
-        ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
-    ) -> Union[torch.Tensor, pystiche.TensorStorage]:
+        self, image: torch.Tensor, ctx: Optional[torch.Tensor],
+    ) -> torch.Tensor:
         pass
 
     @abstractmethod
     def calculate_score(
         self,
-        input_repr: Union[torch.Tensor, pystiche.TensorStorage],
-        target_repr: Union[torch.Tensor, pystiche.TensorStorage],
-        ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
+        input_repr: torch.Tensor,
+        target_repr: torch.Tensor,
+        ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
         pass
 
@@ -276,8 +263,7 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
     def target_image_to_repr(
         self, image: torch.Tensor
     ) -> Tuple[
-        Union[torch.Tensor, pystiche.TensorStorage],
-        Optional[Union[torch.Tensor, pystiche.TensorStorage]],
+        torch.Tensor, Optional[torch.Tensor],
     ]:
         enc = self.encoder(image)
         if self.has_target_guide:
@@ -288,8 +274,7 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
     def target_enc_to_repr(
         self, enc: torch.Tensor
     ) -> Tuple[
-        Union[torch.Tensor, pystiche.TensorStorage],
-        Optional[Union[torch.Tensor, pystiche.TensorStorage]],
+        torch.Tensor, Optional[torch.Tensor],
     ]:
         pass
 
@@ -308,10 +293,8 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
         return self.calculate_score(input_repr, target_repr, ctx)
 
     def input_image_to_repr(
-        self,
-        image: torch.Tensor,
-        ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
-    ) -> Union[torch.Tensor, pystiche.TensorStorage]:
+        self, image: torch.Tensor, ctx: Optional[torch.Tensor],
+    ) -> torch.Tensor:
         enc = self.encoder(image)
         if self.has_input_guide:
             enc = self.apply_guide(enc, self.input_enc_guide)
@@ -319,17 +302,15 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
 
     @abstractmethod
     def input_enc_to_repr(
-        self,
-        enc: torch.Tensor,
-        ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
-    ) -> Union[torch.Tensor, pystiche.TensorStorage]:
+        self, enc: torch.Tensor, ctx: Optional[torch.Tensor],
+    ) -> torch.Tensor:
         pass
 
     @abstractmethod
     def calculate_score(
         self,
-        input_repr: Union[torch.Tensor, pystiche.TensorStorage],
-        target_repr: Union[torch.Tensor, pystiche.TensorStorage],
-        ctx: Optional[Union[torch.Tensor, pystiche.TensorStorage]],
+        input_repr: torch.Tensor,
+        target_repr: torch.Tensor,
+        ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
         pass
