@@ -9,7 +9,6 @@ from typing import (
     Iterable,
     Iterator,
     List,
-    NoReturn,
     Optional,
     Sequence,
     Tuple,
@@ -18,7 +17,6 @@ from typing import (
 )
 
 import torch
-from torch import nn
 
 from pystiche.meta import is_scalar_tensor
 from pystiche.misc import (
@@ -28,7 +26,7 @@ from pystiche.misc import (
     format_dict,
 )
 
-__all__ = ["ComplexObject", "TensorStorage", "LossDict", "TensorKey"]
+__all__ = ["ComplexObject", "LossDict", "TensorKey"]
 
 
 class ComplexObject(ABC):
@@ -87,25 +85,6 @@ class Object(ComplexObject):
             "The class Object", "0.4", info="It was renamed to ComplexObject."
         )
         warnings.warn(msg)
-
-
-# TODO: can this be removed for now?
-#  If not it should subclass pystiche.Module and thus should be moved to ._modules
-class TensorStorage(nn.Module, ComplexObject):
-    def __init__(self, **attrs: Any) -> None:
-        super().__init__()
-        for name, attr in attrs.items():
-            if isinstance(attr, torch.Tensor):
-                self.register_buffer(name, attr)
-            else:
-                setattr(self, name, attr)
-
-    def forward(self) -> NoReturn:
-        msg = (
-            f"{self.__class__.__name__} objects are only used "
-            "for storage and cannot be called."
-        )
-        raise RuntimeError(msg)
 
 
 class LossDict(OrderedDict):
