@@ -26,6 +26,8 @@ class Operator(pystiche.Module):
         super().__init__()
         self.score_weight = score_weight
 
+    input_guide: torch.Tensor
+
     def set_input_guide(self, guide: torch.Tensor) -> None:
         self.register_buffer("input_guide", guide)
 
@@ -43,7 +45,9 @@ class Operator(pystiche.Module):
         return self.process_input_image(input_image) * self.score_weight
 
     @abstractmethod
-    def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
+    def process_input_image(
+        self, image: torch.Tensor
+    ) -> Union[torch.Tensor, pystiche.LossDict]:
         pass
 
     def named_operators(
@@ -77,6 +81,11 @@ class RegularizationOperator(Operator):
 
 
 class ComparisonOperator(Operator):
+    target_guide: torch.Tensor
+    target_image: torch.Tensor
+    target_repr: torch.Tensor
+    ctx: Optional[torch.Tensor]
+
     @abstractmethod
     def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
         pass
@@ -114,7 +123,7 @@ class EncodingOperator(Operator):
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
-    def _properties(self):
+    def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
         dct["encoder"] = self.encoder
         return dct
@@ -191,14 +200,17 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
         if recalc_repr and self.has_target_image:
             self.set_target_image(self.target_image)
 
-    def set_target_image(self, image: torch.Tensor):
+    def set_target_image(self, image: torch.Tensor) -> None:
         self.register_buffer("target_image", image)
         with torch.no_grad():
             if self.has_target_guide:
                 image = self.apply_guide(image, self.target_guide)
             repr, ctx = self.target_image_to_repr(image)
         self.register_buffer("target_repr", repr)
-        self.register_buffer("ctx", ctx)
+        if ctx is not None:
+            self.register_buffer("ctx", ctx)
+        else:
+            self.ctx = None
 
     @abstractmethod
     def target_image_to_repr(
@@ -237,6 +249,9 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
 
 
 class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
+    target_enc_guide: torch.Tensor
+    input_enc_guide: torch.Tensor
+
     def __init__(self, encoder: Encoder, score_weight: float = 1.0):
         super().__init__(score_weight=score_weight)
         self._encoder = encoder
@@ -253,12 +268,15 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
         if recalc_repr and self.has_target_image:
             self.set_target_image(self.target_image)
 
-    def set_target_image(self, image: torch.Tensor):
+    def set_target_image(self, image: torch.Tensor) -> None:
         with torch.no_grad():
             repr, ctx = self.target_image_to_repr(image)
         self.register_buffer("target_image", image)
         self.register_buffer("target_repr", repr)
-        self.register_buffer("ctx", ctx)
+        if ctx is not None:
+            self.register_buffer("ctx", ctx)
+        else:
+            self.ctx = None
 
     def target_image_to_repr(
         self, image: torch.Tensor

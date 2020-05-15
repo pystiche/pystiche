@@ -1,6 +1,6 @@
 import itertools
 import warnings
-from typing import Iterator, Sequence, Tuple, Union
+from typing import Any, Dict, Iterator, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -26,20 +26,25 @@ class FeatureReconstructionOperator(EncodingComparisonOperator):
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         return enc
 
-    def input_enc_to_repr(self, enc: torch.Tensor, ctx: None) -> torch.Tensor:
+    def input_enc_to_repr(
+        self, enc: torch.Tensor, ctx: Optional[torch.Tensor]
+    ) -> torch.Tensor:
         return self.enc_to_repr(enc)
 
     def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
         return self.enc_to_repr(enc), None
 
     def calculate_score(
-        self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
+        self,
+        input_repr: torch.Tensor,
+        target_repr: torch.Tensor,
+        ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
         return F.mse_loss(input_repr, target_repr)
 
 
 class MSEEncodingOperator(FeatureReconstructionOperator):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         msg = build_deprecation_message(
             "The class MSEEncodingOperator",
             "0.4.0",
@@ -59,18 +64,23 @@ class GramOperator(EncodingComparisonOperator):
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         return pystiche.batch_gram_matrix(enc, normalize=self.normalize)
 
-    def input_enc_to_repr(self, enc: torch.Tensor, ctx: None) -> torch.Tensor:
+    def input_enc_to_repr(
+        self, enc: torch.Tensor, ctx: Optional[torch.Tensor]
+    ) -> torch.Tensor:
         return self.enc_to_repr(enc)
 
     def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
         return self.enc_to_repr(enc), None
 
     def calculate_score(
-        self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
+        self,
+        input_repr: torch.Tensor,
+        target_repr: torch.Tensor,
+        ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
         return F.mse_loss(input_repr, target_repr)
 
-    def _properties(self):
+    def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
         if not self.normalize:
             dct["normalize"] = self.normalize
@@ -105,7 +115,7 @@ class MRFOperator(EncodingComparisonOperator):
         if recalc_repr and self.has_target_image:
             self.set_target_image(self.target_image)
 
-    def _guide_repr(self, repr: torch.Tensor, eps=1e-6) -> torch.Tensor:
+    def _guide_repr(self, repr: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
         # Due to the guiding large areas of the images might be zero and thus many
         # patches might carry no information. These patches can be removed from the
         # target and input representation reducing the computing cost and memory during
@@ -129,7 +139,9 @@ class MRFOperator(EncodingComparisonOperator):
 
         return self._guide_repr(repr)
 
-    def input_enc_to_repr(self, enc: torch.Tensor, ctx: None) -> torch.Tensor:
+    def input_enc_to_repr(
+        self, enc: torch.Tensor, ctx: Optional[torch.Tensor]
+    ) -> torch.Tensor:
         return self.enc_to_repr(enc, self.has_input_guide)
 
     def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
@@ -173,11 +185,14 @@ class MRFOperator(EncodingComparisonOperator):
             yield transform
 
     def calculate_score(
-        self, input_repr: torch.Tensor, target_repr: torch.Tensor, ctx: None
+        self,
+        input_repr: torch.Tensor,
+        target_repr: torch.Tensor,
+        ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
         return F.patch_matching_loss(input_repr, target_repr)
 
-    def _properties(self):
+    def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
         dct["patch_size"] = self.patch_size
         dct["stride"] = self.stride

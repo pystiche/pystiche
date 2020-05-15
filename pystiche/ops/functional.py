@@ -41,7 +41,7 @@ def patch_matching_loss(
 
 
 def value_range_loss(
-    input: torch.Tensor, min=0.0, max=1.0, reduction: str = "mean"
+    input: torch.Tensor, min: float = 0.0, max: float = 1.0, reduction: str = "mean"
 ) -> torch.Tensor:
     # TODO: remove sinh call; quadratic, i.e. x * (x-1) is enough
     loss = relu(torch.sinh(input - min) * torch.sinh(input - max))
