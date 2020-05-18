@@ -331,11 +331,6 @@ def read_image(file, size=500):
     return import_from_pil(image)
 
 
-def write_image(image, file):
-    image = export_to_pil(image)
-    image.save(file)
-
-
 def show_image(image, title=None):
     _, ax = plt.subplots()
     ax.axis("off")
@@ -481,11 +476,10 @@ for step in range(1, num_steps + 1):
 output_image = input_image.detach()
 
 ########################################################################################
-# After the NST we show the resulting image and save it.
+# After the NST we show the resulting image.
 
 # sphinx_gallery_thumbnail_number = 4
 show_image(output_image, title="Output image")
-write_image(output_image, path.join(image_root, "nst_without_pystiche.jpg"))
 
 
 ########################################################################################
