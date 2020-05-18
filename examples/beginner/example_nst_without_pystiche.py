@@ -296,7 +296,7 @@ class StyleLoss(MultiLayerLoss):
 # ------
 #
 # Before we can load the content and style image, we need to define some basic I/O
-# utilities. We use ``urllib`` for the download, ``PIL`` for the file I/O, and
+# utilities. We use ``requests`` for the download, ``PIL`` for the file I/O, and
 # ``matplotlib.pyplot`` to show the images.
 #
 # At import a fake batch dimension is added to the images to be able to pass it through
