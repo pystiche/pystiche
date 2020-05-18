@@ -78,9 +78,13 @@ class PerceptualLoss(_PerceptualLoss):
 
 
 class GuidedPerceptualLoss(_PerceptualLoss):
-    def set_style_guide(self, region: str, guide: torch.Tensor) -> None:
+    def set_style_guide(
+        self, region: str, guide: torch.Tensor, recalc_repr: bool = True
+    ) -> None:
         self._verfiy_has_style_loss()
-        getattr(self.style_loss, region).set_target_guide(guide)
+        getattr(self.style_loss, region).set_target_guide(
+            guide, recalc_repr=recalc_repr
+        )
 
     def set_style_image(self, region: str, image: torch.Tensor) -> None:
         self._verfiy_has_style_loss()
