@@ -22,9 +22,9 @@ optimization, could be performed without ``pystiche``.
 
 import itertools
 from collections import OrderedDict
-from urllib.request import urlretrieve
 
 import matplotlib.pyplot as plt
+import requests
 from PIL import Image
 
 import torch
@@ -322,7 +322,10 @@ export_to_pil = transforms.Compose(
 
 
 def download_image(url, file):
-    urlretrieve(url, file)
+    # without User-Agent the access is denied
+    headers = {"User-Agent": "pystiche"}
+    with open(file, "wb") as fh:
+        fh.write(requests.get(url, headers=headers).content)
 
 
 def read_image(file, size=500):
