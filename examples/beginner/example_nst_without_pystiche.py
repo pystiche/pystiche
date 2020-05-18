@@ -22,7 +22,7 @@ optimization, could be performed without ``pystiche``.
 
 import itertools
 from collections import OrderedDict
-from os import path
+from urllib.request import urlretrieve
 
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -296,8 +296,8 @@ class StyleLoss(MultiLayerLoss):
 # ------
 #
 # Before we can load the content and style image, we need to define some basic I/O
-# utilities. We use ``PIL`` for the file I/O and ``matplotlib.pyplot`` to show the
-# images.
+# utilities. We use ``urllib`` for the download, ``PIL`` for the file I/O, and
+# ``matplotlib.pyplot`` to show the images.
 #
 # At import a fake batch dimension is added to the images to be able to pass it through
 # the ``MultiLayerEncoder`` without further modification. This dimensions is removed
@@ -319,6 +319,10 @@ export_to_pil = transforms.Compose(
         transforms.ToPILImage(),
     )
 )
+
+
+def download_image(url, file):
+    urlretrieve(url, file)
 
 
 def read_image(file, size=500):
@@ -351,37 +355,34 @@ def show_image(image, title=None):
 
 
 ########################################################################################
-# With the I/O utilities set up, we now load and show the images that will be used in
-# the NST.
-
-# FIXME:
-# image_root = path.abspath(path.join("..", "images"))
-image_root = path.expanduser(path.join("~", ".cache", "pystiche"))
-
-
-########################################################################################
-# .. note::
-#
-#   By default the image files should be placed in ``../images/`` relative to this file.
-#   Adapt ``image_root`` if you want to use another directory.
+# With the I/O utilities set up, we now download, read, and show the images that will
+# be used in the NST.
 #
 # .. note::
 #
-#   You can download the default images here:
-#
-#   - `Content image <https://free-images.com/md/71c4/bird_wildlife_australian_bird.jpg>`_
-#   - `Style image <https://cdn.pixabay.com/photo/2017/07/03/20/17/abstract-2468874_960_720.jpg>`_
+#   The images used in this example a licensed under the permissive
+#   `Pixabay License <https://pixabay.com/service/license/>`_ .
 
 
 ########################################################################################
 
-content_image = read_image(path.join(image_root, "bird.jpg"))
+content_url = "https://cdn.pixabay.com/photo/2016/01/14/11/26/bird-1139734_960_720.jpg"
+content_file = "bird1.jpg"
+
+download_image(content_url, content_file)
+content_image = read_image(content_file)
 show_image(content_image, title="Content image")
 
 
 ########################################################################################
 
-style_image = read_image(path.join(image_root, "paint.jpg"))
+style_url = (
+    "https://cdn.pixabay.com/photo/2017/07/03/20/17/abstract-2468874_960_720.jpg"
+)
+style_file = "paint.jpg"
+
+download_image(style_url, style_file)
+style_image = read_image(style_file)
 show_image(style_image, title="Style image")
 
 
