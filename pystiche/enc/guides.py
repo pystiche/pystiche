@@ -2,8 +2,14 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-import pystiche
-from pystiche.meta import ConvModule, PoolModule, is_conv_module, is_pool_module
+from pystiche.meta import (
+    ConvModule,
+    PoolModule,
+    conv_module_meta,
+    is_conv_module,
+    is_pool_module,
+    pool_module_meta,
+)
 from pystiche.misc import verify_str_arg
 
 __all__ = ["propagate_guide"]
@@ -37,7 +43,7 @@ def _conv_guide(module: ConvModule, guide: torch.Tensor, method: str) -> torch.T
     if method == "simple":
         return guide
 
-    meta = pystiche.conv_module_meta(module)
+    meta = conv_module_meta(module)
     guide_unfolded = F.unfold(guide, **meta).byte()
 
     if method == "inside":
@@ -55,4 +61,4 @@ def _conv_guide(module: ConvModule, guide: torch.Tensor, method: str) -> torch.T
 
 
 def _pool_guide(module: PoolModule, guide: torch.Tensor) -> torch.Tensor:
-    return F.max_pool2d(guide, **pystiche.pool_module_meta(module))
+    return F.max_pool2d(guide, **pool_module_meta(module))
