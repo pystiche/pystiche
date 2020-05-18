@@ -497,5 +497,5 @@ write_image(output_image, path.join(image_root, "nst_without_pystiche.jpg"))
 #
 # Judging by the lines of code one could (falsely) conclude that the actual NST is just
 # an appendix. If you feel the same you can stop worrying now: in
-# `this follow-up example <>` we showcase how to achieve the same result with
-# ``pystiche``.
+# :ref:`sphx_glr_galleries_examples_beginner_example_nst_with_pystiche.py` we showcase
+# how to achieve the same result with ``pystiche``.
