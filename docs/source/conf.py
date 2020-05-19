@@ -115,7 +115,7 @@ if download_gallery:
     )
 
     url = urljoin(base, file)
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {"User-Agent": "pystiche"}
 
     print(f"Downloading pre-built galleries from {url}")
 
