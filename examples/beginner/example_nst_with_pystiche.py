@@ -119,19 +119,13 @@ print(criterion)
 # Images
 # ------
 #
-# We now load and show the images that will be used in the NST.
+# We now load and show the images that will be used in the NST. The images will be
+# resized to ``size=500`` pixels on the shorter edge.
 
 size = 500
 
 
 ########################################################################################
-#
-# .. note::
-#
-#   By default all images will be resized to ``size=500`` pixels on the shorter edge.
-#   If you have more memory than X.X GB available you can increase this to obtain
-#   higher resolution results.
-#
 # .. note::
 #
 #   If you want to work with other images you can load them with

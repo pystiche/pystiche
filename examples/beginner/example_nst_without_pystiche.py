@@ -301,7 +301,8 @@ class StyleLoss(MultiLayerLoss):
 #
 # At import a fake batch dimension is added to the images to be able to pass it through
 # the ``MultiLayerEncoder`` without further modification. This dimensions is removed
-# again upon export.
+# again upon export. Furthermore, all images will be resized to ``size=500`` pixels
+# on the shorter edge.
 
 import_from_pil = transforms.Compose(
     (
@@ -342,14 +343,6 @@ def show_image(image, title=None):
 
     image = export_to_pil(image)
     ax.imshow(image)
-
-
-########################################################################################
-# .. note::
-#
-#   By default all images will be resized to ``size=500`` pixels on the shorter edge.
-#   If you have more memory than X.X GB available you can increase this to obtain
-#   higher resolution results.
 
 
 ########################################################################################
