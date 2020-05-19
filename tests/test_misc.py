@@ -267,12 +267,6 @@ class TestMisc(PysticheTestCase):
         desired = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.assertEqual(actual, desired)
 
-    def test_get_device_identity(self):
-        device = torch.device("mkldnn")
-        actual = misc.get_device(device)
-        desired = device
-        self.assertEqual(actual, desired)
-
     def test_get_device_str(self):
         device_name = "mkldnn"
         actual = misc.get_device(device_name)
