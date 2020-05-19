@@ -2,13 +2,12 @@ import os
 from os import path
 from typing import Any, Dict, Optional
 
-import requests
-
 import torch
 from torch import nn
 from torchvision.datasets.utils import check_md5
 
 import pystiche
+from pystiche.misc import download_file
 
 from ..license import License, UnknownLicense
 from ._core import _Image, _ImageCollection
@@ -66,9 +65,7 @@ class DownloadableImage(_Image):
     def download(self, root: Optional[str] = None, overwrite: bool = False):
         def _download(file: str):
             os.makedirs(path.dirname(file), exist_ok=True)
-            headers = {"User-Agent": "Mozilla/5.0"}
-            with open(file, "wb") as fh:
-                fh.write(requests.get(self.url, headers=headers).content)
+            download_file(self.url, file)
 
         if root is None:
             root = pystiche.home()

@@ -23,6 +23,7 @@ from typing import (
 )
 
 import numpy as np
+import requests
 
 import torch
 from torch import nn
@@ -52,6 +53,7 @@ __all__ = [
     "build_deprecation_message",
     "warn_deprecation",
     "get_device",
+    "download_file",
 ]
 
 
@@ -425,3 +427,14 @@ def get_device(device: Optional[Union[str, torch.device]] = None) -> torch.devic
         device = torch.device(device)
 
     return device
+
+
+def download_file(
+    url: str, file: Optional[str] = None, user_agent: str = "pystiche"
+) -> str:
+    if file is None:
+        file = path.basename(url)
+    headers = {"User-Agent": user_agent}
+    with open(file, "wb") as fh:
+        fh.write(requests.get(url, headers=headers).content)
+    return file
