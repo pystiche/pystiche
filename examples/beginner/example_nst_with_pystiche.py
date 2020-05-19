@@ -22,7 +22,7 @@ optimization, could be performed with ``pystiche``.
 import pystiche
 from pystiche.demo import demo_images, demo_logger
 from pystiche.enc import vgg19_multi_layer_encoder
-from pystiche.image import show_image, write_image
+from pystiche.image import show_image
 from pystiche.loss import PerceptualLoss
 from pystiche.misc import get_device, get_input_image
 from pystiche.ops import (
@@ -209,11 +209,10 @@ output_image = default_image_optim_loop(
 
 
 ########################################################################################
-# After the NST is complete we show the result and save it.
+# After the NST is complete we show the result.
 
 # sphinx_gallery_thumbnail_number = 4
 show_image(output_image, title="Output image")
-write_image(output_image, "nst_with_pystiche.jpg")
 
 
 ########################################################################################
