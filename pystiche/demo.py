@@ -4,6 +4,7 @@ import sys
 from pystiche.data import (
     DownloadableImage,
     DownloadableImageCollection,
+    ExpiredCopyrightLicense,
     PixabayLicense,
     PublicDomainLicense,
 )
@@ -15,10 +16,12 @@ __all__ = ["demo_images", "demo_logger"]
 def demo_images() -> DownloadableImageCollection:
     return DownloadableImageCollection(
         {
+            # TODO: remove
             "dancing": DownloadableImage(
                 "https://pytorch.org/tutorials/_static/img/neural-style/dancing.jpg",
                 md5="0a2df538901452d639170a2ed89815a4",
             ),
+            # TODO: remove
             "picasso": DownloadableImage(
                 "https://pytorch.org/tutorials/_static/img/neural-style/picasso.jpg",
                 md5="d1d60fc3f9d0b22d2d826c47934a37ea",
@@ -55,44 +58,103 @@ def demo_images() -> DownloadableImageCollection:
                 license=PublicDomainLicense(),
                 md5="5b60cd1724395f7a0c21dc6dd006f8ae",
             ),
-            "lemgo_castle": DownloadableImage(
-                "https://free-images.com/lg/7a43/lemgo_brake_castle_bridge.jpg",
-                file="lemgo_castle.jpg",
+            "castle": DownloadableImage(
+                "https://cdn.pixabay.com/photo/2014/04/03/10/28/lemgo-310586_960_720.jpg",
+                file="castle.jpg",
                 author="Christian Hänsel",
                 date="23.03.2014",
-                md5="9db982e6c5cd17d5c0a9e93171d4df29",
+                license=PixabayLicense(),
+                md5="f6e7d9ed61223c12230b99ed496849a9",
                 guides=DownloadableImageCollection(
                     {
                         "building": DownloadableImage(
-                            "building.png",  # FIXME
-                            md5="35843acf145f4402d01bb2e1911def7e",
+                            "https://download.pystiche.org/images/castle/building.png",
+                            file="building.png",
+                            author="Julian Bültemeier",
+                            license=PublicDomainLicense(),
+                            md5="680bd875f4fdb919d446d6210cbe1035",
                         ),
                         "sky": DownloadableImage(
-                            "sky.png", md5="c0c956429c52069302c29a3737d6d211",  # FIXME
+                            "https://download.pystiche.org/images/castle/sky.png",
+                            file="sky.png",
+                            author="Julian Bültemeier",
+                            license=PublicDomainLicense(),
+                            md5="c4d5f18b3ca22a1ff879f40ca797ed26",
+                        ),
+                        "water": DownloadableImage(
+                            "https://download.pystiche.org/images/castle/water.png",
+                            file="water.png",
+                            author="Julian Bültemeier",
+                            license=PublicDomainLicense(),
+                            md5="2642552e8c98b6a63f24dd67bb54e2a3",
                         ),
                     },
                 ),
             ),
-            "segovia_fortress": DownloadableImage(
-                "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&dl=birmingham-museums-trust-sJr8LDyEf7k-unsplash.jpg",
-                file="segovia_fortress.jpg",
-                title="Alcazar Segovia",
-                author="David Roberts",
-                date="1836",
-                license=PublicDomainLicense(1864),
-                md5="fb66841d673afed12e849641f0723acf",
+            "church": DownloadableImage(
+                "https://upload.wikimedia.org/wikipedia/commons/a/ad/Vincent_van_Gogh_-_The_Church_in_Auvers-sur-Oise%2C_View_from_the_Chevet_-_Google_Art_Project.jpg",
+                file="church.jpg",
+                author="Vincent van Gogh",
+                title="The Church at Auvers",
+                date="1890",
+                license=ExpiredCopyrightLicense(1890),
+                md5="fd866289498367afd72a5c9cf626073a",
                 guides=DownloadableImageCollection(
                     {
                         "building": DownloadableImage(
-                            "building.png",  # FIXME
-                            md5="11fd272d7439539bbcfd3e765497a4a6",
+                            "https://download.pystiche.org/images/church/building.png",
+                            file="building.png",
+                            author="Julian Bültemeier",
+                            license=PublicDomainLicense(),
+                            md5="41256f62d2bd1560ed1e66623c8d9c9f",
                         ),
                         "sky": DownloadableImage(
-                            "sky.png", md5="4a216b582d9ab10a8919344e2596cf6b",  # FIXME
+                            "https://download.pystiche.org/images/church/sky.png",
+                            file="sky.png",
+                            author="Julian Bültemeier",
+                            license=PublicDomainLicense(),
+                            md5="c87c7234d2788a1d2a4e1633723c794b",
                         ),
                         "surroundings": DownloadableImage(
-                            "surroundings.png",  # FIXME
-                            md5="bbc45cc9126a68c89c7408eccbf973c3",
+                            "https://download.pystiche.org/images/church/surroundings.png",
+                            file="surroundings.png",
+                            author="Julian Bültemeier",
+                            license=PublicDomainLicense(),
+                            md5="807a40beed727af81333edbd8eb89aff",
+                        ),
+                    }
+                ),
+            ),
+            "cliff": DownloadableImage(
+                "https://upload.wikimedia.org/wikipedia/commons/a/a4/Claude_Monet_-_Cliff_Walk_at_Pourville_-_Google_Art_Project.jpg",
+                file="cliff.jpg",
+                author="Claude Monet",
+                title="The Cliff Walk at Pourville",
+                date="1882",
+                license=ExpiredCopyrightLicense(1926),
+                md5="8f6b8101b484f17cea92a12ad27be31d",
+                guides=DownloadableImageCollection(
+                    {
+                        "landscape": DownloadableImage(
+                            "https://download.pystiche.org/images/cliff/landscape.png",
+                            file="landscape.png",
+                            author="Julian Bültemeier",
+                            license=PublicDomainLicense(),
+                            md5="4d02ee8aaa610ced3ef12a5c82f29b81",
+                        ),
+                        "sky": DownloadableImage(
+                            "https://download.pystiche.org/images/cliff/sky.png",
+                            file="sky.png",
+                            author="Julian Bültemeier",
+                            license=PublicDomainLicense(),
+                            md5="8f76b7ed88ff1b23feaab1de51501ae1",
+                        ),
+                        "water": DownloadableImage(
+                            "https://download.pystiche.org/images/cliff/water.png",
+                            file="water.png",
+                            author="Julian Bültemeier",
+                            license=PublicDomainLicense(),
+                            md5="f0cab02afadf38d3262ce1c61a36f6da",
                         ),
                     }
                 ),
@@ -102,7 +164,7 @@ def demo_images() -> DownloadableImageCollection:
 
 
 def demo_logger() -> OptimLogger:
-    logger = logging.getLogger("demo_logger")
+    logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
     sh = logging.StreamHandler(sys.stdout)
