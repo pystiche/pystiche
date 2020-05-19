@@ -1,13 +1,12 @@
 import math
 import unittest
+from os import path
 
 import torch
 
 from pystiche.misc import cuda, misc
 
-from .utils import PysticheTestCase, skip_if_cuda_not_available, get_tmp_dir
-
-from os import path
+from .utils import PysticheTestCase, get_tmp_dir, skip_if_cuda_not_available
 
 
 class TestMisc(PysticheTestCase):
