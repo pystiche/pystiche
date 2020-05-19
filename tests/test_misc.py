@@ -5,7 +5,9 @@ import torch
 
 from pystiche.misc import cuda, misc
 
-from .utils import PysticheTestCase, skip_if_cuda_not_available
+from .utils import PysticheTestCase, skip_if_cuda_not_available, get_tmp_dir
+
+from os import path
 
 
 class TestMisc(PysticheTestCase):
@@ -277,6 +279,16 @@ class TestMisc(PysticheTestCase):
         actual = misc.get_device(device_name)
         desired = torch.device(device_name)
         self.assertEqual(actual, desired)
+
+    def test_download_file(self):
+        with get_tmp_dir() as root:
+            url = "https://raw.githubusercontent.com/pmeier/pystiche/master/tests/assets/image/test_image.png"
+            file = path.join(root, path.basename(url))
+            misc.download_file(url, file)
+
+            actual = self.load_image(file=file)
+            desired = self.load_image()
+            self.assertImagesAlmostEqual(actual, desired)
 
 
 class TestCuda(PysticheTestCase):
