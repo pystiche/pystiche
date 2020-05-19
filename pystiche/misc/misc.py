@@ -305,7 +305,7 @@ def get_input_image(
     style_image: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
     if isinstance(starting_point, torch.Tensor):
-        return starting_point
+        return starting_point.clone()
 
     starting_point = verify_str_arg(
         starting_point, "starting_point", ("content", "style", "random")

@@ -208,6 +208,7 @@ class TestMisc(PysticheTestCase):
         starting_point = image
         actual = misc.get_input_image(starting_point)
         desired = image
+        self.assertIsNot(actual, desired)
         self.assertScalarTensorAlmostEqual(actual, desired)
 
     def test_get_input_image_tensor_content(self):
