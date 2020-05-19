@@ -416,17 +416,11 @@ def warn_deprecation(
     warnings.warn(msg)
 
 
-def get_device(device: Optional[Union[str, torch.device]] = None) -> torch.device:
-    if isinstance(device, torch.device):
-        return device
+def get_device(device: Optional[str] = None) -> torch.device:
 
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    if isinstance(device, str):
-        device = torch.device(device)
-
-    return device
+    return torch.device(device)
 
 
 def download_file(
