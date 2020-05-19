@@ -77,7 +77,7 @@ setup(
     author_email=about["__author_email__"],
     long_description=long_description,
     long_description_content_type="text/x-rst",
-    packages=find_packages(where=PROJECT_ROOT, exclude=("docs", "test", "tutorials")),
+    packages=find_packages(where=PROJECT_ROOT, exclude=("docs", "examples", "tests")),
     install_requires=install_requires,
     extras_require=extras_require,
     python_requires=">=3.6",

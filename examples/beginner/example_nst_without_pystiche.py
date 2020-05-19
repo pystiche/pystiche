@@ -22,9 +22,9 @@ optimization, could be performed without ``pystiche``.
 
 import itertools
 from collections import OrderedDict
-from os import path
 
 import matplotlib.pyplot as plt
+import requests
 from PIL import Image
 
 import torch
@@ -296,12 +296,13 @@ class StyleLoss(MultiLayerLoss):
 # ------
 #
 # Before we can load the content and style image, we need to define some basic I/O
-# utilities. We use ``PIL`` for the file I/O and ``matplotlib.pyplot`` to show the
-# images.
+# utilities. We use ``requests`` for the download, ``PIL`` for the file I/O, and
+# ``matplotlib.pyplot`` to show the images.
 #
 # At import a fake batch dimension is added to the images to be able to pass it through
 # the ``MultiLayerEncoder`` without further modification. This dimensions is removed
-# again upon export.
+# again upon export. Furthermore, all images will be resized to ``size=500`` pixels
+# on the shorter edge.
 
 import_from_pil = transforms.Compose(
     (
@@ -321,15 +322,17 @@ export_to_pil = transforms.Compose(
 )
 
 
+def download_image(url, file):
+    # without User-Agent the access is denied
+    headers = {"User-Agent": "pystiche"}
+    with open(file, "wb") as fh:
+        fh.write(requests.get(url, headers=headers).content)
+
+
 def read_image(file, size=500):
     image = Image.open(file)
     image = resize(image, size)
     return import_from_pil(image)
-
-
-def write_image(image, file):
-    image = export_to_pil(image)
-    image.save(file)
 
 
 def show_image(image, title=None):
@@ -343,45 +346,34 @@ def show_image(image, title=None):
 
 
 ########################################################################################
-# .. note::
-#
-#   By default all images will be resized to ``size=500`` pixels on the shorter edge.
-#   If you have more memory than X.X GB available you can increase this to obtain
-#   higher resolution results.
-
-
-########################################################################################
-# With the I/O utilities set up, we now load and show the images that will be used in
-# the NST.
-
-# FIXME:
-# image_root = path.abspath(path.join("..", "images"))
-image_root = path.expanduser(path.join("~", ".cache", "pystiche"))
-
-
-########################################################################################
-# .. note::
-#
-#   By default the image files should be placed in ``../images/`` relative to this file.
-#   Adapt ``image_root`` if you want to use another directory.
+# With the I/O utilities set up, we now download, read, and show the images that will
+# be used in the NST.
 #
 # .. note::
 #
-#   You can download the default images here:
-#
-#   - `Content image <https://free-images.com/md/71c4/bird_wildlife_australian_bird.jpg>`_
-#   - `Style image <https://cdn.pixabay.com/photo/2017/07/03/20/17/abstract-2468874_960_720.jpg>`_
+#   The images used in this example a licensed under the permissive
+#   `Pixabay License <https://pixabay.com/service/license/>`_ .
 
 
 ########################################################################################
 
-content_image = read_image(path.join(image_root, "bird.jpg"))
+content_url = "https://cdn.pixabay.com/photo/2016/01/14/11/26/bird-1139734_960_720.jpg"
+content_file = "bird1.jpg"
+
+download_image(content_url, content_file)
+content_image = read_image(content_file)
 show_image(content_image, title="Content image")
 
 
 ########################################################################################
 
-style_image = read_image(path.join(image_root, "paint.jpg"))
+style_url = (
+    "https://cdn.pixabay.com/photo/2017/07/03/20/17/abstract-2468874_960_720.jpg"
+)
+style_file = "paint.jpg"
+
+download_image(style_url, style_file)
+style_image = read_image(style_file)
 show_image(style_image, title="Style image")
 
 
@@ -480,11 +472,10 @@ for step in range(1, num_steps + 1):
 output_image = input_image.detach()
 
 ########################################################################################
-# After the NST we show the resulting image and save it.
+# After the NST we show the resulting image.
 
 # sphinx_gallery_thumbnail_number = 4
 show_image(output_image, title="Output image")
-write_image(output_image, path.join(image_root, "nst_without_pystiche.jpg"))
 
 
 ########################################################################################
@@ -497,5 +488,5 @@ write_image(output_image, path.join(image_root, "nst_without_pystiche.jpg"))
 #
 # Judging by the lines of code one could (falsely) conclude that the actual NST is just
 # an appendix. If you feel the same you can stop worrying now: in
-# `this follow-up example <>` we showcase how to achieve the same result with
-# ``pystiche``.
+# :ref:`sphx_glr_galleries_examples_beginner_example_nst_with_pystiche.py` we showcase
+# how to achieve the same result with ``pystiche``.
