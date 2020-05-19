@@ -14,12 +14,12 @@ from distutils.util import strtobool
 from os import path
 from urllib.parse import urljoin
 
-import requests
 from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 
 import torch
 
 import pystiche
+from pystiche.misc import download_file
 
 # -- Run config --------------------------------------------------------------
 
@@ -115,12 +115,8 @@ if download_gallery:
     )
 
     url = urljoin(base, file)
-    headers = {"User-Agent": "pystiche"}
-
     print(f"Downloading pre-built galleries from {url}")
-
-    with open(file, "wb") as fh:
-        fh.write(requests.get(url, headers=headers).content)
+    download_file(url, file)
 
     shutil.unpack_archive(file, extract_dir=".")
     os.remove(file)
