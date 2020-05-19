@@ -7,12 +7,19 @@
 # -- Imports -----------------------------------------------------------------
 
 import os
+import shutil
 import warnings
 from datetime import datetime
 from distutils.util import strtobool
 from os import path
+from urllib.parse import urljoin
 
+import requests
 from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
+
+import torch
+
+import pystiche
 
 # -- Run config --------------------------------------------------------------
 
@@ -31,13 +38,21 @@ run_by_rtd = get_bool_env_var("READTHEDOCS")
 run_by_ci = (
     run_by_github_actions
     or run_by_travis_ci
-    or run_by_rtd
     or run_by_appveyor
+    or run_by_rtd
     or get_bool_env_var("CI")
 )
 
 plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not run_by_ci
+download_gallery = (
+    get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY", default=not plot_gallery) or run_by_ci
+)
 
+if plot_gallery and not torch.cuda.is_available():
+    print(
+        "The galleries will be built, but CUDA is not available. "
+        "This will take a long time."
+    )
 
 # -- Path setup --------------------------------------------------------------
 
@@ -90,6 +105,25 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Sphinx gallery configuration --------------------------------------------
+
+if download_gallery:
+    base = "https://download.pystiche.org/galleries/"
+    file = (
+        "master.zip"
+        if pystiche.__about__._IS_DEV_VERSION
+        else f"v{pystiche.__base_version__}.zip"
+    )
+
+    url = urljoin(base, file)
+    headers = {"User-Agent": "pystiche"}
+
+    print(f"Downloading pre-built galleries from {url}")
+
+    with open(file, "wb") as fh:
+        fh.write(requests.get(url, headers=headers).content)
+
+    shutil.unpack_archive(file, extract_dir=".")
+    os.remove(file)
 
 extensions.append("sphinx_gallery.gen_gallery")
 
