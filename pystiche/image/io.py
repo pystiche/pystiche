@@ -123,6 +123,16 @@ def read_image(
     interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
 ) -> torch.Tensor:
+    """Reads an image from file and returns it as tensor.
+
+    Args:
+        file: Path to image file to be read.
+        device: Device that the image is transferred to. Defaults to CPU.
+        make_batched: If ``True``, a fake batch dimension is added to the image.
+        size: Optional size the image is resized to.
+        interpolation_mode: Interpolation mode that is used to perform the optional
+            resizing.
+    """
     if isinstance(device, str):
         device = torch.device(device)
 
@@ -145,19 +155,44 @@ def read_guides(
 def write_image(
     image: torch.Tensor, file: str, mode: Optional[str] = None, **save_kwargs: Any
 ):
+    """Saves an image to a file.
+
+    Args:
+        image: Image to be saved.
+        file: Path to image file.
+        mode: Optional image mode. See the `Pillow documentation
+            <https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes>`_
+            for details.
+        **save_kwargs: Other parameters of :meth:`~PIL.Image.Image.save` .
+    """
     export_to_pil(image, mode=mode).save(file, **save_kwargs)
 
 
 def show_image(
     image: Union[torch.Tensor, str],
     title: Optional[str] = None,
-    mode: Optional[str] = None,
     size: Optional[Union[int, Tuple[int, int]]] = None,
     interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
 ):
+    """Shows an image and optionally reads it from file first.
+
+    .. note::
+
+        ``show_image`` uses :func:`matplotlib.pyplot.imshow` as primary means to show
+        images. If that is not available the native `PIL` :meth:`~PIL.Image.Image.show`
+        is used as a fallback.
+
+    Args:
+        image: Image to be shown. If ``str`` this is treated as a path to an image that
+            and is read by :func:`~pystiche.image.io.read_image` .
+        title: Optional title of the image.
+        size: Optional size the image is resized to.
+        interpolation_mode: Interpolation mode that is used to perform the optional
+            resizing.
+    """
     if isinstance(image, torch.Tensor):
-        image = export_to_pil(image, mode=mode)
+        image = export_to_pil(image)
     elif isinstance(image, str):
         image = Image.open(path.expanduser(image))
     else:
