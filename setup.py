@@ -33,14 +33,14 @@ install_requires = (
 test_requires = ("pytest", "pyimagetest", "pillow_affine", "dill", "pytest-subtests")
 
 doc_requires = (
-    "sphinx",
-    "sphinx_autodoc_typehints",
+    "sphinx < 3.0.0",
     "sphinxcontrib-bibtex",
-    "sphinx_rtd_theme",
+    "sphinx_autodoc_typehints",
     "sphinx-gallery",
     # Install additional sphinx-gallery dependencies
     # https://sphinx-gallery.github.io/stable/index.html#install-via-pip
     "matplotlib",
+    "sphinx_rtd_theme",
 )
 
 dev_requires = (

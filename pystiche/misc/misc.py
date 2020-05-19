@@ -304,6 +304,19 @@ def get_input_image(
     content_image: Optional[torch.Tensor] = None,
     style_image: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
+    """Generates an input image for NST from the given ``starting_point``.
+
+    Args:
+        starting_point: If :class:`~torch.Tensor` returns a copy. If ``"content"`` or
+         ``"style"`` returns a copy of ``content_image`` or ``style_image``,
+         respectively. If ``"random"`` returns a white noise image with the dimensions
+         of ``content_image`` or ``style_image``, respectively. Defaults to
+         ``"content"``.
+        content_image: Content image. Only required if ``starting_point`` is
+            ``"content"`` or ``"random"``.
+        style_image: Style image. Only required if ``starting_point`` is
+            ``"style"`` or ``"random"``.
+    """
     if isinstance(starting_point, torch.Tensor):
         return starting_point.clone()
 
@@ -417,7 +430,12 @@ def warn_deprecation(
 
 
 def get_device(device: Optional[str] = None) -> torch.device:
+    """Selects a device to perform an NST on.
 
+    Args:
+        device: If ``str``, returns the corresponding :class:`~torch.device`. If
+            ``None`` selects CUDA if available and otherwise CPU. Defaults to ``None``.
+    """
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
     return torch.device(device)
