@@ -43,16 +43,6 @@ run_by_ci = (
     or get_bool_env_var("CI")
 )
 
-plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not run_by_ci
-download_gallery = (
-    get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY", default=not plot_gallery) or run_by_ci
-)
-
-if plot_gallery and not torch.cuda.is_available():
-    print(
-        "The galleries will be built, but CUDA is not available. "
-        "This will take a long time."
-    )
 
 # -- Path setup ------------------------------------------------------------------------
 
@@ -117,6 +107,12 @@ intersphinx_mapping = {
 
 # -- sphinx-gallery configuration ------------------------------------------------------
 
+extensions.append("sphinx_gallery.gen_gallery")
+
+plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not run_by_ci
+
+download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY") or run_by_ci
+
 if download_gallery:
     base = "https://download.pystiche.org/galleries/"
     file = (
@@ -132,7 +128,13 @@ if download_gallery:
     shutil.unpack_archive(file, extract_dir=".")
     os.remove(file)
 
-extensions.append("sphinx_gallery.gen_gallery")
+if plot_gallery and not torch.cuda.is_available():
+    msg = (
+        "The galleries will be built, but CUDA is not available. "
+        "This will take a long time."
+    )
+    print(msg)
+
 
 sphinx_gallery_conf = {
     "examples_dirs": path.join(PROJECT_ROOT, "examples"),
