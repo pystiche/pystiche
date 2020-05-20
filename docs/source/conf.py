@@ -91,6 +91,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.coverage",
+    "sphinx.ext.intersphinx",
     "sphinxcontrib.bibtex",
     "sphinx_autodoc_typehints",
 ]
@@ -103,8 +104,20 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
+# -- intersphinx configuration --------------------------------------------
 
-# -- Sphinx gallery configuration --------------------------------------------
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3.6", None),
+    "torch": ("https://pytorch.org/docs/stable/", None),
+    "torchvision": ("https://pytorch.org/docs/stable/", None),
+    "PIL": ("https://pillow.readthedocs.io/en/stable/", None),
+    "numpy": ("https://numpy.org/doc/1.18/", None),
+    "requests": ("https://requests.readthedocs.io/en/stable/", None),
+    "matplotlib": ("https://matplotlib.org", None),
+}
+
+
+# -- sphinx-gallery configuration --------------------------------------------
 
 if download_gallery:
     base = "https://download.pystiche.org/galleries/"
