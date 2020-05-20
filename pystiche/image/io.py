@@ -123,7 +123,7 @@ def read_image(
     interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
 ) -> torch.Tensor:
-    """Reads an image from file with :mod:`PIL.Image` and returns it as
+    """Read an image from file with :mod:`PIL.Image` and return it as
     :class:`~torch.Tensor` .
 
     Args:
@@ -157,10 +157,10 @@ def read_guides(
 def write_image(
     image: torch.Tensor, file: str, mode: Optional[str] = None, **save_kwargs: Any
 ):
-    """Saves a :class:`~torch.Tensor` image to a file with :mod:`PIL.Image` .
+    """Write a :class:`~torch.Tensor` image to a file with :mod:`PIL.Image` .
 
     Args:
-        image: Image to be saved.
+        image: Image to be written.
         file: Path to image file.
         mode: Optional image mode. See the `Pillow documentation
             <https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes>`_
@@ -178,7 +178,7 @@ def show_image(
     interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
 ):
-    """Shows an image and optionally reads it from file first.
+    """Show an image and optionally read it from file first.
 
     .. note::
 
