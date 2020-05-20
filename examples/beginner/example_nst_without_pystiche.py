@@ -18,7 +18,9 @@ optimization, could be performed without ``pystiche``.
 # -----
 #
 # We start this example by importing everything we need and setting the device we will
-# be working on.
+# be working on. :mod:`torch` and :mod:`torchvision` will be used for the actual NST.
+# Furthermore, we use :mod:`requests` for the download, :mod:`PIL.Image` for the file
+# input, and :mod:`matplotlib.pyplot` to show the images.
 
 import itertools
 from collections import OrderedDict
@@ -77,12 +79,13 @@ print(f"I'm working with {device}")
 # 3. To reduce the static memory requirement, the ``MultiLayerEncoder`` should be
 #    ``trim`` mable in order to remove unused layers.
 #
-# We achieve the main functionality by subclassing ``nn.Sequential`` and define a
-# custom ``forward`` method, i.e. different behavior if called. Besides the image it
-# also takes an iterable ``layer_cfgs`` containing multiple sequences of ``layers``. In
-# the method body we first find the ``deepest_layer`` that was requested. Subsequently,
-# we calculate and store all encodings of the ``image`` up to that layer. Finally we
-# can return all requested encodings without processing the same layer twice.
+# We achieve the main functionality by subclassing :class:`torch.nn.Sequential` and
+# define a custom ``forward`` method, i.e. different behavior if called. Besides the
+# image it also takes an iterable ``layer_cfgs`` containing multiple sequences of
+# ``layers``. In the method body we first find the ``deepest_layer`` that was
+# requested. Subsequently, we calculate and store all encodings of the ``image`` up to
+# that layer. Finally we can return all requested encodings without processing the same
+# layer twice.
 
 
 class MultiLayerEncoder(nn.Sequential):
@@ -123,7 +126,7 @@ class MultiLayerEncoder(nn.Sequential):
 # preprocessed images. In PyTorch all models expect images
 # `normalized <https://pytorch.org/docs/stable/torchvision/models.html>`_ by a
 # per-channel ``mean`` and standard deviation (``std``). To include this into a
-# ``MultiLayerEncoder``, we implement this as ``nn.Module``.
+# ``MultiLayerEncoder``, we implement this as :class:`torch.nn.Module` .
 
 
 class Normalize(nn.Module):
@@ -151,8 +154,8 @@ class TorchNormalize(Normalize):
 # feature maps of a single size.
 #
 # For our convenience we rename the layers in the same scheme the authors used instead
-# of keeping the consecutive index of a default ``nn.Sequential``. The first layer
-# however is the ``TorchNormalize``  as defined above.
+# of keeping the consecutive index of a default :class:`torch.nn.Sequential`. The first
+# layer however is the ``TorchNormalize``  as defined above.
 
 
 class VGGMultiLayerEncoder(MultiLayerEncoder):
@@ -208,9 +211,9 @@ print(multi_layer_encoder)
 # reused for every call. The individual layer scores should be averaged by the number
 # of encodings and finally weighted by a ``score_weight``.
 #
-# To achieve this we subclass ``nn.Module``. The ``target_encs`` are stored as buffers,
-# since they are not trainable parameters. The actual functionality has to be defined
-# in ``calculate_score`` by a subclass.
+# To achieve this we subclass :class:`torch.nn.Module` . The ``target_encs`` are stored
+# as buffers, since they are not trainable parameters. The actual functionality has to
+# be defined in ``calculate_score`` by a subclass.
 
 
 def mean(sized):
@@ -296,8 +299,7 @@ class StyleLoss(MultiLayerLoss):
 # ------
 #
 # Before we can load the content and style image, we need to define some basic I/O
-# utilities. We use ``requests`` for the download, ``PIL`` for the file I/O, and
-# ``matplotlib.pyplot`` to show the images.
+# utilities.
 #
 # At import a fake batch dimension is added to the images to be able to pass it through
 # the ``MultiLayerEncoder`` without further modification. This dimensions is removed
@@ -439,7 +441,7 @@ optimizer = optim.LBFGS([input_image.requires_grad_(True)], max_iter=1)
 
 ########################################################################################
 # Finally we run the NST. The loss calculation has to happen inside a ``closure``
-# since the ``LBFGS`` optimizer could need to
+# since the :class:`torch.optim.LBFGS` optimizer could need to
 # `reevaluate it multiple times per optimization step <https://pytorch.org/docs/stable/optim.html#optimizer-step-closure>`_
 # . This structure is also valid for all other optimizers.
 
