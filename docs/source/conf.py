@@ -91,6 +91,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.coverage",
+    "sphinx.ext.intersphinx",
     "sphinxcontrib.bibtex",
     "sphinx_autodoc_typehints",
 ]
