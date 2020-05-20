@@ -42,6 +42,19 @@ def verify_guides(
     verify_coverage: bool = True,
     verify_overlap: bool = True,
 ) -> None:
+    """Verify if guides cover the whole canvas and if they do not overlap with each
+    other.
+
+    Args:
+        guides: Guides to be verified.
+        verify_coverage: If ``True`` verifies that the guides cover the whole canvas.
+            Defaults to ``True``.
+        verify_overlap: If ``True`` verifies that the guides do not overlap with each
+            other. Defaults to ``True``.
+
+    Raises:
+        RuntimeError: If at least on check is not successful.
+    """
     if not verify_coverage and not verify_overlap:
         return
 
@@ -83,6 +96,19 @@ def read_guides(
     size: Optional[Union[int, Tuple[int, int]]] = None,
     interpolation_mode: str = "nearest",
 ) -> Dict[str, torch.Tensor]:
+    """Read all guides from a directory using :func:`~pystiche.image.read_image` and
+    return them as dictionary. The filename without extensions is used as region key.
+
+    Args:
+        dir: Path to root directory of the guide files.
+        device: Device that the guides are transferred to. Defaults to CPU.
+        make_batched: If ``True``, a fake batch dimension is added to every guide.
+        size: Optional size the guides are resized to.
+        interpolation_mode: Interpolation mode that is used to perform the optional
+            resizing. Valid modes are ``"nearest"``, ``"bilinear"``, and ``"bicubic"``.
+            Defaults to ``"nearest"``.
+    """
+
     def read_guide(file):
         return read_image(
             path.join(dir, file),
@@ -98,6 +124,19 @@ def read_guides(
 def write_guides(
     guides: Dict[str, torch.Tensor], dir: str, ext=".png", mode="L", **save_kwargs: Any
 ):
+    """Write guides to directory using :func:`~pystiche.image.write_image`. The region
+    key is used as filename.
+    
+    Args:
+        guides: Guides to be written.
+        dir: Path to root directory of the guide files.
+        ext: Extension that is appended to the filename. Defaults to ``".png"``.
+        mode: Optional image mode. See the `Pillow documentation
+            <https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes>`_
+            for details. Defaults to ``"L"``.
+        **save_kwargs: Other parameters that are passed to :meth:`PIL.Image.Image.save`
+            .
+    """
     for region, guide in guides.items():
         file = path.join(dir, region + ext)
         write_image(guide, file, mode=mode, **save_kwargs)
@@ -107,6 +146,14 @@ def guides_to_segmentation(
     guides: Dict[str, torch.Tensor],
     color_map: Optional[Dict[str, Tuple[int, int, int]]] = None,
 ) -> torch.Tensor:
+    """Combines multiple guides into one segmentation image.
+
+    Args:
+        guides: Guides to be combined.
+        color_map: Optional mapping from regions to RGB triplets. If omitted,
+            `this color scheme <https://colorbrewer2.org/#type=qualitative&scheme=Paired&n=12>`_
+            is used for the region keys in alphabetical order.
+    """
     if color_map is None:
         color_map = dict(zip(sorted(guides.keys()), COLOR_ORDER))
 
@@ -126,6 +173,13 @@ def guides_to_segmentation(
 def segmentation_to_guides(
     seg: torch.Tensor, region_map: Optional[Dict[Tuple[int, int, int], str]] = None
 ) -> Dict[Union[Tuple[int, int, int], str], torch.Tensor]:
+    """Splits a segmentation image in multiple guides.
+
+    Args:
+        seg: Segmentation image to be split.
+        region_map: Optional mapping from RGB triplets to regions. If omitted, the RGB
+            triplets are used as key in the output.
+    """
     num_chanels = extract_num_channels(seg)
     if num_chanels != 3:
         raise ValueError
