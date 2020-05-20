@@ -1,10 +1,10 @@
 # Configuration file for the Sphinx documentation builder.
 #
-# This file only contains a selection of the most common options. For a full
-# list see the documentation:
+# This file only contains a selection of the most common options. For a full list see
+# the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Imports -----------------------------------------------------------------
+# -- Imports ---------------------------------------------------------------------------
 
 import os
 import shutil
@@ -21,7 +21,7 @@ import torch
 import pystiche
 from pystiche.misc import download_file
 
-# -- Run config --------------------------------------------------------------
+# -- Run config ------------------------------------------------------------------------
 
 
 def get_bool_env_var(name, default=False):
@@ -43,32 +43,21 @@ run_by_ci = (
     or get_bool_env_var("CI")
 )
 
-plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not run_by_ci
-download_gallery = (
-    get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY", default=not plot_gallery) or run_by_ci
-)
 
-if plot_gallery and not torch.cuda.is_available():
-    print(
-        "The galleries will be built, but CUDA is not available. "
-        "This will take a long time."
-    )
+# -- Path setup ------------------------------------------------------------------------
 
-# -- Path setup --------------------------------------------------------------
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
+# If extensions (or modules to document with autodoc) are in another directory, add
+# these directories to sys.path here. If the directory is relative to the documentation
+# root, use os.path.abspath to make it absolute, like shown here.
 #
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-
 PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), "..", ".."))
 
 
-# -- Project information -----------------------------------------------------
+# -- Project information ---------------------------------------------------------------
 
 pkg_name = "pystiche"
 
@@ -82,11 +71,10 @@ author = about["__author__"]
 version = release = about["__version__"]
 
 
-# -- General configuration ---------------------------------------------------
+# -- General configuration -------------------------------------------------------------
 
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
+# Add any Sphinx extension module names here, as strings. They can be extensions coming
+# with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
@@ -99,12 +87,12 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
-# List of patterns, relative to source directory, that match files and
-# directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path.
+# List of patterns, relative to source directory, that match files and directories to
+# ignore when looking for source files. This pattern also affects html_static_path and
+# html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-# -- intersphinx configuration --------------------------------------------
+# -- intersphinx configuration ---------------------------------------------------------
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3.6", None),
@@ -117,7 +105,13 @@ intersphinx_mapping = {
 }
 
 
-# -- sphinx-gallery configuration --------------------------------------------
+# -- sphinx-gallery configuration ------------------------------------------------------
+
+extensions.append("sphinx_gallery.gen_gallery")
+
+plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not run_by_ci
+
+download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY") or run_by_ci
 
 if download_gallery:
     base = "https://download.pystiche.org/galleries/"
@@ -134,7 +128,12 @@ if download_gallery:
     shutil.unpack_archive(file, extract_dir=".")
     os.remove(file)
 
-extensions.append("sphinx_gallery.gen_gallery")
+if plot_gallery and not torch.cuda.is_available():
+    msg = (
+        "The galleries will be built, but CUDA is not available. "
+        "This will take a long time."
+    )
+    print(msg)
 
 sphinx_gallery_conf = {
     "examples_dirs": path.join(PROJECT_ROOT, "examples"),
@@ -163,14 +162,13 @@ warnings.filterwarnings(
 )
 
 
-# -- Options for HTML output -------------------------------------------------
+# -- Options for HTML output -----------------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
+# The theme to use for HTML and HTML Help pages.  See the documentation for a list of
+# builtin themes.
 html_theme = "sphinx_rtd_theme"
 
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
+# Add any paths that contain custom static files (such as style sheets) here, relative
+# to this directory. They are copied after the builtin static files, so a file named
+# "default.css" will overwrite the builtin "default.css".
 # html_static_path = ["_static"]
