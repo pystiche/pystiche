@@ -118,18 +118,6 @@ intersphinx_mapping = {
 
 # -- sphinx-gallery configuration --------------------------------------------
 
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/3.6", None),
-    "torch": ("https://pytorch.org/docs/stable/", None),
-    "torchvision": ("https://pytorch.org/docs/stable/", None),
-    "PIL": ("https://pillow.readthedocs.io/en/stable/", None),
-    "numpy": ("https://numpy.org/doc/1.18/", None),
-    "matplotlib": ("https://matplotlib.org", None),
-}
-
-
-# -- Sphinx gallery configuration --------------------------------------------
-
 if download_gallery:
     base = "https://download.pystiche.org/galleries/"
     file = (
