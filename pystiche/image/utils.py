@@ -1,3 +1,4 @@
+import functools
 from typing import Any, Sequence, Tuple
 
 import torch
@@ -192,6 +193,7 @@ def make_single_image(x: torch.Tensor) -> torch.Tensor:
 
 
 def force_image(fn):
+    @functools.wraps(fn)
     def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
         verify_is_image(x)
         return fn(x, *args, **kwargs)
@@ -200,6 +202,7 @@ def force_image(fn):
 
 
 def force_single_image(fn):
+    @functools.wraps(fn)
     def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
         verify_is_image(x)
         is_batched = is_batched_image(x)
@@ -217,6 +220,7 @@ def force_single_image(fn):
 
 
 def force_batched_image(fn):
+    @functools.wraps(fn)
     def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
         verify_is_image(x)
         is_single = is_single_image(x)
