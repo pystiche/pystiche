@@ -135,7 +135,6 @@ if plot_gallery and not torch.cuda.is_available():
     )
     print(msg)
 
-
 sphinx_gallery_conf = {
     "examples_dirs": path.join(PROJECT_ROOT, "examples"),
     "gallery_dirs": path.join("galleries", "examples"),
