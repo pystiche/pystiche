@@ -123,7 +123,8 @@ def read_image(
     interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
 ) -> torch.Tensor:
-    """Reads an image from file and returns it as tensor.
+    """Reads an image from file with :mod:`PIL.Image` and returns it as
+    :class:`~torch.Tensor` .
 
     Args:
         file: Path to image file to be read.
@@ -131,7 +132,8 @@ def read_image(
         make_batched: If ``True``, a fake batch dimension is added to the image.
         size: Optional size the image is resized to.
         interpolation_mode: Interpolation mode that is used to perform the optional
-            resizing.
+            resizing. Valid modes are ``"nearest"``, ``"bilinear"``, and ``"bicubic"``.
+            Defaults to ``"bilinear"``.
     """
     if isinstance(device, str):
         device = torch.device(device)
@@ -155,7 +157,7 @@ def read_guides(
 def write_image(
     image: torch.Tensor, file: str, mode: Optional[str] = None, **save_kwargs: Any
 ):
-    """Saves an image to a file.
+    """Saves a :class:`~torch.Tensor` image to a file with :mod:`PIL.Image` .
 
     Args:
         image: Image to be saved.
@@ -163,7 +165,8 @@ def write_image(
         mode: Optional image mode. See the `Pillow documentation
             <https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes>`_
             for details.
-        **save_kwargs: Other parameters of :meth:`~PIL.Image.Image.save` .
+        **save_kwargs: Other parameters that are passed to :meth:`PIL.Image.Image.save`
+            .
     """
     export_to_pil(image, mode=mode).save(file, **save_kwargs)
 
@@ -180,16 +183,17 @@ def show_image(
     .. note::
 
         ``show_image`` uses :func:`matplotlib.pyplot.imshow` as primary means to show
-        images. If that is not available the native `PIL` :meth:`~PIL.Image.Image.show`
-        is used as a fallback.
+        images. If that is not available the native :meth:`PIL.Image.Image.show` is
+        used as a fallback.
 
     Args:
-        image: Image to be shown. If ``str`` this is treated as a path to an image that
-            and is read by :func:`~pystiche.image.io.read_image` .
+        image: Image to be shown. If ``str`` this is treated as a path to an image and
+            is read by :func:`~pystiche.image.read_image` .
         title: Optional title of the image.
         size: Optional size the image is resized to.
         interpolation_mode: Interpolation mode that is used to perform the optional
-            resizing.
+            resizing. Valid modes are ``"nearest"``, ``"bilinear"``, and ``"bicubic"``.
+            Defaults to ``"bilinear"``.
     """
     if isinstance(image, torch.Tensor):
         image = export_to_pil(image)
