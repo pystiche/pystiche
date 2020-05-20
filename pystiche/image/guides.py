@@ -126,7 +126,7 @@ def write_guides(
 ):
     """Write guides to directory using :func:`~pystiche.image.write_image`. The region
     key is used as filename.
-    
+
     Args:
         guides: Guides to be written.
         dir: Path to root directory of the guide files.
