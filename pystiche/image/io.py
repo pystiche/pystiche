@@ -174,6 +174,7 @@ def write_image(
 def show_image(
     image: Union[torch.Tensor, str],
     title: Optional[str] = None,
+    mode: Optional[str] = None,
     size: Optional[Union[int, Tuple[int, int]]] = None,
     interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
@@ -190,13 +191,16 @@ def show_image(
         image: Image to be shown. If ``str`` this is treated as a path to an image and
             is read by :func:`~pystiche.image.read_image` .
         title: Optional title of the image.
+        mode: Optional image mode. See the `Pillow documentation
+            <https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes>`_
+            for details.
         size: Optional size the image is resized to.
         interpolation_mode: Interpolation mode that is used to perform the optional
             resizing. Valid modes are ``"nearest"``, ``"bilinear"``, and ``"bicubic"``.
             Defaults to ``"bilinear"``.
     """
     if isinstance(image, torch.Tensor):
-        image = export_to_pil(image)
+        image = export_to_pil(image, mode=mode)
     elif isinstance(image, str):
         image = Image.open(path.expanduser(image))
     else:
