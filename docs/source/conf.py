@@ -135,6 +135,18 @@ if plot_gallery and not torch.cuda.is_available():
     )
     print(msg)
 
+
+def show_cuda_memory(func):
+    torch.cuda.reset_peak_memory_stats()
+    out = func()
+
+    stats = torch.cuda.memory_stats()
+    peak_bytes_usage = stats["allocated_bytes.all.peak"]
+    memory = peak_bytes_usage / 1024 ** 2
+
+    return memory, out
+
+
 sphinx_gallery_conf = {
     "examples_dirs": path.join(PROJECT_ROOT, "examples"),
     "gallery_dirs": path.join("galleries", "examples"),
@@ -149,6 +161,7 @@ sphinx_gallery_conf = {
         ]
     ),
     "within_subsection_order": ExampleTitleSortKey,
+    "show_memory": show_cuda_memory if torch.cuda.is_available() else True,
 }
 
 # Remove matplotlib agg warnings from generated doc when using plt.show
