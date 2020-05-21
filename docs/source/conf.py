@@ -135,6 +135,7 @@ if plot_gallery and not torch.cuda.is_available():
     )
     print(msg)
 
+
 def show_cuda_memory(func):
     torch.cuda.reset_peak_memory_stats()
     out = func()
