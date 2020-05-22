@@ -81,7 +81,7 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.intersphinx",
     "sphinxcontrib.bibtex",
-    "sphinx_autodoc_typehints",
+    "sphinx_gallery.gen_gallery",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -91,6 +91,12 @@ templates_path = ["_templates"]
 # ignore when looking for source files. This pattern also affects html_static_path and
 # html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+
+# -- autodoc configuration -------------------------------------------------------------
+
+autodoc_typehints = "description"
+
 
 # -- intersphinx configuration ---------------------------------------------------------
 
@@ -106,8 +112,6 @@ intersphinx_mapping = {
 
 
 # -- sphinx-gallery configuration ------------------------------------------------------
-
-extensions.append("sphinx_gallery.gen_gallery")
 
 plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not run_by_ci
 
