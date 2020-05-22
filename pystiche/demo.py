@@ -14,6 +14,18 @@ __all__ = ["demo_images", "demo_logger"]
 
 
 def demo_images() -> DownloadableImageCollection:
+    """Collection of images used in the usage examples.
+
+    .. note::
+
+        You can use
+
+        .. code-block:: python
+
+            print(demo_images())
+
+        to get a list of all available images.
+    """
     return DownloadableImageCollection(
         {
             # TODO: remove
@@ -164,6 +176,8 @@ def demo_images() -> DownloadableImageCollection:
 
 
 def demo_logger() -> OptimLogger:
+    """Simple logger used in the usage examples.
+    """
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
