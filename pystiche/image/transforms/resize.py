@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import torch
 
@@ -25,12 +25,15 @@ class Resize(Transform):
         self.interpolation_mode = interpolation_mode
 
     def forward(self, image: torch.Tensor) -> torch.Tensor:
-        return F.resize(
-            image,
-            self.size,
-            edge=self.edge,
-            aspect_ratio=self.aspect_ratio,
-            interpolation_mode=self.interpolation_mode,
+        return cast(
+            torch.Tensor,
+            F.resize(
+                image,
+                self.size,
+                edge=self.edge,
+                aspect_ratio=self.aspect_ratio,
+                interpolation_mode=self.interpolation_mode,
+            ),
         )
 
     def _properties(self) -> Dict[str, Any]:

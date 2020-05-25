@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import torch
 
@@ -76,22 +76,25 @@ class TransformMotifAffinely(Transform):
             )
         )
 
-    def forward(self, image: torch.Tensor):
-        return F.transform_motif_affinely(
-            image,
-            shearing_angle=self.shearing_angle,
-            clockwise_shearing=self.clockwise_shearing,
-            shearing_center=self.shearing_center,
-            rotation_angle=self.rotation_angle,
-            clockwise_rotation=self.clockwise_rotation,
-            rotation_center=self.rotation_center,
-            scaling_factor=self.scaling_factor,
-            scaling_center=self.scaling_center,
-            translation=self.translation,
-            inverse_translation=self.inverse_translation,
-            canvas=self.canvas,
-            interpolation_mode=self.interpolation_mode,
-            padding_mode=self.padding_mode,
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
+        return cast(
+            torch.Tensor,
+            F.transform_motif_affinely(
+                image,
+                shearing_angle=self.shearing_angle,
+                clockwise_shearing=self.clockwise_shearing,
+                shearing_center=self.shearing_center,
+                rotation_angle=self.rotation_angle,
+                clockwise_rotation=self.clockwise_rotation,
+                rotation_center=self.rotation_center,
+                scaling_factor=self.scaling_factor,
+                scaling_center=self.scaling_center,
+                translation=self.translation,
+                inverse_translation=self.inverse_translation,
+                canvas=self.canvas,
+                interpolation_mode=self.interpolation_mode,
+                padding_mode=self.padding_mode,
+            ),
         )
 
     def _properties(self) -> Dict[str, Any]:

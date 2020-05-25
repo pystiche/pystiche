@@ -1,5 +1,4 @@
 import itertools
-from abc import abstractmethod
 from typing import Iterable, Union
 
 import torch
@@ -10,10 +9,6 @@ __all__ = ["Transform", "ComposedTransform"]
 
 
 class Transform(pystiche.Module):
-    @abstractmethod
-    def forward(self, *input):
-        pass
-
     def __add__(
         self, other: Union["Transform", "ComposedTransform"]
     ) -> "ComposedTransform":
@@ -42,7 +37,11 @@ def compose_transforms(
         transform: Union[Transform, ComposedTransform]
     ) -> Iterable[Union[Transform, ComposedTransform]]:
         if isinstance(transform, ComposedTransform):
-            return transform.children()
+            return [
+                transform
+                for transform in transform.children()
+                if isinstance(transform, Transform)
+            ]
         elif isinstance(transform, Transform):
             return (transform,)
         else:

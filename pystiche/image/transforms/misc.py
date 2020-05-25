@@ -1,4 +1,4 @@
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Sequence, cast
 
 import torch
 
@@ -28,7 +28,7 @@ class Uint8ToFloatRange(Transform):
 
 class ReverseChannelOrder(Transform):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.reverse_channel_order(x)
+        return cast(torch.Tensor, F.reverse_channel_order(x))
 
 
 class Normalize(Transform):
@@ -38,7 +38,7 @@ class Normalize(Transform):
         self.std = std
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.normalize(x, self.mean, self.std)
+        return cast(torch.Tensor, F.normalize(x, self.mean, self.std))
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
@@ -54,7 +54,7 @@ class Denormalize(Transform):
         self.std = std
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.denormalize(x, self.mean, self.std)
+        return cast(torch.Tensor, F.denormalize(x, self.mean, self.std))
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()

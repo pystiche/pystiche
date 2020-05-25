@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union, cast
 
 import torch
 
@@ -103,7 +103,7 @@ class ValidRandomCrop(Transform):
         def randint(range: int) -> int:
             if range < 0:
                 raise RuntimeError
-            return torch.randint(range + 1, ()).item()
+            return cast(int, torch.randint(range + 1, (), dtype=torch.long).item())
 
         vert_origin = randint(image_height - crop_height)
         horz_origin = randint(image_width - crop_width)
@@ -111,7 +111,7 @@ class ValidRandomCrop(Transform):
 
     def forward(self, image: torch.Tensor) -> torch.Tensor:
         origin = self.get_random_origin(extract_image_size(image), self.size)
-        return F.crop(image, origin, self.size)
+        return cast(torch.Tensor, F.crop(image, origin, self.size))
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
