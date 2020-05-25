@@ -1,4 +1,14 @@
-from typing import Collection, Optional, Sequence, Set, Tuple, Union
+from typing import (
+    Any,
+    Collection,
+    Dict,
+    Iterator,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+)
 
 import numpy as np
 
@@ -48,16 +58,16 @@ class ImagePyramid(ComplexObject):
         )
 
     # TODO: can this be removed?
-    def add_resize_target(self, op: Operator):
+    def add_resize_target(self, op: Operator) -> None:
         self._resize_targets.add(op)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._levels)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> PyramidLevel:
         return self._levels[idx]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[PyramidLevel]:
         image_storage = ImageStorage(self._resize_ops())
         for level in self._levels:
             try:
@@ -66,7 +76,7 @@ class ImagePyramid(ComplexObject):
             finally:
                 image_storage.restore()
 
-    def _resize(self, level: PyramidLevel):
+    def _resize(self, level: PyramidLevel) -> None:
         for op in self._resize_ops():
             if isinstance(op, ComparisonOperator):
                 if op.has_target_guide:
@@ -94,15 +104,16 @@ class ImagePyramid(ComplexObject):
                     resize_ops.add(op)
         return resize_ops
 
-    def _properties(self):
+    def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
         if self.interpolation_mode != "bilinear":
             dct["interpolation_mode"] = self.interpolation_mode
         return dct
 
-    def _named_children(self):
+    def _named_children(self) -> Iterator[Tuple[str, Any]]:
         yield from super()._named_children()
-        yield from enumerate(self._levels)
+        for idx, level in enumerate(self._levels):
+            yield str(idx), level
 
 
 class OctaveImagePyramid(ImagePyramid):
@@ -112,8 +123,8 @@ class OctaveImagePyramid(ImagePyramid):
         num_steps: Union[int, Sequence[int]],
         num_levels: Optional[int] = None,
         min_edge_size: int = 64,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         if num_levels is None:
             num_levels = int(np.floor(np.log2(max_edge_size / min_edge_size))) + 1
 
