@@ -1,5 +1,5 @@
 import warnings
-from collections import OrderedDict
+from typing import Any, Dict, List, Tuple
 
 from torch import nn
 from torch.utils import model_zoo
@@ -17,14 +17,14 @@ __all__ = ["alexnet_multi_layer_encoder"]
 
 
 class MultiLayerAlexNetEncoder(MultiLayerEncoder):
-    def __init__(self, weights: str, preprocessing: bool, allow_inplace: bool):
+    def __init__(self, weights: str, preprocessing: bool, allow_inplace: bool) -> None:
         self.weights = weights
         self.preprocessing = preprocessing
         self.allow_inplace = allow_inplace
 
         super().__init__(self._collect_modules())
 
-    def _collect_modules(self):
+    def _collect_modules(self) -> List[Tuple[str, nn.Module]]:
         base_model = alexnet()
         url = MODEL_URLS[self.weights]
         state_dict = model_zoo.load_url(url)
@@ -55,8 +55,8 @@ class MultiLayerAlexNetEncoder(MultiLayerEncoder):
 
         return modules
 
-    def extra_properties(self):
-        dct = OrderedDict()
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
         dct["weights"] = self.weights
         if not self.internal_preprocessing:
             dct["internal_preprocessing"] = self.internal_preprocessing
@@ -66,7 +66,7 @@ class MultiLayerAlexNetEncoder(MultiLayerEncoder):
 
 
 class AlexNetEncoder(MultiLayerAlexNetEncoder):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         msg = build_deprecation_message(
             "The class AlexNetEncoder",
             "0.4.0",
@@ -77,12 +77,12 @@ class AlexNetEncoder(MultiLayerAlexNetEncoder):
 
 
 def alexnet_multi_layer_encoder(
-    weights: str = "torch", preprocessing=True, allow_inplace: bool = False
-):
+    weights: str = "torch", preprocessing: bool = True, allow_inplace: bool = False
+) -> MultiLayerAlexNetEncoder:
     return MultiLayerAlexNetEncoder(weights, preprocessing, allow_inplace)
 
 
-def alexnet_encoder(*args, **kwargs):
+def alexnet_encoder(*args: Any, **kwargs: Any) -> MultiLayerAlexNetEncoder:
     msg = build_deprecation_message(
         "The function alexnet_encoder",
         "0.4.0",
