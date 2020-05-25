@@ -1,3 +1,5 @@
+from typing import cast
+
 import torch
 
 from . import functional as F
@@ -21,7 +23,7 @@ class RGBToGrayscale(Transform):
 
 class GrayscaleToFakegrayscale(Transform):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.grayscale_to_fakegrayscale(x)
+        return cast(torch.Tensor, F.grayscale_to_fakegrayscale(x))
 
 
 class RGBToFakegrayscale(Transform):

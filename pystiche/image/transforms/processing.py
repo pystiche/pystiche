@@ -1,3 +1,8 @@
+import functools
+from typing import Any, Callable, Optional
+
+import torch
+
 from .core import ComposedTransform
 from .misc import (
     Denormalize,
@@ -23,9 +28,12 @@ __all__ = [
 ]
 
 
-def _processing(preprocessor=None, postprocessor=None):
-    def outer_wrapper(fn):
-        def inner_wrapper(input, *args, **kwargs):
+def _processing(
+    preprocessor: Optional[Callable] = None, postprocessor: Optional[Callable] = None
+) -> Callable[[Callable], Callable]:
+    def outer_wrapper(fn: Callable) -> Callable:
+        @functools.wraps(fn)
+        def inner_wrapper(input: torch.Tensor, *args: Any, **kwargs: Any) -> Any:
             if preprocessor is not None:
                 input = preprocessor(input)
 
@@ -53,7 +61,7 @@ class TorchPostprocessing(ComposedTransform):
         super().__init__(*transforms)
 
 
-def torch_processing(fn):
+def torch_processing(fn: Callable) -> Callable:
     preprocessor = TorchPreprocessing()
     postprocessor = TorchPostprocessing()
 
@@ -81,7 +89,7 @@ class CaffePostprocessing(ComposedTransform):
         super().__init__(*transforms)
 
 
-def caffe_processing(fn):
+def caffe_processing(fn: Callable) -> Callable:
     preprocessor = CaffePreprocessing()
     postprocessor = CaffePostprocessing()
 

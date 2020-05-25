@@ -1,3 +1,5 @@
+from typing import cast
+
 import torch
 
 from pystiche.image.utils import force_batched_image
@@ -27,7 +29,7 @@ def grayscale_to_fakegrayscale(x: torch.Tensor) -> torch.Tensor:
 
 
 def rgb_to_fakegrayscale(x: torch.Tensor) -> torch.Tensor:
-    return grayscale_to_fakegrayscale(rgb_to_grayscale(x))
+    return cast(torch.Tensor, grayscale_to_fakegrayscale(rgb_to_grayscale(x)))
 
 
 def grayscale_to_binary(x: torch.Tensor) -> torch.Tensor:

@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, cast
 
 import torch
 
@@ -31,8 +31,7 @@ def resize(
     if is_image_size(size):
         image_size = size
     elif is_edge_size(size):
-        edge_size = size
-        image_size = edge_to_image_size(edge_size, aspect_ratio, edge)
+        image_size = edge_to_image_size(cast(int, size), aspect_ratio, edge)
     else:
         raise RuntimeError
 
@@ -45,11 +44,13 @@ def rescale(
     image: torch.Tensor,
     factor: Union[float, Tuple[float, float]],
     interpolation_mode: str = "bilinear",
-):
+) -> torch.Tensor:
     height, width = extract_image_size(image)
     height_factor, width_factor = to_2d_arg(factor)
     height = round(height * height_factor)
     width = round(width * width_factor)
     image_size = (height, width)
 
-    return resize(image, image_size, interpolation_mode=interpolation_mode)
+    return cast(
+        torch.Tensor, resize(image, image_size, interpolation_mode=interpolation_mode)
+    )

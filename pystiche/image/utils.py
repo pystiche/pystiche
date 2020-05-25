@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Sequence, Tuple
+from typing import Any, Callable, Sequence, Tuple, cast
 
 import torch
 
@@ -168,7 +168,7 @@ def extract_num_channels(x: torch.Tensor) -> int:
 
 def extract_image_size(x: torch.Tensor) -> Tuple[int, int]:
     verify_is_image(x)
-    return tuple(x.size()[-2:])
+    return cast(Tuple[int, int], tuple(x.size()[-2:]))
 
 
 def extract_edge_size(x: torch.Tensor, edge: str = "short") -> int:
@@ -192,18 +192,18 @@ def make_single_image(x: torch.Tensor) -> torch.Tensor:
     return x.squeeze(0)
 
 
-def force_image(fn):
+def force_image(fn: Callable) -> Callable:
     @functools.wraps(fn)
-    def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
+    def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> Any:
         verify_is_image(x)
         return fn(x, *args, **kwargs)
 
     return wrapper
 
 
-def force_single_image(fn):
+def force_single_image(fn: Callable) -> Callable:
     @functools.wraps(fn)
-    def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
+    def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> Any:
         verify_is_image(x)
         is_batched = is_batched_image(x)
         if is_batched:
@@ -219,9 +219,9 @@ def force_single_image(fn):
     return wrapper
 
 
-def force_batched_image(fn):
+def force_batched_image(fn: Callable) -> Callable:
     @functools.wraps(fn)
-    def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
+    def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> Any:
         verify_is_image(x)
         is_single = is_single_image(x)
         if is_single:
