@@ -1,6 +1,6 @@
 import re
 import warnings
-from collections import OrderedDict
+from typing import Any, Dict, List, Tuple
 
 import torchvision
 from torch import nn
@@ -50,7 +50,9 @@ DEPRECATED_LAYER_PATTERN = re.compile(
 
 
 class MultiLayerVGGEncoder(MultiLayerEncoder):
-    def __init__(self, arch: str, weights: str, internal_preprocessing, allow_inplace):
+    def __init__(
+        self, arch: str, weights: str, internal_preprocessing: bool, allow_inplace: bool
+    ) -> None:
         self.arch = arch
         self.weights = weights
         self.internal_preprocessing = internal_preprocessing
@@ -58,7 +60,7 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
 
         super().__init__(self._collect_modules())
 
-    def _collect_modules(self):
+    def _collect_modules(self) -> List[Tuple[str, nn.Module]]:
         base_model = MODELS[self.arch]()
         url = MODEL_URLS[(self.weights, self.arch)]
         state_dict = model_zoo.load_url(url)
@@ -91,8 +93,8 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
 
         return modules
 
-    def extra_properties(self):
-        dct = OrderedDict()
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
         dct["arch"] = self.arch
         dct["weights"] = self.weights
         if not self.internal_preprocessing:
@@ -125,7 +127,7 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
 
 
 class VGGEncoder(MultiLayerVGGEncoder):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         msg = build_deprecation_message(
             "The class VGGEncoder",
             "0.4.0",
@@ -144,39 +146,39 @@ def _vgg_encoder_multi_layer_encoder(
     return MultiLayerVGGEncoder(arch, weights, preprocessing, allow_inplace)
 
 
-def vgg11_multi_layer_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg11_multi_layer_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg11", **kwargs)
 
 
-def vgg11_bn_multi_layer_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg11_bn_multi_layer_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg11_bn", **kwargs)
 
 
-def vgg13_multi_layer_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg13_multi_layer_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg13", **kwargs)
 
 
-def vgg13_bn_multi_layer_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg13_bn_multi_layer_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg13_bn", **kwargs)
 
 
-def vgg16_multi_layer_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg16_multi_layer_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg16", **kwargs)
 
 
-def vgg16_bn_multi_layer_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg16_bn_multi_layer_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg16_bn", **kwargs)
 
 
-def vgg19_multi_layer_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg19_multi_layer_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg19", **kwargs)
 
 
-def vgg19_bn_multi_layer_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg19_bn_multi_layer_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg19_bn", **kwargs)
 
 
-def _vgg_encoder(arch: str, **kwargs) -> MultiLayerVGGEncoder:
+def _vgg_encoder(arch: str, **kwargs: Any) -> MultiLayerVGGEncoder:
     msg = build_deprecation_message(
         f"The function {arch}_encoder",
         "0.4.0",
@@ -186,33 +188,33 @@ def _vgg_encoder(arch: str, **kwargs) -> MultiLayerVGGEncoder:
     return MultiLayerVGGEncoder(arch, **kwargs)
 
 
-def vgg11_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg11_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg11", **kwargs)
 
 
-def vgg11_bn_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg11_bn_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg11_bn", **kwargs)
 
 
-def vgg13_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg13_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg13", **kwargs)
 
 
-def vgg13_bn_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg13_bn_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg13_bn", **kwargs)
 
 
-def vgg16_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg16_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg16", **kwargs)
 
 
-def vgg16_bn_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg16_bn_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg16_bn", **kwargs)
 
 
-def vgg19_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg19_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg19", **kwargs)
 
 
-def vgg19_bn_encoder(**kwargs) -> MultiLayerVGGEncoder:
+def vgg19_bn_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
     return _vgg_encoder_multi_layer_encoder("vgg19_bn", **kwargs)

@@ -1,7 +1,7 @@
 import warnings
 from collections import OrderedDict
 from copy import copy
-from typing import Collection, Iterator, Optional, Sequence, Tuple
+from typing import Collection, Dict, Iterator, Optional, Sequence, Set, Tuple, cast
 
 import torch
 from torch import nn
@@ -18,11 +18,11 @@ __all__ = ["MultiLayerEncoder", "SingleLayerEncoder"]
 class MultiLayerEncoder(pystiche.Module):
     def __init__(self, modules: Sequence[Tuple[str, nn.Module]]) -> None:
         super().__init__(named_children=modules)
-        self.registered_layers = set()
-        self._storage = dict()
+        self.registered_layers: Set[str] = set()
+        self._storage: Dict[Tuple[str, pystiche.TensorKey], torch.Tensor] = dict()
 
         # TODO: remove this?
-        self.requires_grad_(False)
+        self.requires_grad_(False)  # type: ignore[operator]
         self.eval()
 
     def children_names(self) -> Iterator[str]:
@@ -43,24 +43,26 @@ class MultiLayerEncoder(pystiche.Module):
 
     def named_children_to(
         self, layer: str, include_last: bool = False
-    ) -> Iterator[Tuple[str, pystiche.Module]]:
+    ) -> Iterator[Tuple[str, nn.Module]]:
         self._verify_layer(layer)
         idx = list(self.children_names()).index(layer)
         if include_last:
             idx += 1
-        return iter(tuple(self.named_children())[:idx])
+        for name, child in tuple(self.named_children())[:idx]:
+            yield name, child
 
     def named_children_from(
         self, layer: str, include_first: bool = True
-    ) -> Iterator[Tuple[str, pystiche.Module]]:
+    ) -> Iterator[Tuple[str, nn.Module]]:
         self._verify_layer(layer)
         idx = list(self.children_names()).index(layer)
         if not include_first:
             idx += 1
-        return iter(tuple(self.named_children())[idx:])
+        for name, child in tuple(self.named_children())[idx:]:
+            yield name, child
 
     def forward(
-        self, input: torch.Tensor, layers: Sequence[str], store=False
+        self, input: torch.Tensor, layers: Sequence[str], store: bool = False
     ) -> Tuple[torch.Tensor, ...]:
         storage = copy(self._storage)
         input_key = pystiche.TensorKey(input)
@@ -96,7 +98,7 @@ class MultiLayerEncoder(pystiche.Module):
         warnings.warn(msg)
         return self.extract_single_layer_encoder(layer)
 
-    def encode(self, input: torch.Tensor):
+    def encode(self, input: torch.Tensor) -> None:
         if not self.registered_layers:
             return
 
@@ -105,10 +107,10 @@ class MultiLayerEncoder(pystiche.Module):
         encs = self(input, layers=self.registered_layers, store=True)
         self._storage = dict(zip(keys, encs))
 
-    def empty_storage(self):
+    def empty_storage(self) -> None:
         self._storage = {}
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         msg = build_deprecation_message(
             "The method clear_cache()",
             "0.4.0",
@@ -117,7 +119,7 @@ class MultiLayerEncoder(pystiche.Module):
         warnings.warn(msg)
         self.empty_storage()
 
-    def trim(self, layers: Optional[Collection[str]] = None):
+    def trim(self, layers: Optional[Collection[str]] = None) -> None:
         if layers is None:
             layers = self.registered_layers
         deepest_layer = self.extract_deepest_layer(layers)
@@ -129,7 +131,7 @@ class MultiLayerEncoder(pystiche.Module):
         guide: torch.Tensor,
         layers: Sequence[str],
         method: str = "simple",
-        allow_empty=False,
+        allow_empty: bool = False,
     ) -> Tuple[torch.Tensor, ...]:
         guides = {}
         deepest_layer = self.extract_deepest_layer(layers)
@@ -153,7 +155,10 @@ class SingleLayerEncoder(Encoder):
         self.layer = layer
 
     def forward(self, input_image: torch.Tensor) -> torch.Tensor:
-        return self.multi_layer_encoder(input_image, layers=(self.layer,))[0]
+        return cast(
+            Tuple[torch.Tensor],
+            self.multi_layer_encoder(input_image, layers=(self.layer,)),
+        )[0]
 
     def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
         return self.multi_layer_encoder.propagate_guide(guide, layers=(self.layer,))[0]

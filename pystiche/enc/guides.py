@@ -1,3 +1,5 @@
+from typing import cast
+
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -23,9 +25,9 @@ def propagate_guide(
 ) -> torch.Tensor:
     verify_str_arg(method, "method", ("simple", "inside", "all"))
     if is_conv_module(module):
-        guide = _conv_guide(module, guide, method)
+        guide = _conv_guide(cast(ConvModule, module), guide, method)
     elif is_pool_module(module):
-        guide = _pool_guide(module, guide)
+        guide = _pool_guide(cast(PoolModule, module), guide)
 
     if allow_empty or torch.any(guide.bool()):
         return guide
@@ -61,4 +63,4 @@ def _conv_guide(module: ConvModule, guide: torch.Tensor, method: str) -> torch.T
 
 
 def _pool_guide(module: PoolModule, guide: torch.Tensor) -> torch.Tensor:
-    return F.max_pool2d(guide, **pool_module_meta(module))
+    return cast(torch.Tensor, F.max_pool2d(guide, **pool_module_meta(module)))
