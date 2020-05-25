@@ -58,7 +58,7 @@ class MultiLayerEncoder(pystiche.Module):
         idx = list(self.children_names()).index(layer)
         if not include_first:
             idx += 1
-        for name, child in tuple(self.named_children())[:idx]:
+        for name, child in tuple(self.named_children())[idx:]:
             yield name, child
 
     def forward(
