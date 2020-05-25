@@ -1,6 +1,6 @@
 import warnings
 from os import path
-from typing import Any, NoReturn, Optional, Tuple, Union
+from typing import Any, NoReturn, Optional, Tuple, Union, cast
 
 from PIL import Image
 
@@ -65,7 +65,7 @@ def import_from_pil(
 ) -> torch.Tensor:
     if isinstance(device, str):
         device = torch.device(device)
-    image = _to_tensor(image).to(device)
+    image = cast(torch.Tensor, _to_tensor(image).to(device))
     if make_batched:
         image = make_batched_image(image)
     return image
@@ -96,8 +96,10 @@ def _pil_resize(
     **kwargs: Any,
 ) -> Image.Image:
     if is_image_size(size):
+        size = cast(Tuple[int, int], size)
         height, width = size
     elif is_edge_size(size):
+        size = cast(int, size)
         height, width = edge_to_image_size(
             size, calculate_aspect_ratio((image.height, image.width))
         )
@@ -156,7 +158,7 @@ def read_guides(
 @force_single_image
 def write_image(
     image: torch.Tensor, file: str, mode: Optional[str] = None, **save_kwargs: Any
-):
+) -> None:
     """Write a :class:`~torch.Tensor` image to a file with :mod:`PIL.Image` .
 
     Args:
@@ -178,7 +180,7 @@ def show_image(
     size: Optional[Union[int, Tuple[int, int]]] = None,
     interpolation_mode: str = "bilinear",
     **resize_kwargs: Any,
-):
+) -> None:
     """Show an image and optionally read it from file first.
 
     .. note::

@@ -2,7 +2,7 @@ import itertools
 import os
 from functools import reduce
 from os import path
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import torch
 
@@ -35,6 +35,8 @@ COLOR_ORDER = (
     (177,  89,  40),  # noqa: E241
 )
 # fmt: on
+
+RGBTriplet = Tuple[int, int, int]
 
 
 def verify_guides(
@@ -109,7 +111,7 @@ def read_guides(
             Defaults to ``"nearest"``.
     """
 
-    def read_guide(file):
+    def read_guide(file: str) -> torch.Tensor:
         return read_image(
             path.join(dir, file),
             device=device,
@@ -122,8 +124,12 @@ def read_guides(
 
 
 def write_guides(
-    guides: Dict[str, torch.Tensor], dir: str, ext=".png", mode="L", **save_kwargs: Any
-):
+    guides: Dict[str, torch.Tensor],
+    dir: str,
+    ext: str = ".png",
+    mode: str = "L",
+    **save_kwargs: Any,
+) -> None:
     """Write guides to directory using :func:`~pystiche.image.write_image`. The region
     key is used as filename.
 
@@ -143,8 +149,7 @@ def write_guides(
 
 
 def guides_to_segmentation(
-    guides: Dict[str, torch.Tensor],
-    color_map: Optional[Dict[str, Tuple[int, int, int]]] = None,
+    guides: Dict[str, torch.Tensor], color_map: Optional[Dict[str, RGBTriplet]] = None,
 ) -> torch.Tensor:
     """Combines multiple guides into one segmentation image.
 
@@ -171,8 +176,8 @@ def guides_to_segmentation(
 
 @force_single_image
 def segmentation_to_guides(
-    seg: torch.Tensor, region_map: Optional[Dict[Tuple[int, int, int], str]] = None
-) -> Dict[Union[Tuple[int, int, int], str], torch.Tensor]:
+    seg: torch.Tensor, region_map: Optional[Dict[RGBTriplet, str]] = None
+) -> Dict[Union[RGBTriplet, str], torch.Tensor]:
     """Splits a segmentation image in multiple guides.
 
     Args:
@@ -190,12 +195,12 @@ def segmentation_to_guides(
     seg_flat = seg_flat.mul(255.0).byte()
 
     colors = seg_flat.unique(sorted=False, dim=1).split(1, dim=1)
-    guides = {}
+    guides: Dict[Union[RGBTriplet, str], torch.Tensor] = {}
     for color in colors:
         guide_flat = torch.all(seg_flat == color, dim=0)
         guide = guide_flat.float().view(1, 1, *image_size)
 
-        rgb_triplet = tuple(color.squeeze().tolist())
+        rgb_triplet = cast(RGBTriplet, tuple(color.squeeze().tolist()))
         guides[rgb_triplet] = guide
 
     if region_map is None:
@@ -203,5 +208,5 @@ def segmentation_to_guides(
 
     return {
         region_map.get(rgb_triplet, rgb_triplet): guide
-        for rgb_triplet, guide in guides.items()
+        for rgb_triplet, guide in cast(Dict[RGBTriplet, torch.Tensor], guides).items()
     }
