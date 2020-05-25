@@ -20,6 +20,8 @@ MODELS = {
 MODEL_URLS = {
     ("torch", arch): url for arch, url in torchvision.models.vgg.model_urls.items()
 }
+# The caffe weights were created by Karen Simonyan and Andrew Zisserman. See
+# https://download.pystiche.org/models/LICENSE for details.
 MODEL_URLS.update(
     {
         ("caffe", "vgg16",): "https://download.pystiche.org/models/vgg16-781be684.pth",
