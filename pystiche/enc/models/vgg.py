@@ -22,14 +22,8 @@ MODEL_URLS = {
 }
 MODEL_URLS.update(
     {
-        (
-            "caffe",
-            "vgg16",
-        ): "https://store.th-owl.de:443/ssf/s/readFile/share/5899/2114173033433010752/publicLink/vgg16-781be684.pth",
-        (
-            "caffe",
-            "vgg19",
-        ): "https://store.th-owl.de:443/ssf/s/readFile/share/5901/-7191405041549013253/publicLink/vgg19-74e45263.pth",
+        ("caffe", "vgg16",): "https://download.pystiche.org/models/vgg16-781be684.pth",
+        ("caffe", "vgg19",): "https://download.pystiche.org/models/vgg19-74e45263.pth",
     }
 )
 
