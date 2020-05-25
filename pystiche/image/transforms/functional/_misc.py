@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple, cast
 
 import torch
 
@@ -38,9 +38,7 @@ def _channel_stats_to_tensor(
             raise RuntimeError
         return torch.tensor(seq, device=image.device).view(1, -1, 1, 1)
 
-    mean = to_tensor(mean)
-    std = to_tensor(std)
-    return mean, std
+    return to_tensor(mean), to_tensor(std)
 
 
 @force_batched_image
@@ -61,7 +59,7 @@ def denormalize(
 
 @force_batched_image
 def transform_channels_affinely(
-    x: torch.Tensor, matrix: torch.Tensor, bias: Optional[torch.tensor] = None
+    x: torch.Tensor, matrix: torch.Tensor, bias: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
     batch_size, _, *spatial_size = x.size()
     x = torch.flatten(x, 2)
@@ -81,4 +79,4 @@ def transform_channels_affinely(
 
 
 def transform_channels_linearly(x: torch.Tensor, matrix: torch.Tensor) -> torch.Tensor:
-    return transform_channels_affinely(x, matrix, bias=None)
+    return cast(torch.Tensor, transform_channels_affinely(x, matrix, bias=None))

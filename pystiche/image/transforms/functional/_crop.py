@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Tuple, Union, cast
 
 import torch
 
@@ -22,9 +22,11 @@ __all__ = [
 
 def _parse_size(size: Union[Tuple[int, int], int]) -> Tuple[int, int]:
     if is_image_size(size):
-        return size
+        image_size = cast(Tuple[int, int], size)
+        return image_size
     elif is_edge_size(size):
-        return size, size
+        edge_size = cast(int, size)
+        return edge_size, edge_size
     else:
         raise RuntimeError
 
@@ -43,13 +45,13 @@ def crop(
     vert_origin, horz_origin = origin
     height, width = _parse_size(size)
 
-    def create_vert_slice():
+    def create_vert_slice() -> slice:
         if vert_anchor == "top":
             return slice(vert_origin, vert_origin + height)
         else:  # vert_anchor == "bottom"
             return slice(vert_origin - height, vert_origin)
 
-    def create_horz_slice():
+    def create_horz_slice() -> slice:
         if horz_anchor == "left":
             return slice(horz_origin, horz_origin + width)
         else:  # horz_anchor == "right"
@@ -62,7 +64,9 @@ def crop(
 
 def top_left_crop(x: torch.Tensor, size: Union[Tuple[int, int], int]) -> torch.Tensor:
     origin = (0, 0)
-    return crop(x, origin, size, vert_anchor="top", horz_anchor="left")
+    return cast(
+        torch.Tensor, crop(x, origin, size, vert_anchor="top", horz_anchor="left")
+    )
 
 
 def bottom_left_crop(
@@ -70,20 +74,26 @@ def bottom_left_crop(
 ) -> torch.Tensor:
     height, _ = extract_image_size(x)
     origin = (height, 0)
-    return crop(x, origin, size, vert_anchor="bottom", horz_anchor="left")
+    return cast(
+        torch.Tensor, crop(x, origin, size, vert_anchor="bottom", horz_anchor="left")
+    )
 
 
 def top_right_crop(x: torch.Tensor, size: Union[Tuple[int, int], int]) -> torch.Tensor:
     _, width = extract_image_size(x)
     origin = (0, width)
-    return crop(x, origin, size, vert_anchor="top", horz_anchor="right")
+    return cast(
+        torch.Tensor, crop(x, origin, size, vert_anchor="top", horz_anchor="right")
+    )
 
 
 def bottom_right_crop(
     x: torch.Tensor, size: Union[Tuple[int, int], int]
 ) -> torch.Tensor:
     origin = extract_image_size(x)
-    return crop(x, origin, size, vert_anchor="bottom", horz_anchor="right")
+    return cast(
+        torch.Tensor, crop(x, origin, size, vert_anchor="bottom", horz_anchor="right")
+    )
 
 
 def center_crop(x: torch.Tensor, size: Union[Tuple[int, int], int]) -> torch.Tensor:
@@ -91,4 +101,4 @@ def center_crop(x: torch.Tensor, size: Union[Tuple[int, int], int]) -> torch.Ten
     size = _parse_size(size)
     vert_origin = (image_size[0] - size[0]) // 2
     horz_origin = (image_size[1] - size[1]) // 2
-    return crop(x, (vert_origin, horz_origin), size)
+    return cast(torch.Tensor, crop(x, (vert_origin, horz_origin), size))

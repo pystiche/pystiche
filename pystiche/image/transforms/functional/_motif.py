@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import NoReturn, Optional, Tuple, Union, cast
 
 import numpy as np
 
@@ -62,9 +62,10 @@ def _create_motif_scaling_matrix(
 def _create_motif_translation_matrix(
     translation: Tuple[float, float], inverse: bool = False
 ) -> torch.Tensor:
-    if inverse:
-        translation = [-val for val in translation]
     translation_vert, translation_horz = translation
+    if inverse:
+        translation_vert = -translation_vert
+        translation_horz = -translation_horz
     translation_matrix = (
         (1.0, 0.0, translation_horz),
         (0.0, 1.0, translation_vert),
@@ -83,10 +84,13 @@ def _calculate_image_center(image_size: Tuple[int, int]) -> Tuple[float, float]:
 def _transform_around_point(
     point: Tuple[float, float], transform_matrix: torch.Tensor
 ) -> torch.Tensor:
-    return torch.chain_matmul(
-        _create_motif_translation_matrix(point, inverse=False),
-        transform_matrix,
-        _create_motif_translation_matrix(point, inverse=True),
+    return cast(
+        torch.Tensor,
+        torch.chain_matmul(
+            _create_motif_translation_matrix(point, inverse=False),
+            transform_matrix,
+            _create_motif_translation_matrix(point, inverse=True),
+        ),
     )
 
 
@@ -100,10 +104,13 @@ def _transform_coordinates(
         (0.0, 0.0, 1.0),
     )
     coordinate_transform_matrix = torch.tensor(coordinate_transform_matrix)
-    return torch.chain_matmul(
-        torch.inverse(coordinate_transform_matrix),
-        transform_matrix,
-        coordinate_transform_matrix,
+    return cast(
+        torch.Tensor,
+        torch.chain_matmul(
+            torch.inverse(coordinate_transform_matrix),
+            transform_matrix,
+            coordinate_transform_matrix,
+        ),
     )
 
 
@@ -154,16 +161,22 @@ def _create_affine_transform_matrix(
         )
         transform_matrices.append(transform_matrix)
 
-    return torch.chain_matmul(*reversed(transform_matrices))
+    return cast(torch.Tensor, torch.chain_matmul(*reversed(transform_matrices)))
 
 
 def _calculate_full_bounding_box_size(vertices: torch.Tensor) -> Tuple[int, int]:
-    # TODO: rename x and y
-    x, y = torch.max(torch.abs(vertices), 1).values.tolist()
-    return tuple([int(np.ceil(2.0 * val)) for val in (y, x)])
+    # When calling torch.max with a dimension as second argument, a namedtuple with a
+    # values field is returned.
+    # https://pytorch.org/docs/stable/torch.html#torch.max
+    # This is not reflected in the type hints.
+    coords = cast(torch.Tensor, torch.max(torch.abs(vertices), 1).values)  # type: ignore[attr-defined]
+    return cast(
+        Tuple[int, int],
+        tuple(reversed(torch.ceil(2.0 * coords).to(torch.int).tolist())),
+    )
 
 
-def _calculate_valid_bounding_box_size(vertices):
+def _calculate_valid_bounding_box_size(vertices: torch.Tensor) -> NoReturn:
     raise RuntimeError
 
 
@@ -175,18 +188,22 @@ def _resize_canvas(
     if method == "same":
         return transform_matrix, image_size
 
-    def center_motif(transform_matrix, image_size):
+    def center_motif(
+        transform_matrix: torch.Tensor, image_size: Tuple[int, int]
+    ) -> torch.Tensor:
         image_center = _calculate_image_center(image_size)
         image_center = torch.tensor((*image_center[::-1], 1.0)).unsqueeze(1)
         motif_center = torch.mm(transform_matrix, image_center)
-        motif_center = motif_center[:-1, 0].tolist()[::-1]
+        motif_center = cast(Tuple[float, float], motif_center[:-1, 0].tolist()[::-1])
 
         translation_matrix = _create_motif_translation_matrix(
             motif_center, inverse=True
         )
         return torch.mm(translation_matrix, transform_matrix)
 
-    def calculate_motif_vertices(transform_matrix, image_size):
+    def calculate_motif_vertices(
+        transform_matrix: torch.Tensor, image_size: Tuple[int, int]
+    ) -> torch.Tensor:
         height, width = image_size
         # TODO: do this without transpose
         image_vertices = torch.tensor(
@@ -199,7 +216,11 @@ def _resize_canvas(
         ).t()
         return torch.mm(transform_matrix, image_vertices)[:-1, :]
 
-    def scale_and_off_center_motif(transform_matrix, image_size, bounding_box_size):
+    def scale_and_off_center_motif(
+        transform_matrix: torch.Tensor,
+        image_size: Tuple[int, int],
+        bounding_box_size: Tuple[int, int],
+    ) -> torch.Tensor:
         height, width = image_size
         image_center = _calculate_image_center(image_size)
 
@@ -210,7 +231,10 @@ def _resize_canvas(
 
         translation_matrix = _create_motif_translation_matrix(image_center)
 
-        return torch.chain_matmul(scaling_matrix, translation_matrix, transform_matrix)
+        return cast(
+            torch.Tensor,
+            torch.chain_matmul(scaling_matrix, translation_matrix, transform_matrix),
+        )
 
     transform_matrix = center_motif(transform_matrix, image_size)
     motif_vertices = calculate_motif_vertices(transform_matrix, image_size)
@@ -295,14 +319,17 @@ def shear_motif(
     interpolation_mode: str = "bilinear",
     padding_mode: str = "zeros",
 ) -> torch.Tensor:
-    return transform_motif_affinely(
-        image,
-        shearing_angle=angle,
-        clockwise_shearing=clockwise,
-        shearing_center=center,
-        canvas=canvas,
-        interpolation_mode=interpolation_mode,
-        padding_mode=padding_mode,
+    return cast(
+        torch.Tensor,
+        transform_motif_affinely(
+            image,
+            shearing_angle=angle,
+            clockwise_shearing=clockwise,
+            shearing_center=center,
+            canvas=canvas,
+            interpolation_mode=interpolation_mode,
+            padding_mode=padding_mode,
+        ),
     )
 
 
@@ -315,14 +342,17 @@ def rotate_motif(
     interpolation_mode: str = "bilinear",
     padding_mode: str = "zeros",
 ) -> torch.Tensor:
-    return transform_motif_affinely(
-        image,
-        rotation_angle=angle,
-        clockwise_rotation=clockwise,
-        rotation_center=center,
-        canvas=canvas,
-        interpolation_mode=interpolation_mode,
-        padding_mode=padding_mode,
+    return cast(
+        torch.Tensor,
+        transform_motif_affinely(
+            image,
+            rotation_angle=angle,
+            clockwise_rotation=clockwise,
+            rotation_center=center,
+            canvas=canvas,
+            interpolation_mode=interpolation_mode,
+            padding_mode=padding_mode,
+        ),
     )
 
 
@@ -334,13 +364,16 @@ def scale_motif(
     interpolation_mode: str = "bilinear",
     padding_mode: str = "zeros",
 ) -> torch.Tensor:
-    return transform_motif_affinely(
-        image,
-        scaling_factor=factor,
-        scaling_center=center,
-        canvas=canvas,
-        interpolation_mode=interpolation_mode,
-        padding_mode=padding_mode,
+    return cast(
+        torch.Tensor,
+        transform_motif_affinely(
+            image,
+            scaling_factor=factor,
+            scaling_center=center,
+            canvas=canvas,
+            interpolation_mode=interpolation_mode,
+            padding_mode=padding_mode,
+        ),
     )
 
 
@@ -352,11 +385,14 @@ def translate_motif(
     interpolation_mode: str = "bilinear",
     padding_mode: str = "zeros",
 ) -> torch.Tensor:
-    return transform_motif_affinely(
-        image,
-        translation=translation,
-        inverse_translation=inverse,
-        canvas=canvas,
-        interpolation_mode=interpolation_mode,
-        padding_mode=padding_mode,
+    return cast(
+        torch.Tensor,
+        transform_motif_affinely(
+            image,
+            translation=translation,
+            inverse_translation=inverse,
+            canvas=canvas,
+            interpolation_mode=interpolation_mode,
+            padding_mode=padding_mode,
+        ),
     )

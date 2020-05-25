@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, cast
 
 import torch
 from torch.nn.functional import affine_grid as _affine_grid
@@ -24,17 +24,20 @@ def interpolate(
     scale_factor: Optional[float] = None,
     mode: str = "nearest",
 ) -> torch.Tensor:
-    return _interpolate(
-        image,
-        size=size,
-        scale_factor=scale_factor,
-        mode=mode,
-        align_corners=_get_align_corners(mode),
+    return cast(
+        torch.Tensor,
+        _interpolate(
+            image,
+            size=size,
+            scale_factor=scale_factor,
+            mode=mode,
+            align_corners=_get_align_corners(mode),
+        ),
     )
 
 
 def affine_grid(theta: torch.Tensor, size: Tuple[int, int, int, int],) -> torch.Tensor:
-    return _affine_grid(theta, size, align_corners=False)
+    return _affine_grid(theta, cast(List[int], size), align_corners=False)
 
 
 def grid_sample(
