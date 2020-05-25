@@ -1,20 +1,17 @@
-from typing import Any, Dict, Sequence, Tuple, Union
+from typing import Any, Dict, Sequence, Union
 
 import torch
 from torch import nn
 
 __all__ = [
-    "TensorMeta",
     "tensor_meta",
     "is_scalar_tensor",
     "ConvModule",
     "is_conv_module",
-    "ConvModuleMeta",
     "conv_module_meta",
     "pool_module_meta",
     "PoolModule",
     "is_pool_module",
-    "PoolModuleMeta",
 ]
 
 
@@ -27,10 +24,7 @@ def _extract_meta_attrs(
     return kwargs
 
 
-TensorMeta = Union[torch.device, torch.dtype]
-
-
-def tensor_meta(x: torch.Tensor, **kwargs: TensorMeta) -> Dict[str, TensorMeta]:
+def tensor_meta(x: torch.Tensor, **kwargs: Any) -> Dict[str, Any]:
     attrs = ("dtype", "device")
     return _extract_meta_attrs(x, attrs, **kwargs)
 
@@ -63,12 +57,7 @@ def is_conv_module(x: Any) -> bool:
     )
 
 
-ConvModuleMeta = Tuple[int, ...]
-
-
-def conv_module_meta(
-    x: ConvModule, **kwargs: ConvModuleMeta
-) -> Dict[str, ConvModuleMeta]:
+def conv_module_meta(x: ConvModule, **kwargs: Any) -> Dict[str, Any]:
     attrs = ("kernel_size", "stride", "padding", "dilation")
     return _extract_meta_attrs(x, attrs, **kwargs)
 
@@ -109,11 +98,6 @@ def is_pool_module(x: Any) -> bool:
     )
 
 
-PoolModuleMeta = Tuple[int, ...]
-
-
-def pool_module_meta(
-    x: PoolModule, **kwargs: PoolModuleMeta
-) -> Dict[str, PoolModuleMeta]:
+def pool_module_meta(x: PoolModule, **kwargs: Any) -> Dict[str, Any]:
     attrs = ("kernel_size", "stride", "padding")
     return _extract_meta_attrs(x, attrs, **kwargs)
