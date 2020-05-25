@@ -1,7 +1,8 @@
 import warnings
-from typing import Iterator, Sequence, Tuple, Union
+from typing import Dict, Iterator, Optional, Sequence, Tuple, Union, cast
 
 import torch
+from torch import nn
 
 import pystiche
 from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
@@ -18,9 +19,12 @@ class MultiOperatorLoss(pystiche.Module):
         info = (
             "Please construct a MultiOperatorLoss with a sequence of named operators."
         )
+        named_children: Optional[Sequence[Tuple[str, Operator]]]
+        indexed_children: Optional[Sequence[nn.Module]]
         if len(named_ops) == 1:
-            if isinstance(named_ops[0], dict):
-                named_children = tuple(named_ops[0].items())
+            dict_or_seq = named_ops[0]
+            if isinstance(dict_or_seq, dict):
+                named_children = tuple(cast(Dict[str, Operator], dict_or_seq).items())
                 msg = build_deprecation_message(
                     "Passing named_ops as dictionary", "0.4.0", info=info,
                 )
@@ -36,7 +40,7 @@ class MultiOperatorLoss(pystiche.Module):
             )
             warnings.warn(msg)
             named_children = None
-            indexed_children = named_ops
+            indexed_children = cast(Tuple[nn.Module, ...], named_ops)
 
         super().__init__(
             named_children=named_children, indexed_children=indexed_children
@@ -87,7 +91,7 @@ class MultiOperatorLoss(pystiche.Module):
 
         return loss
 
-    def __getitem__(self, item: Union[str, int]):
+    def __getitem__(self, item: Union[str, int]) -> nn.Module:
         msg = build_deprecation_message(
             "Dynamic access to the modules via bracket indexing",
             "0.4.0",
@@ -101,7 +105,7 @@ class MultiOperatorLoss(pystiche.Module):
         else:
             raise TypeError
 
-    def __delitem__(self, item: Union[str, int]):
+    def __delitem__(self, item: Union[str, int]) -> None:
         msg = build_deprecation_message(
             "Deleting modules via bracket indexing", "0.4.0"
         )
