@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Dict, Iterator, Optional
 
 import torch
 
@@ -10,9 +10,9 @@ __all__ = ["PyramidLevel"]
 
 
 class PyramidLevel(ComplexObject):
-    def __init__(self, edge_size: int, num_steps: int, edge: str):
+    def __init__(self, edge_size: int, num_steps: int, edge: str) -> None:
         self.edge_size = edge_size
-        self.num_steps: int = num_steps
+        self.num_steps = num_steps
         self.edge = verify_str_arg(edge, "edge", ("short", "long"))
 
     def _resize(
@@ -48,11 +48,11 @@ class PyramidLevel(ComplexObject):
     ) -> torch.Tensor:
         return self._resize(guide, aspect_ratio, interpolation_mode)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[int]:
         for step in range(1, self.num_steps + 1):
             yield step
 
-    def _properties(self):
+    def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
         dct["edge_size"] = self.edge_size
         dct["num_steps"] = self.num_steps
