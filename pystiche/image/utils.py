@@ -201,7 +201,7 @@ def force_image(fn: Callable) -> Callable:
     return wrapper
 
 
-def force_single_image(fn):
+def force_single_image(fn: Callable) -> Callable:
     @functools.wraps(fn)
     def wrapper(x: torch.Tensor, *args: Any, **kwargs: Any) -> Any:
         verify_is_image(x)
