@@ -1,6 +1,6 @@
 import os
 from os import path
-from typing import Optional
+from typing import Dict, Optional
 
 from torch import nn
 from torchvision.datasets.folder import is_image_file
@@ -13,7 +13,9 @@ class LocalImage(_Image):
         self,
         file: str,
         collect_local_guides: bool = True,
-        guides: Optional[_ImageCollection] = None,
+        guides: Optional[
+            _ImageCollection
+        ] = None,  # should be _ImageCollection or any subclass
         transform: Optional[nn.Module] = None,
         note: Optional[str] = None,
     ):
@@ -22,7 +24,7 @@ class LocalImage(_Image):
         super().__init__(file, guides=guides, transform=transform, note=note)
 
     @staticmethod
-    def _collect_guides(file) -> Optional["LocalImageCollection"]:
+    def _collect_guides(file: str) -> Optional["LocalImageCollection"]:
         dir = path.splitext(file)[0]
         if not path.isdir(dir):
             return None
@@ -31,7 +33,7 @@ class LocalImage(_Image):
         if not image_files:
             return None
 
-        guides = {}
+        guides: Dict[str, "LocalImage"] = {}
         for file in image_files:
             region = path.splitext(path.basename(file))[0]
             guides[region] = LocalImage(

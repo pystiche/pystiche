@@ -27,7 +27,7 @@ class NPRgeneralLicense(UnknownLicense):
 
 
 class NPRgeneral(DownloadableImageCollection):
-    def __init__(self):
+    def __init__(self) -> None:
         image_meta = (
             ("angel", "Eole Wind", "41b058edd2091eec467d37054a8c01fb"),
             ("arch", "James Marvin Phelps", "9378e3a129f021548ba26b99ae445ec9"),

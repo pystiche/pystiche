@@ -1,5 +1,5 @@
 import os
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Iterator, List, Optional, Tuple, cast
 
 import torch
 from torch import nn
@@ -16,16 +16,22 @@ __all__ = [
 
 
 class Unsupervised:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         if not isinstance(self, VisionDataset):
             raise RuntimeError
-        super().__init__(*args, **kwargs)
+        # This should be used with double inheritance with a
+        # torchvision.datasets.VisionDataset
+        super().__init__(*args, **kwargs)  # type: ignore[call-arg]
 
-    def __getitem__(self, index):
-        return super().__getitem__(index)[0]
+    def __getitem__(self, index: int) -> Any:
+        # This should be used with double inheritance with a
+        # torchvision.datasets.VisionDataset
+        return super().__getitem__(index)[0]  # type: ignore[misc]
 
 
-def walkupto(top: str, depth: Optional[int] = None, **kwargs: Any):
+def walkupto(
+    top: str, depth: Optional[int] = None, **kwargs: Any
+) -> Iterator[Tuple[str, List[str], List[str]]]:
     if depth is None:
         yield from os.walk(top, **kwargs)
         return
@@ -41,9 +47,9 @@ class ImageFolderDataset(Dataset):
     def __init__(
         self,
         root: str,
-        transform: [nn.Module] = None,
+        transform: Optional[nn.Module] = None,
         depth: Optional[int] = None,
-        importer: Optional[Callable[[str], torch.Tensor]] = None,
+        importer: Optional[Callable[[str], Any]] = None,
     ):
         self.root = os.path.abspath(os.path.expanduser(root))
         self.image_files = self._collect_image_files(depth)
@@ -54,9 +60,9 @@ class ImageFolderDataset(Dataset):
             def importer(file: str) -> torch.Tensor:
                 return read_image(file, make_batched=False)
 
-        self.importer = importer
+        self.importer = cast(Callable[[str], Any], importer)
 
-    def _collect_image_files(self, depth: Optional[int]):
+    def _collect_image_files(self, depth: Optional[int]) -> Tuple[str, ...]:
         image_files = tuple(
             [
                 os.path.join(root, file)
@@ -74,10 +80,10 @@ class ImageFolderDataset(Dataset):
 
         return image_files
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.image_files)
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> Any:
         file = self.image_files[idx]
         image = self.importer(file)
 
