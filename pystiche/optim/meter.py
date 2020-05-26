@@ -2,7 +2,7 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict, deque
 from datetime import datetime, timedelta
-from typing import Any, Callable, Collection, Optional, Union
+from typing import Any, Callable, Optional, Sequence, Union, cast
 
 import torch
 
@@ -27,9 +27,7 @@ class Meter(ABC):
     def reset(self) -> None:
         pass
 
-    @abstractmethod
-    def update(self, *args: Any, **kwargs: Any) -> None:
-        pass
+    update: Callable[..., None]
 
     @abstractmethod
     def __str__(self) -> str:
@@ -37,16 +35,16 @@ class Meter(ABC):
 
 
 class FloatMeter(Meter):
+    count: int
+    last_val: float
+    global_sum: float
+    global_min: float
+    global_max: float
+    window: deque
+
     def __init__(self, name: str, window_size: int = 50) -> None:
         super().__init__(name)
         self.window_size = window_size
-
-        self.count = None
-        self.last_val = None
-        self.global_sum = None
-        self.global_min = None
-        self.global_max = None
-        self.window = None
         self.reset()
 
     def reset(self) -> None:
@@ -57,7 +55,7 @@ class FloatMeter(Meter):
         self.global_max = -float("inf")
         self.window = deque(maxlen=self.window_size)
 
-    def update(self, vals: Union[Collection[float], float]) -> None:
+    def update(self, vals: Union[Sequence[float], float]) -> None:
         if isinstance(vals, float):
             vals = (vals,)
 
@@ -120,9 +118,7 @@ class AverageMeter(FloatMeter):
         self.show_local_avg = show_local_avg
         self.fmt = fmt
 
-    def update(
-        self, vals: Union[Collection[float], float, torch.Tensor],
-    ):
+    def update(self, vals: Union[Sequence[float], float, torch.Tensor]) -> None:
         if isinstance(vals, torch.Tensor):
             vals = vals.detach().cpu().flatten().tolist()
 
@@ -186,8 +182,8 @@ class LossMeter(AverageMeter):
         super().__init__(name, fmt=fmt, **kwargs)
 
     def update(
-        self, val: Union[float, torch.Tensor, pystiche.LossDict],
-    ):
+        self, val: Union[Sequence[float], float, torch.Tensor, pystiche.LossDict],
+    ) -> None:
         if isinstance(val, pystiche.LossDict):
             val = float(val)
         super().update(val)
@@ -203,6 +199,8 @@ class TimeMeter(AverageMeter):
 
 
 class ETAMeter(FloatMeter):
+    last_time: Optional[float]
+
     def __init__(
         self,
         total_count: int,
@@ -216,14 +214,15 @@ class ETAMeter(FloatMeter):
         self.show_local_eta = show_local_eta
         self.fmt = fmt
 
-        self.last_time = None
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         super().reset()
         self.last_time = None
 
-    def update(self, time: float):
+    # This violates the Liskov Substitution Principle. We ignore this for now since
+    # this complete module should be refactored in the future.
+    def update(self, time: float) -> None:  # type: ignore[override]
         if self.last_time is None:
             self.last_time = time
             return
@@ -244,7 +243,7 @@ class ETAMeter(FloatMeter):
     def local_eta(self) -> datetime:
         return self.calculate_eta(self.local_avg)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.count > 0:
             eta = self.local_eta if self.show_local_eta else self.global_eta
             info = eta.strftime(self.fmt)
@@ -254,6 +253,9 @@ class ETAMeter(FloatMeter):
 
 
 class ProgressMeter(Meter):
+    count: int
+    progress_fmt: str
+
     def __init__(
         self,
         total_count: int,
@@ -270,10 +272,10 @@ class ProgressMeter(Meter):
                 count_fmt = build_fmtstr(field_len=len(str(total_count)), type="d")
                 return f"[{count_fmt}/{total_count:d}]"
 
+            build_progress_fmt = cast(Callable[[int], str], build_progress_fmt)
+
         self.build_progress_fmt = build_progress_fmt
 
-        self.count = None
-        self.progress_fmt = None
         self.reset(total_count=total_count)
 
     def reset(
@@ -306,7 +308,7 @@ class ProgressMeter(Meter):
     def progress(self) -> str:
         return self.progress_fmt.format(self.count)
 
-    def __str__(self):
+    def __str__(self) -> str:
         parts = []
 
         if self.name is not None:

@@ -1,9 +1,10 @@
 import time
 import warnings
-from typing import Callable, Iterable, Optional, Tuple, Union
+from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import torch
 from torch import nn, optim
+from torch.optim.lbfgs import LBFGS
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
@@ -23,8 +24,8 @@ from .log import (
 )
 
 
-def default_image_optimizer(input_image: torch.Tensor) -> Optimizer:
-    return optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
+def default_image_optimizer(input_image: torch.Tensor) -> LBFGS:
+    return LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
 
 
 def default_image_optim_loop(
@@ -60,16 +61,17 @@ def default_image_optim_loop(
 
     for step in num_steps:
 
-        def closure():
+        def closure() -> float:
             optimizer.zero_grad()
 
             loss = criterion(input_image)
             loss.backward()
 
             if not quiet:
-                log_fn(step, loss)
+                # See XXX
+                log_fn(step, loss)  # type: ignore[misc]
 
-            return loss.item()
+            return cast(float, loss.item())
 
         optimizer.step(closure)
 
@@ -85,8 +87,8 @@ def default_image_pyramid_optim_loop(
     criterion: nn.Module,
     pyramid: ImagePyramid,
     get_optimizer: Optional[Callable[[torch.Tensor], Optimizer]] = None,
-    preprocessor: nn.Module = None,
-    postprocessor: nn.Module = None,
+    preprocessor: Optional[nn.Module] = None,
+    postprocessor: Optional[nn.Module] = None,
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
     get_pyramid_level_header: Optional[
@@ -109,7 +111,7 @@ def default_image_pyramid_optim_loop(
     output_image = input_image
     for num, level in enumerate(pyramid, 1):
 
-        def image_optim_loop(input_image):
+        def image_optim_loop(input_image: torch.Tensor) -> torch.Tensor:
             return default_image_optim_loop(
                 input_image,
                 criterion,
@@ -146,7 +148,7 @@ def default_transformer_optim_loop(
     device: torch.device,
     transformer: nn.Module,
     criterion: nn.Module,
-    criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
+    criterion_update_fn: Callable[[torch.Tensor, nn.Module], None],
     optimizer: Optional[Optimizer] = None,
     get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
     quiet: bool = False,
@@ -182,10 +184,11 @@ def default_transformer_optim_loop(
 
         loading_time = time.time() - loading_time_start
 
-        def closure():
+        def closure() -> float:
             processing_time_start = time.time()
 
-            optimizer.zero_grad()
+            # See XXX
+            optimizer.zero_grad()  # type: ignore[union-attr]
 
             output_image = transformer(input_image)
             loss = criterion(output_image)
@@ -197,9 +200,10 @@ def default_transformer_optim_loop(
                 batch_size = input_image.size()[0]
                 image_loading_velocity = batch_size / loading_time
                 image_processing_velocity = batch_size / processing_time
-                log_fn(batch, loss, image_loading_velocity, image_processing_velocity)
+                # See XXX
+                log_fn(batch, loss, image_loading_velocity, image_processing_velocity)  # type: ignore[misc]
 
-            return loss
+            return cast(float, loss.item())
 
         optimizer.step(closure)
         loading_time_start = time.time()
@@ -211,10 +215,10 @@ def default_transformer_epoch_optim_loop(
     image_loader: DataLoader,
     transformer: nn.Module,
     criterion: nn.Module,
-    criterion_update_fn: Callable[[torch.Tensor, nn.ModuleDict], None],
+    criterion_update_fn: Callable[[torch.Tensor, nn.Module], None],
     epochs: int,
     device: Optional[torch.device] = None,
-    optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
+    optimizer: Optional[Optimizer] = None,
     lr_scheduler: Optional[LRScheduler] = None,
     quiet: bool = False,
     logger: Optional[OptimLogger] = None,
@@ -232,15 +236,19 @@ def default_transformer_epoch_optim_loop(
         if lr_scheduler is None:
             optimizer = default_transformer_optimizer(transformer)
         else:
-            optimizer = lr_scheduler.optimizer
+            # Every LRScheduler has optimizer as a valid attribute
+            # https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+            # but this is not reflected in the torch type hints
+            optimizer = lr_scheduler.optimizer  # type: ignore[attr-defined]
 
     if get_epoch_header is None:
         get_epoch_header = default_epoch_header_fn
 
     def transformer_optim_loop(transformer: nn.Module) -> nn.Module:
+        # See XXX
         return default_transformer_optim_loop(
             image_loader,
-            device,
+            device,  # type: ignore[arg-type]
             transformer,
             criterion,
             criterion_update_fn,
@@ -255,7 +263,8 @@ def default_transformer_epoch_optim_loop(
             transformer = transformer_optim_loop(transformer)
         else:
             header = get_epoch_header(epoch, optimizer, lr_scheduler)
-            with logger.environment(header):
+            # See XXX
+            with logger.environment(header):  # type: ignore[union-attr]
                 transformer = transformer_optim_loop(transformer)
 
         if lr_scheduler is not None:
