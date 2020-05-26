@@ -1,11 +1,12 @@
 from os import path
-from typing import Any, Dict, Iterator, Optional, Tuple
+from typing import Any, Callable, Dict, Iterator, Mapping, Optional, Tuple, TypeVar
 
 import torch
-from torch import nn
 
 import pystiche
 from pystiche.image import read_image
+
+_ImageCollection_co = TypeVar("_ImageCollection_co", covariant=True)
 
 
 class _Image(pystiche.ComplexObject):
@@ -13,9 +14,9 @@ class _Image(pystiche.ComplexObject):
         self,
         file: str,
         guides: Optional["_ImageCollection"] = None,
-        transform: Optional[nn.Module] = None,
+        transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
         note: Optional[str] = None,
-    ):
+    ) -> None:
         self.file = file
         self.guides = guides
         self.transform = transform
@@ -50,14 +51,14 @@ class _Image(pystiche.ComplexObject):
 
 
 class _ImageCollection(pystiche.ComplexObject):
-    def __init__(self, images: Dict[str, _Image]):
+    def __init__(self, images: Mapping[str, _Image]) -> None:
         self._images = images
 
     def __len__(self) -> int:
         return len(self._images)
 
-    def __getitem__(self, item) -> _Image:
-        return self._images[item]
+    def __getitem__(self, name: str) -> _Image:
+        return self._images[name]
 
     def __iter__(self) -> Iterator[Tuple[str, _Image]]:
         for name, image in self._images.items():

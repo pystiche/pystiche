@@ -27,7 +27,7 @@ class DownloadableImage(_Image):
         prefix_guide_files: bool = True,
         transform: Optional[nn.Module] = None,
         note: Optional[str] = None,
-    ):
+    ) -> None:
         if file is None:
             file = self.generate_file(url, title, author)
 
@@ -54,7 +54,7 @@ class DownloadableImage(_Image):
         if title is None and author is None:
             return path.basename(url)
 
-        def format(x):
+        def format(x: str) -> str:
             return "_".join(x.lower().split())
 
         name_parts = [format(part) for part in (title, author) if part is not None]
@@ -62,21 +62,19 @@ class DownloadableImage(_Image):
         ext = path.splitext(url)[1]
         return name + ext
 
-    def download(self, root: Optional[str] = None, overwrite: bool = False):
-        def _download(file: str):
+    def download(self, root: Optional[str] = None, overwrite: bool = False) -> None:
+        def _download(file: str) -> None:
             os.makedirs(path.dirname(file), exist_ok=True)
             download_file(self.url, file)
 
         if root is None:
             root = pystiche.home()
 
-        if self.guides is not None:
+        if isinstance(self.guides, DownloadableImageCollection):
             self.guides.download(root=root, overwrite=overwrite)
 
         file = self.file
         if not path.isabs(file) and root is not None:
-            if root is None:
-                root = pystiche.home()
             file = path.join(root, file)
 
         if not path.isfile(file):
@@ -132,9 +130,10 @@ class DownloadableImage(_Image):
 
 
 class DownloadableImageCollection(_ImageCollection):
-    def download(self, root: Optional[str] = None, overwrite: bool = False):
+    def download(self, root: Optional[str] = None, overwrite: bool = False) -> None:
         for _, image in self:
-            image.download(root=root, overwrite=overwrite)
+            if isinstance(image, DownloadableImage):
+                image.download(root=root, overwrite=overwrite)
 
     def read(
         self,
@@ -142,7 +141,7 @@ class DownloadableImageCollection(_ImageCollection):
         download: Optional[bool] = None,
         overwrite: bool = False,
         **read_image_kwargs: Any,
-    ):
+    ) -> Dict[str, torch.Tensor]:
         return {
             name: image.read(
                 root=root, download=download, overwrite=overwrite, **read_image_kwargs
