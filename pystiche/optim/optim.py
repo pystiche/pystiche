@@ -68,7 +68,7 @@ def default_image_optim_loop(
             loss.backward()
 
             if not quiet:
-                # See XXX
+                # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
                 log_fn(step, loss)  # type: ignore[misc]
 
             return cast(float, loss.item())
@@ -187,7 +187,7 @@ def default_transformer_optim_loop(
         def closure() -> float:
             processing_time_start = time.time()
 
-            # See XXX
+            # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
             optimizer.zero_grad()  # type: ignore[union-attr]
 
             output_image = transformer(input_image)
@@ -200,7 +200,7 @@ def default_transformer_optim_loop(
                 batch_size = input_image.size()[0]
                 image_loading_velocity = batch_size / loading_time
                 image_processing_velocity = batch_size / processing_time
-                # See XXX
+                # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
                 log_fn(batch, loss, image_loading_velocity, image_processing_velocity)  # type: ignore[misc]
 
             return cast(float, loss.item())
@@ -245,7 +245,7 @@ def default_transformer_epoch_optim_loop(
         get_epoch_header = default_epoch_header_fn
 
     def transformer_optim_loop(transformer: nn.Module) -> nn.Module:
-        # See XXX
+        # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
         return default_transformer_optim_loop(
             image_loader,
             device,  # type: ignore[arg-type]
@@ -263,7 +263,7 @@ def default_transformer_epoch_optim_loop(
             transformer = transformer_optim_loop(transformer)
         else:
             header = get_epoch_header(epoch, optimizer, lr_scheduler)
-            # See XXX
+            # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
             with logger.environment(header):  # type: ignore[union-attr]
                 transformer = transformer_optim_loop(transformer)
 
