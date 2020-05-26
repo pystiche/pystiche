@@ -3,7 +3,7 @@ import logging
 import sys
 import time
 from datetime import datetime
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Iterator, Optional, Tuple, Union, cast
 
 import torch
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
@@ -24,7 +24,9 @@ __all__ = [
 ]
 
 
-def default_logger(name: Optional[str] = None, log_file: Optional[str] = None):
+def default_logger(
+    name: Optional[str] = None, log_file: Optional[str] = None
+) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 
@@ -66,30 +68,35 @@ class OptimLogger:
         self._environ_indent_offset = 0
         self._environ_level_offset = 0
 
-    def _calc_abs_indent(self, indent: int, rel: bool):
+    def _calc_abs_indent(self, indent: int, rel: bool) -> int:
         abs_indent = indent
         if rel:
             abs_indent += self._environ_indent_offset
         return abs_indent
 
-    def _calc_abs_level(self, level: int, rel: bool):
+    def _calc_abs_level(self, level: int, rel: bool) -> int:
         abs_level = level
         if rel:
             abs_level += self._environ_level_offset
         return abs_level
 
-    def message(self, msg: str, indent: int = 0, rel=True) -> None:
+    def message(self, msg: str, indent: int = 0, rel: bool = True) -> None:
         abs_indent = self._calc_abs_indent(indent, rel)
         for line in msg.splitlines():
             self.logger.info(" " * abs_indent + line)
 
-    def sepline(self, level: int = 0, rel=True):
+    def sepline(self, level: int = 0, rel: bool = True) -> None:
         abs_level = self._calc_abs_level(level, rel)
         self.message(self.SEP_CHARS[abs_level] * self.SEP_LINE_LENGTH)
 
     def sep_message(
-        self, msg: str, level: int = 0, rel=True, top_sep=True, bottom_sep=True
-    ):
+        self,
+        msg: str,
+        level: int = 0,
+        rel: bool = True,
+        top_sep: bool = True,
+        bottom_sep: bool = True,
+    ) -> None:
         if top_sep:
             self.sepline(level=level, rel=rel)
         self.message(msg, rel=rel)
@@ -97,7 +104,7 @@ class OptimLogger:
             self.sepline(level=level, rel=rel)
 
     @contextlib.contextmanager
-    def environment(self, header: str):
+    def environment(self, header: str) -> Iterator:
         self.sep_message(header)
         self._environ_indent_offset += self.INDENT
         self._environ_level_offset += 1
@@ -114,17 +121,24 @@ def default_image_optim_log_fn(
     def log_fn(step: int, loss: Union[torch.Tensor, pystiche.LossDict]) -> None:
         if step % log_freq == 0:
             with optim_logger.environment(f"Step {step}"):
-                if isinstance(loss, torch.Tensor):
-                    optim_logger.message(f"loss: {loss.item():.3e}")
-                else:  # isinstance(loss, pystiche.LossDict)
-                    optim_logger.message(loss.aggregate(max_depth).format())
+                if isinstance(loss, pystiche.LossDict):
+                    loss = loss.aggregate(max_depth)
+
+                if isinstance(loss, pystiche.LossDict):
+                    msg = loss.format()
+                elif isinstance(loss, torch.Tensor):
+                    msg = f"loss: {loss.item():.3e}"
+                else:
+                    raise TypeError
+
+                optim_logger.message(msg)
 
     return log_fn
 
 
 def default_pyramid_level_header(
     num: int, level: PyramidLevel, input_image_size: Tuple[int, int]
-):
+) -> str:
     height, width = input_image_size
     return f"Pyramid level {num} with {level.num_steps} steps " f"({width} x {height})"
 
@@ -136,7 +150,7 @@ def default_transformer_optim_log_fn(
     show_loading_velocity: bool = True,
     show_processing_velocity: bool = True,
     show_running_means: bool = True,
-):
+) -> Callable[[int, Union[float, torch.Tensor, pystiche.LossDict], float, float], None]:
     if log_freq is None:
         log_freq = max(min(round(1e-3 * num_batches) * 10, 50), 1)
 
@@ -169,15 +183,19 @@ def default_transformer_optim_log_fn(
 
     progress_meter = ProgressMeter(num_batches, *meters)
 
-    def log_fn(batch, loss, loading_velocity, processing_velocity):
+    def log_fn(
+        batch: int,
+        loss: Union[float, torch.Tensor, pystiche.LossDict],
+        loading_velocity: float,
+        processing_velocity: float,
+    ) -> None:
         progress_meter.update(
             ETA=time.time(),
             loss=loss,
             loading=loading_velocity,
             processing=processing_velocity,
         )
-
-        if batch % log_freq == 0:
+        if batch % cast(int, log_freq) == 0:
             optim_logger.message(str(progress_meter))
 
     return log_fn
@@ -185,5 +203,5 @@ def default_transformer_optim_log_fn(
 
 def default_epoch_header_fn(
     epoch: int, optimizer: Optimizer, lr_scheduler: Optional[LRScheduler]
-):
+) -> str:
     return f"Epoch {epoch}"
