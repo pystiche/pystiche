@@ -43,7 +43,6 @@ run_by_ci = (
     or get_bool_env_var("CI")
 )
 
-
 # -- Path setup ------------------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory, add
@@ -59,16 +58,10 @@ PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), "..", ".."))
 
 # -- Project information ---------------------------------------------------------------
 
-pkg_name = "pystiche"
-
-about = {"_PROJECT_ROOT": PROJECT_ROOT}
-with open(path.join(PROJECT_ROOT, pkg_name, "__about__.py"), "r") as fh:
-    exec(fh.read(), about)
-
-project = about["__name__"]
-copyright = f"2019 - {datetime.now().year}, {about['__author__']}"
-author = about["__author__"]
-version = release = about["__version__"]
+project = pystiche.__name__
+author = pystiche.__author__
+copyright = f"2019 - {datetime.now().year}, {author}"
+version = release = pystiche.__version__
 
 
 # -- General configuration -------------------------------------------------------------
