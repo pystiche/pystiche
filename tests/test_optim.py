@@ -1,3 +1,4 @@
+import contextlib
 import sys
 from datetime import datetime, timedelta
 from os import path
@@ -28,6 +29,46 @@ class TestLog(PysticheTestCase):
 
             self.assertEqual(len(lines), 1)
             self.assertTrue(lines[0].strip().endswith(msg))
+
+    def test_default_image_optim_log_fn_loss_dict_smoke(self):
+        class MockOptimLogger:
+            def __init__(self):
+                self.msg = None
+
+            @contextlib.contextmanager
+            def environment(self, header):
+                yield
+
+            def message(self, msg):
+                self.msg = msg
+
+        loss_dict = pystiche.LossDict(
+            (("a", torch.tensor(0.0)), ("b.c", torch.tensor(1.0)))
+        )
+
+        log_freq = 1
+        max_depth = 1
+        optim_logger = MockOptimLogger()
+        log_fn = optim.default_image_optim_log_fn(
+            optim_logger, log_freq=log_freq, max_depth=max_depth
+        )
+
+        step = log_freq
+        log_fn(step, loss_dict)
+
+        actual = optim_logger.msg
+        desired = loss_dict.format(max_depth=max_depth)
+        self.assertEqual(actual, desired)
+
+    def test_default_image_optim_log_fn_other(self):
+        optim_logger = optim.OptimLogger()
+        log_freq = 1
+        log_fn = optim.default_image_optim_log_fn(optim_logger, log_freq=log_freq)
+
+        with self.assertRaises(TypeError):
+            step = log_freq
+            loss = None
+            log_fn(step, loss)
 
 
 class TestMeter(PysticheTestCase):
