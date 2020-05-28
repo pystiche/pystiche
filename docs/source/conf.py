@@ -19,6 +19,7 @@ from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 import torch
 
 import pystiche
+from pystiche import _git as git
 from pystiche.misc import download_file
 
 # -- Run config ------------------------------------------------------------------------
@@ -43,7 +44,6 @@ run_by_ci = (
     or get_bool_env_var("CI")
 )
 
-
 # -- Path setup ------------------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory, add
@@ -55,6 +55,11 @@ run_by_ci = (
 # sys.path.insert(0, os.path.abspath('.'))
 
 PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), "..", ".."))
+
+print(pystiche.__version__)
+
+print(git.is_dirty(PROJECT_ROOT))
+print(git.run("status", cwd=PROJECT_ROOT))
 
 
 # -- Project information ---------------------------------------------------------------
