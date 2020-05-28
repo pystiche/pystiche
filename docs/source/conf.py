@@ -19,7 +19,6 @@ from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 import torch
 
 import pystiche
-from pystiche import _git as git
 from pystiche.misc import download_file
 
 # -- Run config ------------------------------------------------------------------------
@@ -59,23 +58,10 @@ PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), "..", ".."))
 
 # -- Project information ---------------------------------------------------------------
 
-pkg_name = "pystiche"
-
-about = {"_PROJECT_ROOT": PROJECT_ROOT}
-with open(path.join(PROJECT_ROOT, pkg_name, "__about__.py"), "r") as fh:
-    exec(fh.read(), about)
-
-project = about["__name__"]
-copyright = f"2019 - {datetime.now().year}, {about['__author__']}"
-author = about["__author__"]
-version = release = about["__version__"]
-
-print(pystiche.__version__)
-print(version)
-
-print(git.is_dirty(PROJECT_ROOT))
-print(git.run("status", cwd=PROJECT_ROOT))
-print(git.run("diff", cwd=PROJECT_ROOT))
+project = pystiche.__name__
+author = pystiche.__author__
+copyright = f"2019 - {datetime.now().year}, {author}"
+version = release = pystiche.__version__
 
 
 # -- General configuration -------------------------------------------------------------
