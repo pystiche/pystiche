@@ -198,8 +198,8 @@ def default_transformer_optim_loop(
 
             if not quiet:
                 batch_size = input_image.size()[0]
-                image_loading_velocity = batch_size / max(loading_time, 1e-3)
-                image_processing_velocity = batch_size / max(processing_time, 1e-3)
+                image_loading_velocity = batch_size / max(loading_time, 1e-6)
+                image_processing_velocity = batch_size / max(processing_time, 1e-6)
                 # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
                 log_fn(batch, loss, image_loading_velocity, image_processing_velocity)  # type: ignore[misc]
 
