@@ -11,11 +11,23 @@ from torch.optim.optimizer import Optimizer
 import pystiche
 from pystiche import optim
 
-from .utils import PysticheTestCase
+from .utils import PysticheTestCase, get_tmp_dir
 
 
 class TestLog(PysticheTestCase):
-    pass
+    def test_default_logger_log_file(self):
+        with get_tmp_dir() as tmp_dir:
+            log_file = path.join(tmp_dir, "log_file.txt")
+            logger = optim.default_logger(log_file=log_file)
+
+            msg = "test message"
+            logger.info(msg)
+
+            with open(log_file, "r") as fh:
+                lines = fh.readlines()
+
+            self.assertEqual(len(lines), 1)
+            self.assertTrue(lines[0].strip().endswith(msg))
 
 
 class TestMeter(PysticheTestCase):
