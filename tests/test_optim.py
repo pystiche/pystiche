@@ -303,6 +303,21 @@ class TestOptim(PysticheTestCase):
         self.assertTensorAlmostEqual(actual, desired, rtol=1e-4)
 
     @skip_if_py38
+    def test_default_image_optim_loop_logging_smoke(self):
+        asset = self.load_asset(path.join("optim", "default_image_optim_loop"))
+
+        num_steps = 1
+        optim_logger = optim.OptimLogger()
+        log_fn = optim.default_image_optim_log_fn(optim_logger, log_freq=1)
+        with self.assertLogs(optim_logger.logger, "INFO"):
+            optim.default_image_optim_loop(
+                asset.input.image,
+                asset.input.criterion,
+                num_steps=num_steps,
+                log_fn=log_fn,
+            )
+
+    @skip_if_py38
     def test_default_image_pyramid_optim_loop(self):
         asset = self.load_asset(path.join("optim", "default_image_pyramid_optim_loop"))
 
@@ -331,6 +346,23 @@ class TestOptim(PysticheTestCase):
         )
         desired = asset.output.image
         self.assertTensorAlmostEqual(actual, desired, rtol=1e-4)
+
+    @skip_if_py38
+    def test_default_image_pyramid_optim_loop_logging_smoke(self):
+        asset = self.load_asset(path.join("optim", "default_image_pyramid_optim_loop"))
+
+        optim_logger = optim.OptimLogger()
+        log_freq = max([level.num_steps for level in asset.input.pyramid._levels]) + 1
+        log_fn = optim.default_image_optim_log_fn(optim_logger, log_freq=log_freq)
+
+        with self.assertLogs(optim_logger.logger, "INFO"):
+            optim.default_image_pyramid_optim_loop(
+                asset.input.image,
+                asset.input.criterion,
+                asset.input.pyramid,
+                logger=optim_logger,
+                log_fn=log_fn,
+            )
 
     def test_default_transformer_optimizer(self):
         torch.manual_seed(0)
@@ -365,6 +397,27 @@ class TestOptim(PysticheTestCase):
         self.assertTensorSequenceAlmostEqual(actual, desired, rtol=1e-4)
 
     @skip_if_py38
+    def test_default_transformer_optim_loop_logging_smoke(self):
+        asset = self.load_asset(path.join("optim", "default_transformer_optim_loop"))
+
+        image_loader = asset.input.image_loader
+        optim_logger = optim.OptimLogger()
+        log_fn = optim.default_transformer_optim_log_fn(
+            optim_logger, len(image_loader), log_freq=1
+        )
+
+        with self.assertLogs(optim_logger.logger, "INFO"):
+            optim.default_transformer_optim_loop(
+                image_loader,
+                asset.input.device,
+                asset.input.transformer,
+                asset.input.criterion,
+                asset.input.criterion_update_fn,
+                logger=optim_logger,
+                log_fn=log_fn,
+            )
+
+    @skip_if_py38
     def test_default_transformer_epoch_optim_loop(self):
         asset = self.load_asset(
             path.join("optim", "default_transformer_epoch_optim_loop")
@@ -387,3 +440,27 @@ class TestOptim(PysticheTestCase):
         actual = transformer.parameters()
         desired = asset.output.transformer.parameters()
         self.assertTensorSequenceAlmostEqual(actual, desired, rtol=1e-4)
+
+    @skip_if_py38
+    def test_default_transformer_epoch_optim_loop_logging_smoke(self):
+        asset = self.load_asset(
+            path.join("optim", "default_transformer_epoch_optim_loop")
+        )
+
+        image_loader = asset.input.image_loader
+        log_freq = len(image_loader) + 1
+        optim_logger = optim.OptimLogger()
+        log_fn = optim.default_transformer_optim_log_fn(
+            optim_logger, len(image_loader), log_freq=log_freq
+        )
+
+        with self.assertLogs(optim_logger.logger, "INFO"):
+            optim.default_transformer_epoch_optim_loop(
+                asset.input.image_loader,
+                asset.input.transformer,
+                asset.input.criterion,
+                asset.input.criterion_update_fn,
+                asset.input.epochs,
+                logger=optim_logger,
+                log_fn=log_fn,
+            )
