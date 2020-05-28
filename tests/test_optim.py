@@ -1,3 +1,5 @@
+import contextlib
+import logging
 import sys
 from datetime import datetime, timedelta
 from os import path
@@ -11,11 +13,68 @@ from torch.optim.optimizer import Optimizer
 import pystiche
 from pystiche import optim
 
-from .utils import PysticheTestCase
+from .utils import PysticheTestCase, get_tmp_dir
 
 
 class TestLog(PysticheTestCase):
-    pass
+    def test_default_logger_log_file(self):
+        with get_tmp_dir() as tmp_dir:
+            log_file = path.join(tmp_dir, "log_file.txt")
+            logger = optim.default_logger(log_file=log_file)
+
+            msg = "test message"
+            logger.info(msg)
+
+            with open(log_file, "r") as fh:
+                lines = fh.readlines()
+
+            self.assertEqual(len(lines), 1)
+            self.assertTrue(lines[0].strip().endswith(msg))
+
+            # Windows compatibility
+            for handler in logger.handlers:
+                if isinstance(handler, logging.FileHandler):
+                    handler.stream.close()
+
+    def test_default_image_optim_log_fn_loss_dict_smoke(self):
+        class MockOptimLogger:
+            def __init__(self):
+                self.msg = None
+
+            @contextlib.contextmanager
+            def environment(self, header):
+                yield
+
+            def message(self, msg):
+                self.msg = msg
+
+        loss_dict = pystiche.LossDict(
+            (("a", torch.tensor(0.0)), ("b.c", torch.tensor(1.0)))
+        )
+
+        log_freq = 1
+        max_depth = 1
+        optim_logger = MockOptimLogger()
+        log_fn = optim.default_image_optim_log_fn(
+            optim_logger, log_freq=log_freq, max_depth=max_depth
+        )
+
+        step = log_freq
+        log_fn(step, loss_dict)
+
+        actual = optim_logger.msg
+        desired = loss_dict.format(max_depth=max_depth)
+        self.assertEqual(actual, desired)
+
+    def test_default_image_optim_log_fn_other(self):
+        optim_logger = optim.OptimLogger()
+        log_freq = 1
+        log_fn = optim.default_image_optim_log_fn(optim_logger, log_freq=log_freq)
+
+        with self.assertRaises(TypeError):
+            step = log_freq
+            loss = None
+            log_fn(step, loss)
 
 
 class TestMeter(PysticheTestCase):
@@ -303,6 +362,21 @@ class TestOptim(PysticheTestCase):
         self.assertTensorAlmostEqual(actual, desired, rtol=1e-4)
 
     @skip_if_py38
+    def test_default_image_optim_loop_logging_smoke(self):
+        asset = self.load_asset(path.join("optim", "default_image_optim_loop"))
+
+        num_steps = 1
+        optim_logger = optim.OptimLogger()
+        log_fn = optim.default_image_optim_log_fn(optim_logger, log_freq=1)
+        with self.assertLogs(optim_logger.logger, "INFO"):
+            optim.default_image_optim_loop(
+                asset.input.image,
+                asset.input.criterion,
+                num_steps=num_steps,
+                log_fn=log_fn,
+            )
+
+    @skip_if_py38
     def test_default_image_pyramid_optim_loop(self):
         asset = self.load_asset(path.join("optim", "default_image_pyramid_optim_loop"))
 
@@ -331,6 +405,23 @@ class TestOptim(PysticheTestCase):
         )
         desired = asset.output.image
         self.assertTensorAlmostEqual(actual, desired, rtol=1e-4)
+
+    @skip_if_py38
+    def test_default_image_pyramid_optim_loop_logging_smoke(self):
+        asset = self.load_asset(path.join("optim", "default_image_pyramid_optim_loop"))
+
+        optim_logger = optim.OptimLogger()
+        log_freq = max([level.num_steps for level in asset.input.pyramid._levels]) + 1
+        log_fn = optim.default_image_optim_log_fn(optim_logger, log_freq=log_freq)
+
+        with self.assertLogs(optim_logger.logger, "INFO"):
+            optim.default_image_pyramid_optim_loop(
+                asset.input.image,
+                asset.input.criterion,
+                asset.input.pyramid,
+                logger=optim_logger,
+                log_fn=log_fn,
+            )
 
     def test_default_transformer_optimizer(self):
         torch.manual_seed(0)
@@ -365,6 +456,27 @@ class TestOptim(PysticheTestCase):
         self.assertTensorSequenceAlmostEqual(actual, desired, rtol=1e-4)
 
     @skip_if_py38
+    def test_default_transformer_optim_loop_logging_smoke(self):
+        asset = self.load_asset(path.join("optim", "default_transformer_optim_loop"))
+
+        image_loader = asset.input.image_loader
+        optim_logger = optim.OptimLogger()
+        log_fn = optim.default_transformer_optim_log_fn(
+            optim_logger, len(image_loader), log_freq=1
+        )
+
+        with self.assertLogs(optim_logger.logger, "INFO"):
+            optim.default_transformer_optim_loop(
+                image_loader,
+                asset.input.device,
+                asset.input.transformer,
+                asset.input.criterion,
+                asset.input.criterion_update_fn,
+                logger=optim_logger,
+                log_fn=log_fn,
+            )
+
+    @skip_if_py38
     def test_default_transformer_epoch_optim_loop(self):
         asset = self.load_asset(
             path.join("optim", "default_transformer_epoch_optim_loop")
@@ -387,3 +499,27 @@ class TestOptim(PysticheTestCase):
         actual = transformer.parameters()
         desired = asset.output.transformer.parameters()
         self.assertTensorSequenceAlmostEqual(actual, desired, rtol=1e-4)
+
+    @skip_if_py38
+    def test_default_transformer_epoch_optim_loop_logging_smoke(self):
+        asset = self.load_asset(
+            path.join("optim", "default_transformer_epoch_optim_loop")
+        )
+
+        image_loader = asset.input.image_loader
+        log_freq = len(image_loader) + 1
+        optim_logger = optim.OptimLogger()
+        log_fn = optim.default_transformer_optim_log_fn(
+            optim_logger, len(image_loader), log_freq=log_freq
+        )
+
+        with self.assertLogs(optim_logger.logger, "INFO"):
+            optim.default_transformer_epoch_optim_loop(
+                asset.input.image_loader,
+                asset.input.transformer,
+                asset.input.criterion,
+                asset.input.criterion_update_fn,
+                asset.input.epochs,
+                logger=optim_logger,
+                log_fn=log_fn,
+            )
