@@ -44,3 +44,9 @@ class TestDemo(PysticheTestCase):
                             f"{actual} != {desired}"
                         ),
                     )
+
+    def test_demo_logger_smoke(self):
+        optim_logger = demo.demo_logger()
+
+        with self.assertLogs(optim_logger.logger, "INFO"):
+            optim_logger.message("Test message")
