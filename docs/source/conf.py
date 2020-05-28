@@ -56,11 +56,6 @@ run_by_ci = (
 
 PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), "..", ".."))
 
-print(pystiche.__version__)
-
-print(git.is_dirty(PROJECT_ROOT))
-print(git.run("status", cwd=PROJECT_ROOT))
-
 
 # -- Project information ---------------------------------------------------------------
 
@@ -74,6 +69,13 @@ project = about["__name__"]
 copyright = f"2019 - {datetime.now().year}, {about['__author__']}"
 author = about["__author__"]
 version = release = about["__version__"]
+
+print(pystiche.__version__)
+print(version)
+
+print(git.is_dirty(PROJECT_ROOT))
+print(git.run("status", cwd=PROJECT_ROOT))
+print(git.run("diff", cwd=PROJECT_ROOT))
 
 
 # -- General configuration -------------------------------------------------------------
