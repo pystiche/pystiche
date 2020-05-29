@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from torch import nn
 from torch.utils import model_zoo
@@ -80,9 +80,18 @@ class AlexNetEncoder(MultiLayerAlexNetEncoder):
 
 def alexnet_multi_layer_encoder(
     weights: str = "torch",
+    preprocessing: Optional[bool] = None,
     internal_preprocessing: bool = True,
     allow_inplace: bool = False,
 ) -> MultiLayerAlexNetEncoder:
+    if preprocessing is not None:
+        msg = build_deprecation_message(
+            "The parameter preprocessing",
+            "0.4.0",
+            info="It was replaced by internal_preprocessing.",
+        )
+        warnings.warn(msg)
+        internal_preprocessing = preprocessing
     return MultiLayerAlexNetEncoder(weights, internal_preprocessing, allow_inplace)
 
 
