@@ -51,6 +51,12 @@ class TestModels(PysticheTestCase):
 
     @pytest.mark.large_download
     @pytest.mark.slow
+    def test_alexnet_multi_layer_encoder_smoke(self):
+        multi_layer_encoder = enc.alexnet_multi_layer_encoder()
+        self.assertIsInstance(multi_layer_encoder, enc.alexnet.MultiLayerAlexNetEncoder)
+
+    @pytest.mark.large_download
+    @pytest.mark.slow
     @pytest.mark.flaky
     def test_VGGMultiLayerEncoder(self):
         archs = ("vgg11", "vgg13", "vgg16", "vgg19")
@@ -81,6 +87,24 @@ class TestModels(PysticheTestCase):
                 )
                 desired = asset.output.enc_keys
                 self.assertDictEqual(actual, desired)
+
+    @pytest.mark.large_download
+    @pytest.mark.slow
+    def test_vgg_multi_layer_encoder_smoke(self):
+        fns = (
+            enc.vgg11_multi_layer_encoder,
+            enc.vgg11_bn_multi_layer_encoder,
+            enc.vgg13_multi_layer_encoder,
+            enc.vgg13_bn_multi_layer_encoder,
+            enc.vgg16_multi_layer_encoder,
+            enc.vgg16_bn_multi_layer_encoder,
+            enc.vgg19_multi_layer_encoder,
+            enc.vgg19_bn_multi_layer_encoder,
+        )
+        for fn in fns:
+            with self.subTest(fn=fn.__name__):
+                multi_layer_encoder = fn()
+                self.assertIsInstance(multi_layer_encoder, enc.vgg.MultiLayerVGGEncoder)
 
 
 class TestMultiLayerEncoder(PysticheTestCase):

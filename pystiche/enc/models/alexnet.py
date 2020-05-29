@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from torch import nn
 from torch.utils import model_zoo
@@ -17,9 +17,11 @@ __all__ = ["alexnet_multi_layer_encoder"]
 
 
 class MultiLayerAlexNetEncoder(MultiLayerEncoder):
-    def __init__(self, weights: str, preprocessing: bool, allow_inplace: bool) -> None:
+    def __init__(
+        self, weights: str, internal_preprocessing: bool, allow_inplace: bool
+    ) -> None:
         self.weights = weights
-        self.preprocessing = preprocessing
+        self.internal_preprocessing = internal_preprocessing
         self.allow_inplace = allow_inplace
 
         super().__init__(self._collect_modules())
@@ -32,7 +34,7 @@ class MultiLayerAlexNetEncoder(MultiLayerEncoder):
         model = base_model.features
 
         modules = []
-        if self.preprocessing:
+        if self.internal_preprocessing:
             modules.append(("preprocessing", get_preprocessor(self.weights)))
         block = 1
         for module in model.children():
@@ -77,9 +79,20 @@ class AlexNetEncoder(MultiLayerAlexNetEncoder):
 
 
 def alexnet_multi_layer_encoder(
-    weights: str = "torch", preprocessing: bool = True, allow_inplace: bool = False
+    weights: str = "torch",
+    preprocessing: Optional[bool] = None,
+    internal_preprocessing: bool = True,
+    allow_inplace: bool = False,
 ) -> MultiLayerAlexNetEncoder:
-    return MultiLayerAlexNetEncoder(weights, preprocessing, allow_inplace)
+    if preprocessing is not None:
+        msg = build_deprecation_message(
+            "The parameter preprocessing",
+            "0.4.0",
+            info="It was replaced by internal_preprocessing.",
+        )
+        warnings.warn(msg)
+        internal_preprocessing = preprocessing
+    return MultiLayerAlexNetEncoder(weights, internal_preprocessing, allow_inplace)
 
 
 def alexnet_encoder(*args: Any, **kwargs: Any) -> MultiLayerAlexNetEncoder:
