@@ -75,12 +75,12 @@ class SameOperatorContainer(OperatorContainer):
             elif op_weights == "mean":
                 return [1.0 / num_ops] * num_ops
 
-            raise ValueError
         else:
             if len(op_weights) == num_ops:
                 return op_weights
 
-            raise ValueError
+
+        raise ValueError
 
 
 class MultiLayerEncodingOperator(SameOperatorContainer):

@@ -272,7 +272,7 @@ class TestUtils(PysticheTestCase):
         image_size = (1, 2)
 
         edges = ("short", "long", "vert", "horz")
-        actual = tuple([utils.image_to_edge_size(image_size, edge) for edge in edges])
+        actual = tuple(utils.image_to_edge_size(image_size, edge) for edge in edges)
         desired = (1, 2, 1, 2)
         self.assertTupleEqual(actual, desired)
 
@@ -356,7 +356,7 @@ class TestUtils(PysticheTestCase):
         image = torch.empty(1, 1, height, width)
 
         edges = ("short", "long", "vert", "horz")
-        actual = tuple([utils.extract_edge_size(image, edge=edge) for edge in edges])
+        actual = tuple(utils.extract_edge_size(image, edge=edge) for edge in edges)
         desired = (height, width, height, width)
         self.assertTupleEqual(actual, desired)
 

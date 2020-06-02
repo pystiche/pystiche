@@ -237,10 +237,8 @@ class MultiLayerLoss(nn.Module):
     @property
     def target_encs(self):
         return tuple(
-            [
-                getattr(self, self._target_enc_name(idx))
-                for idx in range(self._numel_target_encs)
-            ]
+            getattr(self, self._target_enc_name(idx))
+            for idx in range(self._numel_target_encs)
         )
 
     def forward(self, input_encs):
@@ -325,9 +323,9 @@ export_to_pil = transforms.Compose(
 
 
 def download_image(url, file):
-    # without User-Agent the access is denied
-    headers = {"User-Agent": "pystiche"}
     with open(file, "wb") as fh:
+        # without User-Agent the access is denied
+        headers = {"User-Agent": "pystiche"}
         fh.write(requests.get(url, headers=headers).content)
 
 

@@ -22,8 +22,7 @@ __all__ = [
 
 def _parse_size(size: Union[Tuple[int, int], int]) -> Tuple[int, int]:
     if is_image_size(size):
-        image_size = cast(Tuple[int, int], size)
-        return image_size
+        return cast(Tuple[int, int], size)
     elif is_edge_size(size):
         edge_size = cast(int, size)
         return edge_size, edge_size

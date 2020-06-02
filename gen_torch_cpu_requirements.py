@@ -62,7 +62,7 @@ def select_link(whls, distribution, language, abi, platform):
         if selected_whls:
             return selected_whls
 
-        valid_vals = sorted(set([getattr(whl, attr) for whl in whls]))
+        valid_vals = sorted({getattr(whl, attr) for whl in whls})
         msg = (
             f"'{val}' is invalid for attribute '{attr}'. "
             f"Valid values are ({' ,'.join(valid_vals)})"

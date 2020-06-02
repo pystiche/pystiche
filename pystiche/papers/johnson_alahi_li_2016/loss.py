@@ -155,10 +155,6 @@ def get_regularization_score_weight(
             "the_scream": 1e-5,
             "udnie": 1e-6,
         }
-        try:
-            return score_weights[style]
-        except KeyError:
-            return default_score_weight
     else:
         score_weights = {
             "the_wave": 1e-4,
@@ -166,10 +162,10 @@ def get_regularization_score_weight(
             "la_muse": 1e-5,
             "composition_vii": 1e-6,
         }
-        try:
-            return score_weights[style]
-        except KeyError:
-            return default_score_weight
+    try:
+        return score_weights[style]
+    except KeyError:
+        return default_score_weight
 
 
 def johnson_alahi_li_2016_regularization(

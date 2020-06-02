@@ -92,7 +92,7 @@ to_3d_arg = _to_nd_arg(3)
 
 def zip_equal(*sequences: Sequence) -> Iterable:
     numel = len(sequences[0])
-    if not all([len(sequence) == numel for sequence in sequences[1:]]):
+    if any(len(sequence) != numel for sequence in sequences[1:]):
         raise RuntimeError("All sequences should have the same length")
     return zip(*sequences)
 
@@ -130,7 +130,7 @@ def to_engstr(
 # TODO: has this function any purpose?
 def to_tuplestr(sequence: Sequence) -> str:
     sequence = [str(item) for item in sequence]
-    if len(sequence) == 0:
+    if not sequence:
         values = ""
     elif len(sequence) == 1:
         values = sequence[0] + ","

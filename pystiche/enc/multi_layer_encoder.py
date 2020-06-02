@@ -79,7 +79,7 @@ class MultiLayerEncoder(pystiche.Module):
             if store:
                 self._storage = storage
 
-        return tuple([storage[(name, input_key)] for name in layers])
+        return tuple(storage[(name, input_key)] for name in layers)
 
     def extract_single_layer_encoder(self, layer: str) -> "SingleLayerEncoder":
         self._verify_layer(layer)
@@ -145,7 +145,7 @@ class MultiLayerEncoder(pystiche.Module):
                 #       the problem
                 raise error
 
-        return tuple([guides[name] for name in layers])
+        return tuple(guides[name] for name in layers)
 
 
 class SingleLayerEncoder(Encoder):

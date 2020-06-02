@@ -42,11 +42,7 @@ def ulyanov_et_al_2016_content_loss(
     score_weight=None,
 ):
     if score_weight is None:
-        if impl_params:
-            score_weight = 1e0 if instance_norm else 6e-1
-        else:
-            score_weight = 1e0
-
+        score_weight = (1.0 if instance_norm else 0.6) if impl_params else 1.0
     if multi_layer_encoder is None:
         multi_layer_encoder = ulyanov_et_al_2016_multi_layer_encoder()
     encoder = multi_layer_encoder[layer]

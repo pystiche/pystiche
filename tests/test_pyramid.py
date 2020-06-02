@@ -32,7 +32,7 @@ class TestPyramid(PysticheTestCase):
 
         pyramid_levels = pyramid.ImagePyramid([1] * num_levels, num_steps)
 
-        actual = tuple([level.num_steps for level in pyramid_levels])
+        actual = tuple(level.num_steps for level in pyramid_levels)
         desired = tuple([num_steps] * num_levels)
         self.assertTupleEqual(actual, desired)
 
@@ -42,7 +42,7 @@ class TestPyramid(PysticheTestCase):
 
         pyramid_levels = pyramid.ImagePyramid([1] * num_levels, 1, edge=edge)
 
-        actual = tuple([level.edge for level in pyramid_levels])
+        actual = tuple(level.edge for level in pyramid_levels)
         desired = tuple([edge] * num_levels)
         self.assertTupleEqual(actual, desired)
 
