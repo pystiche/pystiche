@@ -225,19 +225,13 @@ def ulyanov_et_al_2016_batch_sampler(
 
     if num_batches is None:
         if impl_params:
-            if instance_norm:
-                num_batches = 2000
-            else:
-                num_batches = 300 if stylization else 150
+            num_batches = 2000 if instance_norm else 300 if stylization else 150
         else:
             num_batches = 200
 
     if batch_size is None:
         if impl_params:
-            if instance_norm:
-                batch_size = 1
-            else:
-                batch_size = 4 if stylization else 16
+            batch_size = 1 if instance_norm else 4 if stylization else 16
         else:
             batch_size = 16
 

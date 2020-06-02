@@ -62,7 +62,7 @@ def _verify_batched_image_dims(x: torch.Tensor) -> None:
 
 
 def _verify_image_dims(x: torch.Tensor) -> None:
-    if not x.dim() in (3, 4):
+    if x.dim() not in (3, 4):
         msg = (
             f"pystiche uses CxHxW tensors for single and BxCxHxW tensors for batched "
             f"images, but got tensor with {x.dim()} dimensions instead."

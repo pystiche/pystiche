@@ -112,6 +112,8 @@ class SameOperatorContainer(OperatorContainer):
             )
             raise ValueError(msg)
 
+        raise ValueError
+
 
 class MultiLayerEncodingOperator(SameOperatorContainer):
     r"""Convenience container for multiple :class:`~pystiche.ops.EncodingOperator` s

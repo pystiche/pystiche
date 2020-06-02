@@ -85,8 +85,7 @@ class PyramidLevel(ComplexObject):
         return self._resize(guide, aspect_ratio, interpolation_mode)
 
     def __iter__(self) -> Iterator[int]:
-        for step in range(1, self.num_steps + 1):
-            yield step
+        yield from range(1, self.num_steps + 1)
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()

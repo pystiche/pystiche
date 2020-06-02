@@ -313,7 +313,7 @@ class UlyanovEtAl2016JoinBlock(nn.Module):
 
     @property
     def out_channels(self) -> int:
-        return sum([norm.num_features for norm in self.norm_modules])
+        return sum(norm.num_features for norm in self.norm_modules)
 
     def forward(self, *inputs: torch.Tensor) -> torch.Tensor:
         return join_channelwise(
@@ -427,10 +427,7 @@ class UlyanovEtAl2016Transformer(nn.Sequential):
                 stylization=stylization,
             )
 
-        if impl_params:
-            output_conv_class = nn.Conv2d
-        else:
-            output_conv_class = UlyanovEtAl2016ConvBlock
+        output_conv_class = nn.Conv2d if impl_params else UlyanovEtAl2016ConvBlock
         output_conv = output_conv_class(
             pyramid.out_channels, out_channels=3, kernel_size=1, stride=1,
         )
@@ -465,11 +462,7 @@ def ulyanov_et_al_2016_transformer(
     levels: Optional[int] = None,
 ) -> UlyanovEtAl2016Transformer:
     if levels is None:
-        if not impl_params:
-            levels = 6 if stylization else 5
-        else:
-            levels = 6
-
+        levels = (6 if stylization else 5) if not impl_params else 6
     init_weights = style is None
     transformer = UlyanovEtAl2016Transformer(
         levels,
