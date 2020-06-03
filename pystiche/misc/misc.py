@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import warnings
 from collections import OrderedDict
-from functools import reduce
+from functools import reduce as _reduce
 from operator import mul
 from os import path
 from typing import (
@@ -54,11 +54,12 @@ __all__ = [
     "warn_deprecation",
     "get_device",
     "download_file",
+    "reduce",
 ]
 
 
 def prod(iterable: Iterable) -> Any:
-    return reduce(mul, iterable)
+    return _reduce(mul, iterable)
 
 
 T = TypeVar("T")
@@ -450,3 +451,21 @@ def download_file(
     with open(file, "wb") as fh:
         fh.write(requests.get(url, headers=headers).content)
     return file
+
+
+def reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:
+    """Reduces a :class:`~torch.Tensor` as specified.
+
+    Args:
+        x: Input tensor.
+        reduction: Reduction method to be applied to ``x``. If ``"none"``, no reduction
+            will be applied. If ``"sum"`` or ``"mean"``, the :func:`~torch.sum` or
+            :func:`~torch.mean` will be applied across all dimensions of ``x``.
+    """
+    verify_str_arg(reduction, "reduction", ("mean", "sum", "none"))
+    if reduction == "mean":
+        return torch.mean(x)
+    elif reduction == "sum":
+        return torch.sum(x)
+    else:  # reduction == "none":
+        return x
