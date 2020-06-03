@@ -23,7 +23,7 @@ def patch_matching_loss(
         return torch.clamp(torch.mm(input, target.t()), max=1.0 / eps)
 
     with torch.no_grad():
-        similarity = examplewise_cosine_similarity(input, target, eps=eps)
+        similarity = pystiche.cosine_similarity(input, target, eps=eps)
         idcs = torch.argmax(similarity, dim=1)
         target = torch.index_select(target, dim=0, index=idcs)
     return mse_loss(input, target, reduction=reduction)
