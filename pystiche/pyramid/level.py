@@ -10,6 +10,16 @@ __all__ = ["PyramidLevel"]
 
 
 class PyramidLevel(ComplexObject):
+    r"""Level with an :class:`pystiche.pyramid.ImagePyramid`. If iterated on, yields
+    the step beginning at 1 and ending in ``num_steps``.
+
+    Args:
+        edge_size: Edge size.
+        num_steps: Number of steps.
+        edge: Corresponding edge to the edge size. Can be ``"short"`` or
+            ``"long"``.
+    """
+
     def __init__(self, edge_size: int, num_steps: int, edge: str) -> None:
         self.edge_size = edge_size
         self.num_steps = num_steps
@@ -38,6 +48,22 @@ class PyramidLevel(ComplexObject):
         aspect_ratio: Optional[float] = None,
         interpolation_mode: str = "bilinear",
     ) -> torch.Tensor:
+        r"""Resize an image to the ``edge_size`` on the corresponding ``edge`` of the
+        :class:`PyramidLevel`.
+
+        Args:
+            image: Image to be resized.
+            aspect_ratio: Optional aspect ratio of the output. If ``None``, the aspect
+                ratio of ``image`` is used. Defaults to ``None``.
+            interpolation_mode: Interpolation mode used to resize ``image``. Defaults
+                to ``"bilinear"``.
+
+        .. warning::
+
+            The resizing is performed without gradient calculation. Do **not** use this
+            if image needs a gradient. If that is the case use
+            :class:`pystiche.image.transforms.Resize` instead.
+        """
         return self._resize(image, aspect_ratio, interpolation_mode)
 
     def resize_guide(
@@ -46,6 +72,16 @@ class PyramidLevel(ComplexObject):
         aspect_ratio: Optional[float] = None,
         interpolation_mode: str = "nearest",
     ) -> torch.Tensor:
+        r"""Resize a guide to the ``edge_size`` on the corresponding ``edge`` of the
+        :class:`PyramidLevel`.
+
+        Args:
+            guide: Guide to be resized.
+            aspect_ratio: Optional aspect ratio of the output. If ``None``, the aspect
+                ratio of ``guide`` is used. Defaults to ``None``.
+            interpolation_mode: Interpolation mode used to resize ``image``. Defaults
+                to ``"nearest"``.
+        """
         return self._resize(guide, aspect_ratio, interpolation_mode)
 
     def __iter__(self) -> Iterator[int]:
