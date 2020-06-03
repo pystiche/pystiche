@@ -38,8 +38,8 @@ class TestComparison(PysticheTestCase):
 
         actual = op(input_image)
         desired = mse_loss(
-            pystiche.batch_gram_matrix(encoder(input_image), normalize=True),
-            pystiche.batch_gram_matrix(encoder(target_image), normalize=True),
+            pystiche.gram_matrix(encoder(input_image), normalize=True),
+            pystiche.gram_matrix(encoder(target_image), normalize=True),
         )
         self.assertTensorAlmostEqual(actual, desired)
 
