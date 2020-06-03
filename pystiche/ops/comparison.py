@@ -1,6 +1,6 @@
 import itertools
 import warnings
-from typing import Any, Dict, Iterator, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -8,7 +8,7 @@ import torch
 
 import pystiche
 from pystiche.enc import Encoder
-from pystiche.image.transforms import TransformMotifAffinely
+from pystiche.image.transforms import Transform, TransformMotifAffinely
 from pystiche.misc import build_deprecation_message, to_2d_arg
 
 from . import functional as F
@@ -93,19 +93,110 @@ class MRFOperator(EncodingComparisonOperator):
         encoder: Encoder,
         patch_size: Union[int, Sequence[int]],
         stride: Union[int, Sequence[int]] = 1,
-        num_scale_steps: int = 0,
-        scale_step_width: float = 5e-2,
-        num_rotation_steps: int = 0,
-        rotation_step_width: float = 10,
+        target_transforms: Optional[Iterable[Transform]] = None,
         score_weight: float = 1.0,
+        num_scale_steps: Optional[int] = None,
+        scale_step_width: Optional[float] = None,
+        num_rotation_steps: Optional[int] = None,
+        rotation_step_width: Optional[float] = None,
     ):
+        if any(
+            [
+                arg is not None
+                for arg in (
+                    num_scale_steps,
+                    scale_step_width,
+                    num_rotation_steps,
+                    rotation_step_width,
+                )
+            ]
+        ):
+            msg = build_deprecation_message(
+                (
+                    "Parametrizing target transformations with any of "
+                    "num_scale_steps, scale_step_width, num_rotation_steps, or "
+                    "rotation_step_width through the constructor of MRFOperator"
+                ),
+                "0.4.0",
+                info=(
+                    "Please provide an iterable of transformations via the parameter "
+                    "target_transforms. You can retain the old functionality with "
+                    "MRFOperator.rotate_and_scale_transforms()."
+                ),
+            )
+            warnings.warn(msg, UserWarning)
+            target_transforms = self.scale_and_rotate_transforms(
+                num_scale_steps=0 if num_scale_steps is None else num_scale_steps,
+                scale_step_width=5e-2 if scale_step_width is None else scale_step_width,
+                num_rotate_steps=0
+                if num_rotation_steps is None
+                else num_rotation_steps,
+                rotate_step_width=10.0
+                if rotation_step_width is None
+                else rotation_step_width,
+            )
+
         super().__init__(encoder, score_weight=score_weight)
         self.patch_size = to_2d_arg(patch_size)
         self.stride = to_2d_arg(stride)
-        self.num_scale_steps = num_scale_steps
-        self.scale_step_width = scale_step_width
-        self.num_rotation_steps = num_rotation_steps
-        self.rotation_step_width = rotation_step_width
+        self.target_transforms = target_transforms
+
+    @staticmethod
+    def scale_and_rotate_transforms(
+        num_scale_steps: int = 1,
+        scale_step_width: float = 5e-2,
+        num_rotate_steps: int = 1,
+        rotate_step_width: float = 10.0,
+    ) -> List[TransformMotifAffinely]:
+        """Generate a list of scaling and rotations transformations.
+
+        .. seealso::
+
+            The output of this method can be used as parameter ``target_transforms`` of
+            :class:`~pystiche.ops.MRFOperator` to enrich the space of target neural
+            patches:
+
+            .. code-block:: python
+
+                from pystiche.ops import MRFOperator
+
+
+                target_transforms = MRFOperator.scale_and_rotate_transforms()
+                op = MRFOperator(..., target_transforms=target_transforms)
+
+        Args:
+            num_scale_steps: Number of scale steps. Each scale is performed in both
+                directions, i.e. enlarging and shrinking the motif. Defaults to ``1``.
+            scale_step_width: Width of each scale step. Defaults to ``5e-2``.
+            num_rotate_steps: Number of rotate steps. Each rotate is performed in both
+                directions, i.e. clockwise and counterclockwise. Defaults to ``1``.
+            rotate_step_width: Width of each rotation step in degrees.
+                Defaults to ``10.0``.
+
+        Returns:
+           ``(num_scale_steps * 2 + 1) * (num_rotate_steps * 2 + 1)`` transformations
+           in total comprising every combination given by the input parameters.
+        """
+        scaling_factors = np.arange(
+            -num_scale_steps, num_scale_steps + 1, dtype=np.float
+        )
+        scaling_factors = 1.0 + (scaling_factors * scale_step_width)
+
+        rotation_angles = np.arange(
+            -num_rotate_steps, num_rotate_steps + 1, dtype=np.float
+        )
+        rotation_angles *= rotate_step_width
+
+        return [
+            TransformMotifAffinely(
+                scaling_factor=scaling_factor,
+                rotation_angle=rotation_angle,
+                canvas="same",  # FIXME: this should be valid after it is implemented
+            )
+            for scaling_factor, rotation_angle in itertools.product(
+                scaling_factors, rotation_angles
+            )
+        ]
 
     def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
         # Since the target representation of the MRFOperator possibly comprises
@@ -152,9 +243,11 @@ class MRFOperator(EncodingComparisonOperator):
         # target image and not the encodings
         if self.has_target_guide:
             image = self.apply_guide(image, self.target_guide)
+        if self.target_transforms is None:
+            return self.target_enc_to_repr(self.encoder(image))
         device = image.device
         reprs = []
-        for transform in self._target_image_transforms():
+        for transform in self.target_transforms:
             transform = transform.to(device)
             enc = self.encoder(transform(image))
             repr, _ = self.target_enc_to_repr(enc)
@@ -163,26 +256,6 @@ class MRFOperator(EncodingComparisonOperator):
         repr = torch.cat(reprs)
         ctx = None
         return repr, ctx
-
-    def _target_image_transforms(self,) -> Iterator[TransformMotifAffinely]:
-        scaling_factors = np.arange(
-            -self.num_scale_steps, self.num_scale_steps + 1, dtype=np.float
-        )
-        scaling_factors = 1.0 + (scaling_factors * self.scale_step_width)
-
-        rotation_angles = np.arange(
-            -self.num_rotation_steps, self.num_rotation_steps + 1, dtype=np.float
-        )
-        rotation_angles *= self.rotation_step_width
-
-        for transform_params in itertools.product(scaling_factors, rotation_angles):
-            scaling_factor, rotation_angle = transform_params
-            transform = TransformMotifAffinely(
-                scaling_factor=scaling_factor,
-                rotation_angle=rotation_angle,
-                canvas="same",  # FIXME: this should be valid after it is implemented
-            )
-            yield transform
 
     def calculate_score(
         self,
@@ -196,10 +269,4 @@ class MRFOperator(EncodingComparisonOperator):
         dct = super()._properties()
         dct["patch_size"] = self.patch_size
         dct["stride"] = self.stride
-        if self.num_scale_steps > 0:
-            dct["num_scale_steps"] = self.num_scale_steps
-            dct["scale_step_width"] = f"{self.scale_step_width:.1%}"
-        if self.num_rotation_steps > 0:
-            dct["num_rotation_steps"] = self.num_rotation_steps
-            dct["rotation_step_width"] = f"{self.rotation_step_width:.1f}°"
         return dct
