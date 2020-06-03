@@ -13,5 +13,6 @@ Package reference
   pystiche.meta
   pystiche.misc
   pystiche.ops
+  pystiche.ops.functional
   pystiche.optim
   pystiche.pyramid

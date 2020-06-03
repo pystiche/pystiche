@@ -13,6 +13,15 @@ def mrf_loss(
     eps: float = 1e-8,
     reduction: str = "mean",
 ) -> torch.Tensor:
+    """Calculates the MRF loss. See :class:`pystiche.ops.MRFOperator` for details.
+
+    Args:
+        input: Input tensor.
+        target: Target tensor.
+        eps: Small value to avoid zero division. Defaults to ``1e-8``.
+        reduction: Reduction method of the output passed to
+            :func:`pystiche.misc.reduce`. Defaults to ``"mean"``.
+    """
     with torch.no_grad():
         similarity = pystiche.cosine_similarity(input, target, eps=eps)
         idcs = torch.argmax(similarity, dim=1)
@@ -44,6 +53,16 @@ def value_range_loss(
 def total_variation_loss(
     input: torch.Tensor, exponent: float = 2.0, reduction: str = "mean"
 ) -> torch.Tensor:
+    r"""Calculates the total variation loss. See
+    :class:`pystiche.ops.TotalVariationOperator` for details.
+
+    Args:
+        input: Input image
+        exponent: Parameter :math:`\beta` . A higher value leads to more smoothed
+            results. Defaults to ``2.0``.
+        reduction: Reduction method of the output passed to
+            :func:`pystiche.misc.reduce`. Defaults to ``"mean"``.
+    """
     # this ignores the last row and column of the image
     grad_vert = input[:, :, :-1, :-1] - input[:, :, 1:, :-1]
     grad_horz = input[:, :, :-1, :-1] - input[:, :, :-1, 1:]

@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 import pystiche
-from pystiche.enc import Encoder, MultiLayerEncoder
+from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
 
 from .op import ComparisonOperator, EncodingOperator, Operator
 
@@ -18,6 +18,16 @@ __all__ = [
 
 
 class OperatorContainer(Operator):
+    r"""Generic container for :class:`~pystiche.ops.Operator` s. If called with an image
+    passes it to all immediate operators and returns a :class:`pystiche.LossDict`
+    scaled with ``score_weight``.
+
+    Args:
+        named_ops: Named immediate operators that will be called if
+            :class:`OperatorContainer` is called.
+        score_weight: Score weight of the operator. Defaults to ``1.0``.
+    """
+
     def __init__(
         self, named_ops: Sequence[Tuple[str, Operator]], score_weight: float = 1e0,
     ) -> None:
@@ -30,16 +40,36 @@ class OperatorContainer(Operator):
         )
 
     def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
+        r"""Invoke :meth:`~pystiche.ops.ComparisonOperator.set_target_guide` on all
+        immediate :class:`~pystiche.ops.ComparisonOperator` children.
+
+        Args:
+            guide: Input guide of shape :math:`1 \times 1 \times H \times W`.
+            recalc_repr: If ``True``, recalculates :meth:`.target_enc_to_repr`.
+                Defaults to ``True``.
+        """
         for op in self.operators():
             if isinstance(op, ComparisonOperator):
                 op.set_target_guide(guide, recalc_repr=recalc_repr)
 
     def set_target_image(self, image: torch.Tensor) -> None:
+        r"""Invoke :meth:`~pystiche.ops.ComparisonOperator.set_target_image` on all
+        immediate :class:`~pystiche.ops.ComparisonOperator` children.
+
+        Args:
+            image: Target image of shape :math:`B \times C \times H \times W`.
+        """
         for op in self.operators():
             if isinstance(op, ComparisonOperator):
                 op.set_target_image(image)
 
     def set_input_guide(self, guide: torch.Tensor) -> None:
+        r"""Invoke :meth:`~pystiche.ops.Operator.set_input_guide` on all immediate
+        children.
+
+        Args:
+            guide: Input guide of shape :math:`1 \times 1 \times H \times W`.
+        """
         for op in self.operators():
             op.set_input_guide(guide)
 
@@ -84,11 +114,28 @@ class SameOperatorContainer(OperatorContainer):
 
 
 class MultiLayerEncodingOperator(SameOperatorContainer):
+    r"""Convenience container for multiple :class:`~pystiche.ops.EncodingOperator` s
+    operating on different ``layers`` of the same ``multi_layer_encoder``.
+
+    Args:
+        multi_layer_encoder: Multi-layer encoder.
+        layers: Layers of the ``multi_layer_encoder`` that the children operators
+            operate on.
+        get_encoding_op: Callable that returns a children operator given a
+            :class:`pystiche.enc.SingleLayerEncoder` extracted from the
+            ``multi_layer_encoder`` and its corresponding layer weight.
+        layer_weights: Weights of the children operators passed to ``get_encoding_op``.
+            If ``"sum"``, each layer weight is set to ``1.0``. If ``"mean"``, each
+            layer weight is set to ``1.0 / len(layers)``. If sequence of ``float``s its
+            length has to match ``layers``. Defaults to ``"mean"``.
+        score_weight: Score weight of the operator. Defaults to ``1.0``.
+    """
+
     def __init__(
         self,
         multi_layer_encoder: MultiLayerEncoder,
         layers: Sequence[str],
-        get_encoding_op: Callable[[Encoder, float], EncodingOperator],
+        get_encoding_op: Callable[[SingleLayerEncoder, float], EncodingOperator],
         layer_weights: Union[str, Sequence[float]] = "mean",
         score_weight: float = 1e0,
     ):
@@ -130,6 +177,20 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
 
 
 class MultiRegionOperator(SameOperatorContainer):
+    r"""Convenience container for multiple :class:`~pystiche.ops.Operator` s
+    operating in different ``regions``.
+
+    Args:
+        regions: Regions.
+        get_op: Callable that returns a children operator given a region its
+            corresponding region weight.
+        region_weights: Weights of the children operators passed to ``get_op``. If
+            ``"sum"``, each region weight is set to ``1.0``. If ``"mean"``, each region
+            weight is set to ``1.0 / len(layers)``. If sequence of ``float``s its
+            length has to match ``regions``. Defaults to ``"mean"``.
+        score_weight: Score weight of the operator. Defaults to ``1.0``.
+    """
+
     def __init__(
         self,
         regions: Sequence[str],
@@ -142,10 +203,31 @@ class MultiRegionOperator(SameOperatorContainer):
         )
 
     def set_regional_target_guide(self, region: str, guide: torch.Tensor) -> None:
+        r"""Invokes :meth:`~pystiche.ops.Comparison.set_target_guide` on the operator
+        of the given ``region``.
+
+        Args:
+            region: Region.
+            guide: Input guide of shape :math:`1 \times 1 \times H \times W`.
+        """
         getattr(self, region).set_target_guide(guide)
 
     def set_regional_target_image(self, region: str, image: torch.Tensor) -> None:
+        r"""Invokes :meth:`~pystiche.ops.Comparison.set_target_image` on the operator
+        of the given ``region``.
+
+        Args:
+            region: Region.
+            image: Input guide of shape :math:`B \times C \times H \times W`.
+        """
         getattr(self, region).set_target_image(image)
 
     def set_regional_input_guide(self, region: str, guide: torch.Tensor) -> None:
+        r"""Invokes :meth:`~pystiche.ops.Comparison.set_input_guide` on the operator
+        of the given ``region``.
+
+        Args:
+            region: Region.
+            guide: Input guide of shape :math:`1 \times 1 \times H \times W`.
+        """
         getattr(self, region).set_input_guide(guide)
