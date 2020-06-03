@@ -54,6 +54,6 @@ def total_variation_loss(
     # this ignores the last row and column of the image
     grad_vert = input[:, :, :-1, :-1] - input[:, :, 1:, :-1]
     grad_horz = input[:, :, :-1, :-1] - input[:, :, :-1, 1:]
-    grad = pystiche.possqrt(grad_vert ** 2.0 + grad_horz ** 2.0)
+    grad = pystiche.nonnegsqrt(grad_vert ** 2.0 + grad_horz ** 2.0)
     loss = grad ** exponent
     return _reduce(loss, reduction)
