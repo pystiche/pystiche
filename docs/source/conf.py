@@ -180,7 +180,12 @@ html_theme = "sphinx_rtd_theme"
 # html_static_path = ["_static"]
 
 
-# -- Options for Latex output ----------------------------------------------------------
+# -- Latex / Mathjax config ------------------------------------------------------------
 
-latex_additional_files = ["pystiche.sty"]
-latex_elements = {"preamble": r"\usepackage{pystiche}"}
+with open("custom_cmds.tex", "r") as fh:
+    custom_cmds = fh.read()
+
+latex_elements = {"preamble": custom_cmds}
+
+mathjax_inline = [r"\(" + custom_cmds, r"\)"]
+mathjax_display = [r"\[" + custom_cmds, r"\]"]
