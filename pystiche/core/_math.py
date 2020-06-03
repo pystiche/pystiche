@@ -44,7 +44,7 @@ def possqrt(x: torch.Tensor) -> torch.Tensor:
     return nonnegsqrt(x)
 
 
-def gram_matrix(x: torch.Tensor, normalize: bool = True) -> torch.Tensor:
+def gram_matrix(x: torch.Tensor, normalize: bool = False) -> torch.Tensor:
     r"""Calculates the channel-wise `Gram matrix
         <https://en.wikipedia.org/wiki/Gramian_matrix>`_ of a batched input tensor.
 
@@ -80,7 +80,7 @@ def gram_matrix(x: torch.Tensor, normalize: bool = True) -> torch.Tensor:
     return gram_matrix / numel
 
 
-def batch_gram_matrix(x: torch.Tensor, normalize: bool = True) -> torch.Tensor:
+def batch_gram_matrix(x: torch.Tensor, normalize: bool = False) -> torch.Tensor:
     msg = build_deprecation_message(
         "The function batch_gram_matrix", "0.4.0", info="It was renamed to gram_matrix"
     )
