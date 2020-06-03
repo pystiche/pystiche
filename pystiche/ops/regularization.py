@@ -16,7 +16,7 @@ class TotalVariationOperator(PixelRegularizationOperator):
 
     .. math::
 
-        \overline{\sum}\limits_{i, j} \left( \left( x_{i,j+1} - x_{ij} \right)^2 + \left( x_{i+1,j} - x_{ij} \right)^2 \right)^{\frac{\beta}{2}}
+        \overline{\sum\limits_{i, j}} \left( \left( x_{i,j+1} - x_{ij} \right)^2 + \left( x_{i+1,j} - x_{ij} \right)^2 \right)^{\frac{\beta}{2}}
 
     where :math:`x` denotes the image and :math:`i,j` index a specific pixel.
 
