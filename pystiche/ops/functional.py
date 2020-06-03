@@ -11,17 +11,6 @@ def patch_matching_loss(
     eps: float = 1e-8,
     reduction: str = "mean",
 ) -> torch.Tensor:
-    def examplewise_cosine_similarity(
-        input: torch.Tensor, target: torch.Tensor, eps: float = 1e-8
-    ) -> torch.Tensor:
-        input = torch.flatten(input, 1)
-        input = input / (torch.norm(input, dim=1, keepdim=True) + eps)
-
-        target = torch.flatten(target, 1)
-        target = target / (torch.norm(target, dim=1, keepdim=True) + eps)
-
-        return torch.clamp(torch.mm(input, target.t()), max=1.0 / eps)
-
     with torch.no_grad():
         similarity = pystiche.cosine_similarity(input, target, eps=eps)
         idcs = torch.argmax(similarity, dim=1)
