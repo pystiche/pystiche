@@ -4,7 +4,7 @@ import torch
 from torch.nn.functional import mse_loss, relu
 
 import pystiche
-from pystiche.misc import reduce, build_deprecation_message
+from pystiche.misc import build_deprecation_message, reduce
 
 
 def mrf_loss(
