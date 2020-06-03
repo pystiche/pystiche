@@ -62,7 +62,7 @@ class GramOperator(EncodingComparisonOperator):
         self.normalize = normalize
 
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
-        return pystiche.batch_gram_matrix(enc, normalize=self.normalize)
+        return pystiche.gram_matrix(enc, normalize=self.normalize)
 
     def input_enc_to_repr(
         self, enc: torch.Tensor, ctx: Optional[torch.Tensor]
