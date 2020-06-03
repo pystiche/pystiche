@@ -71,10 +71,10 @@ class TestObjects(PysticheTestCase):
         self.assertTensorAlmostEqual(actual, desired)
 
     def test_LossDict_setitem_non_scalar_Tensor(self):
-        name = "loss"
         loss_dict = pystiche.LossDict()
 
         with self.assertRaises(TypeError):
+            name = "loss"
             loss_dict[name] = torch.ones(1)
 
     def test_LossDict_setitem_LossDict(self):
@@ -93,10 +93,10 @@ class TestObjects(PysticheTestCase):
             self.assertTensorAlmostEqual(actual, desired)
 
     def test_LossDict_setitem_other(self):
-        name = "loss"
         loss_dict = pystiche.LossDict()
 
         with self.assertRaises(TypeError):
+            name = "loss"
             loss_dict[name] = 1.0
 
     def test_LossDict_aggregate_max_depth_gt_0(self):
