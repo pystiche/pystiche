@@ -2,18 +2,7 @@ import torch
 from torch.nn.functional import mse_loss, relu
 
 import pystiche
-from pystiche.misc import verify_str_arg
-
-
-# TODO: move this to pystiche.misc and make public? Maybe name reduce_tensor.
-def _reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:
-    verify_str_arg(reduction, "reduction", ("mean", "sum", "none"))
-    if reduction == "mean":
-        return torch.mean(x)
-    elif reduction == "sum":
-        return torch.sum(x)
-    else:  # reduction == "none":
-        return x
+from pystiche.misc import reduce
 
 
 def patch_matching_loss(
@@ -45,7 +34,7 @@ def value_range_loss(
 ) -> torch.Tensor:
     # TODO: remove sinh call; quadratic, i.e. x * (x-1) is enough
     loss = relu(torch.sinh(input - min) * torch.sinh(input - max))
-    return _reduce(loss, reduction)
+    return reduce(loss, reduction)
 
 
 def total_variation_loss(
@@ -56,4 +45,4 @@ def total_variation_loss(
     grad_horz = input[:, :, :-1, :-1] - input[:, :, :-1, 1:]
     grad = pystiche.nonnegsqrt(grad_vert ** 2.0 + grad_horz ** 2.0)
     loss = grad ** exponent
-    return _reduce(loss, reduction)
+    return reduce(loss, reduction)

@@ -284,6 +284,22 @@ class TestMisc(PysticheTestCase):
             desired = self.load_image()
             self.assertImagesAlmostEqual(actual, desired)
 
+    def test_reduce(self):
+        torch.manual_seed(0)
+        x = torch.rand(1, 3, 128, 128)
+
+        actual = misc.reduce(x, "mean")
+        desired = torch.mean(x)
+        self.assertTensorAlmostEqual(actual, desired)
+
+        actual = misc.reduce(x, "sum")
+        desired = torch.sum(x)
+        self.assertTensorAlmostEqual(actual, desired)
+
+        actual = misc.reduce(x, "none")
+        desired = x
+        self.assertTensorAlmostEqual(actual, desired)
+
 
 class TestCuda(PysticheTestCase):
     @staticmethod
