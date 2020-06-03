@@ -4,7 +4,8 @@ import torch
 from torch.nn.functional import mse_loss, relu
 
 import pystiche
-from pystiche.misc import reduce
+from pystiche.misc import reduce, build_deprecation_message
+
 
 def mrf_loss(
     input: torch.Tensor,
