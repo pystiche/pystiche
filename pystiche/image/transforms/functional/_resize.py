@@ -25,6 +25,9 @@ def resize(
     aspect_ratio: Optional[float] = None,
     interpolation_mode: str = "bilinear",
 ) -> torch.Tensor:
+    r"""Resize an image as specified. See :class:`~pystiche.image.transforms.Resize`
+    for details.
+    """
     if aspect_ratio is None:
         aspect_ratio = extract_aspect_ratio(image)
 

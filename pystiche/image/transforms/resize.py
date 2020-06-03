@@ -11,6 +11,20 @@ __all__ = ["Resize", "Rescale"]
 
 
 class Resize(Transform):
+    r"""Resize an image as specified
+
+    Args:
+        size: Size of the output. If ``int``, ``edge`` is used to determine the image
+            size.
+        edge: Corresponding edge if ``size`` is an edge size. Can be ``"short"``,
+            ``"long"``, ``"vert"``, or ``"horz"``. Defaults to ``"short"``.
+        aspect_ratio: Optional aspect ratio. If ``None`` the aspect ratio of ``image``
+            is used. Defaults to ``None``.
+        interpolation_mode: Interpolation mode used to resize ``image``. Can be
+            ``"nearest"``, ``"bilinear"``, ``"bicubic"``, or ``"area"``. Defaults to
+            ``"bilinear"``.
+    """
+
     def __init__(
         self,
         size: Union[int, Tuple[int, int]],

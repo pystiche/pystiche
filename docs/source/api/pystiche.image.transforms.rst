@@ -71,3 +71,11 @@ Resize
 
 .. autoclass:: Resize
 .. autoclass:: Rescale
+
+
+Functional
+----------
+
+.. automodule:: pystiche.image.transforms.functional
+
+.. autofunction:: resize
