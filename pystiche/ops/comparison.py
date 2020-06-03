@@ -23,6 +23,33 @@ __all__ = [
 
 
 class FeatureReconstructionOperator(EncodingComparisonOperator):
+    r"""The feature reconstruction loss is the de facto standard content loss. It
+    measures the mean squared error (MSE) between the encodings of an ``input_image``
+    :math:`\hat{I}` and a ``target_image`` :math:`I` :
+
+    .. math::
+
+        \overline{\sum} \left( \Phi\left(\hat{I}\right) - \Phi\left(I\right) \right)^2
+
+    Here :math:`\Phi\left( \cdot \right)` denotes the ``encoder``.
+
+    .. note::
+
+        Opposed to the paper, the implementation calculates the grand average
+        (:math:`\overline{\sum}`) opposed to the grand sum (:math:`\sum`) to account
+        for different sized images.
+
+    Args:
+        encoder: Encoder :math:`\Phi`.
+        score_weight: Score weight of the operator. Defaults to ``1.0``.
+
+    .. seealso::
+
+        The feature reconstruction loss was introduced by Mahendran and Vedaldi in
+        :cite:`MV2014` , but its name was coined by Johnson, Alahi, and Fei-Fei in
+        :cite:`JAFF2016` .
+    """
+
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         return enc
 
@@ -55,6 +82,37 @@ class MSEEncodingOperator(FeatureReconstructionOperator):
 
 
 class GramOperator(EncodingComparisonOperator):
+    r"""The gram loss is a style loss based on the correlation of feature map channels.
+    It measures the mean squared error (MSE) between the channel-wise Gram matrices of
+    the encodings of an ``input_image`` :math:`\hat{I}` and a ``target_image``
+    :math:`I`:
+
+    .. math::
+
+        \overline{\sum} \left( \text{gram}\left(\Phi\left(\hat{I}\right)\right) - \text{gram}\left(\Phi\left(I\right)\right) \right)^2
+
+    Here :math:`\Phi\left( \cdot \right)` denotes the ``encoder`` and
+    :math:`\text{gram}\left( \cdot \right)` denotes :func:`pystiche.gram_matrix`.
+
+    .. note::
+
+        Opposed to the paper, the implementation calculates the grand average
+        (:math:`\overline{\sum}`) opposed to the grand sum (:math:`\sum`) to account
+        for different sized images.
+
+    Args:
+        encoder: Encoder :math:`\Phi\left( \cdot \right)`.
+        normalize: If ``True``, normalizes the Gram matrices to account for different
+            sized images. See :func:`pystiche.gram_matrix` for details. Defaults to
+            ``True``.
+        score_weight: Score weight of the operator. Defaults to ``1.0``.
+
+    .. seealso::
+
+        The feature reconstruction loss was introduced by Gatys, Ecker, and Bethge
+        in :cite:`GEB2016` .
+    """
+
     def __init__(
         self, encoder: Encoder, normalize: bool = True, score_weight: float = 1.0
     ) -> None:
@@ -88,6 +146,40 @@ class GramOperator(EncodingComparisonOperator):
 
 
 class MRFOperator(EncodingComparisonOperator):
+    r"""The MRF loss is a style loss based on
+    `Markov Random Fields (MRFs) <https://en.wikipedia.org/wiki/Markov_random_field>`_.
+    It measures the mean squared error (MSE) between *neural patches* extracted from
+    the encodings of an ``input_image`` :math:`\hat{I}` and a ``target_image``
+    :math:`I`:
+
+    .. math::
+
+        \overline{\sum} \left( p_n\left(\Phi\left(\hat{I}\right)\right) - p_{MCS\left(n\right)}\left(\Phi\left(I\right)\right) \right)^2
+
+    Since the number of patches might be different for both images and the order of the
+    patches does not correlate with the order of the enclosed style element, for each
+    input neural patch :math:`n` a fitting target neural patch is to selected based on
+    the maximum cosine similarity :math:`MCS\left(n\right)`
+    with :func:`pystiche.cosine_similarity`.
+
+    .. note::
+
+        Opposed to the paper, the implementation calculates the grand average opposed
+        to the grand sum to account for different sized images.
+
+    Args:
+        encoder: Encoder :math:`\Phi` .
+        patch_size: Spatial size of the neural patches.
+        stride: Distance between two neural patches.
+        target_transforms: Optional transformations to apply to the target image before
+            the neural patches are extracted. Defaults to ``None``.
+        score_weight: Score weight of the operator. Defaults to ``1.0``.
+
+    .. seealso::
+
+        The MRF loss was introduced by Li and Wand in :cite:`LW2016`.
+    """
+
     def __init__(
         self,
         encoder: Encoder,
@@ -243,8 +335,10 @@ class MRFOperator(EncodingComparisonOperator):
         # target image and not the encodings
         if self.has_target_guide:
             image = self.apply_guide(image, self.target_guide)
+
         if self.target_transforms is None:
             return self.target_enc_to_repr(self.encoder(image))
+
         device = image.device
         reprs = []
         for transform in self.target_transforms:

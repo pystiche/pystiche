@@ -5,3 +5,4 @@
 
 .. autofunction:: get_input_image
 .. autofunction:: get_device
+.. autofunction:: reduce
