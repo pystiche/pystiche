@@ -1,4 +1,5 @@
 import warnings
+from typing import cast
 
 import torch
 from torch.nn.functional import relu
@@ -10,6 +11,7 @@ __all__ = [
     "possqrt",
     "gram_matrix",
     "batch_gram_matrix",
+    "cosine_similarity",
 ]
 
 
@@ -86,3 +88,27 @@ def batch_gram_matrix(x: torch.Tensor, normalize: bool = False) -> torch.Tensor:
     )
     warnings.warn(msg, UserWarning)
     return gram_matrix(x, normalize=normalize)
+
+
+def _norm(x: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+    return cast(torch.Tensor, x / (torch.norm(x, dim=1, keepdim=True) + eps))
+
+
+def cosine_similarity(
+    input: torch.Tensor, target: torch.Tensor, eps: float = 1e-8
+) -> torch.Tensor:
+    r"""Calculates the cosine similarity between the samples of ``x1`` and ``x2``.
+
+    Args:
+        input: First input of shape :math:`B_1 \times N_1 \times \dots \times N_D`.
+        target: Second input of shape :math:`B_2 \times N_1 \times \dots \times N_D`.
+        eps: Small value to avoid zero division. Defaults to ``1e-8``.
+
+    Returns:
+        Similarity matrix of shape :math:`B_1 \times B_2` in which every element
+        represents the cosine similarity between the corresponding samples of ``x1``
+        and ``x2``.
+    """
+    input = _norm(torch.flatten(input, 1), eps=eps)
+    target = _norm(torch.flatten(target, 1), eps=eps)
+    return torch.clamp(torch.mm(input, target.t()), max=1.0 / eps)
