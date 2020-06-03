@@ -24,6 +24,26 @@ __all__ = ["ImagePyramid", "OctaveImagePyramid"]
 
 
 class ImagePyramid(ComplexObject):
+    r"""Image pyramid for a coarse-to-fine optimization on different levels. If
+    iterated on yields :class:`~pystiche.pyramid.PyramidLevel` s and handles the
+    resizing of all set images and guides of ``resize_targets``.
+
+    Args:
+        edge_sizes: Edge sizes for each level.
+        num_steps: Number of steps for each level. If sequence of ``int`` its length
+            has to match the length of ``edge_sizes``.
+        edge: Corresponding edge to the edge size for each level. Can be ``"short"`` or
+            ``"long"``. If sequence of ``str`` its length has to match the length of
+            ``edge_sizes``. Defaults to ``"short"``.
+        interpolation_mode: Interpolation mode used for the resizing of the images.
+            Defaults to ``"bilinear"``.
+
+            .. note::
+                For the resizing of guides ``"nearest"`` is used regardless of the
+                ``interpolation_mode``.
+        resize_targets: Targets for resizing of set images and guides during iteration.
+    """
+
     def __init__(
         self,
         edge_sizes: Sequence[int],
@@ -117,13 +137,31 @@ class ImagePyramid(ComplexObject):
 
 
 class OctaveImagePyramid(ImagePyramid):
+    r"""Image pyramid that comprises levels spaced by a factor of two.
+
+    Args:
+        max_edge_size: Maximum edge size.
+        num_steps: Number of steps for each level.
+
+            .. note::
+                If ``num_steps`` is specified as sequence of ``int``s, you should also
+                specify ``num_levels`` to match the lengths
+        num_levels: Optional number of levels. If ``None``, the number is determined by
+            the number of steps of factor two between ``max_edge_size`` and
+            ``min_edge_size``.
+        min_edge_size: Minimum edge size for the automatic calculation of
+            ``num_levels``.
+        image_pyramid_kwargs: Additional options. See
+            :class:`~pystiche.pyramid.ImagePyramid` for details.
+    """
+
     def __init__(
         self,
         max_edge_size: int,
         num_steps: Union[int, Sequence[int]],
         num_levels: Optional[int] = None,
         min_edge_size: int = 64,
-        **kwargs: Any,
+        **image_pyramid_kwargs: Any,
     ) -> None:
         if num_levels is None:
             num_levels = int(np.floor(np.log2(max_edge_size / min_edge_size))) + 1
@@ -132,4 +170,4 @@ class OctaveImagePyramid(ImagePyramid):
             round(max_edge_size / (2.0 ** ((num_levels - 1) - level)))
             for level in range(num_levels)
         ]
-        super().__init__(edge_sizes, num_steps, **kwargs)
+        super().__init__(edge_sizes, num_steps, **image_pyramid_kwargs)
