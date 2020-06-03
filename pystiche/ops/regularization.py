@@ -16,15 +16,15 @@ class TotalVariationOperator(PixelRegularizationOperator):
 
     .. math::
 
-        \overline{\sum\limits_{i, j}} \left( \left( x_{i,j+1} - x_{ij} \right)^2 + \left( x_{i+1,j} - x_{ij} \right)^2 \right)^{\frac{\beta}{2}}
+        \mean[\limits_{i,j}] \parentheses{\parentheses{x_{i,j+1} - x_{i,j}}^2 + \parentheses{x_{i+1,j} - x_{i,j}}^2}^{\frac{\beta}{2}}
 
     where :math:`x` denotes the image and :math:`i,j` index a specific pixel.
 
     .. note::
 
         Opposed to the paper, the implementation calculates the grand average
-        (:math:`\overline{\sum}`) opposed to the grand sum (:math:`\sum`) to account
-        for different sized images.
+        :math:`\mean` opposed to the grand sum :math:`\sum` to account for different
+        sized images.
 
     Args:
         exponent: Parameter :math:`\beta` . A higher value leads to more smoothed

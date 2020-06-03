@@ -29,15 +29,15 @@ class FeatureReconstructionOperator(EncodingComparisonOperator):
 
     .. math::
 
-        \overline{\sum} \left( \Phi\left(\hat{I}\right) - \Phi\left(I\right) \right)^2
+        \mean \parentheses{\Phi\of{\hat{I}} - \Phi\of{I}}^2
 
-    Here :math:`\Phi\left( \cdot \right)` denotes the ``encoder``.
+    Here :math:`\Phi\of{\cdot}` denotes the ``encoder``.
 
     .. note::
 
         Opposed to the paper, the implementation calculates the grand average
-        (:math:`\overline{\sum}`) opposed to the grand sum (:math:`\sum`) to account
-        for different sized images.
+        :math:`\mean` opposed to the grand sum :math:`\sum` to account for different
+        sized images.
 
     Args:
         encoder: Encoder :math:`\Phi`.
@@ -89,16 +89,16 @@ class GramOperator(EncodingComparisonOperator):
 
     .. math::
 
-        \overline{\sum} \left( \text{gram}\left(\Phi\left(\hat{I}\right)\right) - \text{gram}\left(\Phi\left(I\right)\right) \right)^2
+        \mean \parentheses{\fun{gram}{\Phi\of{\hat{I}}} - \fun{gram}{\Phi\of{I}}}^2
 
-    Here :math:`\Phi\left( \cdot \right)` denotes the ``encoder`` and
-    :math:`\text{gram}\left( \cdot \right)` denotes :func:`pystiche.gram_matrix`.
+    Here :math:`\Phi\of{\cdot}` denotes the ``encoder`` and :math:`\fun{gram}{\cdot}`
+    denotes :func:`pystiche.gram_matrix`.
 
     .. note::
 
         Opposed to the paper, the implementation calculates the grand average
-        (:math:`\overline{\sum}`) opposed to the grand sum (:math:`\sum`) to account
-        for different sized images.
+        :math:`\mean` opposed to the grand sum :math:`\sum` to account for different
+        sized images.
 
     Args:
         encoder: Encoder :math:`\Phi\left( \cdot \right)`.
@@ -154,18 +154,19 @@ class MRFOperator(EncodingComparisonOperator):
 
     .. math::
 
-        \overline{\sum} \left( p_n\left(\Phi\left(\hat{I}\right)\right) - p_{MCS\left(n\right)}\left(\Phi\left(I\right)\right) \right)^2
+        \mean \parentheses{p_n\of{\Phi\of{\hat{I}}} - p_{MCS\of{n}}\of{\Phi\of{\hat{I}}}}^2
 
     Since the number of patches might be different for both images and the order of the
     patches does not correlate with the order of the enclosed style element, for each
     input neural patch :math:`n` a fitting target neural patch is to selected based on
-    the maximum cosine similarity :math:`MCS\left(n\right)`
-    with :func:`pystiche.cosine_similarity`.
+    the maximum cosine similarity :math:`MCS\of{n}` with
+    :func:`pystiche.cosine_similarity`.
 
     .. note::
 
-        Opposed to the paper, the implementation calculates the grand average opposed
-        to the grand sum to account for different sized images.
+        Opposed to the paper, the implementation calculates the grand average
+        :math:`\mean` opposed to the grand sum :math:`\sum` to account for different
+        sized images.
 
     Args:
         encoder: Encoder :math:`\Phi` .

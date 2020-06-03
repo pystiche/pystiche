@@ -20,7 +20,7 @@ def nonnegsqrt(x: torch.Tensor) -> torch.Tensor:
 
     .. math::
 
-        \text{nonnegsqrt}\left( x \right) =
+        \fun{nonnegsqrt}{x} =
         \begin{cases}
             \sqrt{x} &\quad\text{if } x \ge 0 \\
             0 &\quad\text{otherwise}
@@ -53,15 +53,15 @@ def gram_matrix(x: torch.Tensor, normalize: bool = False) -> torch.Tensor:
         Given a tensor :math:`x` of shape
         :math:`B \times C \times N_1 \times \dots \times N_D` each element of the
         single-sample Gram matrix :math:`G_{b,c_1 c_2}` with :math:`b \in 1,\dots,B` and
-        :math:`c1,\,c2  \in 1,\dots,C` is calculated by
+        :math:`c_1,\,c_2  \in 1,\dots,C` is calculated by
 
         .. math::
 
-            G_{b,c_1 c_2} = \left\langle \text{vec}\left(x_{b, c_1}\right) ,\, \text{vec}\left(x_{b, c_2}\right) \right\rangle
+            G_{b,c_1 c_2} = \dotproduct{\fun{vec}{x_{b, c_1}}}{\fun{vec}{x_{b, c_2}}}
 
-        where :math:`\left\langle \cdot ,\, \cdot \right\rangle` denotes the
+        where :math:`\dotproduct{\cdot}{\cdot}` denotes the
         `dot product <https://en.wikipedia.org/wiki/Dot_product>`_ and
-        :math`\text{vec}\left(\cdot\right)` denotes the
+        :math:`\fun{vec}{\cdot}` denotes the
         `vectorization function <https://en.wikipedia.org/wiki/Vectorization_(mathematics)>`_ .
 
         Args:
