@@ -53,7 +53,7 @@ class TestModels(PysticheTestCase):
     @pytest.mark.slow
     def test_alexnet_multi_layer_encoder_smoke(self):
         multi_layer_encoder = enc.alexnet_multi_layer_encoder()
-        self.assertIsInstance(multi_layer_encoder, enc.alexnet.MultiLayerAlexNetEncoder)
+        self.assertIsInstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
 
     @pytest.mark.large_download
     @pytest.mark.slow
@@ -104,7 +104,7 @@ class TestModels(PysticheTestCase):
         for fn in fns:
             with self.subTest(fn=fn.__name__):
                 multi_layer_encoder = fn()
-                self.assertIsInstance(multi_layer_encoder, enc.vgg.MultiLayerVGGEncoder)
+                self.assertIsInstance(multi_layer_encoder, enc.vgg.VGGMultiLayerEncoder)
 
 
 class TestMultiLayerEncoder(PysticheTestCase):
