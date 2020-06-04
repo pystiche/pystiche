@@ -155,8 +155,8 @@ def default_transformer_optim_loop(
         Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
     ] = None,
 ) -> nn.Module:
-    if isinstance(transformer, torch.device):
-        msg = (
+    if isinstance(transformer, torch.device):  # type: ignore[unreachable]
+        msg = (  # type: ignore[unreachable]
             "The parameter device was removed in 0.4.0. It is now extracted out of "
             "the transformer parameters."
         )
