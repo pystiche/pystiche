@@ -20,7 +20,7 @@ __all__ = [
     "default_image_optim_log_fn",
     "default_pyramid_level_header",
     "default_transformer_optim_log_fn",
-    "default_epoch_header_fn",
+    "default_epoch_header",
 ]
 
 
@@ -201,7 +201,7 @@ def default_transformer_optim_log_fn(
     return log_fn
 
 
-def default_epoch_header_fn(
+def default_epoch_header(
     epoch: int, optimizer: Optimizer, lr_scheduler: Optional[LRScheduler]
 ) -> str:
     return f"Epoch {epoch}"

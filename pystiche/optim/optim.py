@@ -17,7 +17,7 @@ from pystiche.pyramid.level import PyramidLevel
 
 from .log import (
     OptimLogger,
-    default_epoch_header_fn,
+    default_epoch_header,
     default_image_optim_log_fn,
     default_pyramid_level_header,
     default_transformer_optim_log_fn,
@@ -242,7 +242,7 @@ def default_transformer_epoch_optim_loop(
             optimizer = lr_scheduler.optimizer  # type: ignore[attr-defined]
 
     if get_epoch_header is None:
-        get_epoch_header = default_epoch_header_fn
+        get_epoch_header = default_epoch_header
 
     def transformer_optim_loop(transformer: nn.Module) -> nn.Module:
         # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
