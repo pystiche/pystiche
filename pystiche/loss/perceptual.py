@@ -1,8 +1,8 @@
-from typing import Optional, cast
+from typing import List, Optional, Tuple
 
 import torch
 
-from pystiche.ops import ComparisonOperator, RegularizationOperator
+from pystiche.ops import ComparisonOperator, Operator, RegularizationOperator
 
 from .multi_op import MultiOperatorLoss
 
@@ -21,7 +21,10 @@ class _PerceptualLoss(MultiOperatorLoss):
         regularization: Optional[RegularizationOperator] = None,
         trim: bool = True,
     ) -> None:
-        named_ops = [("content_loss", content_loss), ("style_loss", style_loss)]
+        named_ops: List[Tuple[str, Operator]] = [
+            ("content_loss", content_loss),
+            ("style_loss", style_loss),
+        ]
 
         if regularization is not None:
             named_ops.append(("regularization", regularization))
@@ -29,12 +32,12 @@ class _PerceptualLoss(MultiOperatorLoss):
         super().__init__(named_ops, trim=trim)
 
     def set_content_image(self, image: torch.Tensor) -> None:
-        cast(ComparisonOperator, self.content_loss).set_target_image(image)
+        self.content_loss.set_target_image(image)
 
 
 class PerceptualLoss(_PerceptualLoss):
     def set_style_image(self, image: torch.Tensor) -> None:
-        cast(ComparisonOperator, self.style_loss).set_target_image(image)
+        self.style_loss.set_target_image(image)
 
 
 class GuidedPerceptualLoss(_PerceptualLoss):
