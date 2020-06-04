@@ -144,8 +144,6 @@ def default_transformer_optimizer(transformer: nn.Module) -> Optimizer:
 
 def default_transformer_optim_loop(
     image_loader: DataLoader,
-    # FIXME: make device optional and extract from transformer if not given
-    device: torch.device,
     transformer: nn.Module,
     criterion: nn.Module,
     criterion_update_fn: Callable[[torch.Tensor, nn.Module], None],
@@ -157,6 +155,13 @@ def default_transformer_optim_loop(
         Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
     ] = None,
 ) -> nn.Module:
+    if isinstance(transformer, torch.device):  # type: ignore[unreachable]
+        msg = (  # type: ignore[unreachable]
+            "The parameter device was removed in 0.4.0. It is now extracted out of "
+            "the transformer parameters."
+        )
+        raise RuntimeError(msg)
+
     if get_optimizer is not None:
         msg = build_deprecation_message(
             "The parameter get_optimizer",
@@ -175,6 +180,8 @@ def default_transformer_optim_loop(
 
     if log_fn is None:
         log_fn = default_transformer_optim_log_fn(logger, len(image_loader))
+
+    device = next(transformer.parameters()).device
 
     loading_time_start = time.time()
     for batch, input_image in enumerate(image_loader, 1):
@@ -229,8 +236,12 @@ def default_transformer_epoch_optim_loop(
         Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
     ] = None,
 ) -> nn.Module:
-    if device is None:
-        device = next(transformer.parameters()).device
+    if device is not None:
+        msg = (
+            "The parameter device was removed in 0.4.0. It is now always extracted out "
+            "of the transformer parameters as was the default before."
+        )
+        raise RuntimeError(msg)
 
     if optimizer is None:
         if lr_scheduler is None:
@@ -248,7 +259,6 @@ def default_transformer_epoch_optim_loop(
         # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
         return default_transformer_optim_loop(
             image_loader,
-            device,  # type: ignore[arg-type]
             transformer,
             criterion,
             criterion_update_fn,

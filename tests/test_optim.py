@@ -443,7 +443,6 @@ class TestOptim(PysticheTestCase):
         optimizer = asset.params.get_optimizer(transformer)
         transformer = optim.default_transformer_optim_loop(
             asset.input.image_loader,
-            asset.input.device,
             transformer,
             asset.input.criterion,
             asset.input.criterion_update_fn,
@@ -468,7 +467,6 @@ class TestOptim(PysticheTestCase):
         with self.assertLogs(optim_logger.logger, "INFO"):
             optim.default_transformer_optim_loop(
                 image_loader,
-                asset.input.device,
                 asset.input.transformer,
                 asset.input.criterion,
                 asset.input.criterion_update_fn,
