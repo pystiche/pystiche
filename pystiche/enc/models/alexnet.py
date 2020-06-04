@@ -16,10 +16,23 @@ MODEL_URLS = {"torch": "https://download.pytorch.org/models/alexnet-owt-4df8aa71
 __all__ = ["alexnet_multi_layer_encoder"]
 
 
-class MultiLayerAlexNetEncoder(MultiLayerEncoder):
+class AlexNetMultiLayerEncoder(MultiLayerEncoder):
     def __init__(
-        self, weights: str, internal_preprocessing: bool, allow_inplace: bool
+        self,
+        weights: str = "torch",
+        internal_preprocessing: bool = True,
+        allow_inplace: bool = False,
+        preprocessing: Optional[bool] = None,
     ) -> None:
+        if preprocessing is not None:
+            msg = build_deprecation_message(
+                "The parameter preprocessing",
+                "0.4.0",
+                info="It was replaced by internal_preprocessing.",
+            )
+            warnings.warn(msg)
+            internal_preprocessing = preprocessing
+
         self.weights = weights
         self.internal_preprocessing = internal_preprocessing
         self.allow_inplace = allow_inplace
@@ -67,12 +80,12 @@ class MultiLayerAlexNetEncoder(MultiLayerEncoder):
         return dct
 
 
-class AlexNetEncoder(MultiLayerAlexNetEncoder):
+class AlexNetEncoder(AlexNetMultiLayerEncoder):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         msg = build_deprecation_message(
             "The class AlexNetEncoder",
             "0.4.0",
-            info="It was replaced by MultiLayerAlexNetEncoder.",
+            info="It was replaced by AlexNetMultiLayerEncoder.",
         )
         warnings.warn(msg)
         super().__init__(*args, **kwargs)
@@ -84,22 +97,15 @@ def alexnet_multi_layer_encoder(
     internal_preprocessing: bool = True,
     allow_inplace: bool = False,
 ) -> MultiLayerAlexNetEncoder:
-    if preprocessing is not None:
-        msg = build_deprecation_message(
-            "The parameter preprocessing",
-            "0.4.0",
-            info="It was replaced by internal_preprocessing.",
-        )
-        warnings.warn(msg)
-        internal_preprocessing = preprocessing
-    return MultiLayerAlexNetEncoder(weights, internal_preprocessing, allow_inplace)
+def alexnet_multi_layer_encoder(**kwargs: Any) -> AlexNetMultiLayerEncoder:
+    return AlexNetMultiLayerEncoder(**kwargs)
 
 
-def alexnet_encoder(*args: Any, **kwargs: Any) -> MultiLayerAlexNetEncoder:
+def alexnet_encoder(**kwargs: Any) -> AlexNetMultiLayerEncoder:
     msg = build_deprecation_message(
         "The function alexnet_encoder",
         "0.4.0",
         info="It was replaced by alexnet_multi_layer_encoder.",
     )
     warnings.warn(msg)
-    return alexnet_multi_layer_encoder(*args, **kwargs)
+    return alexnet_multi_layer_encoder(**kwargs)
