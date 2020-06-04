@@ -91,12 +91,6 @@ class AlexNetEncoder(AlexNetMultiLayerEncoder):
         super().__init__(*args, **kwargs)
 
 
-def alexnet_multi_layer_encoder(
-    weights: str = "torch",
-    preprocessing: Optional[bool] = None,
-    internal_preprocessing: bool = True,
-    allow_inplace: bool = False,
-) -> MultiLayerAlexNetEncoder:
 def alexnet_multi_layer_encoder(**kwargs: Any) -> AlexNetMultiLayerEncoder:
     return AlexNetMultiLayerEncoder(**kwargs)
 

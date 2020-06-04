@@ -139,53 +139,34 @@ class VGGEncoder(VGGMultiLayerEncoder):
 
 
 def vgg11_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    arch: str,
-    weights: str = "torch",
-    preprocessing: bool = True,
-    allow_inplace: bool = False,
-) -> MultiLayerVGGEncoder:
     return VGGMultiLayerEncoder("vgg11", **kwargs)
 
 
 def vgg11_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder_multi_layer_encoder("vgg11", **kwargs)
     return VGGMultiLayerEncoder("vgg11_bn", **kwargs)
 
 
 def vgg13_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder_multi_layer_encoder("vgg11_bn", **kwargs)
-
-    return VGGMultiLayerEncoder("vgg11", **kwargs)
     return VGGMultiLayerEncoder("vgg13", **kwargs)
 
-def vgg13_multi_layer_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
-    return _vgg_encoder_multi_layer_encoder("vgg13", **kwargs)
 
 def vgg13_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return VGGMultiLayerEncoder("vgg11_bn", **kwargs)
-
-def vgg13_bn_multi_layer_encoder(**kwargs: Any) -> MultiLayerVGGEncoder:
-    return _vgg_encoder_multi_layer_encoder("vgg13_bn", **kwargs)
     return VGGMultiLayerEncoder("vgg13_bn", **kwargs)
 
 
 def vgg16_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder_multi_layer_encoder("vgg16", **kwargs)
     return VGGMultiLayerEncoder("vgg16", **kwargs)
 
 
 def vgg16_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder_multi_layer_encoder("vgg16_bn", **kwargs)
     return VGGMultiLayerEncoder("vgg16_bn", **kwargs)
 
 
 def vgg19_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder_multi_layer_encoder("vgg19", **kwargs)
     return VGGMultiLayerEncoder("vgg19", **kwargs)
 
 
 def vgg19_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder_multi_layer_encoder("vgg19_bn", **kwargs)
     return VGGMultiLayerEncoder("vgg19_bn", **kwargs)
 
 
