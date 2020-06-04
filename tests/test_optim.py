@@ -63,7 +63,7 @@ class TestLog(PysticheTestCase):
         log_fn(step, loss_dict)
 
         actual = optim_logger.msg
-        desired = loss_dict.format(depth=max_depth)
+        desired = loss_dict.format(max_depth=max_depth)
         self.assertEqual(actual, desired)
 
     def test_default_image_optim_log_fn_other(self):

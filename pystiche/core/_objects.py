@@ -112,18 +112,18 @@ class LossDict(OrderedDict):
             )
             raise TypeError(msg)
 
-    def aggregate(self, depth: int) -> Union[torch.Tensor, "LossDict"]:
+    def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
         def sum_partial_losses(partial_losses: Iterable[torch.Tensor]) -> torch.Tensor:
             return cast(torch.Tensor, sum(partial_losses))
 
-        if depth == 0:
+        if max_depth == 0:
             return sum_partial_losses(self.values())
 
         splits = [name.split(".") for name in self.keys()]
-        if not any([len(split) >= depth for split in splits]):
+        if not any([len(split) >= max_depth for split in splits]):
             return copy(self)
 
-        agg_names = [".".join(split[:depth]) for split in splits]
+        agg_names = [".".join(split[:max_depth]) for split in splits]
         key_map = dict(zip(self.keys(), agg_names))
         agg_losses: Dict[str, List[torch.Tensor]] = {
             name: [] for name in set(agg_names)
@@ -152,11 +152,11 @@ class LossDict(OrderedDict):
         return LossDict([(name, loss * other) for name, loss in self.items()])
 
     # TODO: can this be moved in __str__?
-    def format(self, depth: Optional[int] = None, **format_dict_kwargs: Any) -> str:
-        if depth is not None:
-            if depth == 0:
+    def format(self, max_depth: Optional[int] = None, **format_dict_kwargs: Any) -> str:
+        if max_depth is not None:
+            if max_depth == 0:
                 return str(self.total())
-            dct = cast(LossDict, self.aggregate(depth))
+            dct = cast(LossDict, self.aggregate(max_depth))
         else:
             dct = self
 
