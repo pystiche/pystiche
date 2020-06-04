@@ -47,6 +47,29 @@ DEPRECATED_LAYER_PATTERN = re.compile(
 
 
 class VGGMultiLayerEncoder(MultiLayerEncoder):
+    r"""Multi-layer encoder based on the VGG architecture that was introduced by
+    Simonyan and Zisserman in :cite:`SZ2014`.
+
+    Args:
+        arch: Specific architecture. Has to match ``"vgg(11|13|16|19)(_bn)?"``.
+        weights: Framework to load the pretrained weights from. Can be ``"torch"`` or
+            ``"caffe"``. Defaults to ``"torch"``.
+
+            .. note::
+                Caffe weights are only available for ``"vgg16"`` and ``"vgg19"``.
+        internal_preprocessing: If ``True``, adds a preprocessing layer for the
+            selected ``weights`` as first layer. Defaults to ``"True"``.
+        allow_inplace: If ``True``, allows inplace operations in the
+            :class:`torch.nn.Relu` layers to reduce the memory requirement during the
+            forward pass. Defaults to ``False``.
+
+            .. warning::
+                After performing an inplace operation in a :class:`torch.nn.Relu` layer
+                the encoding of the previous :class:`torch.nn.Conv2d` layer is no
+                longer accessible. Only set this to ``True`` if you are sure that you
+                do **not** need the encodings of the :class:`torch.nn.Conv2d` layers.
+    """
+
     def __init__(
         self,
         arch: str,
@@ -139,34 +162,78 @@ class VGGEncoder(VGGMultiLayerEncoder):
 
 
 def vgg11_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    r"""Multi-layer encoder based on the VGG11 architecture.
+
+    Args:
+        **kwargs: Optional parameters for :class:`VGGMultiLayerEncoder`.
+    """
     return VGGMultiLayerEncoder("vgg11", **kwargs)
 
 
 def vgg11_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    r"""Multi-layer encoder based on the VGG11 architecture with
+    :class:`torch.nn.BatchNorm2d` layers.
+
+    Args:
+        **kwargs: Optional parameters for :class:`VGGMultiLayerEncoder`.
+    """
     return VGGMultiLayerEncoder("vgg11_bn", **kwargs)
 
 
 def vgg13_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    r"""Multi-layer encoder based on the VGG13 architecture.
+
+    Args:
+        **kwargs: Optional parameters for :class:`VGGMultiLayerEncoder`.
+    """
     return VGGMultiLayerEncoder("vgg13", **kwargs)
 
 
 def vgg13_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    r"""Multi-layer encoder based on the VGG13 architecture with
+    :class:`torch.nn.BatchNorm2d` layers.
+
+    Args:
+        **kwargs: Optional parameters for :class:`VGGMultiLayerEncoder`.
+    """
     return VGGMultiLayerEncoder("vgg13_bn", **kwargs)
 
 
 def vgg16_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    r"""Multi-layer encoder based on the VGG16 architecture.
+
+    Args:
+        **kwargs: Optional parameters for :class:`VGGMultiLayerEncoder`.
+    """
     return VGGMultiLayerEncoder("vgg16", **kwargs)
 
 
 def vgg16_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    r"""Multi-layer encoder based on the VGG16 architecture with
+    :class:`torch.nn.BatchNorm2d` layers.
+
+    Args:
+        **kwargs: Optional parameters for :class:`VGGMultiLayerEncoder`.
+    """
     return VGGMultiLayerEncoder("vgg16_bn", **kwargs)
 
 
 def vgg19_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    r"""Multi-layer encoder based on the VGG19 architecture.
+
+    Args:
+        **kwargs: Optional parameters for :class:`VGGMultiLayerEncoder`.
+    """
     return VGGMultiLayerEncoder("vgg19", **kwargs)
 
 
 def vgg19_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    r"""Multi-layer encoder based on the VGG19 architecture with
+    :class:`torch.nn.BatchNorm2d` layers.
+
+    Args:
+        **kwargs: Optional parameters for :class:`VGGMultiLayerEncoder`.
+    """
     return VGGMultiLayerEncoder("vgg19_bn", **kwargs)
 
 
