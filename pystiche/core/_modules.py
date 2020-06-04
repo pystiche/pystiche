@@ -1,5 +1,5 @@
 import warnings
-from typing import Dict, Optional, Sequence, Tuple
+from typing import Dict, Iterable, Optional, Sequence, Tuple
 
 import torch
 from torch import nn
@@ -12,12 +12,24 @@ __all__ = ["Module", "SequentialModule"]
 
 
 class Module(nn.Module, ComplexObject):
+    r""":class:`torch.nn.Module` with the enhanced representation options of
+    :class:`pystiche.ComplexObject`.
+
+    Args:
+        named_children: Optional children modules that are added by their names.
+        indexed_children: Optional children modules that are added with successive
+            indices as names.
+
+    .. note::
+
+        ``named_children`` and ``indexed_children`` are mutually exclusive parameters.
+    """
     _buffers: Dict[str, torch.Tensor]
     _modules: Dict[str, nn.Module]
 
     def __init__(
         self,
-        named_children: Optional[Sequence[Tuple[str, nn.Module]]] = None,
+        named_children: Optional[Iterable[Tuple[str, nn.Module]]] = None,
         indexed_children: Optional[Sequence[nn.Module]] = None,
     ):
         super().__init__()
@@ -32,7 +44,7 @@ class Module(nn.Module, ComplexObject):
         elif indexed_children is not None:
             self.add_indexed_modules(indexed_children)
 
-    def add_named_modules(self, modules: Sequence[Tuple[str, nn.Module]]) -> None:
+    def add_named_modules(self, modules: Iterable[Tuple[str, nn.Module]]) -> None:
         if isinstance(modules, dict):
             msg = build_deprecation_message(
                 "Adding named_modules from a dictionary",
@@ -56,6 +68,10 @@ class Module(nn.Module, ComplexObject):
         return ComplexObject.__repr__(self)
 
     def torch_repr(self) -> str:
+        r"""
+        Returns:
+            Native torch representation.
+        """
         return nn.Module.__repr__(self)
 
     def extra_repr(self) -> str:

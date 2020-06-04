@@ -31,26 +31,63 @@ __all__ = ["ComplexObject", "LossDict", "TensorKey"]
 
 
 class ComplexObject(ABC):
+    r"""Object with a complex representation. See
+    :func:`pystiche.misc.build_complex_obj_repr` for details.
+    """
     _STR_INDENT = 2
 
     def _properties(self) -> Dict[str, Any]:
+        r"""
+        Returns:
+            Internal properties.
+
+        .. note::
+
+            If subclassed, this method should integrate the new properties in the
+            properties of the superclass.
+        """
         return OrderedDict()
 
     def extra_properties(self) -> Dict[str, Any]:
+        r"""
+        Returns:
+            Extra properties.
+        """
         return OrderedDict()
 
     def properties(self) -> Dict[str, Any]:
+        r"""
+        Returns:
+            Internal and extra properties.
+        """
         dct = self._properties()
         dct.update(self.extra_properties())
         return dct
 
     def _named_children(self) -> Iterator[Tuple[str, Any]]:
+        r"""
+        Yields:
+            Internal named children.
+
+        .. note::
+
+            If subclassed, this method should yield the named children of the
+            superclass alongside yielding the new named children.
+        """
         return iter(())
 
     def extra_named_children(self) -> Iterator[Tuple[str, Any]]:
+        r"""
+        Yields:
+            Extra named children.
+        """
         return iter(())
 
     def named_children(self) -> Iterator[Tuple[str, Any]]:
+        r"""
+        Yields:
+            Internal and extra named children.
+        """
         yield from self._named_children()
         yield from self.extra_named_children()
 
@@ -89,6 +126,13 @@ class Object(ComplexObject):
 
 
 class LossDict(OrderedDict):
+    r"""Hierarchic dictionary of scalar :class:`torch.Tensor` losses. Levels are
+    seperated by ``"."`` in the names.
+
+    Args:
+        losses: Optional named losses.
+    """
+
     def __init__(
         self, losses: Sequence[Tuple[str, Union[torch.Tensor, "LossDict"]]] = (),
     ) -> None:
@@ -97,6 +141,16 @@ class LossDict(OrderedDict):
             self[name] = loss
 
     def __setitem__(self, name: str, loss: Union[torch.Tensor, "LossDict"]) -> None:
+        r"""Add a named loss to the entries.
+
+        Args:
+            name: Name of the loss.
+            loss: If :class:`torch.Tensor`, it has to be scalar. If :class:`LossDict`,
+                it is unpacked and the entries are added as level below of ``name``.
+
+        Raises:
+            TypeError: If loss is :class:`torch.Tensor` but isn't scalar.
+        """
         if isinstance(loss, torch.Tensor):
             if not is_scalar_tensor(loss):
                 msg = "loss is a torch.Tensor but is not scalar."
@@ -113,6 +167,13 @@ class LossDict(OrderedDict):
             raise TypeError(msg)
 
     def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
+        r"""Aggregate all entries up to a given maximum depth.
+
+        Args:
+            max_depth: If ``0`` returns sum of all entries as scalar
+                :class:`torch.Tensor`.
+        """
+
         def sum_partial_losses(partial_losses: Iterable[torch.Tensor]) -> torch.Tensor:
             return cast(torch.Tensor, sum(partial_losses))
 
@@ -136,18 +197,34 @@ class LossDict(OrderedDict):
         )
 
     def total(self) -> torch.Tensor:
+        r"""
+        Returns:
+            Sum of all entries as scalar tensor.
+        """
         return cast(torch.Tensor, self.aggregate(0))
 
     def backward(self, *args: Any, **kwargs: Any) -> None:
+        r"""Computes the gradient of all entries with respect to the graph leaves. See
+        :meth:`torch.Tensor.backward` for details.
+        """
         self.total().backward(*args, **kwargs)
 
     def item(self) -> float:
+        r"""
+        Returns:
+            The sum of all entries as standard Python number.
+        """
         return self.total().item()
 
     def __float__(self) -> float:
         return self.item()
 
     def __mul__(self, other: SupportsFloat) -> "LossDict":
+        r"""Multiplies all entries with a scalar.
+
+        Args:
+            other: Scalar multiplier.
+        """
         other = float(other)
         return LossDict([(name, loss * other) for name, loss in self.items()])
 
