@@ -11,6 +11,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    SupportsFloat,
     Tuple,
     Union,
     cast,
@@ -98,15 +99,18 @@ class LossDict(OrderedDict):
     def __setitem__(self, name: str, loss: Union[torch.Tensor, "LossDict"]) -> None:
         if isinstance(loss, torch.Tensor):
             if not is_scalar_tensor(loss):
-                # FIXME
-                raise TypeError
+                msg = "loss is a torch.Tensor but is not scalar."
+                raise TypeError(msg)
             super().__setitem__(name, loss)
         elif isinstance(loss, LossDict):
             for child_name, child_loss in loss.items():
                 super().__setitem__(f"{name}.{child_name}", child_loss)
         else:
-            # FIXME
-            raise TypeError
+            msg = (  # type: ignore[unreachable]
+                f"loss can be a scalar torch.Tensor or a pystiche.LossDict, but got "
+                f"a {type(loss)} instead."
+            )
+            raise TypeError(msg)
 
     def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
         def sum_partial_losses(partial_losses: Iterable[torch.Tensor]) -> torch.Tensor:
@@ -143,7 +147,7 @@ class LossDict(OrderedDict):
     def __float__(self) -> float:
         return self.item()
 
-    def __mul__(self, other: Any) -> "LossDict":
+    def __mul__(self, other: SupportsFloat) -> "LossDict":
         other = float(other)
         return LossDict([(name, loss * other) for name, loss in self.items()])
 
