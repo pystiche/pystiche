@@ -17,6 +17,23 @@ __all__ = ["alexnet_multi_layer_encoder"]
 
 
 class AlexNetMultiLayerEncoder(MultiLayerEncoder):
+    r"""Multi-layer encoder based on the AlexNet architecture that was introduced by
+    Krizhevsky, Sutskever, and Hinton in :cite:`KSH2012`.
+
+    Args:
+        internal_preprocessing: If ``True``, adds a preprocessing layer for the
+            selected ``weights`` as first layer. Defaults to ``"True"``.
+        allow_inplace: If ``True``, allows inplace operations in the
+            :class:`torch.nn.Relu` layers to reduce the memory requirement during the
+            forward pass. Defaults to ``False``.
+
+            .. warning::
+                After performing an inplace operation in a :class:`torch.nn.Relu` layer
+                the encoding of the previous :class:`torch.nn.Conv2d` layer is no
+                longer accessible. Only set this to ``True`` if you are sure that you
+                do **not** need the encodings of the :class:`torch.nn.Conv2d` layers.
+    """
+
     def __init__(
         self,
         weights: str = "torch",
@@ -89,6 +106,13 @@ class AlexNetEncoder(AlexNetMultiLayerEncoder):
         )
         warnings.warn(msg)
         super().__init__(*args, **kwargs)
+
+
+r"""Multi-layer encoder based on the AlexNet architecture.
+
+Args:
+    **kwargs: Optional parameters for :class:`AlexNetMultiLayerEncoder`.
+"""
 
 
 def alexnet_multi_layer_encoder(**kwargs: Any) -> AlexNetMultiLayerEncoder:
