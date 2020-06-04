@@ -108,14 +108,12 @@ class AlexNetEncoder(AlexNetMultiLayerEncoder):
         super().__init__(*args, **kwargs)
 
 
-r"""Multi-layer encoder based on the AlexNet architecture.
-
-Args:
-    **kwargs: Optional parameters for :class:`AlexNetMultiLayerEncoder`.
-"""
-
-
 def alexnet_multi_layer_encoder(**kwargs: Any) -> AlexNetMultiLayerEncoder:
+    r"""Multi-layer encoder based on the AlexNet architecture.
+
+    Args:
+        **kwargs: Optional parameters for :class:`AlexNetMultiLayerEncoder`.
+    """
     return AlexNetMultiLayerEncoder(**kwargs)
 
 
