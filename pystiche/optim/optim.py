@@ -236,8 +236,6 @@ def default_transformer_epoch_optim_loop(
         Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
     ] = None,
 ) -> nn.Module:
-    if device is None:
-        device = next(transformer.parameters()).device
     if device is not None:
         msg = (
             "The parameter device was removed in 0.4.0. It is now always extracted out "
