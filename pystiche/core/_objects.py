@@ -11,6 +11,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    SupportsFloat,
     Tuple,
     Union,
     cast,
@@ -98,28 +99,31 @@ class LossDict(OrderedDict):
     def __setitem__(self, name: str, loss: Union[torch.Tensor, "LossDict"]) -> None:
         if isinstance(loss, torch.Tensor):
             if not is_scalar_tensor(loss):
-                # FIXME
-                raise TypeError
+                msg = "loss is a torch.Tensor but is not scalar."
+                raise TypeError(msg)
             super().__setitem__(name, loss)
         elif isinstance(loss, LossDict):
             for child_name, child_loss in loss.items():
                 super().__setitem__(f"{name}.{child_name}", child_loss)
         else:
-            # FIXME
-            raise TypeError
+            msg = (  # type: ignore[unreachable]
+                f"loss can be a scalar torch.Tensor or a pystiche.LossDict, but got "
+                f"a {type(loss)} instead."
+            )
+            raise TypeError(msg)
 
-    def aggregate(self, max_depth: int) -> Union[torch.Tensor, "LossDict"]:
+    def aggregate(self, depth: int) -> Union[torch.Tensor, "LossDict"]:
         def sum_partial_losses(partial_losses: Iterable[torch.Tensor]) -> torch.Tensor:
             return cast(torch.Tensor, sum(partial_losses))
 
-        if max_depth == 0:
+        if depth == 0:
             return sum_partial_losses(self.values())
 
         splits = [name.split(".") for name in self.keys()]
-        if not any([len(split) >= max_depth for split in splits]):
+        if not any([len(split) >= depth for split in splits]):
             return copy(self)
 
-        agg_names = [".".join(split[:max_depth]) for split in splits]
+        agg_names = [".".join(split[:depth]) for split in splits]
         key_map = dict(zip(self.keys(), agg_names))
         agg_losses: Dict[str, List[torch.Tensor]] = {
             name: [] for name in set(agg_names)
@@ -143,16 +147,16 @@ class LossDict(OrderedDict):
     def __float__(self) -> float:
         return self.item()
 
-    def __mul__(self, other: Any) -> "LossDict":
+    def __mul__(self, other: SupportsFloat) -> "LossDict":
         other = float(other)
         return LossDict([(name, loss * other) for name, loss in self.items()])
 
     # TODO: can this be moved in __str__?
-    def format(self, max_depth: Optional[int] = None, **format_dict_kwargs: Any) -> str:
-        if max_depth is not None:
-            if max_depth == 0:
+    def format(self, depth: Optional[int] = None, **format_dict_kwargs: Any) -> str:
+        if depth is not None:
+            if depth == 0:
                 return str(self.total())
-            dct = cast(LossDict, self.aggregate(max_depth))
+            dct = cast(LossDict, self.aggregate(depth))
         else:
             dct = self
 
