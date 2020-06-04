@@ -13,6 +13,19 @@ __all__ = ["MultiOperatorLoss"]
 
 
 class MultiOperatorLoss(pystiche.Module):
+    r"""Generic loss for multiple :class:`~pystiche.ops.Operator` s. If called with an
+    image it is passed to all immediate children operators and the
+    results are returned as a :class:`pystiche.LossDict`. For that each
+    :class:`pystiche.enc.MultiLayerEncoder` is only hit once, even if it is associated
+    with multiple of the called operators.
+
+    Args:
+        named_ops: Named children operators.
+        trim: If ``True``, all :class:`~pystiche.enc.MultiLayerEncoder` s associated
+            with ``content_loss``, ``style_loss``, or ``regularization`` will be
+            :meth:`~pystiche.enc.MultiLayerEncoder.trim` med. Defaults to ``True``.
+    """
+
     def __init__(
         self, *named_ops: Sequence[Tuple[str, Operator]], trim: bool = True
     ) -> None:
