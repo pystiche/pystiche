@@ -78,7 +78,7 @@ print(multi_layer_encoder)
 # loss.
 
 content_layer = "relu4_2"
-content_encoder = multi_layer_encoder.extract_single_layer_encoder(content_layer)
+content_encoder = multi_layer_encoder.extract_encoder(content_layer)
 content_weight = 1e0
 content_loss = FeatureReconstructionOperator(
     content_encoder, score_weight=content_weight

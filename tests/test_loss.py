@@ -54,14 +54,7 @@ class TestMultiOp(PysticheTestCase):
         modules = [(layer, nn.Module()) for layer in layers]
         multi_layer_encoder = MultiLayerEncoder(modules)
 
-        ops = (
-            (
-                "op",
-                TestOperator(
-                    multi_layer_encoder.extract_single_layer_encoder(layers[0])
-                ),
-            ),
-        )
+        ops = (("op", TestOperator(multi_layer_encoder.extract_encoder(layers[0])),),)
         loss.MultiOperatorLoss(ops, trim=True)
 
         self.assertTrue(layers[0] in multi_layer_encoder)
@@ -104,10 +97,7 @@ class TestMultiOp(PysticheTestCase):
         multi_layer_encoder = MultiLayerEncoder(modules)
 
         ops = [
-            (
-                str(idx),
-                TestOperator(multi_layer_encoder.extract_single_layer_encoder("count")),
-            )
+            (str(idx), TestOperator(multi_layer_encoder.extract_encoder("count")),)
             for idx in range(3)
         ]
         multi_op_loss = loss.MultiOperatorLoss(ops)
