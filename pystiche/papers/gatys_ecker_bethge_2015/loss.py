@@ -48,7 +48,7 @@ def gatys_ecker_bethge_2015_content_loss(
 ):
     if multi_layer_encoder is None:
         multi_layer_encoder = gatys_ecker_bethge_2015_multi_layer_encoder()
-    encoder = multi_layer_encoder.extract_single_layer_encoder(layer)
+    encoder = multi_layer_encoder.extract_encoder(layer)
 
     return GatysEckerBethge2015MSEEncodingOperator(
         encoder, impl_params=impl_params, score_weight=score_weight

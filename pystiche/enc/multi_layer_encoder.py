@@ -81,22 +81,22 @@ class MultiLayerEncoder(pystiche.Module):
 
         return tuple([storage[(name, input_key)] for name in layers])
 
-    def extract_single_layer_encoder(self, layer: str) -> "SingleLayerEncoder":
+    def extract_encoder(self, layer: str) -> "SingleLayerEncoder":
         self._verify_layer(layer)
         self.registered_layers.add(layer)
         return SingleLayerEncoder(self, layer)
 
     def __getitem__(self, layer: str) -> "SingleLayerEncoder":
         msg = build_deprecation_message(
-            "Extracting a SingleLayerEncoder with bracket indexing",
+            "Extracting a Encoder with bracket indexing",
             "0.4.0",
             info=(
-                "To extract a single layer encoder use MultiLayerEncoder.extract_"
-                "single_layer_encoder() instead."
+                "To extract a single layer encoder use "
+                "MultiLayerEncoder.extract_encoder() instead."
             ),
         )
         warnings.warn(msg)
-        return self.extract_single_layer_encoder(layer)
+        return self.extract_encoder(layer)
 
     def encode(self, input: torch.Tensor) -> None:
         if not self.registered_layers:

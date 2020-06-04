@@ -99,7 +99,7 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
             dct["allow_inplace"] = self.allow_inplace
         return dct
 
-    def extract_single_layer_encoder(self, layer: str) -> SingleLayerEncoder:
+    def extract_encoder(self, layer: str) -> SingleLayerEncoder:
         match = DEPRECATED_LAYER_PATTERN.match(layer)
         if match is not None:
             old_layer = layer
@@ -119,7 +119,7 @@ class MultiLayerVGGEncoder(MultiLayerEncoder):
                 url="https://github.com/pmeier/pystiche/issues/125",
             )
             warnings.warn(msg)
-        return super().extract_single_layer_encoder(layer)
+        return super().extract_encoder(layer)
 
 
 class VGGEncoder(MultiLayerVGGEncoder):

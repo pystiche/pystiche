@@ -232,7 +232,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
         desired = 2
         self.assertEqual(actual, desired)
 
-    def test_MultiLayerEncoder_extract_single_layer_encoder(self):
+    def test_MultiLayerEncoder_extract_encoder(self):
         conv = nn.Conv2d(3, 1, 1)
         relu = nn.ReLU(inplace=False)
 
@@ -240,7 +240,7 @@ class TestMultiLayerEncoder(PysticheTestCase):
         multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
         layer = "relu"
-        single_layer_encoder = multi_layer_encoder.extract_single_layer_encoder(layer)
+        single_layer_encoder = multi_layer_encoder.extract_encoder(layer)
 
         self.assertIsInstance(single_layer_encoder, enc.SingleLayerEncoder)
         self.assertIs(single_layer_encoder.multi_layer_encoder, multi_layer_encoder)
