@@ -5,7 +5,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 from torch.optim.optimizer import Optimizer
 
 from pystiche.enc import MultiLayerEncoder, vgg19_multi_layer_encoder
-from pystiche.image import CaffePostprocessing, CaffePreprocessing
+from pystiche.image.transforms import CaffePostprocessing, CaffePreprocessing
 
 
 def ulyanov_et_al_2016_multi_layer_encoder() -> MultiLayerEncoder:

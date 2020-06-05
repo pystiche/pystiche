@@ -1,10 +1,7 @@
-import warnings
 from typing import Dict, Iterable, Optional, Sequence, Tuple
 
 import torch
 from torch import nn
-
-from pystiche.misc import build_deprecation_message
 
 from ._objects import ComplexObject
 
@@ -45,17 +42,6 @@ class Module(nn.Module, ComplexObject):
             self.add_indexed_modules(indexed_children)
 
     def add_named_modules(self, modules: Iterable[Tuple[str, nn.Module]]) -> None:
-        if isinstance(modules, dict):
-            msg = build_deprecation_message(
-                "Adding named_modules from a dictionary",
-                "0.4",
-                info=(
-                    "To achieve the same behavior you can pass "
-                    "tuple(modules.items()) instead."
-                ),
-            )
-            warnings.warn(msg)
-            modules = tuple(modules.items())
         for name, module in modules:
             self.add_module(name, module)
 

@@ -9,8 +9,8 @@ from pystiche.loss import GuidedPerceptualLoss, PerceptualLoss
 from pystiche.misc import build_deprecation_message
 from pystiche.ops import (
     EncodingOperator,
+    FeatureReconstructionOperator,
     GramOperator,
-    MSEEncodingOperator,
     MultiLayerEncodingOperator,
     MultiRegionOperator,
 )
@@ -38,7 +38,7 @@ def gatys_et_al_2017_content_loss(
         multi_layer_encoder = gatys_et_al_2017_multi_layer_encoder()
     encoder = multi_layer_encoder.extract_encoder(layer)
 
-    return MSEEncodingOperator(encoder, score_weight=score_weight)
+    return FeatureReconstructionOperator(encoder, score_weight=score_weight)
 
 
 class GatysEtAl2017StyleLoss(MultiLayerEncodingOperator):
@@ -135,7 +135,9 @@ def gatys_et_al_2017_guided_style_loss(
 
 class GatysEtAl2017PerceptualLoss(PerceptualLoss):
     def __init__(
-        self, content_loss: MSEEncodingOperator, style_loss: GatysEtAl2017StyleLoss,
+        self,
+        content_loss: FeatureReconstructionOperator,
+        style_loss: GatysEtAl2017StyleLoss,
     ):
         msg = build_deprecation_message(
             "The class GatysEtAl2017PerceptualLoss",
@@ -174,7 +176,9 @@ def gatys_et_al_2017_perceptual_loss(
 
 class GatysEtAl2017GuidedPerceptualLoss(GuidedPerceptualLoss):
     def __init__(
-        self, content_loss: MSEEncodingOperator, style_loss: GatysEtAl2017StyleLoss,
+        self,
+        content_loss: FeatureReconstructionOperator,
+        style_loss: GatysEtAl2017StyleLoss,
     ):
         msg = build_deprecation_message(
             "The class GatysEtAl2017GuidedPerceptualLoss",

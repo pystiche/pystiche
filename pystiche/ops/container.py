@@ -75,10 +75,6 @@ class OperatorContainer(Operator):
 
     _modules: Dict[str, nn.Module]
 
-    # TODO: can this be removed?
-    def __getitem__(self, name: str) -> nn.Module:
-        return self._modules[name]
-
 
 class SameOperatorContainer(OperatorContainer):
     def __init__(

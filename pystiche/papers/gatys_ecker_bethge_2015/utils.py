@@ -4,7 +4,7 @@ from torch.optim.optimizer import Optimizer
 
 import pystiche
 from pystiche.enc import MultiLayerEncoder, vgg19_multi_layer_encoder
-from pystiche.image import CaffePostprocessing, CaffePreprocessing
+from pystiche.image.transforms import CaffePostprocessing, CaffePreprocessing
 
 __all__ = [
     "gatys_ecker_bethge_2015_preprocessor",

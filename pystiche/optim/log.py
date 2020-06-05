@@ -2,16 +2,14 @@ import contextlib
 import logging
 import sys
 import time
-import warnings
 from datetime import datetime
-from typing import Any, Callable, Iterator, Optional, Tuple, Union, cast
+from typing import Callable, Iterator, Optional, Tuple, Union, cast
 
 import torch
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 from torch.optim.optimizer import Optimizer
 
 import pystiche
-from pystiche.misc import build_deprecation_message
 from pystiche.pyramid.level import PyramidLevel
 
 from .meter import AverageMeter, ETAMeter, LossMeter, ProgressMeter
@@ -23,7 +21,6 @@ __all__ = [
     "default_pyramid_level_header",
     "default_transformer_optim_log_fn",
     "default_epoch_header",
-    "default_epoch_header_fn",
 ]
 
 
@@ -303,13 +300,3 @@ def default_epoch_header(
         Header that includes information about the current epoch.
     """
     return f"Epoch {epoch}"
-
-
-def default_epoch_header_fn(*args: Any, **kwargs: Any) -> str:
-    msg = build_deprecation_message(
-        "The function default_epoch_header_fn",
-        "0.4.0",
-        info="It was renamed to default_epoch_header",
-    )
-    warnings.warn(msg)
-    return default_epoch_header(*args, **kwargs)

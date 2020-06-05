@@ -1,4 +1,3 @@
-import warnings
 from collections import OrderedDict
 from copy import copy
 from typing import Collection, Dict, Iterator, Optional, Sequence, Set, Tuple, cast
@@ -7,7 +6,6 @@ import torch
 from torch import nn
 
 import pystiche
-from pystiche.misc import build_deprecation_message
 
 from .encoder import Encoder
 from .guides import propagate_guide
@@ -122,18 +120,6 @@ class MultiLayerEncoder(pystiche.Module):
         self.registered_layers.add(layer)
         return SingleLayerEncoder(self, layer)
 
-    def __getitem__(self, layer: str) -> "SingleLayerEncoder":
-        msg = build_deprecation_message(
-            "Extracting a Encoder with bracket indexing",
-            "0.4.0",
-            info=(
-                "To extract a single layer encoder use "
-                "MultiLayerEncoder.extract_encoder() instead."
-            ),
-        )
-        warnings.warn(msg)
-        return self.extract_encoder(layer)
-
     def encode(self, input: torch.Tensor) -> None:
         r"""Encode the given input and store the encodings of all
         :attr:`MultiLayerEncoder.registered_layers`.
@@ -152,15 +138,6 @@ class MultiLayerEncoder(pystiche.Module):
     def empty_storage(self) -> None:
         r"""Empty the encodings storage."""
         self._storage = {}
-
-    def clear_cache(self) -> None:
-        msg = build_deprecation_message(
-            "The method clear_cache()",
-            "0.4.0",
-            info="It was renamed to empty_storage().",
-        )
-        warnings.warn(msg)
-        self.empty_storage()
 
     def trim(self, layers: Optional[Collection[str]] = None) -> None:
         r"""Remove excess layers that are not necessary to generate the encodings of

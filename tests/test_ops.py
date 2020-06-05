@@ -7,20 +7,19 @@ from torch.nn.functional import mse_loss
 import pystiche
 from pystiche import ops
 from pystiche.enc import MultiLayerEncoder, SequentialEncoder, SingleLayerEncoder
-from pystiche.image.transforms.functional import transform_motif_affinely
 from pystiche.ops import functional as F
 
 from .utils import PysticheTestCase
 
 
 class TestComparison(PysticheTestCase):
-    def test_MSEEncodingOperator_call(self):
+    def test_FeatureReconstructionOperator_call(self):
         torch.manual_seed(0)
         target_image = torch.rand(1, 3, 128, 128)
         input_image = torch.rand(1, 3, 128, 128)
         encoder = SequentialEncoder((nn.Conv2d(3, 3, 1),))
 
-        op = ops.MSEEncodingOperator(encoder)
+        op = ops.FeatureReconstructionOperator(encoder)
         op.set_target_image(target_image)
 
         actual = op(input_image)
@@ -43,42 +42,34 @@ class TestComparison(PysticheTestCase):
         )
         self.assertTensorAlmostEqual(actual, desired)
 
-    def test_MRFOperator_target_image_to_repr(self):
-        patch_size = 3
-        stride = 2
+    def test_MRFOperator_scale_and_rotate_transforms(self):
+        num_scale_steps = 1
         scale_step_width = 10e-2
-        rotation_step_width = 30.0
+        num_rotate_steps = 1
+        rotate_step_width = 30.0
 
-        torch.manual_seed(0)
-        image = torch.rand(1, 3, 32, 32)
-        encoder = SequentialEncoder((nn.Conv2d(3, 3, 1),))
-
-        op = ops.MRFOperator(
-            encoder,
-            patch_size,
-            stride=stride,
-            num_scale_steps=1,
+        target_transforms = ops.MRFOperator.scale_and_rotate_transforms(
+            num_scale_steps=num_scale_steps,
             scale_step_width=scale_step_width,
-            num_rotation_steps=1,
-            rotation_step_width=rotation_step_width,
+            num_rotate_steps=num_rotate_steps,
+            rotate_step_width=rotate_step_width,
         )
-        op.set_target_image(image)
+        self.assertEqual(
+            len(target_transforms),
+            (num_scale_steps * 2 + 1) * (num_rotate_steps * 2 + 1),
+        )
 
-        actual = op.target_repr
-
-        reprs = []
-        factors = (1.0 - scale_step_width, 1.0, 1.0 + scale_step_width)
-        angles = (-rotation_step_width, 0.0, rotation_step_width)
-        for factor, angle in itertools.product(factors, angles):
-            transformed_image = transform_motif_affinely(
-                image, rotation_angle=angle, scaling_factor=factor
+        actual = {
+            (transform.scaling_factor, transform.rotation_angle)
+            for transform in target_transforms
+        }
+        desired = set(
+            itertools.product(
+                (1.0 - scale_step_width, 1.0, 1.0 + scale_step_width),
+                (-rotate_step_width, 0.0, rotate_step_width),
             )
-            enc = encoder(transformed_image)
-            repr = pystiche.extract_patches2d(enc, patch_size, stride)
-            reprs.append(repr)
-        desired = torch.cat(reprs)
-
-        self.assertTensorAlmostEqual(actual, desired)
+        )
+        self.assertSetEqual(actual, desired)
 
     def test_MRFOperator_enc_to_repr_guided(self):
         class Identity(pystiche.Module):
@@ -178,7 +169,7 @@ class TestComparison(PysticheTestCase):
         op.set_target_image(target_image)
 
         actual = op(input_image)
-        desired = F.patch_matching_loss(
+        desired = F.mrf_loss(
             pystiche.extract_patches2d(encoder(input_image), patch_size, stride=stride),
             pystiche.extract_patches2d(
                 encoder(target_image), patch_size, stride=stride
@@ -208,7 +199,7 @@ class TestComparison(PysticheTestCase):
 
         input_enc = encoder(input_image)[:, :, :16, :]
         target_enc = encoder(target_image)[:, :, 16:, :]
-        desired = F.patch_matching_loss(
+        desired = F.mrf_loss(
             pystiche.extract_patches2d(input_enc, patch_size, stride=stride),
             pystiche.extract_patches2d(target_enc, patch_size, stride=stride),
         )
@@ -302,23 +293,6 @@ class TestContainer(PysticheTestCase):
         actual = op_container(input)
         desired = pystiche.LossDict([(name, input + op.bias) for name, op in named_ops])
         self.assertTensorDictAlmostEqual(actual, desired)
-
-    def test_OperatorContainer_getitem(self):
-        class TestOperator(ops.Operator):
-            def __init__(self, bias):
-                super().__init__()
-                self.bias = bias
-
-            def process_input_image(self, image):
-                return image + self.bias
-
-        named_ops = [(str(idx), TestOperator(idx + 1.0)) for idx in range(3)]
-        op_container = ops.OperatorContainer(named_ops)
-
-        for name, _ in named_ops:
-            actual = op_container[name]
-            desired = getattr(op_container, name)
-            self.assertIs(actual, desired)
 
     def test_SameOperatorContainer(self):
         class TestOperator(ops.Operator):
@@ -454,7 +428,7 @@ class TestContainer(PysticheTestCase):
 
 
 class TestFunctional(PysticheTestCase):
-    def test_patch_matching_loss(self):
+    def test_mrf_loss(self):
         torch.manual_seed(0)
         zero_patch = torch.zeros(3, 3, 3)
         one_patch = torch.ones(3, 3, 3)
@@ -463,11 +437,9 @@ class TestFunctional(PysticheTestCase):
         input = torch.stack((rand_patch + 0.1, rand_patch * 0.9))
         target = torch.stack((zero_patch, one_patch, rand_patch))
 
-        actual = F.patch_matching_loss(input, target)
+        actual = F.mrf_loss(input, target)
         desired = mse_loss(input, torch.stack((rand_patch, rand_patch)))
         self.assertFloatAlmostEqual(actual, desired)
-
-        pass
 
     def test_value_range_loss_zero(self):
         torch.manual_seed(0)

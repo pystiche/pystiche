@@ -10,8 +10,8 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.loss import PerceptualLoss
 from pystiche.misc import build_deprecation_message
 from pystiche.ops import (
+    FeatureReconstructionOperator,
     MRFOperator,
-    MSEEncodingOperator,
     MultiLayerEncodingOperator,
     TotalVariationOperator,
 )
@@ -29,7 +29,7 @@ __all__ = [
 ]
 
 
-class LiWand2016MSEEncodingOperator(MSEEncodingOperator):
+class LiWand2016MSEEncodingOperator(FeatureReconstructionOperator):
     def __init__(
         self, encoder: Encoder, impl_params: bool = True, **mse_encoding_op_kwargs,
     ):

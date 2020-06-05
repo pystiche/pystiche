@@ -1,16 +1,11 @@
-import warnings
 from typing import cast
 
 import torch
 from torch.nn.functional import relu
 
-from pystiche.misc import build_deprecation_message
-
 __all__ = [
     "nonnegsqrt",
-    "possqrt",
     "gram_matrix",
-    "batch_gram_matrix",
     "cosine_similarity",
 ]
 
@@ -36,14 +31,6 @@ def nonnegsqrt(x: torch.Tensor) -> torch.Tensor:
         x: Input tensor.
     """
     return torch.sqrt(relu(x))
-
-
-def possqrt(x: torch.Tensor) -> torch.Tensor:
-    msg = build_deprecation_message(
-        "The function possqrt", "0.4.0", info="It was renamed to nonnegsqrt"
-    )
-    warnings.warn(msg, UserWarning)
-    return nonnegsqrt(x)
 
 
 def gram_matrix(x: torch.Tensor, normalize: bool = False) -> torch.Tensor:
@@ -80,14 +67,6 @@ def gram_matrix(x: torch.Tensor, normalize: bool = False) -> torch.Tensor:
 
     numel = x_flat.size()[-1]
     return gram_matrix / numel
-
-
-def batch_gram_matrix(x: torch.Tensor, normalize: bool = False) -> torch.Tensor:
-    msg = build_deprecation_message(
-        "The function batch_gram_matrix", "0.4.0", info="It was renamed to gram_matrix"
-    )
-    warnings.warn(msg, UserWarning)
-    return gram_matrix(x, normalize=normalize)
 
 
 def _norm(x: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:

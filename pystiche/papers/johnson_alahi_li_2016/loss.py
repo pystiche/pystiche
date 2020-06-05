@@ -8,8 +8,8 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.loss import PerceptualLoss
 from pystiche.misc import build_deprecation_message
 from pystiche.ops import (
+    FeatureReconstructionOperator,
     GramOperator,
-    MSEEncodingOperator,
     MultiLayerEncodingOperator,
     TotalVariationOperator,
 )
@@ -54,7 +54,7 @@ def johnson_alahi_li_2016_content_loss(
     if score_weight is None:
         score_weight = get_content_score_weight(instance_norm, style=style)
 
-    return MSEEncodingOperator(encoder, score_weight=score_weight)
+    return FeatureReconstructionOperator(encoder, score_weight=score_weight)
 
 
 class JohnsonAlahiLi2016GramOperator(GramOperator):
@@ -188,7 +188,7 @@ def johnson_alahi_li_2016_regularization(
 class JohnsonAlahiLi2016PerceptualLoss(PerceptualLoss):
     def __init__(
         self,
-        content_loss: MSEEncodingOperator,
+        content_loss: FeatureReconstructionOperator,
         style_loss: MultiLayerEncodingOperator,
         regularization: TotalVariationOperator,
     ) -> None:

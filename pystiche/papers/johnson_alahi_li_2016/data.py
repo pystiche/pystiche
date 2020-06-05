@@ -10,8 +10,13 @@ from pystiche.data import (
     FiniteCycleBatchSampler,
     ImageFolderDataset,
 )
-from pystiche.image import CaffePreprocessing, extract_image_size, extract_num_channels
-from pystiche.image.transforms import ComposedTransform, Resize, Transform
+from pystiche.image import extract_image_size, extract_num_channels
+from pystiche.image.transforms import (
+    CaffePreprocessing,
+    ComposedTransform,
+    Resize,
+    Transform,
+)
 from pystiche.image.transforms.functional import (
     grayscale_to_fakegrayscale,
     top_left_crop,

@@ -1,4 +1,3 @@
-import warnings
 from abc import ABC
 from collections import OrderedDict
 from copy import copy
@@ -20,12 +19,7 @@ from typing import (
 import torch
 
 from pystiche.meta import is_scalar_tensor
-from pystiche.misc import (
-    build_complex_obj_repr,
-    build_deprecation_message,
-    build_fmtstr,
-    format_dict,
-)
+from pystiche.misc import build_complex_obj_repr, build_fmtstr
 
 __all__ = ["ComplexObject", "LossDict", "TensorKey"]
 
@@ -115,14 +109,6 @@ class ComplexObject(ABC):
 
     def __repr__(self) -> str:
         return self._build_repr()
-
-
-class Object(ComplexObject):
-    def __init__(self) -> None:
-        msg = build_deprecation_message(
-            "The class Object", "0.4", info="It was renamed to ComplexObject."
-        )
-        warnings.warn(msg)
 
 
 class LossDict(OrderedDict):
@@ -227,24 +213,6 @@ class LossDict(OrderedDict):
         """
         other = float(other)
         return LossDict([(name, loss * other) for name, loss in self.items()])
-
-    def format(self, max_depth: Optional[int] = None, **format_dict_kwargs: Any) -> str:
-        msg = build_deprecation_message(
-            "The method format",
-            "0.4.0",
-            info="Use str(LossDict.aggregate(max_depth)) instead.",
-        )
-        warnings.warn(msg)
-        if max_depth is not None:
-            if max_depth == 0:
-                return str(self.total())
-            dct = cast(LossDict, self.aggregate(max_depth))
-        else:
-            dct = self
-
-        fmt = build_fmtstr(precision=3, type="e")
-        values = [fmt.format(value.item()) for value in dct.values()]
-        return format_dict(OrderedDict(zip(dct.keys(), values)), **format_dict_kwargs)
 
     def __str__(self) -> str:
         key_fmtstr = build_fmtstr(

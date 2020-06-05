@@ -1,14 +1,11 @@
-import warnings
 from os import path
-from typing import Any, NoReturn, Optional, Tuple, Union, cast
+from typing import Any, Optional, Tuple, Union, cast
 
 from PIL import Image
 
 import torch
 from torchvision.transforms.functional import to_pil_image as _to_pil_image
 from torchvision.transforms.functional import to_tensor as _to_tensor
-
-from pystiche.misc import build_deprecation_message
 
 from .utils import (
     calculate_aspect_ratio,
@@ -106,14 +103,6 @@ def _pil_resize(
     else:
         raise RuntimeError
 
-    if kwargs:
-        msg = build_deprecation_message(
-            "Passing additional parameters via **resize_kwargs",
-            "0.4.0",
-            info="The keyword arguments are ignored.",
-        )
-        warnings.warn(msg)
-
     return image.resize((width, height), resample=_PIL_RESAMPLE_MAP[interpolation_mode])
 
 
@@ -123,7 +112,6 @@ def read_image(
     make_batched: bool = True,
     size: Optional[Union[int, Tuple[int, int]]] = None,
     interpolation_mode: str = "bilinear",
-    **resize_kwargs: Any,
 ) -> torch.Tensor:
     """Read an image from file with :mod:`PIL.Image` and return it as
     :class:`~torch.Tensor` .
@@ -143,16 +131,9 @@ def read_image(
     image = Image.open(path.expanduser(file))
 
     if size is not None:
-        image = _pil_resize(image, size, interpolation_mode, **resize_kwargs)
+        image = _pil_resize(image, size, interpolation_mode)
 
     return import_from_pil(image, device=device, make_batched=make_batched)
-
-
-def read_guides(
-    dir: str, device: Union[torch.device, str] = "cpu", make_batched: bool = True,
-) -> NoReturn:
-    msg = "The function read_guides was moved to pystiche.image.guides in 0.4.0."
-    raise RuntimeError(msg)
 
 
 @force_single_image
@@ -179,7 +160,6 @@ def show_image(
     mode: Optional[str] = None,
     size: Optional[Union[int, Tuple[int, int]]] = None,
     interpolation_mode: str = "bilinear",
-    **resize_kwargs: Any,
 ) -> None:
     """Show an image and optionally read it from file first.
 
@@ -210,6 +190,6 @@ def show_image(
         raise TypeError
 
     if size is not None:
-        image = _pil_resize(image, size, interpolation_mode, **resize_kwargs)
+        image = _pil_resize(image, size, interpolation_mode)
 
     _show_pil_image(image, title=title)

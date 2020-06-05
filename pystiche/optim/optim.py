@@ -1,5 +1,4 @@
 import time
-import warnings
 from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import torch
@@ -10,7 +9,6 @@ from torch.utils.data import DataLoader
 
 import pystiche
 from pystiche.image import extract_aspect_ratio, extract_image_size
-from pystiche.misc import build_deprecation_message
 from pystiche.pyramid import ImagePyramid
 from pystiche.pyramid.level import PyramidLevel
 
@@ -240,23 +238,6 @@ def default_transformer_optim_loop(
             :func:`pystiche.optim.default_transformer_optim_log_fn` is used. Defaults
             to ``None``.
     """
-    if isinstance(transformer, torch.device):  # type: ignore[unreachable]
-        msg = (  # type: ignore[unreachable]
-            "The parameter device was removed in 0.4.0. It is now extracted out of "
-            "the transformer parameters."
-        )
-        raise RuntimeError(msg)
-
-    if get_optimizer is not None:
-        msg = build_deprecation_message(
-            "The parameter get_optimizer",
-            "0.4.0",
-            info="You can achieve the same functionality by passing optimizer=get_optimizer(transformer).",
-            url="https://github.com/pmeier/pystiche/pull/96",
-        )
-        warnings.warn(msg)
-        optimizer = get_optimizer(transformer)
-
     if optimizer is None:
         optimizer = default_transformer_optimizer(transformer)
 
@@ -309,7 +290,6 @@ def default_transformer_epoch_optim_loop(
     criterion: nn.Module,
     criterion_update_fn: Callable[[torch.Tensor, nn.Module], None],
     epochs: int,
-    device: Optional[torch.device] = None,
     optimizer: Optional[Optimizer] = None,
     lr_scheduler: Optional[LRScheduler] = None,
     quiet: bool = False,
@@ -349,13 +329,6 @@ def default_transformer_epoch_optim_loop(
             :func:`pystiche.optim.default_transformer_optim_log_fn` is used. Defaults
             to ``None``.
         """
-    if device is not None:
-        msg = (
-            "The parameter device was removed in 0.4.0. It is now always extracted out "
-            "of the transformer parameters as was the default before."
-        )
-        raise RuntimeError(msg)
-
     if optimizer is None:
         if lr_scheduler is None:
             optimizer = default_transformer_optimizer(transformer)

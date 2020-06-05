@@ -1,12 +1,9 @@
-import warnings
-from typing import Dict, Iterator, Optional, Sequence, Tuple, Union, cast
+from typing import Iterator, Sequence, Tuple
 
 import torch
-from torch import nn
 
 import pystiche
 from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
-from pystiche.misc import build_deprecation_message
 from pystiche.ops import EncodingOperator, Operator
 
 __all__ = ["MultiOperatorLoss"]
@@ -27,37 +24,9 @@ class MultiOperatorLoss(pystiche.Module):
     """
 
     def __init__(
-        self, *named_ops: Sequence[Tuple[str, Operator]], trim: bool = True
+        self, named_ops: Sequence[Tuple[str, Operator]], trim: bool = True
     ) -> None:
-        info = (
-            "Please construct a MultiOperatorLoss with a sequence of named operators."
-        )
-        named_children: Optional[Sequence[Tuple[str, Operator]]]
-        indexed_children: Optional[Sequence[nn.Module]]
-        if len(named_ops) == 1:
-            dict_or_seq = named_ops[0]
-            if isinstance(dict_or_seq, dict):
-                named_children = tuple(cast(Dict[str, Operator], dict_or_seq).items())
-                msg = build_deprecation_message(
-                    "Passing named_ops as dictionary", "0.4.0", info=info,
-                )
-                warnings.warn(msg)
-            else:
-                named_children = named_ops[0]
-            indexed_children = None
-        else:
-            msg = build_deprecation_message(
-                "Passing a variable number of unnamed operators via *args",
-                "0.4.0",
-                info=info,
-            )
-            warnings.warn(msg)
-            named_children = None
-            indexed_children = cast(Tuple[nn.Module, ...], named_ops)
-
-        super().__init__(
-            named_children=named_children, indexed_children=indexed_children
-        )
+        super().__init__(named_children=named_ops,)
 
         self._multi_layer_encoders = self._collect_multi_layer_encoders()
 
@@ -103,32 +72,3 @@ class MultiOperatorLoss(pystiche.Module):
             encoder.empty_storage()
 
         return loss
-
-    def __getitem__(self, item: Union[str, int]) -> nn.Module:
-        msg = build_deprecation_message(
-            "Dynamic access to the modules via bracket indexing",
-            "0.4.0",
-            info="If you need dynamic access to the operators, use getattr() instead.",
-        )
-        warnings.warn(msg)
-        if isinstance(item, str):
-            return self._modules[item]
-        elif isinstance(item, int):
-            return self[self._get_child_name_by_idx(item)]
-        else:
-            raise TypeError
-
-    def __delitem__(self, item: Union[str, int]) -> None:
-        msg = build_deprecation_message(
-            "Deleting modules via bracket indexing", "0.4.0"
-        )
-        warnings.warn(msg)
-        if isinstance(item, str):
-            del self._modules[item]
-        elif isinstance(item, int):
-            del self[self._get_child_name_by_idx(item)]
-        else:
-            raise TypeError
-
-    def _get_child_name_by_idx(self, idx: int) -> str:
-        return tuple(self._modules.keys())[idx]
