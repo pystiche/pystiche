@@ -1,5 +1,4 @@
 import itertools
-import warnings
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -9,7 +8,7 @@ import torch
 import pystiche
 from pystiche.enc import Encoder
 from pystiche.image.transforms import Transform, TransformMotifAffinely
-from pystiche.misc import build_deprecation_message, to_2d_arg
+from pystiche.misc import to_2d_arg
 
 from . import functional as F
 from .op import EncodingComparisonOperator

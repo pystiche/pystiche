@@ -6,8 +6,8 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.image import extract_batch_size
 from pystiche.loss import PerceptualLoss
 from pystiche.ops import (
-    GramOperator,
     FeatureReconstructionOperator,
+    GramOperator,
     MultiLayerEncodingOperator,
 )
 

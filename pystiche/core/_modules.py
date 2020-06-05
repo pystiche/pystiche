@@ -1,10 +1,7 @@
-import warnings
 from typing import Dict, Iterable, Optional, Sequence, Tuple
 
 import torch
 from torch import nn
-
-from pystiche.misc import build_deprecation_message
 
 from ._objects import ComplexObject
 

@@ -1,14 +1,10 @@
-import re
-import warnings
 from typing import Any, Dict, List, Tuple
 
 import torchvision
 from torch import nn
 from torch.utils import model_zoo
 
-from pystiche.misc import build_deprecation_message
-
-from ..multi_layer_encoder import MultiLayerEncoder, SingleLayerEncoder
+from ..multi_layer_encoder import MultiLayerEncoder
 from ..preprocessing import get_preprocessor
 
 MODELS = {

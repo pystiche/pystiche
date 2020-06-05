@@ -1,5 +1,4 @@
 import time
-import warnings
 from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import torch

@@ -8,8 +8,8 @@ from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.loss import PerceptualLoss
 from pystiche.misc import build_deprecation_message
 from pystiche.ops import (
-    GramOperator,
     FeatureReconstructionOperator,
+    GramOperator,
     MultiLayerEncodingOperator,
     TotalVariationOperator,
 )

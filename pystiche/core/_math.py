@@ -1,10 +1,7 @@
-import warnings
 from typing import cast
 
 import torch
 from torch.nn.functional import relu
-
-from pystiche.misc import build_deprecation_message
 
 __all__ = [
     "nonnegsqrt",

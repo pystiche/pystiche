@@ -1,4 +1,3 @@
-import warnings
 from collections import OrderedDict
 from copy import copy
 from typing import Collection, Dict, Iterator, Optional, Sequence, Set, Tuple, cast
@@ -7,7 +6,6 @@ import torch
 from torch import nn
 
 import pystiche
-from pystiche.misc import build_deprecation_message
 
 from .encoder import Encoder
 from .guides import propagate_guide

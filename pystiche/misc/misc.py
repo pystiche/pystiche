@@ -4,7 +4,6 @@ import itertools
 import random
 import shutil
 import tempfile
-import warnings
 from collections import OrderedDict
 from functools import reduce as _reduce
 from operator import mul

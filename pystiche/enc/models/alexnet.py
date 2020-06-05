@@ -1,11 +1,8 @@
-import warnings
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from torch import nn
 from torch.utils import model_zoo
 from torchvision.models import alexnet
-
-from pystiche.misc import build_deprecation_message
 
 from ..multi_layer_encoder import MultiLayerEncoder
 from ..preprocessing import get_preprocessor

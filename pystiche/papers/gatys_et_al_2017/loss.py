@@ -9,8 +9,8 @@ from pystiche.loss import GuidedPerceptualLoss, PerceptualLoss
 from pystiche.misc import build_deprecation_message
 from pystiche.ops import (
     EncodingOperator,
-    GramOperator,
     FeatureReconstructionOperator,
+    GramOperator,
     MultiLayerEncodingOperator,
     MultiRegionOperator,
 )

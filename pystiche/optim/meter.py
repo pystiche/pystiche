@@ -1,4 +1,3 @@
-import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict, deque
 from datetime import datetime, timedelta
@@ -7,7 +6,7 @@ from typing import Any, Callable, Optional, Sequence, Union, cast
 import torch
 
 import pystiche
-from pystiche.misc import build_deprecation_message, build_fmtstr
+from pystiche.misc import build_fmtstr
 
 __all__ = [
     "Meter",

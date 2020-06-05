@@ -1,6 +1,5 @@
-import warnings
 from os import path
-from typing import Any, NoReturn, Optional, Tuple, Union, cast
+from typing import Any, Optional, Tuple, Union, cast
 
 from PIL import Image
 

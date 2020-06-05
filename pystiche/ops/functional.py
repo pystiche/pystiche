@@ -1,10 +1,8 @@
-import warnings
-
 import torch
 from torch.nn.functional import mse_loss, relu
 
 import pystiche
-from pystiche.misc import build_deprecation_message, reduce
+from pystiche.misc import reduce
 
 
 def mrf_loss(

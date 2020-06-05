@@ -2,16 +2,14 @@ import contextlib
 import logging
 import sys
 import time
-import warnings
 from datetime import datetime
-from typing import Any, Callable, Iterator, Optional, Tuple, Union, cast
+from typing import Callable, Iterator, Optional, Tuple, Union, cast
 
 import torch
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 from torch.optim.optimizer import Optimizer
 
 import pystiche
-from pystiche.misc import build_deprecation_message
 from pystiche.pyramid.level import PyramidLevel
 
 from .meter import AverageMeter, ETAMeter, LossMeter, ProgressMeter

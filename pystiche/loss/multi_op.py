@@ -1,12 +1,9 @@
-import warnings
-from typing import Dict, Iterator, Optional, Sequence, Tuple, Union, cast
+from typing import Iterator, Sequence, Tuple
 
 import torch
-from torch import nn
 
 import pystiche
 from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
-from pystiche.misc import build_deprecation_message
 from pystiche.ops import EncodingOperator, Operator
 
 __all__ = ["MultiOperatorLoss"]
