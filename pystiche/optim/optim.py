@@ -4,7 +4,6 @@ from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import torch
 from torch import nn, optim
-from torch.optim.lbfgs import LBFGS
 from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
@@ -24,8 +23,16 @@ from .log import (
 )
 
 
-def default_image_optimizer(input_image: torch.Tensor) -> LBFGS:
-    return LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
+def default_image_optimizer(input_image: torch.Tensor) -> optim.LBFGS:  # type: ignore[name-defined]
+    r"""
+    Args:
+        input_image: Image to be optimized.
+
+    Returns:
+        :class:`torch.optim.LBFGS` optimizer with a learning rate of ``1.0``. The
+        pixels of ``input_image`` are set as optimization parameters.
+    """
+    return optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)  # type: ignore[attr-defined]
 
 
 def default_image_optim_loop(
@@ -41,6 +48,27 @@ def default_image_optim_loop(
         Callable[[int, Union[torch.Tensor, pystiche.LossDict]], None]
     ] = None,
 ) -> torch.Tensor:
+    r"""Perform an image optimization with integrated logging.
+
+    Args:
+        input_image: Image to be optimized.
+        criterion: Optimization criterion.
+        get_optimizer: Optional getter for the optimizer. If ``None``,
+            :func:`default_image_optimizer` is used. Defaults to ``None``.
+        num_steps: Number of optimization steps. Defaults to ``500``.
+        preprocessor: Optional preprocessor that is called with the ``input_image``
+            before the optimization.
+        postprocessor: Optional preprocessor that is called with the ``input_image``
+            after the optimization.
+        quiet: If ``True``, not information is logged during the optimization. Defaults
+            to ``False``.
+        logger: Optional custom logger. If ``None``,
+            :class:`pystiche.optim.OptimLogger` is used. Defaults to ``None``.
+        log_fn: Optional custom logging function. It is called in every optimization
+            step with the current step and loss. If ``None``,
+            :func:`pystiche.optim.default_image_optim_log_fn` is used. Defaults to
+            ``None``.
+    """
     if get_optimizer is None:
         get_optimizer = default_image_optimizer
 
@@ -98,6 +126,34 @@ def default_image_pyramid_optim_loop(
         Callable[[int, Union[torch.Tensor, pystiche.LossDict]], None]
     ] = None,
 ) -> torch.Tensor:
+    r"""Perform a image optimization for :class:`pystiche.pyramid.ImagePyramid` s with
+    integrated logging.
+
+    Args:
+        input_image: Image to be optimized.
+        criterion: Optimization criterion.
+        pyramid: Image pyramid.
+        get_optimizer: Optional getter for the optimizer. If ``None``,
+            :func:`default_image_optimizer` is used. Defaults to ``None``.
+        preprocessor: Optional preprocessor that is called with the ``input_image``
+            before the optimization.
+        postprocessor: Optional preprocessor that is called with the ``input_image``
+            after the optimization.
+        quiet: If ``True``, not information is logged during the optimization. Defaults
+            to ``False``.
+        logger: Optional custom logger. If ``None``,
+            :class:`pystiche.optim.OptimLogger` is used. Defaults to ``None``.
+        get_pyramid_level_header: Optional custom getter for the logged pyramid level
+            header. It is called before each level with the current level number,
+            the :class:`pystiche.pyramid.PyramidLevel`, and the size of the
+            ``input_image``. If ``None``
+            :func:`pystiche.optim.default_pyramid_level_header` is used. Defaults to
+            ``None``.
+        log_fn: Optional custom logging function. It is called in every optimization
+            step with the current step and loss. If ``None``,
+            :func:`pystiche.optim.default_image_optim_log_fn` is used. Defaults to
+            ``None``.
+    """
     aspect_ratio = extract_aspect_ratio(input_image)
     if get_optimizer is None:
         get_optimizer = default_image_optimizer
@@ -139,6 +195,14 @@ def default_image_pyramid_optim_loop(
 
 
 def default_transformer_optimizer(transformer: nn.Module) -> Optimizer:
+    r"""
+    Args:
+        transformer: Transformer to be optimized.
+
+    Returns:
+        :class:`torch.optim.Adam` optimizer with a learning rate of ``1e-3``. The
+        parameters of ``transformer`` are set as optimization parameters.
+    """
     return optim.Adam(transformer.parameters(), lr=1e-3)
 
 
@@ -155,6 +219,27 @@ def default_transformer_optim_loop(
         Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
     ] = None,
 ) -> nn.Module:
+    r"""Perform a transformer optimization for a single epoch with integrated logging.
+
+    Args:
+        image_loader: Images used as input for the ``transformer``. Drawing from this
+            should yield a single item.
+        transformer: Transformer to be optimized.
+        criterion: Optimization criterion.
+        criterion_update_fn: Is called before each optimization step with the current
+            images and the optimization ``criterion``.
+        optimizer: Optional optimizer. If ``None``,
+            :func:`default_transformer_optimizer` is used.
+        quiet: If ``True``, not information is logged during the optimization. Defaults
+            to ``False``.
+        logger: Optional custom logger. If ``None``,
+            :class:`pystiche.optim.OptimLogger` is used. Defaults to ``None``.
+        log_fn: Optional custom logging function. It is called in every optimization
+            step with the current batch, loss as well as the image loading and
+            processing velocities in img/s. If ``None``,
+            :func:`pystiche.optim.default_transformer_optim_log_fn` is used. Defaults
+            to ``None``.
+    """
     if isinstance(transformer, torch.device):  # type: ignore[unreachable]
         msg = (  # type: ignore[unreachable]
             "The parameter device was removed in 0.4.0. It is now extracted out of "
@@ -236,6 +321,34 @@ def default_transformer_epoch_optim_loop(
         Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
     ] = None,
 ) -> nn.Module:
+    r"""Perform a transformer optimization for multiple epochs with integrated logging.
+
+    Args:
+        image_loader: Images used as input for the ``transformer``. Drawing from this
+            should yield a single item.
+        transformer: Transformer to be optimized.
+        criterion: Optimization criterion.
+        criterion_update_fn: Is called before each optimization step with the current
+            images and the optimization ``criterion``.
+        epochs: Number of epochs.
+        optimizer: Optional optimizer. If ``None``, it is extracted from
+            ``lr_scheduler`` or func:`default_transformer_optimizer` is used.
+        lr_scheduler: Optional learning rate scheduler. ``step()`` is invoked after
+            every epoch.
+        quiet: If ``True``, not information is logged during the optimization. Defaults
+            to ``False``.
+        logger: Optional custom logger. If ``None``,
+            :class:`pystiche.optim.OptimLogger` is used. Defaults to ``None``.
+        get_epoch_header: Optional custom getter for the logged epoch header. It is
+        called before each epoch with the current epoch number, the ``optimizer``, and
+            the ``lr_scheduler``. If ``None``
+            :func:`pystiche.optim.default_epoch_header` is used. Defaults to ``None``.
+        log_fn: Optional custom logging function. It is called in every optimization
+            step with the current batch, loss as well as the image loading and
+            processing velocities in img/s. If ``None``,
+            :func:`pystiche.optim.default_transformer_optim_log_fn` is used. Defaults
+            to ``None``.
+        """
     if device is not None:
         msg = (
             "The parameter device was removed in 0.4.0. It is now always extracted out "
