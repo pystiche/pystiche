@@ -9,6 +9,7 @@ on:
     paths:
       - "pystiche/**"
       - "docs/**"
+      - "requirements-doc.txt"
       - ".github/workflows/docs.yml"
 
 jobs:
