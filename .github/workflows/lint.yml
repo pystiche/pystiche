@@ -11,6 +11,7 @@ on:
       - "pyproject.toml"
       - ".flake8"
       - "mypy.ini"
+      - "requirements-lint.txt"
       - ".github/workflows/lint.yml"
 
 jobs:
