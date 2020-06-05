@@ -41,10 +41,6 @@ __all__ = [
     "vgg19_bn_multi_layer_encoder",
 ]
 
-DEPRECATED_LAYER_PATTERN = re.compile(
-    r"^(?P<type>(conv|bn|relu|pool))_(?P<block>\d)(_(?P<depth>\d))?$"
-)
-
 
 class VGGMultiLayerEncoder(MultiLayerEncoder):
     r"""Multi-layer encoder based on the VGG architecture that was introduced by
@@ -127,39 +123,6 @@ class VGGMultiLayerEncoder(MultiLayerEncoder):
             dct["allow_inplace"] = self.allow_inplace
         return dct
 
-    def extract_encoder(self, layer: str) -> SingleLayerEncoder:
-        match = DEPRECATED_LAYER_PATTERN.match(layer)
-        if match is not None:
-            old_layer = layer
-            type = match.group("type")
-            block = match.group("block")
-            depth = match.group("depth")
-            layer = f"{type}{block}"
-            if depth is not None:
-                layer += f"_{depth}"
-            msg = build_deprecation_message(
-                f"The layer pattern {old_layer}",
-                "0.4.0",
-                info=(
-                    f"Please remove the underscore between the layer type and the "
-                    f"block number, i.e. {layer}."
-                ),
-                url="https://github.com/pmeier/pystiche/issues/125",
-            )
-            warnings.warn(msg)
-        return super().extract_encoder(layer)
-
-
-class VGGEncoder(VGGMultiLayerEncoder):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        msg = build_deprecation_message(
-            "The class VGGEncoder",
-            "0.4.0",
-            info="It was replaced by VGGMultiLayerEncoder.",
-        )
-        warnings.warn(msg)
-        super().__init__(*args, **kwargs)
-
 
 def vgg11_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
     r"""Multi-layer encoder based on the VGG11 architecture.
@@ -235,45 +198,3 @@ def vgg19_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
         **kwargs: Optional parameters for :class:`VGGMultiLayerEncoder`.
     """
     return VGGMultiLayerEncoder("vgg19_bn", **kwargs)
-
-
-def _vgg_encoder(arch: str, **kwargs: Any) -> VGGMultiLayerEncoder:
-    msg = build_deprecation_message(
-        f"The function {arch}_encoder",
-        "0.4.0",
-        info=f"It was replaced by {arch}_multi_layer_encoder.",
-    )
-    warnings.warn(msg)
-    return VGGMultiLayerEncoder(arch, **kwargs)
-
-
-def vgg11_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder("vgg11", **kwargs)
-
-
-def vgg11_bn_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder("vgg11_bn", **kwargs)
-
-
-def vgg13_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder("vgg13", **kwargs)
-
-
-def vgg13_bn_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder("vgg13_bn", **kwargs)
-
-
-def vgg16_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder("vgg16", **kwargs)
-
-
-def vgg16_bn_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder("vgg16_bn", **kwargs)
-
-
-def vgg19_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder("vgg19", **kwargs)
-
-
-def vgg19_bn_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-    return _vgg_encoder("vgg19_bn", **kwargs)
