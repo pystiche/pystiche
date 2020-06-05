@@ -228,8 +228,13 @@ class LossDict(OrderedDict):
         other = float(other)
         return LossDict([(name, loss * other) for name, loss in self.items()])
 
-    # TODO: can this be moved in __str__?
     def format(self, max_depth: Optional[int] = None, **format_dict_kwargs: Any) -> str:
+        msg = build_deprecation_message(
+            "The method format",
+            "0.4.0",
+            info="Use str(LossDict.aggregate(max_depth)) instead.",
+        )
+        warnings.warn(msg)
         if max_depth is not None:
             if max_depth == 0:
                 return str(self.total())
@@ -242,7 +247,12 @@ class LossDict(OrderedDict):
         return format_dict(OrderedDict(zip(dct.keys(), values)), **format_dict_kwargs)
 
     def __str__(self) -> str:
-        return self.format()
+        key_fmtstr = build_fmtstr(
+            field_len=max([len(key) for key in self.keys()]), type="s"
+        )
+        value_fmtstr = build_fmtstr(precision=3, type="e")
+        fmtstr = f"{key_fmtstr}: {value_fmtstr}"
+        return "\n".join([fmtstr.format(key, value) for key, value in self.items()])
 
 
 class TensorKey:
