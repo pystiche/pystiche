@@ -4,7 +4,6 @@ import tempfile
 from collections import OrderedDict
 from math import sqrt
 from os import path
-from unittest import mock
 
 import torch
 from torch import nn
