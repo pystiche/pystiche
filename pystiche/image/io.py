@@ -101,7 +101,11 @@ def _pil_resize(
             size, calculate_aspect_ratio((image.height, image.width))
         )
     else:
-        raise RuntimeError
+        msg = (
+            f"size can either be an edge size (int) or an image size "
+            f"(Tuple[int, int]), but got {type(size)}."
+        )
+        raise TypeError(msg)
 
     return image.resize((width, height), resample=_PIL_RESAMPLE_MAP[interpolation_mode])
 
@@ -186,8 +190,8 @@ def show_image(
     elif isinstance(image, str):
         image = Image.open(path.expanduser(image))
     else:
-        # TODO
-        raise TypeError
+        msg = f"image can either be torch.Tensor or str, but got {type(image)}."
+        raise TypeError(msg)
 
     if size is not None:
         image = _pil_resize(image, size, interpolation_mode)

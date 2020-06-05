@@ -35,7 +35,11 @@ def _channel_stats_to_tensor(
 
     def to_tensor(seq: Sequence[float]) -> torch.Tensor:
         if len(seq) != num_channels:
-            raise RuntimeError
+            msg = (
+                f"The length of the channel statistics and the number of image "
+                f"channels do not match: {len(seq)} != {num_channels}"
+            )
+            raise RuntimeError(msg)
         return torch.tensor(seq, device=image.device).view(1, -1, 1, 1)
 
     return to_tensor(mean), to_tensor(std)

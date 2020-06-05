@@ -187,7 +187,8 @@ def segmentation_to_guides(
     """
     num_chanels = extract_num_channels(seg)
     if num_chanels != 3:
-        raise ValueError
+        msg = f"Expected 3 channels in the segmentation image, but got {num_chanels}."
+        raise ValueError(msg)
 
     image_size = extract_image_size(seg)
 
