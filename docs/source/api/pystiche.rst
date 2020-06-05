@@ -3,6 +3,8 @@
 
 .. automodule:: pystiche
 
+.. autofunction:: home
+
 Objects
 -------
 
