@@ -23,7 +23,6 @@ __all__ = [
     "default_pyramid_level_header",
     "default_transformer_optim_log_fn",
     "default_epoch_header",
-    "default_epoch_header_fn",
 ]
 
 
@@ -303,13 +302,3 @@ def default_epoch_header(
         Header that includes information about the current epoch.
     """
     return f"Epoch {epoch}"
-
-
-def default_epoch_header_fn(*args: Any, **kwargs: Any) -> str:
-    msg = build_deprecation_message(
-        "The function default_epoch_header_fn",
-        "0.4.0",
-        info="It was renamed to default_epoch_header",
-    )
-    warnings.warn(msg)
-    return default_epoch_header(*args, **kwargs)
