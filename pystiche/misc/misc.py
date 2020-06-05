@@ -35,23 +35,15 @@ __all__ = [
     "to_2d_arg",
     "to_3d_arg",
     "zip_equal",
-    "to_eng",
-    "to_engstr",
-    "to_tuplestr",
-    "to_engtuplestr",
     "build_fmtstr",
-    "format_dict",
     "verify_str_arg",
-    "build_obj_str",
     "build_complex_obj_repr",
-    "is_almost",
     "make_reproducible",
     "get_input_image",
     "get_tmp_dir",
     "get_sha256_hash",
     "save_state_dict",
     "build_deprecation_message",
-    "warn_deprecation",
     "get_device",
     "download_file",
     "reduce",
@@ -67,15 +59,6 @@ T = TypeVar("T")
 
 def _to_nd_arg(dims: int) -> Callable[[Union[T, Sequence[T]]], Tuple[T, ...]]:
     def to_nd_arg(x: Union[T, Sequence[T]]) -> Tuple[T, ...]:
-        if x is None:
-            msg = build_deprecation_message(  # type: ignore[unreachable]
-                "Passing None as argument",
-                "0.4.0",
-                info="If you need this behavior, please implement it in the caller.",
-            )
-            warnings.warn(msg)
-            return None
-
         if isinstance(x, Sequence):
             if len(x) != dims:
                 raise RuntimeError
@@ -96,59 +79,6 @@ def zip_equal(*sequences: Sequence) -> Iterable:
     if not all([len(sequence) == numel for sequence in sequences[1:]]):
         raise RuntimeError("All sequences should have the same length")
     return zip(*sequences)
-
-
-def to_eng(num: float, eps: float = 1e-8) -> Tuple[float, int]:
-    msg = build_deprecation_message("The function to_eng", "0.4.0")
-    warnings.warn(msg)
-    if np.abs(num) < eps:
-        return 0.0, 0
-
-    exp = np.floor(np.log10(np.abs(num))).astype(np.int)
-    exp -= np.mod(exp, 3)
-    sig = num * 10.0 ** -exp
-
-    return sig, exp
-
-
-def to_engstr(
-    num: float, digits: int = 4, exp_sep: str = "e", eps: float = 1e-8
-) -> str:
-    msg = build_deprecation_message("The function to_engstr", "0.4.0")
-    warnings.warn(msg)
-    sig, exp = to_eng(num, eps=eps)
-    mag = np.abs(sig)
-
-    if mag < 1.0 - eps:
-        return "0"
-
-    fmt_str = "{:." + str(digits) + "g}"
-
-    if exp == -3 and mag > 1.0 + eps:
-        return fmt_str.format(num)
-
-    sigstr = fmt_str.format(sig)
-    expstr = (exp_sep + str(exp)) if exp != 0 else ""
-    return sigstr + expstr
-
-
-def to_tuplestr(sequence: Sequence) -> str:
-    msg = build_deprecation_message("The function to_tuplestr", "0.4.0")
-    warnings.warn(msg)
-    sequence = [str(item) for item in sequence]
-    if len(sequence) == 0:
-        values = ""
-    elif len(sequence) == 1:
-        values = sequence[0] + ","
-    else:
-        values = ", ".join(sequence)
-    return f"({values})"
-
-
-def to_engtuplestr(sequence: Sequence, **kwargs: Any) -> str:
-    msg = build_deprecation_message("The function to_engtuplestr", "0.4.0")
-    warnings.warn(msg)
-    return to_tuplestr([to_engstr(item, **kwargs) for item in sequence])
 
 
 # FIXME: add padding
@@ -175,24 +105,6 @@ def build_fmtstr(
         fmtstr += type
     fmtstr += r"}"
     return fmtstr
-
-
-def format_dict(
-    dct: Dict[str, Any], sep: str = ": ", key_align: str = "<", value_align: str = "<"
-) -> str:
-    msg = build_deprecation_message("The function format_dict", "0.4.0")
-    warnings.warn(msg)
-    key_field_len, val_field_len = [
-        max(lens)
-        for lens in zip(*[(len(key), len(str(val))) for key, val in dct.items()])
-    ]
-
-    fmtstr = build_fmtstr(id=0, align=key_align, field_len=key_field_len, type="s")
-    fmtstr += sep
-    fmtstr += build_fmtstr(id=1, align=value_align, field_len=val_field_len, type="s")
-
-    lines = [fmtstr.format(key, str(val)) for key, val in dct.items()]
-    return "\n".join(lines)
 
 
 def verify_str_arg(
@@ -262,39 +174,6 @@ def build_complex_obj_repr(
             body.append(indent(line))
 
     return "\n".join([prefix] + body + [postfix])
-
-
-def build_obj_str(
-    name: str,
-    properties: Optional[Dict[str, Any]] = None,
-    properties_threshold: Optional[int] = None,
-    **kwargs: Any,
-) -> str:
-    msg = build_deprecation_message(
-        "The function build_obj_str",
-        "0.4.0",
-        info="It was renamed to build_complex_obj_repr.",
-    )
-    warnings.warn(msg)
-
-    if properties is not None and properties_threshold is not None:
-        msg = build_deprecation_message(
-            "The parameter properties_threshold",
-            "0.4.0",
-            info="The line breaks are now controlled by the line_length parameter.",
-        )
-        warnings.warn(msg)
-        line_length = 0 if len(properties) > properties_threshold else 10_000
-    else:
-        line_length = 80
-
-    return build_complex_obj_repr(name, line_length=line_length, **kwargs)
-
-
-def is_almost(actual: float, desired: float, eps: float = 1e-6) -> bool:
-    msg = build_deprecation_message("The function is_almost", "0.4.0")
-    warnings.warn(msg)
-    return abs(actual - desired) < eps
 
 
 def make_reproducible(seed: int = 0) -> None:
@@ -417,27 +296,6 @@ def build_deprecation_message(
     if url is not None:
         msg += f" See {url} for further details."
     return msg
-
-
-def warn_deprecation(
-    msg_or_description: str,
-    version: Optional[str] = None,
-    info: Optional[str] = None,
-    url: Optional[str] = None,
-) -> None:
-    msg = build_deprecation_message(
-        "META: The function warn_deprecation",
-        "0.4.0",
-        url="https://github.com/pmeier/pystiche/pull/189",
-    )
-    warnings.warn(msg, DeprecationWarning)
-
-    if version is not None:
-        description = msg_or_description
-        msg = build_deprecation_message(description, version, info=info, url=url)
-    else:
-        msg = msg_or_description
-    warnings.warn(msg)
 
 
 def get_device(device: Optional[str] = None) -> torch.device:

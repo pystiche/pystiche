@@ -24,7 +24,6 @@ from pystiche.misc import (
     build_complex_obj_repr,
     build_deprecation_message,
     build_fmtstr,
-    format_dict,
 )
 
 __all__ = ["ComplexObject", "LossDict", "TensorKey"]
