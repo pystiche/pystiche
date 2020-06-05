@@ -11,7 +11,7 @@ from pystiche.misc import build_deprecation_message
 from pystiche.ops import (
     EncodingOperator,
     GramOperator,
-    MSEEncodingOperator,
+    FeatureReconstructionOperator,
     MultiLayerEncodingOperator,
 )
 
@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 
-class GatysEckerBethge2015MSEEncodingOperator(MSEEncodingOperator):
+class GatysEckerBethge2015MSEEncodingOperator(FeatureReconstructionOperator):
     def __init__(
         self, encoder: Encoder, impl_params: bool = True, score_weight: float = 1e0
     ):

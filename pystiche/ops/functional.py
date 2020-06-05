@@ -29,19 +29,6 @@ def mrf_loss(
     return mse_loss(input, target, reduction=reduction)
 
 
-def patch_matching_loss(
-    input: torch.Tensor,
-    target: torch.Tensor,
-    eps: float = 1e-8,
-    reduction: str = "mean",
-) -> torch.Tensor:
-    msg = build_deprecation_message(
-        "The function patch_matching_loss", "0.4.0", info="It was renamed to mrf_loss"
-    )
-    warnings.warn(msg, UserWarning)
-    return mrf_loss(input, target, eps=eps, reduction=reduction)
-
-
 def value_range_loss(
     input: torch.Tensor, min: float = 0.0, max: float = 1.0, reduction: str = "mean"
 ) -> torch.Tensor:

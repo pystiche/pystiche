@@ -16,7 +16,6 @@ from .op import EncodingComparisonOperator
 
 __all__ = [
     "FeatureReconstructionOperator",
-    "MSEEncodingOperator",
     "GramOperator",
     "MRFOperator",
 ]
@@ -68,17 +67,6 @@ class FeatureReconstructionOperator(EncodingComparisonOperator):
         ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
         return F.mse_loss(input_repr, target_repr)
-
-
-class MSEEncodingOperator(FeatureReconstructionOperator):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        msg = build_deprecation_message(
-            "The class MSEEncodingOperator",
-            "0.4.0",
-            info="It was renamed to FeatureReconstructionOperator.",
-        )
-        warnings.warn(msg)
-        super().__init__(*args, **kwargs)
 
 
 class GramOperator(EncodingComparisonOperator):
@@ -188,47 +176,7 @@ class MRFOperator(EncodingComparisonOperator):
         stride: Union[int, Sequence[int]] = 1,
         target_transforms: Optional[Iterable[Transform]] = None,
         score_weight: float = 1.0,
-        num_scale_steps: Optional[int] = None,
-        scale_step_width: Optional[float] = None,
-        num_rotation_steps: Optional[int] = None,
-        rotation_step_width: Optional[float] = None,
     ):
-        if any(
-            [
-                arg is not None
-                for arg in (
-                    num_scale_steps,
-                    scale_step_width,
-                    num_rotation_steps,
-                    rotation_step_width,
-                )
-            ]
-        ):
-            msg = build_deprecation_message(
-                (
-                    "Parametrizing target transformations with any of "
-                    "num_scale_steps, scale_step_width, num_rotation_steps, or "
-                    "rotation_step_width through the constructor of MRFOperator"
-                ),
-                "0.4.0",
-                info=(
-                    "Please provide an iterable of transformations via the parameter "
-                    "target_transforms. You can retain the old functionality with "
-                    "MRFOperator.rotate_and_scale_transforms()."
-                ),
-            )
-            warnings.warn(msg, UserWarning)
-            target_transforms = self.scale_and_rotate_transforms(
-                num_scale_steps=0 if num_scale_steps is None else num_scale_steps,
-                scale_step_width=5e-2 if scale_step_width is None else scale_step_width,
-                num_rotate_steps=0
-                if num_rotation_steps is None
-                else num_rotation_steps,
-                rotate_step_width=10.0
-                if rotation_step_width is None
-                else rotation_step_width,
-            )
-
         super().__init__(encoder, score_weight=score_weight)
         self.patch_size = to_2d_arg(patch_size)
         self.stride = to_2d_arg(stride)
@@ -358,7 +306,7 @@ class MRFOperator(EncodingComparisonOperator):
         target_repr: torch.Tensor,
         ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
-        return F.patch_matching_loss(input_repr, target_repr)
+        return F.mrf_loss(input_repr, target_repr)
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()

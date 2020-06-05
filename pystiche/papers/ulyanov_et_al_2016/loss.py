@@ -5,7 +5,11 @@ import torch
 from pystiche.enc import Encoder, MultiLayerEncoder
 from pystiche.image import extract_batch_size
 from pystiche.loss import PerceptualLoss
-from pystiche.ops import GramOperator, MSEEncodingOperator, MultiLayerEncodingOperator
+from pystiche.ops import (
+    GramOperator,
+    FeatureReconstructionOperator,
+    MultiLayerEncodingOperator,
+)
 
 from .utils import ulyanov_et_al_2016_multi_layer_encoder
 
@@ -18,7 +22,7 @@ __all__ = [
 ]
 
 
-class UlyanovEtAl2016MSEEncodingOperator(MSEEncodingOperator):
+class UlyanovEtAl2016MSEEncodingOperator(FeatureReconstructionOperator):
     def __init__(
         self, encoder: Encoder, impl_params: bool = True, score_weight: float = 1e0
     ):
