@@ -13,9 +13,7 @@ class LocalImage(_Image):
         self,
         file: str,
         collect_local_guides: bool = True,
-        guides: Optional[
-            _ImageCollection
-        ] = None,  # should be _ImageCollection or any subclass
+        guides: Optional[_ImageCollection] = None,
         transform: Optional[nn.Module] = None,
         note: Optional[str] = None,
     ):

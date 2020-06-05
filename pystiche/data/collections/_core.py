@@ -25,6 +25,14 @@ class _Image(pystiche.ComplexObject):
     def read(
         self, root: Optional[str] = None, **read_image_kwargs: Any,
     ) -> torch.Tensor:
+        r"""Read the image from file with :func:`pystiche.image.read_image` and
+        optionally apply :attr:`.transform`.
+
+        Args:
+            root: Optional root directory if the file is a relative path.
+            **read_image_kwargs: Optional parameters passed to
+                :func:`pystiche.image.read_image`.
+        """
         file = self.file
         if not path.isabs(file) and root is not None:
             file = path.join(root, file)
@@ -67,6 +75,16 @@ class _ImageCollection(pystiche.ComplexObject):
     def read(
         self, root: Optional[str] = None, **read_image_kwargs: Any
     ) -> Dict[str, torch.Tensor]:
+        r"""Read the images from file.
+
+        Args:
+            root: Optional root directory if the file is a relative path.
+            **read_image_kwargs: Optional parameters passed to
+                :func:`pystiche.image.read_image`.
+
+        Returns:
+            Dictionary with the name image pairs.
+        """
         return {
             name: image.read(root=root, **read_image_kwargs) for name, image in self
         }
