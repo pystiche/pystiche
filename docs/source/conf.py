@@ -110,7 +110,7 @@ if download_gallery:
     base = "https://download.pystiche.org/galleries/"
     file = (
         "master.zip"
-        if pystiche.__about__._IS_DEV_VERSION
+        if pystiche.__is_dev_version__
         else f"v{pystiche.__base_version__}.zip"
     )
 
