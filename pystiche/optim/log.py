@@ -30,6 +30,14 @@ __all__ = [
 def default_logger(
     name: Optional[str] = None, log_file: Optional[str] = None
 ) -> logging.Logger:
+    r"""Logs :attr:`logging.INFO` to :class:`sys.stdout` and all log levels above to
+    :class:`sys.stderr`. Each log entry is timestamped and can optionally be written to
+    a log_file.
+
+    Args:
+        name: Optional name. See :class:`logging.Logger` for details.
+        log_file: Optional path to log file.
+    """
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 
@@ -58,6 +66,12 @@ def default_logger(
 
 
 class OptimLogger:
+    r"""Hierarchical optimization logger.
+
+    Args:
+        logger: Optional :class:`logging.Logger` that is used. Defaults to
+            :func:`default_logger` with a unique name.
+    """
     INDENT = 2
     SEP_LINE_LENGTH = 80
     SEP_CHARS = ("#", "*", "=", "-", "^", '"')
@@ -84,11 +98,28 @@ class OptimLogger:
         return abs_level
 
     def message(self, msg: str, indent: int = 0, rel: bool = True) -> None:
+        r"""Log a message with optional indent.
+
+        Args:
+            msg: Message.
+            indent: Optional indent. Defaults to ``0``.
+            rel: If ``True``, the indentation is determined relative to the current
+                level. Defaults to ``True``.
+        """
         abs_indent = self._calc_abs_indent(indent, rel)
         for line in msg.splitlines():
             self.logger.info(" " * abs_indent + line)
 
     def sepline(self, level: int = 0, rel: bool = True) -> None:
+        r"""Log a separation line.
+
+        Args:
+            level: Determines the separation char following
+                `Python's Style Guide for documenting <https://devguide.python.org/documenting/#sections>`_
+                .
+            rel: If ``True``, the level is determined relative to the current level.
+                Defaults to ``True``.
+        """
         abs_level = self._calc_abs_level(level, rel)
         self.message(self.SEP_CHARS[abs_level] * self.SEP_LINE_LENGTH)
 
@@ -100,6 +131,20 @@ class OptimLogger:
         top_sep: bool = True,
         bottom_sep: bool = True,
     ) -> None:
+        r"""Log a message with optional enclosing separation lines.
+
+        Args:
+            msg: Message.
+            level: Determines the separation char following
+                `Python's Style Guide for documenting <https://devguide.python.org/documenting/#sections>`_
+                .
+            rel: If ``True``, the level is determined relative to the current level.
+                Defaults to ``True``.
+            top_sep: If ``True``, add a separation line before the message. Defaults to
+                ``True``.
+            bottom_sep: If ``True``, add a separation line after the message. Defaults
+                to ``True``.
+        """
         if top_sep:
             self.sepline(level=level, rel=rel)
         self.message(msg, rel=rel)
@@ -107,8 +152,14 @@ class OptimLogger:
             self.sepline(level=level, rel=rel)
 
     @contextlib.contextmanager
-    def environment(self, header: str) -> Iterator:
-        self.sep_message(header)
+    def environment(self, header: Optional[str]) -> Iterator:
+        r"""Context manager that increases the current level. Can be nested.
+
+        Args:
+            header: Optional header that is logged with :meth:`.sep_message`.
+        """
+        if header is not None:
+            self.sep_message(header)
         self._environ_indent_offset += self.INDENT
         self._environ_level_offset += 1
         try:
@@ -121,6 +172,16 @@ class OptimLogger:
 def default_image_optim_log_fn(
     optim_logger: OptimLogger, log_freq: int = 50, max_depth: int = 1
 ) -> Callable[[int, Union[torch.Tensor, pystiche.LossDict]], None]:
+    r"""Log the loss during image optimizations.
+
+    Args:
+        optim_logger: Optimization logger.
+        log_freq: Number of optimization steps between two log entries. Defaults to
+            ``50``.
+        max_depth: If loss is :class:`pystiche.LossDict`, aggregate it to this maximum
+            depth before logging. Defaults to ``1``.
+    """
+
     def log_fn(step: int, loss: Union[torch.Tensor, pystiche.LossDict]) -> None:
         if step % log_freq == 0:
             with optim_logger.environment(f"Step {step}"):
@@ -142,6 +203,15 @@ def default_image_optim_log_fn(
 def default_pyramid_level_header(
     num: int, level: PyramidLevel, input_image_size: Tuple[int, int]
 ) -> str:
+    r"""
+    Args:
+        num: Number of the pyramid level.
+        level: Pyramid level.
+        input_image_size: Image size of the input image.
+
+    Returns:
+        Header that includes information about the current level.
+    """
     height, width = input_image_size
     return f"Pyramid level {num} with {level.num_steps} steps " f"({width} x {height})"
 
@@ -154,6 +224,22 @@ def default_transformer_optim_log_fn(
     show_processing_velocity: bool = True,
     show_running_means: bool = True,
 ) -> Callable[[int, Union[float, torch.Tensor, pystiche.LossDict], float, float], None]:
+    r"""Log the ETA, the loss, and the loading and processing velocities during
+    transformer optimizations.
+
+    Args:
+        optim_logger: Optimization logger.
+        num_batches: Total number of batches.
+        log_freq: Number of batches between two log entries. If ``None`` a sensible
+            value is chosen based on ``num_batches``. Defaults to ``None``.
+        show_loading_velocity: If ``True``, includes the image loading velocity in the
+            log entries. Defaults to ``True``.
+        show_processing_velocity: If ``True``, includes the image processing velocity
+            in the log entries. Defaults to ``True``.
+        show_running_means: If ``True``, includes a running mean additional to the
+            current values in the log entries. The window size is chosen based on
+            ``log_freq``. Defaults to ``True``.
+    """
     if log_freq is None:
         log_freq = max(min(round(1e-3 * num_batches) * 10, 50), 1)
 
@@ -207,6 +293,15 @@ def default_transformer_optim_log_fn(
 def default_epoch_header(
     epoch: int, optimizer: Optimizer, lr_scheduler: Optional[LRScheduler]
 ) -> str:
+    r"""
+    Args:
+        epoch: Number of the epoch.
+        optimizer: Optimizer.
+        lr_scheduler: Optional learning rate scheduler.
+
+    Returns:
+        Header that includes information about the current epoch.
+    """
     return f"Epoch {epoch}"
 
 

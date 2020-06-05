@@ -19,10 +19,17 @@ Optimization
 Logging
 -------
 
+.. autofunction:: default_logger
+
 .. autoclass:: OptimLogger
+  :members:
+    message,
+    sepline,
+    sep_message,
+    environment
 
 .. autofunction:: default_image_optim_log_fn
 .. autofunction:: default_pyramid_level_header
 
 .. autofunction:: default_transformer_optim_log_fn
-.. autofunction:: default_epoch_header_fn
+.. autofunction:: default_epoch_header
