@@ -3,7 +3,7 @@ from torch import optim
 from torch.optim.optimizer import Optimizer
 
 from pystiche.enc import MultiLayerEncoder, vgg19_multi_layer_encoder
-from pystiche.image import CaffePostprocessing, CaffePreprocessing
+from pystiche.image.transforms import CaffePostprocessing, CaffePreprocessing
 
 __all__ = [
     "li_wand_2016_preprocessor",
