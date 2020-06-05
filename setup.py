@@ -1,4 +1,4 @@
-from importlib.util import module_from_spec, spec_from_file_location
+import subprocess
 from os import path
 from setuptools import find_packages, setup
 
@@ -7,20 +7,49 @@ PACKAGE_NAME = "pystiche"
 PACKAGE_ROOT = path.join(PROJECT_ROOT, PACKAGE_NAME)
 
 
-def load_git_module():
-    spec = spec_from_file_location(PACKAGE_NAME, path.join(PACKAGE_ROOT, "_git.py"),)
-    git = module_from_spec(spec)
-    spec.loader.exec_module(git)
-    return git
-
-
-git = load_git_module()
-about = {"git": git, "_PROJECT_ROOT": PROJECT_ROOT}
+about = {}
 with open(path.join(PACKAGE_ROOT, "__about__.py"), "r") as fh:
     exec(fh.read(), about)
 
 with open(path.join(PROJECT_ROOT, "README.rst"), "r") as fh:
     long_description = fh.read()
+
+
+class Git:
+    def run(self, *cmds, cwd=None):
+        return subprocess.check_output(("git", *cmds), cwd=cwd).decode("utf-8").strip()
+
+    def is_available(self) -> bool:
+        try:
+            self.run("--help")
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
+    def is_repo(self, dir: str) -> bool:
+        return path.exists(path.join(dir, ".git"))
+
+    def is_dirty(self, dir: str) -> bool:
+        return bool(self.run("status", "-uno", "--porcelain", cwd=dir))
+
+    def hash(self, dir: str) -> str:
+        return self.run("rev-parse", "--short", "HEAD", cwd=dir)
+
+
+if about["__is_dev_version__"]:
+    __version__ = f"{about['__base_version__']}+dev"
+
+    git = Git()
+    if git.is_available() and git.is_repo(PROJECT_ROOT):
+        __version__ += f".{git.hash(PROJECT_ROOT)}"
+
+        if git.is_dirty(PROJECT_ROOT):
+            __version__ += ".dirty"
+
+    with open(path.join(PACKAGE_ROOT, "__version__"), "w") as fh:
+        fh.write(__version__)
+
+    about["__version__"] = __version__
 
 install_requires = (
     "torch>=1.4.0",
