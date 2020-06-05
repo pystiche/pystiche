@@ -68,14 +68,16 @@ class FloatMeter(Meter):
     @property
     def global_avg(self) -> float:
         if self.count == 0:
-            raise RuntimeError
+            msg = "global_avg can only be calculated after the first update."
+            raise RuntimeError(msg)
         return self.global_sum / self.count
 
     @property
     def local_avg(self) -> float:
         vals = tuple(self.window)
         if not vals:
-            raise RuntimeError
+            msg = "local_avg can only be calculated after the first update."
+            raise RuntimeError(msg)
         return sum(vals) / len(vals)
 
     @abstractmethod
