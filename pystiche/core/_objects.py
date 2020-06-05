@@ -244,11 +244,8 @@ class TensorKey:
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, torch.Tensor):
             other = TensorKey(other)
-        if isinstance(other, TensorKey):
-            return self.key == other.key
 
-        # FIXME
-        raise TypeError
+        return self.key == other.key if isinstance(other, TensorKey) else False
 
     def __hash__(self) -> int:
         return hash(self.key)
