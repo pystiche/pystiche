@@ -99,6 +99,8 @@ def zip_equal(*sequences: Sequence) -> Iterable:
 
 
 def to_eng(num: float, eps: float = 1e-8) -> Tuple[float, int]:
+    msg = build_deprecation_message("The function to_eng", "0.4.0")
+    warnings.warn(msg)
     if np.abs(num) < eps:
         return 0.0, 0
 
@@ -112,6 +114,8 @@ def to_eng(num: float, eps: float = 1e-8) -> Tuple[float, int]:
 def to_engstr(
     num: float, digits: int = 4, exp_sep: str = "e", eps: float = 1e-8
 ) -> str:
+    msg = build_deprecation_message("The function to_engstr", "0.4.0")
+    warnings.warn(msg)
     sig, exp = to_eng(num, eps=eps)
     mag = np.abs(sig)
 
@@ -128,8 +132,9 @@ def to_engstr(
     return sigstr + expstr
 
 
-# TODO: has this function any purpose?
 def to_tuplestr(sequence: Sequence) -> str:
+    msg = build_deprecation_message("The function to_tuplestr", "0.4.0")
+    warnings.warn(msg)
     sequence = [str(item) for item in sequence]
     if len(sequence) == 0:
         values = ""
@@ -141,6 +146,8 @@ def to_tuplestr(sequence: Sequence) -> str:
 
 
 def to_engtuplestr(sequence: Sequence, **kwargs: Any) -> str:
+    msg = build_deprecation_message("The function to_engtuplestr", "0.4.0")
+    warnings.warn(msg)
     return to_tuplestr([to_engstr(item, **kwargs) for item in sequence])
 
 

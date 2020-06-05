@@ -2,8 +2,6 @@ from typing import Any, Dict
 
 import torch
 
-from pystiche.misc import to_engstr
-
 from . import functional as F
 from .op import PixelRegularizationOperator
 
@@ -49,7 +47,7 @@ class TotalVariationOperator(PixelRegularizationOperator):
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
-        dct["exponent"] = to_engstr(self.exponent)
+        dct["exponent"] = f"{self.exponent:g}"
         return dct
 
 
