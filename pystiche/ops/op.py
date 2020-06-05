@@ -447,10 +447,6 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
         self.register_buffer("input_guide", guide)
         self.register_buffer("input_enc_guide", enc_guide)
 
-    from torch import nn
-
-    a = nn.Module()
-
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if not self.has_target_image:
             msg = "Cannot process an input image before a target image has been set."

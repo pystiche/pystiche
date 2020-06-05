@@ -190,7 +190,7 @@ def show_image(
     elif isinstance(image, str):
         image = Image.open(path.expanduser(image))
     else:
-        msg = f"image can either be torch.Tensor or str, but got {type(image)}."
+        msg = f"image can either be torch.Tensor or str, but got {type(image)}."  # type: ignore[unreachable]
         raise TypeError(msg)
 
     if size is not None:

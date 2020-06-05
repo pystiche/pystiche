@@ -45,7 +45,7 @@ def compose_transforms(
         elif isinstance(transform, Transform):
             return (transform,)
         else:
-            msg = (
+            msg = (  # type: ignore[unreachable]
                 f"transforms can either be pystiche.image.transforms.Transform or "
                 f"pystiche.image.transforms.ComposedTransform, but got "
                 f"{type(transform)}."

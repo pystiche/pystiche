@@ -190,7 +190,7 @@ def default_image_optim_log_fn(
                 elif isinstance(loss, torch.Tensor):
                     msg = f"loss: {loss.item():.3e}"
                 else:
-                    msg = (
+                    msg = (  # type: ignore[unreachable]
                         f"loss can be a pystiche.LossDict or a scalar torch.Tensor, "
                         f"but got {type(loss)}."
                     )
