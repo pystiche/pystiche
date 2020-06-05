@@ -189,7 +189,7 @@ def default_image_optim_log_fn(
                     loss = loss.aggregate(max_depth)
 
                 if isinstance(loss, pystiche.LossDict):
-                    msg = loss.format()
+                    msg = str(loss)
                 elif isinstance(loss, torch.Tensor):
                     msg = f"loss: {loss.item():.3e}"
                 else:
