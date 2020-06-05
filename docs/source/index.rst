@@ -22,11 +22,6 @@ built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
     ``pystiche`` aims to provide reusable tools that lets developers focus on their
     ideas rather than worrying about bugs in everything around it.
 
-.. warning::
-
-  The documentation is under heavy construction and far from finished. Check back
-  regularly for updates.
-
 .. toctree::
   :maxdepth: 1
   :caption: Contents

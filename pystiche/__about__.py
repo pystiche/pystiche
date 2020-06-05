@@ -19,7 +19,7 @@ __license__ = "BSD 3-Clause"
 __author__ = "Philip Meier"
 __author_email__ = "github.pmeier@posteo.de"
 
-_IS_DEV_VERSION = True
+_IS_DEV_VERSION = False
 
 if _IS_DEV_VERSION:
     __version__ += "+dev"
