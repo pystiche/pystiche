@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import torch
 
-from pystiche.misc import is_almost, to_engstr
+from pystiche.misc import to_engstr
 
 from . import functional as F
 from .op import PixelRegularizationOperator
@@ -49,8 +49,7 @@ class TotalVariationOperator(PixelRegularizationOperator):
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
-        if not is_almost(self.exponent, 2.0):
-            dct["exponent"] = to_engstr(self.exponent)
+        dct["exponent"] = to_engstr(self.exponent)
         return dct
 
 

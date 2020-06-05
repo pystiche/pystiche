@@ -284,6 +284,8 @@ def build_obj_str(
 
 
 def is_almost(actual: float, desired: float, eps: float = 1e-6) -> bool:
+    msg = build_deprecation_message("The function is_almost", "0.4.0")
+    warnings.warn(msg)
     return abs(actual - desired) < eps
 
 
