@@ -26,8 +26,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: pip install isort black flake8
+      - name: Install lint requirements
+        run: pip install -r requirements-lint.txt
 
       - name: Check with isort
         run: isort --settings-path=pyproject.toml --check-only --jobs=$(nproc) --recursive .
@@ -56,8 +56,11 @@ jobs:
           python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
           pip install -r $REQUIREMENTS_FILE
 
-      - name: Install dependencies
-        run: pip install .[dev]
+      - name: Install lint requirements
+        run: pip install -r requirements-lint.txt
+
+      - name: Install pystiche
+        run: pip install .
 
       - name: Check with mypy
         run: mypy --config-file=mypy.ini
