@@ -39,30 +39,13 @@ class Module(nn.Module, ComplexObject):
                 "are mutually exclusive parameters."
             )
             raise RuntimeError(msg)
-        elif named_children is not None:
-            self.add_named_modules(named_children)
-        elif indexed_children is not None:
-            self.add_indexed_modules(indexed_children)
-
-    def add_named_modules(self, modules: Iterable[Tuple[str, nn.Module]]) -> None:
-        if isinstance(modules, dict):
-            msg = build_deprecation_message(
-                "Adding named_modules from a dictionary",
-                "0.4",
-                info=(
-                    "To achieve the same behavior you can pass "
-                    "tuple(modules.items()) instead."
-                ),
-            )
-            warnings.warn(msg)
-            modules = tuple(modules.items())
-        for name, module in modules:
-            self.add_module(name, module)
-
-    def add_indexed_modules(self, modules: Sequence[nn.Module]) -> None:
-        self.add_named_modules(
-            [(str(idx), module) for idx, module in enumerate(modules)]
-        )
+        if indexed_children is not None:
+            named_children = [
+                (str(idx), module) for idx, module in enumerate(indexed_children)
+            ]
+        if named_children is not None:
+            for name, module in named_children:
+                self.add_module(name, module)
 
     def __repr__(self) -> str:
         return ComplexObject.__repr__(self)
