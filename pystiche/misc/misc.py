@@ -170,10 +170,11 @@ def build_fmtstr(
     return fmtstr
 
 
-# FIXME: this should be able to handle multi line values
 def format_dict(
     dct: Dict[str, Any], sep: str = ": ", key_align: str = "<", value_align: str = "<"
 ) -> str:
+    build_deprecation_message("The function format_dict", "0.4.0")
+    warnings.warn(dct)
     key_field_len, val_field_len = [
         max(lens)
         for lens in zip(*[(len(key), len(str(val))) for key, val in dct.items()])

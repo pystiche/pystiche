@@ -242,7 +242,12 @@ class LossDict(OrderedDict):
         return format_dict(OrderedDict(zip(dct.keys(), values)), **format_dict_kwargs)
 
     def __str__(self) -> str:
-        return self.format()
+        key_fmtstr = build_fmtstr(
+            field_len=max([len(key) for key in self.keys()]), type="s"
+        )
+        value_fmtstr = build_fmtstr(precision=3, type="e")
+        fmtstr = f"{key_fmtstr}: {value_fmtstr}"
+        return "\n".join([fmtstr.format(key, value) for key, value in self.items()])
 
 
 class TensorKey:
