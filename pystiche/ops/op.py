@@ -5,7 +5,6 @@ import torch
 
 import pystiche
 from pystiche.enc import Encoder
-from pystiche.misc import to_engstr
 
 __all__ = [
     "Operator",
@@ -92,7 +91,7 @@ class Operator(pystiche.Module):
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
-        dct["score_weight"] = to_engstr(self.score_weight)
+        dct["score_weight"] = f"{self.score_weight:g}"
         return dct
 
 
