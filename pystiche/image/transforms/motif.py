@@ -47,7 +47,12 @@ class TransformMotifAffinely(Transform):
         self.padding_mode = padding_mode
 
         if not self.has_affine_params:
-            raise RuntimeError
+            msg = (
+                "TransformMotifAffinely was created without any affine parameter. At "
+                "least one of shearing_angle, rotation_angle, scaling_factor, and "
+                "translation has to be set."
+            )
+            raise RuntimeError(msg)
 
     @property
     def has_shearing(self) -> bool:

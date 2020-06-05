@@ -45,6 +45,11 @@ def compose_transforms(
         elif isinstance(transform, Transform):
             return (transform,)
         else:
-            raise TypeError
+            msg = (  # type: ignore[unreachable]
+                f"transforms can either be pystiche.image.transforms.Transform or "
+                f"pystiche.image.transforms.ComposedTransform, but got "
+                f"{type(transform)}."
+            )
+            raise TypeError(msg)
 
     return ComposedTransform(*itertools.chain(*map(unroll, transforms)))

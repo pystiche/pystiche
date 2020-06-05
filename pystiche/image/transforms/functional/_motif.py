@@ -177,7 +177,8 @@ def _calculate_full_bounding_box_size(vertices: torch.Tensor) -> Tuple[int, int]
 
 
 def _calculate_valid_bounding_box_size(vertices: torch.Tensor) -> NoReturn:
-    raise RuntimeError
+    msg = "The valid canvas option is not yet implemented."
+    raise RuntimeError(msg)
 
 
 def _resize_canvas(

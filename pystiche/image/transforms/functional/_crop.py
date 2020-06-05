@@ -28,7 +28,11 @@ def _parse_size(size: Union[Tuple[int, int], int]) -> Tuple[int, int]:
         edge_size = cast(int, size)
         return edge_size, edge_size
     else:
-        raise RuntimeError
+        msg = (
+            f"size can either be an edge size (int) or an image size "
+            f"(Tuple[int, int]), but got {type(size)}."
+        )
+        raise TypeError(msg)
 
 
 @force_batched_image

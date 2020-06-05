@@ -36,7 +36,11 @@ def resize(
     elif is_edge_size(size):
         image_size = edge_to_image_size(cast(int, size), aspect_ratio, edge)
     else:
-        raise RuntimeError
+        msg = (
+            f"size can either be an edge size (int) or an image size "
+            f"(Tuple[int, int]), but got {type(size)}."
+        )
+        raise TypeError(msg)
 
     return interpolate(
         image, size=image_size, scale_factor=None, mode=interpolation_mode,

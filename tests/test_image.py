@@ -149,7 +149,7 @@ class TestIo(PysticheTestCase):
         self.assertImagesAlmostEqual(actual, desired)
 
     def test_read_image_resize_other(self):
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             io.read_image(self.default_image_file(), size="invalid_size")
 
     def test_write_image(self):

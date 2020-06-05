@@ -60,7 +60,8 @@ def _to_nd_arg(dims: int) -> Callable[[Union[T, Sequence[T]]], Tuple[T, ...]]:
     def to_nd_arg(x: Union[T, Sequence[T]]) -> Tuple[T, ...]:
         if isinstance(x, Sequence):
             if len(x) != dims:
-                raise RuntimeError
+                msg = f"Expected sequence of length {dims}, but got {len(x)}."
+                raise RuntimeError(msg)
             return tuple(x)
         else:
             return tuple(itertools.repeat(x, dims))
@@ -221,14 +222,12 @@ def get_input_image(
         if style_image is not None:
             return style_image.clone()
         raise RuntimeError("starting_point is 'style', but no style image is given")
-    elif starting_point == "random":
+    else:  # starting_point == "random":
         if content_image is not None:
             return torch.rand_like(content_image)
         elif style_image is not None:
             return torch.rand_like(style_image)
         raise RuntimeError("starting_point is 'random', but no image is given")
-
-    raise RuntimeError
 
 
 @contextlib.contextmanager

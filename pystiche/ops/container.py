@@ -6,6 +6,7 @@ from torch import nn
 
 import pystiche
 from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
+from pystiche.misc import verify_str_arg
 
 from .op import ComparisonOperator, EncodingOperator, Operator
 
@@ -96,17 +97,20 @@ class SameOperatorContainer(OperatorContainer):
         op_weights: Union[str, Sequence[float]], num_ops: int
     ) -> Sequence[float]:
         if isinstance(op_weights, str):
+            verify_str_arg(op_weights, "op_weights", ("sum", "mean"))
             if op_weights == "sum":
                 return [1.0] * num_ops
-            elif op_weights == "mean":
+            else:  # op_weights == "mean":
                 return [1.0 / num_ops] * num_ops
-
-            raise ValueError
         else:
             if len(op_weights) == num_ops:
                 return op_weights
 
-            raise ValueError
+            msg = (
+                f"The length of the operator weights and the number of operators do "
+                f"not match: {len(op_weights)} != {num_ops}"
+            )
+            raise ValueError(msg)
 
 
 class MultiLayerEncodingOperator(SameOperatorContainer):

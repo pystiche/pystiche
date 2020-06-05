@@ -102,7 +102,8 @@ class ValidRandomCrop(Transform):
 
         def randint(range: int) -> int:
             if range < 0:
-                raise RuntimeError
+                msg = "The crop size has to be smaller or equal to the image size."
+                raise RuntimeError(msg)
             return cast(int, torch.randint(range + 1, (), dtype=torch.long).item())
 
         vert_origin = randint(image_height - crop_height)
