@@ -328,8 +328,8 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if not self.has_target_image:
-            # TODO: message
-            raise RuntimeError
+            msg = "Cannot process an input image before a target image has been set."
+            raise RuntimeError(msg)
         target_repr, ctx = self.target_repr, self.ctx
 
         if self.has_input_guide:
@@ -447,10 +447,14 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
         self.register_buffer("input_guide", guide)
         self.register_buffer("input_enc_guide", enc_guide)
 
+    from torch import nn
+
+    a = nn.Module()
+
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if not self.has_target_image:
-            # TODO: message
-            raise RuntimeError
+            msg = "Cannot process an input image before a target image has been set."
+            raise RuntimeError(msg)
         target_repr, ctx = self.target_repr, self.ctx
         input_repr = self.input_image_to_repr(image, ctx)
         return self.calculate_score(input_repr, target_repr, ctx)
