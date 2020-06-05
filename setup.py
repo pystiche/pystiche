@@ -30,35 +30,6 @@ install_requires = (
     "requests",
     "typing_extensions",
 )
-test_requires = ("pytest", "pyimagetest", "pillow_affine", "dill", "pytest-subtests")
-
-doc_requires = (
-    "sphinx < 3.0.0",
-    "sphinxcontrib-bibtex",
-    "sphinx_autodoc_typehints",
-    "sphinx-gallery>=0.7.0",
-    # Install additional sphinx-gallery dependencies
-    # https://sphinx-gallery.github.io/stable/index.html#install-via-pip
-    "matplotlib",
-    "sphinx_rtd_theme",
-)
-
-dev_requires = (
-    *test_requires,
-    *doc_requires,
-    "isort",
-    "black",
-    "flake8",
-    "mypy",
-    "pre-commit",
-    "pyyaml",
-)
-
-extras_require = {
-    "test": test_requires,
-    "doc": doc_requires,
-    "dev": dev_requires,
-}
 
 classifiers = (
     "Development Status :: 4 - Beta",
@@ -79,7 +50,6 @@ setup(
     long_description_content_type="text/x-rst",
     packages=find_packages(where=PROJECT_ROOT, exclude=("docs", "examples", "tests")),
     install_requires=install_requires,
-    extras_require=extras_require,
     python_requires=">=3.6",
     classifiers=classifiers,
 )

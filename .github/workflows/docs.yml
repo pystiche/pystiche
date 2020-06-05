@@ -35,8 +35,11 @@ jobs:
           python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
           pip install -r $REQUIREMENTS_FILE
 
-      - name: Install dependencies
-        run: pip install .[doc]
+      - name: Install doc requirements
+        run: pip install -r requirements-doc.txt
+
+      - name: Install pystiche
+        run: pip install .
 
       - name: Build html
         working-directory: docs
