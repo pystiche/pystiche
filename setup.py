@@ -36,24 +36,31 @@ class Git:
         return bool(self.run("status", "-uno", "--porcelain", cwd=dir))
 
 
-if about["__is_dev_version__"]:
-    __version__ = f"{about['__base_version__']}+dev"
+def get_version():
+    __version__ = about["__base_version__"]
+
+    if not about["__is_dev_version__"]:
+        return __version__
+    __version__ += "+dev"
 
     git = Git()
-    if git.is_available() and git.is_repo(PROJECT_ROOT):
-        __version__ += f".{git.hash(PROJECT_ROOT)}"
+    if not git.is_available() and not git.is_repo(PROJECT_ROOT):
+        return __version__
+    __version__ += f".{git.hash(PROJECT_ROOT)}"
 
-        if git.is_dirty(PROJECT_ROOT):
-            __version__ += ".dirty"
+    if not git.is_dirty(PROJECT_ROOT):
+        return __version__
+    __version__ += ".dirty"
 
-    version_file = "__version__"
-    with open(path.join(PACKAGE_ROOT, version_file), "w") as fh:
-        fh.write(__version__)
+    return __version__
 
-    package_data = {PACKAGE_NAME: [version_file]}
-else:
-    __version__ = about["__base_version__"]
-    package_data = {}
+
+__version__ = get_version()
+version_file = "__version__"
+
+with open(path.join(PACKAGE_ROOT, version_file), "w") as fh:
+    fh.write(__version__)
+package_data = {PACKAGE_NAME: [version_file]}
 
 
 install_requires = (
