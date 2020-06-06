@@ -2,4 +2,4 @@ isort
 black
 flake8
 mypy
-
+git+https://github.com/numpy/numpy-stubs
