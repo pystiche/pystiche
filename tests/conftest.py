@@ -24,7 +24,8 @@ class MarkConfig:
 
         if help is None:
             help = (
-                f"{'Skip' if run_by_default else 'Run'} tests decorated with @{keyword}"
+                f"{'Skip' if run_by_default else 'Run'} tests "
+                f"decorated with @{keyword}."
             )
         self.help = help
 
@@ -49,16 +50,23 @@ class MarkConfig:
 
 MARK_CONFIGS = (
     MarkConfig(
-        "large_download",
+        keyword="large_download",
         run_by_default=True,
         reason=(
             "Test possibly includes a large download and --skip-large-download was "
             "given."
         ),
     ),
-    MarkConfig("slow", run_by_default=True),
     MarkConfig(
-        "slow_if_cuda_not_available",
+        keyword="slow",
+        run_by_default=True,
+        help=(
+            "Skip tests decorated with @slow or "
+            "@slow_if_cuda_not_available if CUDA is not available."
+        ),
+    ),
+    MarkConfig(
+        keyword="slow_if_cuda_not_available",
         run_by_default=True,
         addoption=False,
         condition_for_skip=(
@@ -70,7 +78,7 @@ MARK_CONFIGS = (
         ),
         reason="Test is slow since CUDA is not available and --skip-slow was given.",
     ),
-    MarkConfig("flaky", run_by_default=False),
+    MarkConfig(keyword="flaky", run_by_default=False),
 )
 
 
