@@ -63,9 +63,9 @@ MARK_CONFIGS = (
         addoption=False,
         condition_for_skip=(
             lambda config, item: (
-                "slow_if_cuda_not_available"
-                and not torch.cuda.is_available() in item.keywords
+                "slow_if_cuda_not_available" in item.keywords
                 and config.getoption("--skip-slow")
+                and not torch.cuda.is_available()
             )
         ),
         reason="Test is slow since CUDA is not available and --skip-slow was given.",
