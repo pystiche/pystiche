@@ -50,6 +50,10 @@ class TestSmoke(unittest.TestCase):
         for package in public_packages:
             public_modules.extend(find_modules(PACKAGE_ROOT, package=package))
 
+        # FIXME: remove this for pystiche > 0.5
+        if "papers" in public_modules:
+            public_modules.remove("papers")
+
         for module in itertools.chain(public_packages, public_modules):
             import_module(f".{module}", package=PACKAGE_NAME)
 

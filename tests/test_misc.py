@@ -3,9 +3,9 @@ from os import path
 
 import torch
 
-from pystiche.misc import cuda, misc
+from pystiche import misc
 
-from .utils import PysticheTestCase, get_tmp_dir, skip_if_cuda_not_available
+from .utils import PysticheTestCase, get_tmp_dir
 
 
 class TestMisc(PysticheTestCase):
@@ -167,11 +167,6 @@ class TestMisc(PysticheTestCase):
         with self.assertRaises(RuntimeError):
             misc.get_input_image(starting_point)
 
-    def test_get_sha256_hash(self):
-        actual = misc.get_sha256_hash(self.default_image_file())
-        desired = "7538cbb80cb9103606c48b806eae57d56c885c7f90b9b3be70a41160f9cbb683"
-        self.assertEqual(actual, desired)
-
     def test_get_device(self):
         actual = misc.get_device()
         desired = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -208,24 +203,3 @@ class TestMisc(PysticheTestCase):
         actual = misc.reduce(x, "none")
         desired = x
         self.assertTensorAlmostEqual(actual, desired)
-
-
-class TestCuda(PysticheTestCase):
-    @staticmethod
-    def create_large_cuda_tensor(size_in_gb=256):
-        return torch.empty((size_in_gb, *[1024] * 3), device="cuda", dtype=torch.uint8)
-
-    @skip_if_cuda_not_available
-    def test_use_cuda_out_of_memory_error(self):
-        with self.assertRaises(cuda.CudaOutOfMemoryError):
-            with cuda.use_cuda_out_of_memory_error():
-                self.create_large_cuda_tensor()
-
-    @skip_if_cuda_not_available
-    def test_abort_if_cuda_memory_exausts(self):
-        @cuda.abort_if_cuda_memory_exausts
-        def fn():
-            self.create_large_cuda_tensor()
-
-        with self.assertWarns(cuda.CudaOutOfMemoryWarning):
-            fn()
