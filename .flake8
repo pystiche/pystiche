@@ -12,6 +12,7 @@ exclude =
     .pytest_cache,
     __pycache__,
     *.pyc,
+    hubconf.py,
     docs/build,
     docs/source/auto_*,
     tutorials # for now

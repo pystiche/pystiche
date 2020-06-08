@@ -9,6 +9,7 @@ skip = [
   ".mypy_cache",
   ".pytest_cache",
   "__pycache__",
+  "hubconf.py",
   "docs/build",
   "pystiche/__init__.py",
   "pystiche/image/__init__.py",
