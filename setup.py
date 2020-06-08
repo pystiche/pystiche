@@ -60,7 +60,7 @@ version_file = "__version__"
 
 with open(path.join(PACKAGE_ROOT, version_file), "w") as fh:
     fh.write(__version__)
-package_data = {PACKAGE_NAME: [version_file]}
+package_data = {PACKAGE_NAME: [version_file, "py.typed"]}
 
 
 install_requires = (
@@ -91,6 +91,7 @@ setup(
     long_description_content_type="text/x-rst",
     packages=find_packages(where=PROJECT_ROOT, exclude=("docs", "examples", "tests")),
     package_data=package_data,
+    zip_safe=False,
     install_requires=install_requires,
     python_requires=">=3.6",
     classifiers=classifiers,
