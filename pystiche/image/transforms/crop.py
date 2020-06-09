@@ -33,7 +33,7 @@ class Crop(Transform):
         self.vert_anchor = vert_anchor
         self.horz_anchor = horz_anchor
 
-    def forward(self, image: torch.Tensor):
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
         return F.crop(
             image,
             self.origin,
