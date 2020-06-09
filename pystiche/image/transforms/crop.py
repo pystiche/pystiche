@@ -34,12 +34,15 @@ class Crop(Transform):
         self.horz_anchor = horz_anchor
 
     def forward(self, image: torch.Tensor) -> torch.Tensor:
-        return F.crop(
-            image,
-            self.origin,
-            self.size,
-            vert_anchor=self.vert_anchor,
-            horz_anchor=self.horz_anchor,
+        return cast(
+            torch.Tensor,
+            F.crop(
+                image,
+                self.origin,
+                self.size,
+                vert_anchor=self.vert_anchor,
+                horz_anchor=self.horz_anchor,
+            ),
         )
 
     def _properties(self) -> Dict[str, Any]:
