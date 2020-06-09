@@ -29,5 +29,6 @@ built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
   Installation <installation>
   Gist <gist>
   Examples <galleries/examples/index>
+  Contributing <contributing>
   Package Reference <api/index>
   Literature Reference <literature>
