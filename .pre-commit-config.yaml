@@ -3,7 +3,7 @@ repos:
     rev: 4.3.21
     hooks:
       - id: isort
-        args: [--check-only]
+        args: [--filter-files, --check-only]
         additional_dependencies: [toml]
   - repo: https://github.com/psf/black
     rev: stable
