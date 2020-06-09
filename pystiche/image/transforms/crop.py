@@ -9,6 +9,7 @@ from .core import Transform
 from .functional._crop import _parse_size
 
 __all__ = [
+    "Crop",
     "CenterCrop",
     "TopLeftCrop",
     "BottomLeftCrop",
@@ -16,6 +17,39 @@ __all__ = [
     "BottomRightCrop",
     "ValidRandomCrop",
 ]
+
+
+class Crop(Transform):
+    def __init__(
+        self,
+        origin: Tuple[int, int],
+        size: Union[Tuple[int, int], int],
+        vert_anchor: str = "top",
+        horz_anchor: str = "left",
+    ):
+        super().__init__()
+        self.origin = origin
+        self.size = size
+        self.vert_anchor = vert_anchor
+        self.horz_anchor = horz_anchor
+
+    def forward(self, image: torch.Tensor):
+        return F.crop(
+            image,
+            self.origin,
+            self.size,
+            vert_anchor=self.vert_anchor,
+            horz_anchor=self.horz_anchor,
+        )
+
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
+        dct["origin"] = self.origin
+        dct["size"] = self.size
+        if self.vert_anchor != "top" or self.horz_anchor != "left":
+            dct["vert_anchor"] = self.vert_anchor
+            dct["horz_anchor"] = self.horz_anchor
+        return dct
 
 
 class TopLeftCrop(Transform):
