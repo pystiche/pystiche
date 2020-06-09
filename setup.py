@@ -64,8 +64,8 @@ package_data = {PACKAGE_NAME: [version_file, "py.typed"]}
 
 
 install_requires = (
-    "torch>=1.4.0",
-    "torchvision>=0.5.0",
+    "torch>=1.5.0",
+    "torchvision>=0.6.0",
     "pillow",
     "numpy",
     "requests",
