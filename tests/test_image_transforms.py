@@ -240,6 +240,39 @@ class TestCore(PysticheTransfromTestCase):
 
 
 class TestCrop(PysticheTransfromTestCase):
+    def test_Crop(self):
+        image = self.load_image()
+        origin = (200, 300)
+        size = (50, 30)
+
+        spatial_slices = {
+            ("top", "left"): [
+                slice(origin[0], origin[0] + size[0]),
+                slice(origin[1], origin[1] + size[1]),
+            ],
+            ("bottom", "left"): [
+                slice(origin[0] - size[0], origin[0]),
+                slice(origin[1], origin[1] + size[1]),
+            ],
+            ("top", "right"): [
+                slice(origin[0], origin[0] + size[0]),
+                slice(origin[1] - size[1], origin[1]),
+            ],
+            ("bottom", "right"): [
+                slice(origin[0] - size[0], origin[0]),
+                slice(origin[1] - size[1], origin[1]),
+            ],
+        }
+
+        for (vert_anchor, horz_anchor), spatial_slice in spatial_slices.items():
+            with self.subTest(vert_anchor=vert_anchor, horz_anchor=horz_anchor):
+                transform = transforms.Crop(
+                    origin, size, vert_anchor=vert_anchor, horz_anchor=horz_anchor
+                )
+                actual = transform(image)
+                desired = image[(slice(None), slice(None), *spatial_slice)]
+                self.assertImagesAlmostEqual(actual, desired)
+
     def test_TopLeftCrop(self):
         image = self.load_image()
         size = 200
