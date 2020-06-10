@@ -52,15 +52,12 @@ print(f"I'm working with {device}")
 # different layers of a Convolutional Neural Net (CNN) also called encoder.
 #
 # A common implementation strategy for the perceptual loss is to *weave in* transparent
-# loss layers into the encoder. During the forward pass the
-#
-#
-# These loss layers are called transparent since they simply pass the input
-# through only store the generated loss in themselves.
-#
-#
-# While this is simple to
-# implement, this practice has two downsides:
+# loss layers into the encoder. hese loss layers are called transparent since from an
+# outside view they simply pass the input through without alteration. Internally
+# though, they calculate the loss with the encodings of the previous layer and store
+# them in themselves. After the forward pass is completed the stored losses are
+# aggregated and propagated backwards to the image. While this is simple to implement,
+# this practice has two downsides:
 #
 # 1. The calculated score is part of the current state but has to be stored inside the
 #    layer. This is generally not recommended.
@@ -132,8 +129,9 @@ class MultiLayerEncoder(nn.Sequential):
 # The pretrained models the ``MultiLayerEncoder`` is based on are usually trained on
 # preprocessed images. In PyTorch all models expect images are
 # `normalized <https://pytorch.org/docs/stable/torchvision/models.html>`_ by a
-# per-channel ``mean = (0.485, 0.456, 0.406)`` and standard deviation (``std = (0.229, 0.224, 0.225)``). To include this into a
-# ``MultiLayerEncoder``, we implement this as :class:`torch.nn.Module` .
+# per-channel ``mean = (0.485, 0.456, 0.406)`` and standard deviation
+# (``std = (0.229, 0.224, 0.225)``). To include this into a, ``MultiLayerEncoder``, we
+# implement this as :class:`torch.nn.Module` .
 
 
 class Normalize(nn.Module):
