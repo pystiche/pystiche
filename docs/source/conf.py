@@ -119,6 +119,10 @@ if download_gallery:
     shutil.unpack_archive(file, extract_dir=".")
     os.remove(file)
 
+    extensions.remove("sphinx_gallery.gen_gallery")
+    extensions.append("sphinx_gallery.load_style")
+    plot_gallery = False
+
 if plot_gallery and not torch.cuda.is_available():
     msg = (
         "The galleries will be built, but CUDA is not available. "
