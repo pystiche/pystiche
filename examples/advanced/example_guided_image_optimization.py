@@ -6,7 +6,7 @@ This example showcases how a guided, i.e. regionally constraint, NST can be perf
 in ``pystiche``.
 
 Usually, the ``style_loss`` discards spatial information since the style elements
-should be able to be synthesized in any position regardless of their position in the
+should be able to be synthesized regardless of their position in the
 ``style_image``. Especially for images with clear separated regions style elements
 might leak into regions where they fit well with respect to the optimization criterion
 but don't belong for a human observer. This can be overcome with spatial constraints
@@ -118,7 +118,7 @@ show_image(output_image)
 ########################################################################################
 # While the result is not completely unreasonable, the building has a strong blueish
 # cast that looks unnatural. Since the optimization was unconstrained the color of the
-# sky was used for building. In the remainder of this example we will solve this by
+# sky was used for the building. In the remainder of this example we will solve this by
 # dividing the images in multiple separate regions.
 
 
@@ -252,7 +252,7 @@ show_image(guides_to_segmentation(second_style_guides), "Second style segmentati
 #   We need to call :meth:`~pystiche.loss.GuidedPerceptualLoss.set_style_guide` with
 #   ``recalc_repr=False`` since the old ``style_image`` is still stored. By default
 #   the new target representation would be calculated with the new guide. If the image
-#   sized do not match, as it is the case here, this results in an error. With
+#   sizes do not match, as it is the case here, this results in an error. With
 #   ``recalc_repr=False`` the new target representation is only calculated when the
 #   ``second_style_image`` is set.
 
@@ -276,3 +276,10 @@ output_image = default_image_optim_loop(
 
 # sphinx_gallery_thumbnail_number = 9
 show_image(output_image)
+
+########################################################################################
+# Compared to the two previous results we now achieved the highest quality.
+# Nevertheless, This approach has its downsides : since we are working with multiple
+# images in multiple distinct regions, the memory requirement is higher compared to the
+# other approaches. Furthermore, compared to the unguided NST, the guides have to be
+# provided together with the for the content and style images.

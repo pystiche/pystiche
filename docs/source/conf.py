@@ -74,6 +74,7 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.intersphinx",
     "sphinxcontrib.bibtex",
+    "sphinx_gallery.gen_gallery",
     "sphinx_autodoc_typehints",
 ]
 
@@ -100,10 +101,7 @@ intersphinx_mapping = {
 
 # -- sphinx-gallery configuration ------------------------------------------------------
 
-extensions.append("sphinx_gallery.gen_gallery")
-
 plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not run_by_ci
-
 download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY") or run_by_ci
 
 if download_gallery:
@@ -140,6 +138,18 @@ def show_cuda_memory(func):
     return memory, out
 
 
+class PysticheExampleTitleSortKey(ExampleTitleSortKey):
+    def __call__(self, filename):
+        # The beginner example *without* pystiche is placed before the example *with*
+        # to clarify the narrative.
+        if filename == "example_nst_without_pystiche.py":
+            return "1"
+        elif filename == "example_nst_with_pystiche.py":
+            return "2"
+        else:
+            return super().__call__(filename)
+
+
 sphinx_gallery_conf = {
     "examples_dirs": path.join(PROJECT_ROOT, "examples"),
     "gallery_dirs": path.join("galleries", "examples"),
@@ -153,7 +163,7 @@ sphinx_gallery_conf = {
             for sub_gallery in ("beginner", "advanced")
         ]
     ),
-    "within_subsection_order": ExampleTitleSortKey,
+    "within_subsection_order": PysticheExampleTitleSortKey,
     "show_memory": show_cuda_memory if torch.cuda.is_available() else True,
 }
 

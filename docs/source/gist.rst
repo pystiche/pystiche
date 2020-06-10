@@ -1,3 +1,5 @@
+.. _gist:
+
 Gist
 ====
 
@@ -13,25 +15,25 @@ divided into three steps:
 
 1. The content or motif of an image needs to be identified. That means one has to
    identify which parts of the image are essential and on the other hand which details
-   need to be discarded.
-2. The style of an image, such as color, shapes, brush strokes, and so on, needs to be
-   identified. Usually that means one has to study of the works of the original author
-   intensively.
-3. The identified content and style have to merged together. This can be the hardest
-   step, since it usually requires a lot of skill to match the style of another artist.
+   can be discarded.
+2. The style of an image, such as color, shapes, brush strokes, needs to be identified.
+   Usually that means one has to intensively study of the works of the original author.
+3. The identified content and style have to be merged together. This can be the most
+   difficult step, since it usually requires a lot of skill to match the style of
+   another artist.
 
-In principle an NST performs the same steps, albeit fully automatic. This is nothing
-new in the field of computational style transfers, but what makes NST stand out is its
-generality: the style transfer only needs a single arbitrary content and style image as
-input and thus "makes -- for the first time -- a generalized style transfer
-practicable." :cite:`SID2017`.
+In principle an NST performs the same steps, albeit fully automatically. This is
+nothing new in the field of computational style transfers. What makes NST stand out is
+its generality: NST only needs a single arbitrary content and style image as input and
+thus "makes -- for the first time -- a generalized style transfer practicable."
+:cite:`SID2017`.
 
-The following sections provide the gist of how these three steps as part of an NST are
-performed with ``pystiche``. Afterwards head over to the
+The following sections provide the gist of how these three steps are performed with
+``pystiche`` as part of an NST . Afterwards head over to the
 :ref:`usage examples <usage_examples>` to see ``pystiche`` in action.
 
 .. toctree::
   :maxdepth: 2
 
-  Operators <ops>
+  Perceptual loss <loss>
   Optimization <optim>

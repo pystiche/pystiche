@@ -24,10 +24,10 @@ installation.
 
 If you encounter issues during the installation or want to install without GPU support
 please follow the
-`official installation instructions <https://pytorch.org/get-started/locally/>`_ for
-your setup.
+`official installation instructions of PyTorch <https://pytorch.org/get-started/>`_ for
+your setup before you install ``pystiche``.
 
 .. note::
 
   While ``pystiche`` is designed to be fully functional without a GPU, most tasks
-  that ``pystiche`` was built for require significantly more time to perform on a CPU.
+  require significantly more time to perform on a CPU.
