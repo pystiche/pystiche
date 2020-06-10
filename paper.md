@@ -18,7 +18,7 @@ affiliations:
    index: 2
    
 date: XX June 2020
-bibliography: references.bib
+bibliography: docs/source/references.bib
 
 ---
 
