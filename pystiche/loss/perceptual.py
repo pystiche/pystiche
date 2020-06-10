@@ -1,8 +1,13 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import torch
 
-from pystiche.ops import ComparisonOperator, Operator, RegularizationOperator
+from pystiche.ops import (
+    ComparisonOperator,
+    Operator,
+    OperatorContainer,
+    RegularizationOperator,
+)
 
 from .multi_op import MultiOperatorLoss
 
@@ -10,14 +15,14 @@ __all__ = ["PerceptualLoss", "GuidedPerceptualLoss"]
 
 
 class _PerceptualLoss(MultiOperatorLoss):
-    content_loss: ComparisonOperator
-    style_loss: ComparisonOperator
+    content_loss: Union[ComparisonOperator, OperatorContainer]
+    style_loss: Union[ComparisonOperator, OperatorContainer]
     regularization: Optional[RegularizationOperator]
 
     def __init__(
         self,
-        content_loss: ComparisonOperator,
-        style_loss: ComparisonOperator,
+        content_loss: Union[ComparisonOperator, OperatorContainer],
+        style_loss: Union[ComparisonOperator, OperatorContainer],
         regularization: Optional[RegularizationOperator] = None,
         trim: bool = True,
     ) -> None:
