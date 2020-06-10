@@ -9,7 +9,8 @@ optimization, could be performed without ``pystiche``.
 
     This is an *example how to implement an NST* and **not** a
     *tutorial on how NST works*. As such, it will not explain why a specific choice was
-    made or how a component works.
+    made or how a component works. If you have never worked with NST before, we
+    **strongly** suggest you to read the :ref:`gist` first.
 """
 
 
@@ -50,13 +51,19 @@ print(f"I'm working with {device}")
 # calculated on features maps also called encodings. These encodings are generated from
 # different layers of a Convolutional Neural Net (CNN) also called encoder.
 #
-# A common implementation strategy is to *weave in* transparent loss layers into the
-# encoder. These loss layers are called transparent since they simply pass the input
-# through only store the generated loss in themselves. While this is simple to
+# A common implementation strategy for the perceptual loss is to *weave in* transparent
+# loss layers into the encoder. During the forward pass the
+#
+#
+# These loss layers are called transparent since they simply pass the input
+# through only store the generated loss in themselves.
+#
+#
+# While this is simple to
 # implement, this practice has two downsides:
 #
-# 1. The calculated score is part of the current but has to be stored inside the layer.
-#    This is generally not recommended.
+# 1. The calculated score is part of the current state but has to be stored inside the
+#    layer. This is generally not recommended.
 # 2. While the encoder is a part of the perceptual loss, it itself does not generate
 #    it. One should be able to use the same encoder with a different perceptual loss
 #    without modification.
@@ -123,9 +130,9 @@ class MultiLayerEncoder(nn.Sequential):
 
 ########################################################################################
 # The pretrained models the ``MultiLayerEncoder`` is based on are usually trained on
-# preprocessed images. In PyTorch all models expect images
+# preprocessed images. In PyTorch all models expect images are
 # `normalized <https://pytorch.org/docs/stable/torchvision/models.html>`_ by a
-# per-channel ``mean`` and standard deviation (``std``). To include this into a
+# per-channel ``mean = (0.485, 0.456, 0.406)`` and standard deviation (``std = (0.229, 0.224, 0.225)``). To include this into a
 # ``MultiLayerEncoder``, we implement this as :class:`torch.nn.Module` .
 
 
@@ -150,7 +157,7 @@ class TorchNormalize(Normalize):
 # Simonyan and Zisserman :cite:`SZ2014`.
 #
 # We only include the feature extraction stage (``vgg_net.features``), i.e. the
-# convolutional stage, since classifier stage (``vgg_net.classifier``) only accepts
+# convolutional stage, since the classifier stage (``vgg_net.classifier``) only accepts
 # feature maps of a single size.
 #
 # For our convenience we rename the layers in the same scheme the authors used instead
@@ -201,7 +208,7 @@ print(multi_layer_encoder)
 # Perceptual Loss
 # ---------------
 #
-# In order to calculate the perceptual loss, i.e. the optimization criterion we define
+# In order to calculate the perceptual loss, i.e. the optimization criterion, we define
 # a ``MultiLayerLoss`` to have a convenient interface. This will be subclassed later by
 # the ``ContentLoss`` and ``StyleLoss``.
 #
@@ -302,9 +309,8 @@ class StyleLoss(MultiLayerLoss):
 # utilities.
 #
 # At import a fake batch dimension is added to the images to be able to pass it through
-# the ``MultiLayerEncoder`` without further modification. This dimensions is removed
-# again upon export. Furthermore, all images will be resized to ``size=500`` pixels
-# on the shorter edge.
+# the ``MultiLayerEncoder`` without further modification. This dimension is removed
+# again upon export. Furthermore, all images will be resized to ``size=500`` pixels.
 
 import_from_pil = transforms.Compose(
     (
@@ -353,7 +359,7 @@ def show_image(image, title=None):
 #
 # .. note::
 #
-#   The images used in this example a licensed under the permissive
+#   The images used in this example are licensed under the permissive
 #   `Pixabay License <https://pixabay.com/service/license/>`_ .
 
 
@@ -384,7 +390,7 @@ show_image(style_image, title="Style image")
 # ---------------------
 #
 # At first we chose the ``content_layers`` and ``style_layers`` on which the encodings
-# will be are compared. With them we ``trim`` the ``multi_layer_encoder`` to remove
+# are compared. With them we ``trim`` the ``multi_layer_encoder`` to remove
 # unused layers that otherwise occupy memory.
 #
 # Afterwards we calculate the target content and style encodings. The calculation is
@@ -406,12 +412,12 @@ with torch.no_grad():
 # weight. Afterwards we store the previously calculated target encodings.
 
 content_weight = 1e0
-content_criterion = ContentLoss(score_weight=content_weight)
-content_criterion.set_target_encs(target_content_encs)
+content_loss = ContentLoss(score_weight=content_weight)
+content_loss.set_target_encs(target_content_encs)
 
 style_weight = 1e3
-style_criterion = StyleLoss(score_weight=style_weight)
-style_criterion.set_target_encs(target_style_encs)
+style_loss = StyleLoss(score_weight=style_weight)
+style_loss.set_target_encs(target_style_encs)
 
 
 ########################################################################################
@@ -441,7 +447,7 @@ optimizer = optim.LBFGS([input_image.requires_grad_(True)], max_iter=1)
 
 ########################################################################################
 # Finally we run the NST. The loss calculation has to happen inside a ``closure``
-# since the :class:`torch.optim.LBFGS` optimizer could need to
+# since the :class:`~torch.optim.LBFGS` optimizer could need to
 # `reevaluate it multiple times per optimization step <https://pytorch.org/docs/stable/optim.html#optimizer-step-closure>`_
 # . This structure is also valid for all other optimizers.
 
@@ -455,8 +461,8 @@ for step in range(1, num_steps + 1):
         input_encs = multi_layer_encoder(input_image, content_layers, style_layers)
         input_content_encs, input_style_encs = input_encs
 
-        content_score = content_criterion(input_content_encs)
-        style_score = style_criterion(input_style_encs)
+        content_score = content_loss(input_content_encs)
+        style_score = style_loss(input_style_encs)
 
         perceptual_loss = content_score + style_score
         perceptual_loss.backward()
@@ -484,9 +490,9 @@ show_image(output_image, title="Output image")
 # Conclusion
 # ----------
 #
-# As hopefully has become clear even an NST in its simplest form requires quite a lot
-# of utilities and boilerplate code. This makes the it hard to maintain and keep bug
-# free as it is easy to lose track of everything.
+# As hopefully has become clear, an NST requires even in its simplest form quite a lot
+# of utilities and boilerplate code. This makes it hard to maintain and keep bug free
+# as it is easy to lose track of everything.
 #
 # Judging by the lines of code one could (falsely) conclude that the actual NST is just
 # an appendix. If you feel the same you can stop worrying now: in
