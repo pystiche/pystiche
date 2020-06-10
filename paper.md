@@ -17,16 +17,16 @@ affiliations:
  - name: Technische Hochschule Ostwestfalen-Lippe TH-OWL
    index: 2
    
-date: XX May 2020
+date: XX June 2020
 bibliography: references.bib
 
 ---
 
 # Summary
 
-The field of _Neural Style Transfer_ (NST) was kicked off by [Gatys, Ecker, and Bethge](@GEB2016) in 2016.
+The field of _Neural Style Transfer_ (NST) was kicked off by Gatys, Ecker, and Bethge in 2016 [@GEB2016].
 
-[`PyTorch`](@PGM+2019)
+[@PGM+2019]
 
 # Acknowledgements
 
