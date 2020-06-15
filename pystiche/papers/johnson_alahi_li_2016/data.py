@@ -73,11 +73,11 @@ def get_style_edge_size(
     impl_params: bool, instance_norm: bool, style: Optional[str] = None
 ) -> int:
     def get_default_edge_size():
-        if not impl_params and not instance_norm:
+        if not (impl_params or instance_norm):
             return 256
         elif impl_params and not instance_norm:
             return 512
-        elif impl_params and instance_norm:
+        elif impl_params:
             return 384
         else:
             raise RuntimeError

@@ -23,10 +23,7 @@ def ulyanov_et_al_2016_postprocessor() -> CaffePostprocessing:
 def ulyanov_et_al_2016_optimizer(
     transformer: nn.Module, impl_params: bool = True, instance_norm: bool = True
 ) -> Optimizer:
-    if impl_params:
-        lr = 1e-3 if instance_norm else 1e-1
-    else:
-        lr = 1e-1
+    lr = (0.001 if instance_norm else 0.1) if impl_params else 0.1
     return optim.Adam(transformer.parameters(), lr=lr)
 
 

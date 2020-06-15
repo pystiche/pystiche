@@ -57,7 +57,7 @@ def verify_guides(
     Raises:
         RuntimeError: If at least on check is not successful.
     """
-    if not verify_coverage and not verify_overlap:
+    if not (verify_coverage or verify_overlap):
         return
 
     masks = {region: guide.bool() for region, guide in guides.items()}

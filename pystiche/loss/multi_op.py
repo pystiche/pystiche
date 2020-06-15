@@ -35,10 +35,7 @@ class MultiOperatorLoss(pystiche.Module):
                 encoder.trim()
 
     def named_operators(self, recurse: bool = False) -> Iterator[Tuple[str, Operator]]:
-        if recurse:
-            iterator = self.named_modules()
-        else:
-            iterator = self.named_children()
+        iterator = self.named_modules() if recurse else self.named_children()
         for name, child in iterator:
             if isinstance(child, Operator):
                 yield name, child

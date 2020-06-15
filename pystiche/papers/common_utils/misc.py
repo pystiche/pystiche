@@ -36,7 +36,7 @@ def elementwise(
     fn: Callable[[In], Out], inputs: Union[In, SequenceType[In]]
 ) -> Union[Out, Tuple[Out, ...]]:
     if isinstance(inputs, Sequence):
-        return tuple([fn(input) for input in inputs])
+        return tuple(fn(input) for input in inputs)
     return fn(inputs)
 
 
@@ -95,11 +95,11 @@ def batch_up_image(
 
     if desired_batch_size is None:
         desired_batch_size = loader.batch_size
-        if desired_batch_size is None:
-            try:
-                desired_batch_size = loader.batch_sampler.batch_size
-            except AttributeError:
-                raise RuntimeError
+    if desired_batch_size is None:
+        try:
+            desired_batch_size = loader.batch_sampler.batch_size
+        except AttributeError:
+            raise RuntimeError
 
     return image.repeat(desired_batch_size, 1, 1, 1)
 

@@ -10,7 +10,7 @@ from .utils import PysticheTestCase
 
 def extract_module_names(pattern):
     names = [name for name in nn.__dict__.keys() if name[0].istitle()]
-    matching_names = set([name for name in names if pattern.match(name) is not None])
+    matching_names = {name for name in names if pattern.match(name) is not None}
     return matching_names, set(names) - matching_names
 
 

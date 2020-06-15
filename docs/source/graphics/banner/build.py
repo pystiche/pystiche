@@ -21,7 +21,7 @@ def extract_image_sizes(images):
 
 def pad_images(images, heights):
     max_height = max(heights)
-    padding_needed = any([height != max_height for height in heights])
+    padding_needed = any(height != max_height for height in heights)
 
     if not padding_needed:
         return images

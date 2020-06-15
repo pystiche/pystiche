@@ -411,7 +411,7 @@ class TestOptim(PysticheTestCase):
         asset = self.load_asset(path.join("optim", "default_image_pyramid_optim_loop"))
 
         optim_logger = optim.OptimLogger()
-        log_freq = max([level.num_steps for level in asset.input.pyramid._levels]) + 1
+        log_freq = max(level.num_steps for level in asset.input.pyramid._levels) + 1
         log_fn = optim.default_image_optim_log_fn(optim_logger, log_freq=log_freq)
 
         with self.assertLogs(optim_logger.logger, "INFO"):
