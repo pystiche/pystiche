@@ -70,9 +70,7 @@ class ImagePyramid(ComplexObject):
 
         return tuple(
             PyramidLevel(edge_size, num_steps_, edge_)
-            for edge_size, num_steps_, edge_ in zip_equal(
-                edge_sizes, num_steps, edge
-            )
+            for edge_size, num_steps_, edge_ in zip_equal(edge_sizes, num_steps, edge)
         )
 
     # TODO: can this be removed?
