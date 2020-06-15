@@ -26,7 +26,7 @@ bibliography: docs/source/references.bib
 The field of _Neural Style Transfer_ (NST) was kicked off in [@GEB2016]. From a high 
 viewpoint an NST can be described with only three images and two symbols:
 
-![content image + style image = stylized image](docs/source/graphics/banner/banner.jpg)
+![](docs/source/graphics/banner/banner.jpg)
 
 In words: an NST describes the merger between the content and artistic style of two 
 arbitrary images. This idea is nothing new in the field of computational style transfer 
