@@ -30,7 +30,7 @@ class Module(nn.Module, ComplexObject):
         indexed_children: Optional[Sequence[nn.Module]] = None,
     ):
         super().__init__()
-        if not (named_children is None or indexed_children is None):
+        if named_children is None and indexed_children is None:
             msg = (
                 "named_children and indexed_children "
                 "are mutually exclusive parameters."
