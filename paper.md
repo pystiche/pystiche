@@ -23,18 +23,19 @@ bibliography: docs/source/references.bib
 
 # Summary and Purpose
 
-The field of _Neural Style Transfer_ (NST) was kicked off in [@GEB2016]. From a high 
-viewpoint an NST can be described with only three images and two symbols:
+The seminal work of Gatys, Ecker, and Bethge gave birth to the field of 
+_Neural Style Transfer_ (NST) in 2016 [@GEB2016]. The general idea behind an NST can be 
+conveyed with only three images and two symbols:
 
 ![](docs/source/graphics/banner/banner.jpg)
 
 In words: an NST describes the merger between the content and artistic style of two 
 arbitrary images. This idea is nothing new in the field of computational style transfer 
-[@GG2001]. What makes NST stand out is its generality: an NST only needs a single 
-arbitrary content and style image as input and thus "makes -- for the first time -- a 
-generalized style transfer practicable" [@SID2017].
+[@GG2001]. What distinguishes NST from traditional approaches is its generality: an NST 
+only needs a single arbitrary content and style image as input and thus "makes -- for 
+the first time -- a generalized style transfer practicable" [@SID2017].
 
-Due to its vivid nature, the field of gained a lot of traction after its emergence 
+Due to its vivid nature, the field of NST gained a lot of traction after its emergence 
 [@JYF+2019]. While many new techniques or augmentations have been developed, the field 
 lacks standardization, which is especially evident in the reference implementations of 
 the authors. `pystiche` aims to fill this gap.
@@ -54,10 +55,10 @@ Deep Neural Network. `pystiche` pursues similar goals as DL frameworks:
    rather than worrying about bugs in everything around it.
 
 `pystiche` provides built-in implementations of the most used NST techniques 
-[@MV2014; @GEB2016; @LW2016]. Furthermore, due its modular implementation, one is able 
-to mix current state-of-the-art techniques with new ideas with ease. Finally, 
-`pystiche`s core audience are researchers, but its easy-to-use user interface opens up 
-the field of NST for recrational use by laypersons.
+[@MV2014; @GEB2016; @LW2016]. Furthermore, due its modular implementation, it provides
+the ability to mix current state-of-the-art techniques with new ideas with ease. 
+Finally, `pystiche`s core audience are researchers, but its easy-to-use user interface 
+opens up the field of NST for recreational use by laypersons.
 
 # Acknowledgements
 
