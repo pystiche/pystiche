@@ -23,8 +23,7 @@ from pystiche.demo import demo_images, demo_logger
 from pystiche.enc import vgg19_multi_layer_encoder
 from pystiche.image import guides_to_segmentation, show_image
 from pystiche.loss import GuidedPerceptualLoss, PerceptualLoss
-from pystiche.misc import get_input_image
-from pystiche.misc.misc import get_device
+from pystiche.misc import get_device, get_input_image
 from pystiche.ops import (
     FeatureReconstructionOperator,
     GramOperator,
