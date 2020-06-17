@@ -1,0 +1,8 @@
+sphinx >= 2.1, < 3
+sphinxcontrib-bibtex
+sphinx_autodoc_typehints
+sphinx-gallery>=0.8
+# Additional sphinx-gallery dependencies
+# https://sphinx-gallery.github.io/stable/index.html#install-via-pip
+matplotlib
+sphinx_rtd_theme
