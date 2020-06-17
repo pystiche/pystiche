@@ -7,6 +7,7 @@
 # -- Imports ---------------------------------------------------------------------------
 
 import os
+import re
 import shutil
 import warnings
 from datetime import datetime
@@ -116,8 +117,23 @@ if download_gallery:
     print(f"Downloading pre-built galleries from {url}")
     download_file(url, file)
 
+    try:
+        shutil.rmtree("galleries")
+    except FileNotFoundError:
+        pass
     shutil.unpack_archive(file, extract_dir=".")
     os.remove(file)
+
+    index_file = path.join("galleries", "examples", "index.rst")
+    with open(index_file, "r") as fh:
+        content = fh.read()
+    content = re.sub(
+        r"(?P<file>examples_(python|jupyter)\.zip) <[\w/.]+>",
+        r"\g<file> <\g<file>>",
+        content,
+    )
+    with open(index_file, "w") as fh:
+        fh.write(content)
 
     extensions.remove("sphinx_gallery.gen_gallery")
     extensions.append("sphinx_gallery.load_style")
