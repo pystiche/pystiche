@@ -14,7 +14,7 @@ exclude =
     *.pyc,
     hubconf.py,
     docs/build,
-    docs/source/auto_*,
+    docs/source/galleries,
     tutorials # for now
 ignore = E203, E501, W503, F821
 max-line-length = 88
