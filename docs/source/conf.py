@@ -124,6 +124,8 @@ if download_gallery:
     shutil.unpack_archive(file, extract_dir=".")
     os.remove(file)
 
+    # This is workaround for a bug in sphinx-gallery that replaces absolute with
+    # relative paths. See https://github.com/pmeier/pystiche/pull/325 for details.
     index_file = path.join("galleries", "examples", "index.rst")
     with open(index_file, "r") as fh:
         content = fh.read()
