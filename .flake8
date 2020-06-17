@@ -18,6 +18,6 @@ exclude =
 ignore = E203, E501, W503
 max-line-length = 88
 per-file-ignores =
-    __init__.py: F401, F403
+    __init__.py: F401, F403, F405
 show_source = True
 statistics = True
