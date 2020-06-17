@@ -52,7 +52,7 @@ print(f"I'm working with {device}")
 # different layers of a Convolutional Neural Net (CNN) also called encoder.
 #
 # A common implementation strategy for the perceptual loss is to *weave in* transparent
-# loss layers into the encoder. hese loss layers are called transparent since from an
+# loss layers into the encoder. These loss layers are called transparent since from an
 # outside view they simply pass the input through without alteration. Internally
 # though, they calculate the loss with the encodings of the previous layer and store
 # them in themselves. After the forward pass is completed the stored losses are
