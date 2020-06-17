@@ -90,6 +90,7 @@ classifiers = (
 setup(
     name=about["__name__"],
     description=about["__description__"],
+    keywords=about["__keywords__"],
     version=__version__,
     url=about["__url__"],
     license=about["__license__"],

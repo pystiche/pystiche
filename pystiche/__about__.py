@@ -11,6 +11,7 @@ __all__ = [
 
 __name__ = "pystiche"
 __description__ = "Framework for Neural Style Transfer (NST) built upon PyTorch"
+__keywords__ = "neural-style-transfer framework pytorch"
 __base_version__ = "0.5.0"
 __is_dev_version__ = True
 __url__ = "https://github.com/pmeier/pystiche"

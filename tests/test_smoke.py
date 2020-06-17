@@ -57,6 +57,7 @@ class TestSmoke(unittest.TestCase):
         for attr in (
             "name",
             "description",
+            "keywords",
             "base_version",
             "url",
             "license",
