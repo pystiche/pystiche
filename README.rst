@@ -68,8 +68,8 @@ documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/lat
     :alt: mypy
 
 .. |lint|
-  image:: https://github.com/pmeier/pystiche/workflows/Lint/badge.svg
-    :target: https://github.com/pmeier/pystiche/actions?query=workflow%3ALint+branch%3Amaster
+  image:: https://github.com/pmeier/pystiche/workflows/lint/badge.svg
+    :target: https://github.com/pmeier/pystiche/actions?query=workflow%3Alint+branch%3Amaster
     :alt: Lint status via GitHub Actions
 
 .. |linux_macos|
