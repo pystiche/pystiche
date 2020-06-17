@@ -1,5 +1,6 @@
 import logging
 import sys
+from datetime import datetime
 
 from pystiche.data import (
     DownloadableImage,
@@ -178,7 +179,9 @@ def demo_images() -> DownloadableImageCollection:
 def demo_logger() -> OptimLogger:
     """Simple logger used in the usage examples.
     """
-    logger = logging.getLogger()
+    logger = logging.getLogger(
+        name=f"pystiche_{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+    )
     logger.setLevel(logging.INFO)
 
     sh = logging.StreamHandler(sys.stdout)
