@@ -44,8 +44,9 @@ def get_version():
     __version__ += "+dev"
 
     git = Git()
-    if not git.is_available() and not git.is_repo(PROJECT_ROOT):
+    if not (git.is_available() and git.is_repo(PROJECT_ROOT)):
         return __version__
+
     __version__ += f".{git.hash(PROJECT_ROOT)}"
 
     if not git.is_dirty(PROJECT_ROOT):
