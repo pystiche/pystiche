@@ -10,14 +10,14 @@ images and two symbols:
     :alt: pystiche banner
 
 Not only the quality of the results but also the underlying steps are comparable to the
-work of human artisans or art forgers. Such a manual style transfer can be roughly
+work of human artisans or craftsmen. Such a manual style transfer can be roughly
 divided into three steps:
 
 1. The content or motif of an image needs to be identified. That means one has to
    identify which parts of the image are essential and on the other hand which details
    can be discarded.
 2. The style of an image, such as color, shapes, brush strokes, needs to be identified.
-   Usually that means one has to intensively study of the works of the original author.
+   Usually that means one has to intensively study of the works of the original artist.
 3. The identified content and style have to be merged together. This can be the most
    difficult step, since it usually requires a lot of skill to match the style of
    another artist.
