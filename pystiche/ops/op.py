@@ -20,7 +20,7 @@ __all__ = [
 
 
 class Operator(pystiche.Module):
-    r"""ABC for all operators. If called, invokes
+    r"""Abstract base class for all operators. If called, invokes
     :meth:`pystiche.ops.Operator.process_input_image` and applies ``score_weight`` to
     the result.
 
@@ -96,7 +96,7 @@ class Operator(pystiche.Module):
 
 
 class RegularizationOperator(Operator):
-    r"""ABC for all regularization operators."""
+    r"""Abstract base class for all regularization operators."""
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -104,7 +104,7 @@ class RegularizationOperator(Operator):
 
 
 class ComparisonOperator(Operator):
-    r"""ABC for all comparison operators."""
+    r"""Abstract base class for all comparison operators."""
     target_guide: torch.Tensor
     target_image: torch.Tensor
     target_repr: torch.Tensor
@@ -149,7 +149,7 @@ class ComparisonOperator(Operator):
 
 
 class PixelOperator(Operator):
-    r"""ABC for all operators working in the pixel space."""
+    r"""Abstract base class for all operators working in the pixel space."""
 
     @abstractmethod
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
@@ -157,7 +157,7 @@ class PixelOperator(Operator):
 
 
 class EncodingOperator(Operator):
-    r"""ABC for all operators working in an encoded space."""
+    r"""Abstract base class for all operators working in an encoded space."""
 
     encoder: Encoder
 
@@ -181,7 +181,7 @@ class EncodingOperator(Operator):
 
 
 class PixelRegularizationOperator(PixelOperator, RegularizationOperator):
-    r"""ABC for all regularization operators working in the pixel space.
+    r"""Abstract base class for all regularization operators working in the pixel space.
 
     Args:
         score_weight: Score weight of the operator. Defaults to ``1.0``.
@@ -224,7 +224,8 @@ class PixelRegularizationOperator(PixelOperator, RegularizationOperator):
 
 
 class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
-    r"""ABC for all regularization operators working in an encoded space.
+    r"""Abstract base class for all regularization operators working in an encoded
+    space.
 
     Args:
         encoder: Encoder that is used to encode the target and input images.
@@ -279,7 +280,7 @@ class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
 
 
 class PixelComparisonOperator(PixelOperator, ComparisonOperator):
-    r"""ABC for all comparison operators working in the pixel space.
+    r"""Abstract base class for all comparison operators working in the pixel space.
 
     Args:
         score_weight: Score weight of the operator. Defaults to ``1.0``.
@@ -378,7 +379,7 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
 
 
 class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
-    r"""ABC for all comparison operators working in an encoded space.
+    r"""Abstract base class for all comparison operators working in an encoded space.
 
     Args:
         encoder: Encoder that is used to encode the target and input images.
