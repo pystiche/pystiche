@@ -135,6 +135,12 @@ show_image(output_image)
 #   for a better overview. In a ``segmentation`` the regions are separated by color.
 #   You can use :func:`~pystiche.image.guides_to_segmentation` and
 #   :func:`~pystiche.image.segmentation_to_guides` to convert one format to the other.
+#
+# .. note::
+#
+#   The guides used within this example were created manually. It is possible to
+#   generate them automatically :cite:`CZP+2018`, but this is outside the scope of
+#   ``pystiche``.
 
 content_guides = images["castle"].guides.read(size=size, device=device)
 content_segmentation = guides_to_segmentation(content_guides)
