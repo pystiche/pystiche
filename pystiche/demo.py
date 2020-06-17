@@ -29,16 +29,6 @@ def demo_images() -> DownloadableImageCollection:
     """
     return DownloadableImageCollection(
         {
-            # TODO: remove
-            "dancing": DownloadableImage(
-                "https://pytorch.org/tutorials/_static/img/neural-style/dancing.jpg",
-                md5="0a2df538901452d639170a2ed89815a4",
-            ),
-            # TODO: remove
-            "picasso": DownloadableImage(
-                "https://pytorch.org/tutorials/_static/img/neural-style/picasso.jpg",
-                md5="d1d60fc3f9d0b22d2d826c47934a37ea",
-            ),
             "bird1": DownloadableImage(
                 "https://cdn.pixabay.com/photo/2016/01/14/11/26/bird-1139734_960_720.jpg",
                 file="bird1.jpg",
