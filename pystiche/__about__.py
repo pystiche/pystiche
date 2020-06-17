@@ -1,6 +1,7 @@
 __all__ = [
     "__name__",
     "__description__",
+    "__keywords__",
     "__base_version__",
     "__is_dev_version__",
     "__url__",
