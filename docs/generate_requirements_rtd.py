@@ -17,13 +17,15 @@ def extract_language_from_rtd_config(root, file=".readthedocs.yml"):
 
 
 def main(
-    root=".",
+    root=None,
     distributions=("torch", "torchvision"),
     backend="cpu",
     language=None,
     platform="linux",
     file="requirements-rtd.txt",
 ):
+    if root is None:
+        root = path.dirname(__file__)
     if language is None:
         language = extract_language_from_rtd_config(path.join(root, ".."))
 
