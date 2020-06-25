@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Tuple
 import torchvision
 from torch import nn
 from torch.utils import model_zoo
+from torchvision.models import VGG
 
 from ..multi_layer_encoder import MultiLayerEncoder
 from ..preprocessing import get_preprocessor
@@ -77,12 +78,10 @@ class VGGMultiLayerEncoder(MultiLayerEncoder):
         super().__init__(self._collect_modules())
 
     def _collect_modules(self) -> List[Tuple[str, nn.Module]]:
-        base_model = MODELS[self.arch]()
-        url = MODEL_URLS[(self.weights, self.arch)]
-        state_dict = model_zoo.load_url(url)
-        base_model.load_state_dict(state_dict)
-        model = base_model.features
+        base_model = MODELS[self.arch](pretrained=False)
+        self._load_weights(base_model)
 
+        model = base_model.features
         modules = []
         if self.internal_preprocessing:
             modules.append(("preprocessing", get_preprocessor(self.weights)))
@@ -108,6 +107,11 @@ class VGGMultiLayerEncoder(MultiLayerEncoder):
             modules.append((name, module))
 
         return modules
+
+    def _load_weights(self, base_model: VGG) -> None:
+        url = MODEL_URLS[(self.weights, self.arch)]
+        state_dict = model_zoo.load_url(url)
+        base_model.load_state_dict(state_dict)
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
