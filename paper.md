@@ -8,14 +8,12 @@ tags:
 authors:
   - name: Philip Meier
     orcid: 0000-0002-5184-1622
-    affiliation: "1, 2"
+    affiliation: 1
   - name: Volker Lohweg
-    affiliation: "1, 2"
+    affiliation: 1
 affiliations:
- - name: inIT -- Institute Industrial IT
+ - name: inIT –- Institute Industrial IT, Technische Hochschule Ostwestfalen-Lippe (TH-OWL)
    index: 1
- - name: Technische Hochschule Ostwestfalen-Lippe TH-OWL
-   index: 2
    
 date: 19 June 2020
 bibliography: docs/source/references.bib
