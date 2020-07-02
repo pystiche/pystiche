@@ -10,6 +10,7 @@ authors:
     orcid: 0000-0002-5184-1622
     affiliation: 1
   - name: Volker Lohweg
+    orcid: 0000-0002-3325-7887
     affiliation: 1
 affiliations:
  - name: inIT –- Institute Industrial IT, Technische Hochschule Ostwestfalen-Lippe (TH-OWL)
