@@ -1,4 +1,4 @@
-name: Docs
+name: docs
 
 on:
   push:
@@ -9,11 +9,12 @@ on:
     paths:
       - "pystiche/**"
       - "docs/**"
+      - "examples/**"
       - "requirements-doc.txt"
       - ".github/workflows/docs.yml"
 
 jobs:
-  build_docs:
+  build:
     runs-on: ubuntu-latest
 
     steps:

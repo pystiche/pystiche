@@ -10,7 +10,7 @@
     * - tests
       - |linux_macos| |windows| |coverage|
     * - docs
-      - |docs|
+      - |docs| |rtd|
 
 .. end-badges
 
@@ -68,8 +68,8 @@ documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/lat
     :alt: mypy
 
 .. |lint|
-  image:: https://github.com/pmeier/pystiche/workflows/Lint/badge.svg
-    :target: https://github.com/pmeier/pystiche/actions?query=workflow%3ALint+branch%3Amaster
+  image:: https://github.com/pmeier/pystiche/workflows/lint/badge.svg
+    :target: https://github.com/pmeier/pystiche/actions?query=workflow%3Alint+branch%3Amaster
     :alt: Lint status via GitHub Actions
 
 .. |linux_macos|
@@ -88,6 +88,11 @@ documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/lat
     :alt: Test coverage
 
 .. |docs|
-  image:: https://readthedocs.org/projects/pystiche/badge/?version=latest
+  image:: https://github.com/pmeier/pystiche/workflows/docs/badge.svg
+    :target: https://github.com/pmeier/pystiche/actions?query=workflow%3Adocs+branch%3Amaster
+    :alt: Docs status via GitHub Actions
+
+.. |rtd|
+  image:: https://img.shields.io/readthedocs/pystiche?label=latest&logo=read%20the%20docs
     :target: https://pystiche.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation status
+    :alt: Latest documentation hosted on Read the Docs
