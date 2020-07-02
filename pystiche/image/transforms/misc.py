@@ -29,7 +29,7 @@ class ReverseChannelOrder(Transform):
         return cast(torch.Tensor, F.reverse_channel_order(x))
 
 
-def _format_stats(stats: Sequence[float], fmt: str = ":g") -> str:
+def _format_stats(stats: Sequence[float], fmt: str = "{:g}") -> str:
     return str(tuple(fmt.format(stat) for stat in stats))
 
 
