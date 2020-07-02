@@ -15,7 +15,7 @@ affiliations:
  - name: inIT –- Institute Industrial IT, Technische Hochschule Ostwestfalen-Lippe (TH-OWL)
    index: 1
    
-date: 19 June 2020
+date: 2 July 2020
 bibliography: docs/source/references.bib
 ---
 
