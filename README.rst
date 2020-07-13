@@ -8,7 +8,7 @@
     * - code
       - |black| |mypy| |lint|
     * - tests
-      - |linux_macos| |windows| |coverage|
+      - |tests| |coverage|
     * - docs
       - |docs| |rtd|
 
@@ -72,15 +72,10 @@ documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/lat
     :target: https://github.com/pmeier/pystiche/actions?query=workflow%3Alint+branch%3Amaster
     :alt: Lint status via GitHub Actions
 
-.. |linux_macos|
-  image:: https://img.shields.io/travis/com/pmeier/pystiche?label=Linux%20%2F%20macOS&logo=Travis
-    :target: https://travis-ci.com/pmeier/pystiche
-    :alt: Test status on Linux and macOS via Travis CI
-
-.. |windows|
-  image:: https://img.shields.io/appveyor/build/pmeier/pystiche?label=Windows&logo=AppVeyor
-    :target: https://ci.appveyor.com/project/pmeier/pystiche
-    :alt: Test status on Windows via AppVeyor
+.. |tests|
+  image:: https://github.com/pmeier/pystiche/workflows/tests/badge.svg
+    :target: https://github.com/pmeier/pystiche/actions?query=workflow%3Atests+branch%3Amaster
+    :alt: Test status via GitHub Actions
 
 .. |coverage|
   image:: https://codecov.io/gh/pmeier/pystiche/branch/master/graph/badge.svg
