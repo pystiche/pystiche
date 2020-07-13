@@ -38,7 +38,7 @@ multi_line_output = 3
 force_grid_wrap = 0
 include_trailing_comma = true
 
-known_standard_library = ["setuptools", "typing_extensions"]
+known_standard_library = ["importlib-metadata", "typing_extensions"]
 known_third_party = [
   "dill",
   "matplotlib",

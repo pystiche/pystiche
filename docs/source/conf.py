@@ -20,6 +20,7 @@ from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 import torch
 
 import pystiche
+from importlib_metadata import metadata as extract_metadata
 from pystiche.misc import download_file
 
 # -- Run config ------------------------------------------------------------------------
@@ -59,10 +60,13 @@ PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), "..", ".."))
 
 # -- Project information ---------------------------------------------------------------
 
-project = pystiche.__name__
-author = pystiche.__author__
-copyright = f"2019 - {datetime.now().year}, {author}"
-version = release = pystiche.__version__
+metadata = extract_metadata("pystiche_papers")
+
+project = metadata["name"]
+author = metadata["author"]
+copyright = f"{datetime.now().year}, {author}"
+release = metadata["version"]
+version = ".".join(release.split(".")[:2])
 
 
 # -- General configuration -------------------------------------------------------------
