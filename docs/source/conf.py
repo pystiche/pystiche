@@ -60,7 +60,7 @@ PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), "..", ".."))
 
 # -- Project information ---------------------------------------------------------------
 
-metadata = extract_metadata("pystiche_papers")
+metadata = extract_metadata("pystiche")
 
 project = metadata["name"]
 author = metadata["author"]
