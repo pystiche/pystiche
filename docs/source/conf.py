@@ -111,11 +111,8 @@ download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY") or run_by_ci
 
 if download_gallery:
     base = "https://download.pystiche.org/galleries/"
-    file = (
-        "master.zip"
-        if pystiche.__is_dev_version__
-        else f"v{pystiche.__base_version__}.zip"
-    )
+    is_dev = "+" in version
+    file = "master.zip" if is_dev else f"v{version}.zip"
 
     url = urljoin(base, file)
     print(f"Downloading pre-built galleries from {url}")
