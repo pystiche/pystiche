@@ -1,0 +1,62 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+    paths:
+      - "pystiche/**"
+      - "tests/**"
+      - "setup.py"
+      - "pytest.ini"
+      - ".coveragerc"
+      - "codecov.yml"
+      - "requirements-test.txt"
+      - ".github/workflows/tests.yml"
+
+jobs:
+  run:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: [3.6, 3.7, 3.8]
+      fail-fast: true
+
+    runs-on: ${{ matrix.os }}
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: ${{ matrix.python }}
+
+    steps:
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Upgrade pip and setuptools
+        run: pip install --upgrade pip setuptools
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install test requirements
+        run: pip install -r requirements-test.txt
+
+      - name: Install torch for CPU
+        run: |
+          REQUIREMENTS_FILE=github_actions_torch_requirements.txt
+          python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
+          pip install -r $REQUIREMENTS_FILE
+
+      - name: Install pystiche
+        run: pip install .
+
+      - name: Run tests
+        run: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v1.0.7
+        with:
+          env_vars: OS,PYTHON
