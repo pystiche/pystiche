@@ -1,0 +1,43 @@
+name: publishable
+
+on:
+  push:
+    branches:
+      - master
+      - releases/*
+
+  pull_request:
+    paths:
+      - "pystiche/**"
+      - "CONTRIBUTING.rst"
+      - ".github/workflows/publishable.yml"
+      - ".gitignore"
+      - "LICENSE"
+      - "MANIFEST.in"
+      - "pyproject.toml"
+      - "requirements-dev.txt"
+      - "README.rst"
+      - "setup.cfg"
+      - "tox.ini"
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Upgrade and install additional system packages
+        run: pip install --upgrade pip setuptools virtualenv wheel
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dev requirements
+        run: pip install -r requirements-dev.txt
+
+      - name: Run unit tests
+        run: tox -e publishable
