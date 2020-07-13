@@ -12,4 +12,3 @@
   :members: generate_file, download, read
 .. autoclass:: DownloadableImageCollection
   :members: download, read
-
