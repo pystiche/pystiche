@@ -11,53 +11,31 @@ on:
       - "pyproject.toml"
       - ".flake8"
       - "mypy.ini"
-      - "requirements-lint.txt"
+      - "tox.ini"
+      - "requirements-dev.txt"
       - ".github/workflows/lint.yml"
 
 jobs:
-  code_format:
+  check:
     runs-on: ubuntu-latest
 
     steps:
       - name: Set up python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: "3.6"
+
+      - name: Upgrade and install additional system packages
+        run: pip install --upgrade pip setuptools wheel
 
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install lint requirements
-        run: pip install -r requirements-lint.txt
+      - name: Install dev requirements
+        run: pip install -r requirements-dev.txt
 
-      - name: Check with isort
-        run: isort --settings-path=pyproject.toml --check-only --jobs=$(nproc) --recursive .
+      - name: Create environment
+        run: tox -e lint --notest
 
-      - name: Check with black
-        run: black --config=pyproject.toml --check .
-
-      - name: Check with flake8
-        run: flake8 --config=.flake8 --jobs=$(nproc) .
-
-  static_typing:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Set up python
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.6"
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Install lint requirements
-        run: pip install -r requirements-lint.txt
-
-      - name: Install pystiche
-        run: |
-          pip install light-the-torch
-          ltt --full-install .
-
-      - name: Check with mypy
-        run: mypy --config-file=mypy.ini
+      - name: Run lint
+        run: tox -e lint

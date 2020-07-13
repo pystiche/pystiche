@@ -10,7 +10,8 @@ on:
       - "pystiche/**"
       - "docs/**"
       - "examples/**"
-      - "requirements-doc.txt"
+      - "tox.ini"
+      - "requirements-dev.txt"
       - ".github/workflows/docs.yml"
 
 jobs:
@@ -19,7 +20,7 @@ jobs:
 
     steps:
       - name: Set up python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: "3.6"
 
@@ -28,30 +29,23 @@ jobs:
           sudo apt update -y
           sudo apt install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
 
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Upgrade and install additional system packages
+        run: pip install --upgrade pip setuptools wheel
 
-      - name: Install doc requirements
-        run: pip install -r requirements-doc.txt
+      - name: Install dev requirements
+        run: pip install -r requirements-dev.txt
 
-      - name: Install pystiche
-        run: |
-          pip install light-the-torch
-          ltt --full-install .
+      - name: Create environment
+        run: tox -e docs --notest
 
-      - name: Build html
-        working-directory: docs
-        run: make html
+      - name: Build documentation
+        run: tox -e docs
 
       - name: Upload html build
         uses: actions/upload-artifact@v2
         with:
           name: html
           path: docs/build/html
-
-      - name: Build latex
-        working-directory: docs
-        run: make latexpdf
 
       - name: Upload latex build
         uses: actions/upload-artifact@v2
