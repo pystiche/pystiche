@@ -65,7 +65,7 @@ project = metadata["name"]
 author = metadata["author"]
 copyright = f"{datetime.now().year}, {author}"
 release = metadata["version"]
-version = ".".join(release.split(".")[:2])
+version = release.split("+")[0]
 
 
 # -- General configuration -------------------------------------------------------------
@@ -110,7 +110,7 @@ download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY") or run_by_ci
 
 if download_gallery:
     base = "https://download.pystiche.org/galleries/"
-    is_dev = "+" in version
+    is_dev = version != release
     file = "master.zip" if is_dev else f"v{version}.zip"
 
     url = urljoin(base, file)
