@@ -14,6 +14,8 @@ on:
       - "tox.ini"
       - "requirements-dev.txt"
       - ".github/workflows/lint.yml"
+      - "setup.cfg"
+      - "pyproject.toml"
 
 jobs:
   check:

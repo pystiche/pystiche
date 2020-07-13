@@ -9,7 +9,8 @@ on:
     paths:
       - "pystiche/**"
       - "tests/**"
-      - "setup.py"
+      - "setup.cfg"
+      - "pyproject.toml"
       - "pytest.ini"
       - ".coveragerc"
       - "codecov.yml"

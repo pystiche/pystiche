@@ -13,6 +13,8 @@ on:
       - "tox.ini"
       - "requirements-dev.txt"
       - ".github/workflows/docs.yml"
+      - "setup.cfg"
+      - "pyproject.toml"
 
 jobs:
   build:
