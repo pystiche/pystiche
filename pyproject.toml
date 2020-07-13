@@ -6,6 +6,7 @@ skip = [
   ".git",
   ".github",
   ".venv",
+  ".tox",
   ".mypy_cache",
   ".pytest_cache",
   "__pycache__",
@@ -48,6 +49,7 @@ exclude = '''
     \.git
   | \.github
   | \.venv
+  | \.tox
   | \.mypy_cache
   | \.pytest_cache
   | __pycache__

@@ -1,5 +1,0 @@
-isort < 5
-black
-flake8 >= 3.8
-mypy
-git+https://github.com/numpy/numpy-stubs

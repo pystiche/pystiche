@@ -1,6 +1,0 @@
-pytest
-pyimagetest
-pillow_affine
-dill
-pytest-subtests
-coverage

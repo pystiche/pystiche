@@ -13,7 +13,8 @@ on:
       - "pytest.ini"
       - ".coveragerc"
       - "codecov.yml"
-      - "requirements-test.txt"
+      - "tox.ini"
+      - "requirements-dev.txt"
       - ".github/workflows/tests.yml"
 
 jobs:
@@ -35,22 +36,20 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Upgrade pip and setuptools
-        run: pip install --upgrade pip setuptools
+      - name: Upgrade and install additional system packages
+        run: pip install --upgrade pip virtualenv setuptools wheel
 
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install test requirements
-        run: pip install -r requirements-test.txt
+      - name: Install dev requirements
+        run: pip install -r requirements-dev.txt
 
-      - name: Install pystiche
-        run: |
-          pip install light-the-torch
-          ltt --full-install .
+      - name: Create environment
+        run: tox -e py --notest
 
       - name: Run tests
-        run: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
+        run: tox -e py -- --skip-large-download
 
       - name: Upload coverage
         uses: codecov/codecov-action@v1.0.7
