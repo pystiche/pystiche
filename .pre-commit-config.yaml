@@ -1,19 +1,20 @@
 repos:
   - repo: https://github.com/timothycrosley/isort
-    rev: 4.3.21
+    rev: "4.3.21"
     hooks:
       - id: isort
-        args: [--filter-files, --check-only]
+        args: [--settings-path=pyproject.toml, --filter-files]
         additional_dependencies: [toml]
   - repo: https://github.com/psf/black
     rev: stable
     hooks:
       - id: black
-        args: [--check]
-        language_version: python3.6
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.7.9
+        args: [--config=pyproject.toml]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.1.0
     hooks:
-      - id: flake8
-
-fail_fast: true
+      - id: check-added-large-files
+      - id: check-docstring-first
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
