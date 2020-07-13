@@ -32,6 +32,9 @@ jobs:
       - name: Upgrade and install additional system packages
         run: pip install --upgrade pip setuptools virtualenv wheel
 
+      - name: ls
+        run: ls -lA
+
       - name: Install dev requirements
         run: pip install -r requirements-dev.txt
 
