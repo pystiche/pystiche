@@ -44,14 +44,10 @@ jobs:
       - name: Install test requirements
         run: pip install -r requirements-test.txt
 
-      - name: Install torch for CPU
-        run: |
-          REQUIREMENTS_FILE=github_actions_torch_requirements.txt
-          python gen_torch_cpu_requirements.py --file $REQUIREMENTS_FILE
-          pip install -r $REQUIREMENTS_FILE
-
       - name: Install pystiche
-        run: pip install .
+        run: |
+          pip install light-the-torch
+          ltt --full-install .
 
       - name: Run tests
         run: coverage run --rcfile=.coveragerc -m pytest -c pytest.ini --skip-large-download
