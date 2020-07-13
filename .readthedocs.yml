@@ -11,4 +11,3 @@ python:
     - requirements: docs/rtd_torch_requirements.txt
     - method: pip
       path: .
-    - requirements: requirements-doc.txt
