@@ -1,0 +1,17 @@
+recursive-exclude .github *
+recursive-exclude docs *
+recursive-exclude examples *
+recursive-exclude tests *
+
+exclude .coveragerc
+exclude .flake8
+exclude .gitignore
+exclude .pre-commit-config.yaml
+exclude .readthedocs.yml
+exclude codecov.yml
+exclude hubconf.py
+exclude MANIFEST.in
+exclude mypy.ini
+exclude pytest.ini
+exclude requirements-dev.txt
+exclude tox.ini
