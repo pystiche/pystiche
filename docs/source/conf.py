@@ -12,6 +12,7 @@ import shutil
 import warnings
 from datetime import datetime
 from distutils.util import strtobool
+from importlib_metadata import metadata as extract_metadata
 from os import path
 from urllib.parse import urljoin
 
@@ -19,8 +20,6 @@ from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 
 import torch
 
-import pystiche
-from importlib_metadata import metadata as extract_metadata
 from pystiche.misc import download_file
 
 # -- Run config ------------------------------------------------------------------------
