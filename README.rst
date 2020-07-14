@@ -4,7 +4,7 @@
     :stub-columns: 1
 
     * - package
-      - |license| |status|
+      - |license| |status| |doi|
     * - code
       - |black| |mypy| |lint|
     * - tests
@@ -56,6 +56,10 @@ documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/lat
   image:: https://www.repostatus.org/badges/latest/active.svg
     :target: https://www.repostatus.org/#active
     :alt: Project Status: Active
+
+.. |doi|
+  image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3929004.svg
+   :target: https://doi.org/10.5281/zenodo.3929004
 
 .. |black|
   image:: https://img.shields.io/badge/code%20style-black-000000.svg
