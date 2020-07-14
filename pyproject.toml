@@ -1,3 +1,19 @@
+[build-system]
+requires = [
+  "setuptools>=42",
+  "setuptools_scm[toml]>=3.4",
+  "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+# See link below for available options
+# https://github.com/pypa/setuptools_scm/#configuration-parameters
+
+write_to = "pystiche/_version.py"
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-timestamp"
+
 [tool.isort]
 # See link below for available options
 # https://github.com/timothycrosley/isort/wiki/isort-Settings#full-reference-of-isort-settings
@@ -22,7 +38,7 @@ multi_line_output = 3
 force_grid_wrap = 0
 include_trailing_comma = true
 
-known_standard_library = ["setuptools", "typing_extensions"]
+known_standard_library = ["importlib_metadata", "typing_extensions"]
 known_third_party = [
   "dill",
   "matplotlib",

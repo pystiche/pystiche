@@ -13,6 +13,8 @@ on:
       - "tox.ini"
       - "requirements-dev.txt"
       - ".github/workflows/docs.yml"
+      - "setup.cfg"
+      - "pyproject.toml"
 
 jobs:
   build:
@@ -34,6 +36,8 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Install dev requirements
         run: pip install -r requirements-dev.txt

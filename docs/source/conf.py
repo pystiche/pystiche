@@ -12,6 +12,7 @@ import shutil
 import warnings
 from datetime import datetime
 from distutils.util import strtobool
+from importlib_metadata import metadata as extract_metadata
 from os import path
 from urllib.parse import urljoin
 
@@ -19,7 +20,6 @@ from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 
 import torch
 
-import pystiche
 from pystiche.misc import download_file
 
 # -- Run config ------------------------------------------------------------------------
@@ -59,10 +59,14 @@ PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), "..", ".."))
 
 # -- Project information ---------------------------------------------------------------
 
-project = pystiche.__name__
-author = pystiche.__author__
-copyright = f"2019 - {datetime.now().year}, {author}"
-version = release = pystiche.__version__
+metadata = extract_metadata("pystiche")
+
+project = metadata["name"]
+author = metadata["author"]
+copyright = f"{datetime.now().year}, {author}"
+release = metadata["version"]
+canonical_version = release.split("+")[0]
+version = ".".join(canonical_version.split(".")[:3])
 
 
 # -- General configuration -------------------------------------------------------------
@@ -107,11 +111,8 @@ download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY") or run_by_ci
 
 if download_gallery:
     base = "https://download.pystiche.org/galleries/"
-    file = (
-        "master.zip"
-        if pystiche.__is_dev_version__
-        else f"v{pystiche.__base_version__}.zip"
-    )
+    is_dev = version != release
+    file = "master.zip" if is_dev else f"v{version}.zip"
 
     url = urljoin(base, file)
     print(f"Downloading pre-built galleries from {url}")
