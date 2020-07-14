@@ -65,7 +65,8 @@ project = metadata["name"]
 author = metadata["author"]
 copyright = f"{datetime.now().year}, {author}"
 release = metadata["version"]
-version = release.split("+")[0]
+canonical_version = release.split("+")[0]
+version = ".".join(canonical_version.split(".")[:3])
 
 
 # -- General configuration -------------------------------------------------------------
