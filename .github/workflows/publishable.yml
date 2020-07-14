@@ -41,5 +41,8 @@ jobs:
       - name: Install dev requirements
         run: pip install -r requirements-dev.txt
 
-      - name: Run unit tests
+      - name: Create environment
+        run: tox -e publishable --notest
+
+      - name: Test if publishable
         run: tox -e publishable
