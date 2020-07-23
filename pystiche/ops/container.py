@@ -119,7 +119,7 @@ class OperatorContainer(Operator):
         immediate :class:`~pystiche.ops.ComparisonOperator` children.
 
         Args:
-            guide: Input guide of shape :math:`1 \times 1 \times H \times W`.
+            guide: Target guide of shape :math:`1 \times 1 \times H \times W`.
             recalc_repr: If ``True``, recalculates :meth:`.target_enc_to_repr`.
                 Defaults to ``True``.
         """
