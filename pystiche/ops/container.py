@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Any, Callable, Dict, Sequence, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Sequence, Tuple, Union, cast
 
 import torch
 from torch import nn
@@ -43,7 +43,7 @@ class OperatorContainer(Operator):
     def _get_image_or_guide(
         self, attr: str, comparison_only: bool = False
     ) -> torch.Tensor:
-        images_or_guides = []
+        images_or_guides: List[torch.Tensor] = []
         for op in self.operators():
             if comparison_only and not isinstance(op, ComparisonOperator):
                 continue
