@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Callable, Dict, Sequence, Tuple, Union, cast
+from typing import Any, Callable, Dict, Sequence, Tuple, Union, cast
 
 import torch
 from torch import nn
@@ -39,6 +39,66 @@ class OperatorContainer(Operator):
         return pystiche.LossDict(
             [(name, op(input_image)) for name, op in self.named_children()]
         )
+
+    def _get_image_or_guide(
+        self, attr: str, comparison_only: bool = False
+    ) -> torch.Tensor:
+        images_or_guides = []
+        for op in self.operators():
+            if comparison_only and not isinstance(op, ComparisonOperator):
+                continue
+
+            try:
+                images_or_guides.append(getattr(op, attr))
+            except AttributeError:
+                pass
+
+        if not images_or_guides:
+            raise RuntimeError(f"No immediate children has a {attr}.")
+
+        image_or_guide = images_or_guides[0]
+        key = pystiche.TensorKey(image_or_guide)
+
+        if not all(key == other for other in images_or_guides[1:]):
+            raise RuntimeError(f"The immediate children have non-matching {attr}")
+
+        return image_or_guide
+
+    def get_target_guide(self) -> torch.Tensor:
+        r"""Extracts the target guide from the immediate children
+
+        Returns:
+            guide: Target guide of shape :math:`1 \times 1 \times H \times W`.
+
+        Raises:
+            RuntimeError: If no immediate children has a target guide or the the target
+                guides do not match each other
+        """
+        return self._get_image_or_guide("target_guide", comparison_only=True)
+
+    def get_target_image(self) -> torch.Tensor:
+        r"""Extracts the target image from the immediate children
+
+        Returns:
+            image: Target image of shape :math:`1 \times 1 \times H \times W`.
+
+        Raises:
+            RuntimeError: If no immediate children has a target image or the the target
+                images do not match each other
+        """
+        return self._get_image_or_guide("target_image", comparison_only=True)
+
+    def get_input_guide(self) -> torch.Tensor:
+        r"""Extracts the input guide from the immediate children
+
+        Returns:
+            guide: Input guide of shape :math:`1 \times 1 \times H \times W`.
+
+        Raises:
+            RuntimeError: If no immediate children has a input guide or the the input
+                guides do not match each other
+        """
+        return self._get_image_or_guide("input_guide")
 
     def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
         r"""Invoke :meth:`~pystiche.ops.ComparisonOperator.set_target_guide` on all
