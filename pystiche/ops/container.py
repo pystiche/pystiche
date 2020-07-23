@@ -100,6 +100,20 @@ class OperatorContainer(Operator):
         """
         return self._get_image_or_guide("input_guide")
 
+    def _set_image_or_guide(
+        self,
+        image_or_guide: torch.Tensor,
+        attr: str,
+        comparison_only: bool = False,
+        **kwargs: Any,
+    ) -> None:
+        for op in self.operators():
+            if comparison_only and not isinstance(op, ComparisonOperator):
+                continue
+
+            setter = getattr(op, f"set_{attr}")
+            setter(image_or_guide, **kwargs)
+
     def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
         r"""Invoke :meth:`~pystiche.ops.ComparisonOperator.set_target_guide` on all
         immediate :class:`~pystiche.ops.ComparisonOperator` children.
@@ -109,9 +123,9 @@ class OperatorContainer(Operator):
             recalc_repr: If ``True``, recalculates :meth:`.target_enc_to_repr`.
                 Defaults to ``True``.
         """
-        for op in self.operators():
-            if isinstance(op, ComparisonOperator):
-                op.set_target_guide(guide, recalc_repr=recalc_repr)
+        self._set_image_or_guide(
+            guide, "target_guide", comparison_only=True, recalc_repr=recalc_repr
+        )
 
     def set_target_image(self, image: torch.Tensor) -> None:
         r"""Invoke :meth:`~pystiche.ops.ComparisonOperator.set_target_image` on all
@@ -120,9 +134,7 @@ class OperatorContainer(Operator):
         Args:
             image: Target image of shape :math:`B \times C \times H \times W`.
         """
-        for op in self.operators():
-            if isinstance(op, ComparisonOperator):
-                op.set_target_image(image)
+        self._set_image_or_guide(image, "target_image", comparison_only=True)
 
     def set_input_guide(self, guide: torch.Tensor) -> None:
         r"""Invoke :meth:`~pystiche.ops.Operator.set_input_guide` on all immediate
@@ -131,8 +143,7 @@ class OperatorContainer(Operator):
         Args:
             guide: Input guide of shape :math:`1 \times 1 \times H \times W`.
         """
-        for op in self.operators():
-            op.set_input_guide(guide)
+        self._set_image_or_guide(guide, "input_guide")
 
     _modules: Dict[str, nn.Module]
 
