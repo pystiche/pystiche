@@ -70,6 +70,9 @@ Container
 
 .. autoclass:: OperatorContainer
   :members:
+    get_target_guide,
+    get_target_image,
+    get_input_guide,
     set_target_guide,
     set_target_image,
     set_input_guide
