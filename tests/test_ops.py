@@ -219,6 +219,74 @@ class TestContainer(PysticheTestCase):
         desireds = named_ops
         self.assertNamedChildrenEqual(actuals, desireds)
 
+    def test_OperatorContainer_get_image_or_guide(self):
+        class RegularizationTestOperator(ops.PixelRegularizationOperator):
+            def input_image_to_repr(self, image):
+                pass
+
+            def calculate_score(self, input_repr):
+                pass
+
+        class ComparisonTestOperator(ops.PixelComparisonOperator):
+            def target_image_to_repr(self, image):
+                return image, None
+
+            def input_image_to_repr(self, image, ctx):
+                pass
+
+            def calculate_score(self, input_repr, target_repr, ctx):
+                pass
+
+        def get_container():
+            return ops.OperatorContainer(
+                (
+                    ("regularization", RegularizationTestOperator()),
+                    ("comparison", ComparisonTestOperator()),
+                )
+            )
+
+        torch.manual_seed(0)
+        image_or_guide = torch.rand(1, 3, 128, 128)
+
+        with self.subTest("no image or guide"):
+            container = get_container()
+
+            with self.assertRaises(RuntimeError):
+                container.get_input_guide()
+
+        with self.subTest("mismatching images or guides"):
+            container = get_container()
+            container.regularization.set_input_guide(image_or_guide)
+            container.comparison.set_input_guide(-image_or_guide)
+
+            with self.assertRaises(RuntimeError):
+                container.get_input_guide()
+
+        with self.subTest("get_target_guide"):
+            container = get_container()
+            container.comparison.set_target_guide(image_or_guide)
+
+            actual = container.get_target_guide()
+            desired = image_or_guide
+            self.assertTensorAlmostEqual(actual, desired)
+
+        with self.subTest("get_target_image"):
+            container = get_container()
+            container.comparison.set_target_image(image_or_guide)
+
+            actual = container.get_target_image()
+            desired = image_or_guide
+            self.assertTensorAlmostEqual(actual, desired)
+
+        with self.subTest("get_input_guide"):
+            container = get_container()
+            container.regularization.set_input_guide(image_or_guide)
+            container.comparison.set_input_guide(image_or_guide)
+
+            actual = container.get_input_guide()
+            desired = image_or_guide
+            self.assertTensorAlmostEqual(actual, desired)
+
     def test_OperatorContainer_set_image_or_guide(self):
         class RegularizationTestOperator(ops.PixelRegularizationOperator):
             def input_image_to_repr(self, image):
