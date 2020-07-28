@@ -21,7 +21,7 @@ from .log import (
 )
 
 
-def default_image_optimizer(input_image: torch.Tensor) -> optim.LBFGS:  # type: ignore[name-defined]
+def default_image_optimizer(input_image: torch.Tensor) -> optim.LBFGS:
     r"""
     Args:
         input_image: Image to be optimized.
@@ -30,7 +30,7 @@ def default_image_optimizer(input_image: torch.Tensor) -> optim.LBFGS:  # type: 
         :class:`torch.optim.LBFGS` optimizer with a learning rate of ``1.0``. The
         pixels of ``input_image`` are set as optimization parameters.
     """
-    return optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)  # type: ignore[attr-defined]
+    return optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
 
 
 def default_image_optim_loop(

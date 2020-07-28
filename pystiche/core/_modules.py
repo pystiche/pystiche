@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, Optional, Sequence, Tuple
+from typing import Dict, Iterable, Optional, Sequence, Tuple, cast
 
 import torch
 from torch import nn
@@ -58,7 +58,7 @@ class Module(nn.Module, ComplexObject):
         Returns:
             Native torch representation.
         """
-        return nn.Module.__repr__(self)
+        return cast(str, nn.Module.__repr__(self))
 
     def extra_repr(self) -> str:
         return ", ".join([f"{key}={value}" for key, value in self.properties().items()])
