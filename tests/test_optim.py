@@ -33,7 +33,10 @@ class TestLog(PysticheTestCase):
 
             if sys.platform.startswith("win"):
                 for handler in logger.handlers:
-                    if isinstance(handler, logging.FileHandler):
+                    if (
+                        isinstance(handler, logging.FileHandler)
+                        and handler.baseFilename == log_file
+                    ):
                         handler.stream.close()
 
     def test_default_image_optim_log_fn_loss_dict_smoke(self):
