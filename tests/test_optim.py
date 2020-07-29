@@ -31,11 +31,6 @@ class TestLog(PysticheTestCase):
             self.assertEqual(len(lines), 1)
             self.assertTrue(lines[0].strip().endswith(msg))
 
-            if sys.platform.startswith("win"):
-                for handler in logger.handlers:
-                    if isinstance(handler, logging.FileHandler):
-                        handler.stream.close()
-
     def test_default_image_optim_log_fn_loss_dict_smoke(self):
         class MockOptimLogger:
             def __init__(self):
