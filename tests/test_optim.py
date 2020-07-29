@@ -436,6 +436,7 @@ class TestOptim(PysticheTestCase):
             self.assertTensorAlmostEqual(actual, desired)
 
     def make_torch_ge_1_6_compatible(self, image_loader, criterion):
+        # See https://github.com/pmeier/pystiche/pull/348 for a discussion of this
         image_loader.generator = None
 
         for module in criterion.modules():
