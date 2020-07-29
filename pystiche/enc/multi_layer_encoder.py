@@ -33,7 +33,7 @@ class MultiLayerEncoder(pystiche.Module):
         self._storage: Dict[Tuple[str, pystiche.TensorKey], torch.Tensor] = dict()
 
         # TODO: remove this?
-        self.requires_grad_(False)  # type: ignore[operator]
+        self.requires_grad_(False)
         self.eval()
 
     def children_names(self) -> Iterator[str]:

@@ -169,7 +169,7 @@ def _calculate_full_bounding_box_size(vertices: torch.Tensor) -> Tuple[int, int]
     # values field is returned.
     # https://pytorch.org/docs/stable/torch.html#torch.max
     # This is not reflected in the type hints.
-    coords = cast(torch.Tensor, torch.max(torch.abs(vertices), 1).values)  # type: ignore[attr-defined]
+    coords = torch.max(torch.abs(vertices), 1).values
     return cast(
         Tuple[int, int],
         tuple(reversed(torch.ceil(2.0 * coords).to(torch.int).tolist())),

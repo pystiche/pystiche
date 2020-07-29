@@ -435,16 +435,27 @@ class TestOptim(PysticheTestCase):
         for actual, desired in zip(actuals, desireds):
             self.assertTensorAlmostEqual(actual, desired)
 
+    def make_torch_ge_1_6_compatible(self, image_loader, criterion):
+        # See https://github.com/pmeier/pystiche/pull/348 for a discussion of this
+        image_loader.generator = None
+
+        for module in criterion.modules():
+            module._non_persistent_buffers_set = set()
+
     @skip_if_py38
     def test_default_transformer_optim_loop(self):
         asset = self.load_asset(path.join("optim", "default_transformer_optim_loop"))
 
+        image_loader = asset.input.image_loader
+        criterion = asset.input.criterion
+        self.make_torch_ge_1_6_compatible(image_loader, criterion)
+
         transformer = asset.input.transformer
         optimizer = asset.params.get_optimizer(transformer)
         transformer = optim.default_transformer_optim_loop(
-            asset.input.image_loader,
+            image_loader,
             transformer,
-            asset.input.criterion,
+            criterion,
             asset.input.criterion_update_fn,
             optimizer=optimizer,
             quiet=True,
@@ -459,6 +470,9 @@ class TestOptim(PysticheTestCase):
         asset = self.load_asset(path.join("optim", "default_transformer_optim_loop"))
 
         image_loader = asset.input.image_loader
+        criterion = asset.input.criterion
+        self.make_torch_ge_1_6_compatible(image_loader, criterion)
+
         optim_logger = optim.OptimLogger()
         log_fn = optim.default_transformer_optim_log_fn(
             optim_logger, len(image_loader), log_freq=1
@@ -468,7 +482,7 @@ class TestOptim(PysticheTestCase):
             optim.default_transformer_optim_loop(
                 image_loader,
                 asset.input.transformer,
-                asset.input.criterion,
+                criterion,
                 asset.input.criterion_update_fn,
                 logger=optim_logger,
                 log_fn=log_fn,
@@ -480,13 +494,17 @@ class TestOptim(PysticheTestCase):
             path.join("optim", "default_transformer_epoch_optim_loop")
         )
 
+        image_loader = asset.input.image_loader
+        criterion = asset.input.criterion
+        self.make_torch_ge_1_6_compatible(image_loader, criterion)
+
         transformer = asset.input.transformer
         optimizer = asset.params.get_optimizer(transformer)
         lr_scheduler = asset.params.get_lr_scheduler(optimizer)
         transformer = optim.default_transformer_epoch_optim_loop(
-            asset.input.image_loader,
+            image_loader,
             transformer,
-            asset.input.criterion,
+            criterion,
             asset.input.criterion_update_fn,
             asset.input.epochs,
             optimizer=optimizer,
@@ -505,6 +523,9 @@ class TestOptim(PysticheTestCase):
         )
 
         image_loader = asset.input.image_loader
+        criterion = asset.input.criterion
+        self.make_torch_ge_1_6_compatible(image_loader, criterion)
+
         log_freq = len(image_loader) + 1
         optim_logger = optim.OptimLogger()
         log_fn = optim.default_transformer_optim_log_fn(
@@ -513,9 +534,9 @@ class TestOptim(PysticheTestCase):
 
         with self.assertLogs(optim_logger.logger, "INFO"):
             optim.default_transformer_epoch_optim_loop(
-                asset.input.image_loader,
+                image_loader,
                 asset.input.transformer,
-                asset.input.criterion,
+                criterion,
                 asset.input.criterion_update_fn,
                 asset.input.epochs,
                 logger=optim_logger,
