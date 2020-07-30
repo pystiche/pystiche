@@ -40,8 +40,8 @@ jobs:
 
       - name: Increase memory
         run: |
-          echo "main_memory = 500000000" | sudo tee /usr/share/texlive/texmf.cnf
-          nl /usr/share/texlive/texmf.cnf
+          sudo sed -i "s/main_memory = \([0-9]\+\).*/main_memory = \100/" /usr/share/texlive/texmf-dist/web2c/texmf.cnf
+          nl /usr/share/texlive/texmf-dist/web2c/texmf.cnf | grep main_memory
 
 #      - name: Upgrade pip
 #        run: python -m pip install --upgrade pip
