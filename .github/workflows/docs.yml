@@ -43,26 +43,26 @@ jobs:
           echo "main_memory = 500000000" | sudo tee /usr/share/texlive/texmf.cnf
           nl /usr/share/texlive/texmf.cnf
 
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
-
-      - name: Upgrade or install additional system packages
-        run: pip install --upgrade pip setuptools virtualenv wheel
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Install dev requirements
-        run: pip install -r requirements-dev.txt
-
-      - name: Create environment
-        run: tox -e docs --notest
-
-      - name: Build documentation
-        run: tox -e docs
-
+#      - name: Upgrade pip
+#        run: python -m pip install --upgrade pip
+#
+#      - name: Upgrade or install additional system packages
+#        run: pip install --upgrade pip setuptools virtualenv wheel
+#
+#      - name: Checkout repository
+#        uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Install dev requirements
+#        run: pip install -r requirements-dev.txt
+#
+#      - name: Create environment
+#        run: tox -e docs --notest
+#
+#      - name: Build documentation
+#        run: tox -e docs
+#
 #      - name: Upload html build
 #        uses: actions/upload-artifact@v2
 #        with:
