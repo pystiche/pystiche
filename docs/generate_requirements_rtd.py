@@ -30,10 +30,10 @@ def extract_python_version_from_rtd_config(root, file=".readthedocs.yml"):
     return str(data["python"]["version"])
 
 
-def extract_docs_deps_from_tox_config(root, file="tox.ini", testenv="testenv:docs"):
+def extract_docs_deps_from_tox_config(root, file="tox.ini", section="docs-common"):
     config = configparser.ConfigParser()
     config.read(path.join(root, file))
-    return config[testenv]["deps"].strip().split("\n")
+    return config[section]["deps"].strip().split("\n")
 
 
 def find_pytorch_wheel_links(

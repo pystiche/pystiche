@@ -20,7 +20,7 @@ on:
       - ".github/workflows/tests.yml"
 
 jobs:
-  run:
+  unit:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -53,12 +53,12 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Create environment
-        run: tox -e py --notest
+        run: tox --notest
 
       - name: Run tests
-        run: tox -e py -- --skip-large-download
+        run: tox -- --skip-large-download
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v1.0.7
+        uses: codecov/codecov-action@v1.0.12
         with:
           env_vars: OS,PYTHON
