@@ -67,6 +67,6 @@ jobs:
           coverage report
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v1.0.7
+        uses: codecov/codecov-action@v1.0.12
         with:
           env_vars: OS,PYTHON
