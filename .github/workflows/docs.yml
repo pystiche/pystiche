@@ -58,8 +58,8 @@ jobs:
           name: html
           path: docs/build/html
 
-#      - name: Upload latex build
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: latex
-#          path: docs/build/latex/pystiche.pdf
+      - name: Upload latex build
+        uses: actions/upload-artifact@v2
+        with:
+          name: latex
+          path: docs/build/latex/pystiche.pdf
