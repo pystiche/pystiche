@@ -1,9 +1,14 @@
+#See link below for available options
+#https://docs.readthedocs.io/en/stable/config-file/
+
 version: 2
 
 sphinx:
   configuration: docs/source/conf.py
 
-formats: all
+formats:
+  - htmlzip
+  - epub
 
 python:
   version: 3.6
