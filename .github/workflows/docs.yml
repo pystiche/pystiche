@@ -40,7 +40,7 @@ jobs:
 
       - name: Increase memory
         run: |
-          sudo sed -i "s/main_memory = \([0-9]\+\).*/main_memory = \100/" /usr/share/texlive/texmf-dist/web2c/texmf.cnf
+          sudo sed -i "s/main_memory = \([0-9]\+\).*/main_memory = \10/" /usr/share/texlive/texmf-dist/web2c/texmf.cnf
           nl /usr/share/texlive/texmf-dist/web2c/texmf.cnf | grep main_memory
 
       - name: Upgrade pip
