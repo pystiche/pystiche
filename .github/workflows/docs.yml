@@ -38,8 +38,11 @@ jobs:
       - name: Display config
         run: nl /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 
-      - name: Increase memory
-        run: sudo sed -i "s/main_memory = .*/main_memory = 2560000/" /usr/share/texlive/texmf-dist/web2c/texmf.cnf
+      - name: Increase memory everywhere
+        run: |
+          sudo sed -i "s/main_memory = .*/main_memory = 12435455/" /etc/texmf/web2c/texmf.cnf
+          sudo sed -i "s/main_memory = .*/main_memory = 12435455/" /usr/share/texmf/web2c/texmf.cnf
+          sudo sed -i "s/main_memory = .*/main_memory = 12435455/" /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
