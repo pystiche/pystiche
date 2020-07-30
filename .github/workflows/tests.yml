@@ -17,7 +17,7 @@ on:
       - "codecov.yml"
 #      - "tox.ini"
       - "requirements-dev.txt"
-      - ".github/workflows/tests.yml"
+#      - ".github/workflows/tests.yml"
 
 jobs:
   run:

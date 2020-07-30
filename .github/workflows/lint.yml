@@ -14,7 +14,7 @@ on:
       - "mypy.ini"
 #      - "tox.ini"
       - "requirements-dev.txt"
-      - ".github/workflows/lint.yml"
+#      - ".github/workflows/lint.yml"
       - "setup.cfg"
       - "pyproject.toml"
 
