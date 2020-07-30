@@ -58,6 +58,11 @@ jobs:
       - name: Run tests
         run: tox -- --skip-large-download
 
+      - name: Report coverage
+        run: |
+          pip install coverage
+          coverage report
+
       - name: Upload coverage
         uses: codecov/codecov-action@v1.0.7
         with:
