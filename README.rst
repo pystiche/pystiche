@@ -58,8 +58,9 @@ documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/lat
     :alt: Project Status: Active
 
 .. |doi|
-  image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3929004.svg
-   :target: https://doi.org/10.5281/zenodo.3929004
+  image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3965785.svg
+    :target: https://doi.org/10.5281/zenodo.3965785
+    :alt: DOI
 
 .. |black|
   image:: https://img.shields.io/badge/code%20style-black-000000.svg
