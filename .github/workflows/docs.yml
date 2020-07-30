@@ -40,7 +40,7 @@ jobs:
 
       - name: Increase memory
         run: |
-          sudo echo "main_memory = 500000000" > /usr/share/texlive/texmf.cnf
+          echo "main_memory = 500000000" | sudo tee /usr/share/texlive/texmf.cnf
           nl /usr/share/texlive/texmf.cnf
 
 #      - name: Upgrade pip
