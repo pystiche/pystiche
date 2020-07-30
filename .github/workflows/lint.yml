@@ -12,7 +12,7 @@ on:
       - "pyproject.toml"
       - ".flake8"
       - "mypy.ini"
-      - "tox.ini"
+#      - "tox.ini"
       - "requirements-dev.txt"
       - ".github/workflows/lint.yml"
       - "setup.cfg"

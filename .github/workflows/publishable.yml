@@ -18,7 +18,7 @@ on:
       - "requirements-dev.txt"
       - "README.rst"
       - "setup.cfg"
-      - "tox.ini"
+#      - "tox.ini"
 
 jobs:
   pypi:

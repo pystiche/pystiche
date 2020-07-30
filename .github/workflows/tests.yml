@@ -15,7 +15,7 @@ on:
       - "pytest.ini"
       - ".coveragerc"
       - "codecov.yml"
-      - "tox.ini"
+#      - "tox.ini"
       - "requirements-dev.txt"
       - ".github/workflows/tests.yml"
 
