@@ -32,34 +32,37 @@ jobs:
           sudo apt update -y
           sudo apt install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
 
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
+      - name: Check config
+        run: kpsewhich -a texmf.cnf
 
-      - name: Upgrade or install additional system packages
-        run: pip install --upgrade pip setuptools virtualenv wheel
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Install dev requirements
-        run: pip install -r requirements-dev.txt
-
-      - name: Create environment
-        run: tox -e docs --notest
-
-      - name: Build documentation
-        run: tox -e docs
-
-      - name: Upload html build
-        uses: actions/upload-artifact@v2
-        with:
-          name: html
-          path: docs/build/html
-
-      - name: Upload latex build
-        uses: actions/upload-artifact@v2
-        with:
-          name: latex
-          path: docs/build/latex/pystiche.pdf
+#      - name: Upgrade pip
+#        run: python -m pip install --upgrade pip
+#
+#      - name: Upgrade or install additional system packages
+#        run: pip install --upgrade pip setuptools virtualenv wheel
+#
+#      - name: Checkout repository
+#        uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Install dev requirements
+#        run: pip install -r requirements-dev.txt
+#
+#      - name: Create environment
+#        run: tox -e docs --notest
+#
+#      - name: Build documentation
+#        run: tox -e docs
+#
+#      - name: Upload html build
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: html
+#          path: docs/build/html
+#
+#      - name: Upload latex build
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: latex
+#          path: docs/build/latex/pystiche.pdf
