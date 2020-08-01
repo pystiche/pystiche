@@ -31,9 +31,9 @@ jobs:
       - name: Build source and binary
         run: python -m pep517.build --source --binary .
 
-#      - name: Upload to PyPI
-#        env:
-#          TWINE_REPOSITORY: pypi
-#          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-#          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-#        run: twine upload dist/*
+      - name: Upload to PyPI
+        env:
+          TWINE_REPOSITORY: pypi
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: twine upload dist/*
