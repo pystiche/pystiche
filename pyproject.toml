@@ -11,7 +11,7 @@ build-backend = "setuptools.build_meta"
 # https://github.com/pypa/setuptools_scm/#configuration-parameters
 
 write_to = "pystiche/_version.py"
-version_scheme = "guess-next-dev"
+version_scheme = "release-branch-semver"
 local_scheme = "node-and-timestamp"
 
 [tool.isort]
