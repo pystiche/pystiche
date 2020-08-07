@@ -3,10 +3,7 @@ version: 2
 sphinx:
   configuration: docs/source/conf.py
 
-formats:
-  - htmlzip
-  - pdf
-  - epub
+formats: all
 
 python:
   version: 3.6
