@@ -16,31 +16,22 @@ local_scheme = "node-and-timestamp"
 
 [tool.isort]
 # See link below for available options
-# https://github.com/timothycrosley/isort/wiki/isort-Settings#full-reference-of-isort-settings
+# https://timothycrosley.github.io/isort/docs/configuration/options/
 
-skip = [
-  ".git",
-  ".github",
-  ".venv",
-  ".tox",
-  ".mypy_cache",
-  ".pytest_cache",
-  "__pycache__",
-  "hubconf.py",
-  "docs/build",
-  "docs/source/galleries",
-  "pystiche/__init__.py",
-  "pystiche/image/__init__.py",
-]
+profile = "black"
 line_length = 88
-use_parentheses = true
-multi_line_output = 3
-force_grid_wrap = 0
-include_trailing_comma = true
 
-known_standard_library = ["importlib_metadata", "typing_extensions"]
+skip_gitignore = true
+float_to_top = true
+color_output = true
+order_by_type = true
+combine_star = true
+filter_files = true
+
+extra_standard_library = ["importlib_metadata"]
 known_third_party = [
   "dill",
+  "light-the-torch",
   "matplotlib",
   "numpy",
   "PIL",
@@ -49,10 +40,17 @@ known_third_party = [
   "pytest",
   "requests",
   "sphinx_gallery",
+  "yaml",
 ]
 known_pytorch = ["torch", "torchvision"]
 known_first_party = ["pystiche"]
+known_local_folder = ["utils"]
 sections= ["FUTURE", "STDLIB", "THIRDPARTY", "PYTORCH", "FIRSTPARTY", "LOCALFOLDER"]
+
+skip = [
+  "pystiche/__init__.py",
+  "pystiche/image/__init__.py",
+]
 
 [tool.black]
 # See link below for available options

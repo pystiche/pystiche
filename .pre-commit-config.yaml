@@ -1,10 +1,9 @@
 repos:
   - repo: https://github.com/timothycrosley/isort
-    rev: "4.3.21"
+    rev: "5.3.2"
     hooks:
       - id: isort
-        args: [--settings-path=pyproject.toml, --filter-files]
-        additional_dependencies: [toml]
+        args: [--settings-path=pyproject.toml]
   - repo: https://github.com/psf/black
     rev: stable
     hooks:
