@@ -6,6 +6,8 @@ from torch import nn
 
 from pystiche import enc
 
+from tests.asserts import assert_named_modules_identical
+
 
 def test_MultiLayerEncoder():
     modules = [(str(idx), nn.Module()) for idx in range(3)]
@@ -61,22 +63,6 @@ def test_MultiLayerEncoder_extract_deepest_layer():
     actual = multi_layer_encoder.extract_deepest_layer(layers)
     desired = layers[-1]
     assert actual == desired
-
-
-def assert_named_modules_identical(actual, desired, equality_sufficient=False):
-    actual = tuple(actual)
-    desired = tuple(desired)
-
-    assert len(actual) == len(desired)
-    for (actual_name, actual_module), (desired_name, desired_module) in zip(
-        actual, desired
-    ):
-        assert actual_name == desired_name
-
-        if equality_sufficient:
-            assert actual_module == desired_module
-        else:
-            assert actual_module is desired_module
 
 
 def test_MultiLayerEncoder_named_children_to():
