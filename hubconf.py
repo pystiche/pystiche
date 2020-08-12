@@ -1,7 +1,8 @@
 dependencies = ["torch", "torchvision"]
 
 import torch
-from torchvision.models import vgg16 as _vgg16, vgg19 as _vgg19
+from torchvision.models import vgg16 as _vgg16
+from torchvision.models import vgg19 as _vgg19
 
 
 def vgg16_caffe(progress=True, **kwargs):
