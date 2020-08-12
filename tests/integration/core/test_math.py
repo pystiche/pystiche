@@ -1,11 +1,13 @@
 from math import sqrt
 
+import pytorch_testing_utils as ptu
+
 import torch
 
 import pystiche
 
 
-def test_nonnegsqrt(self):
+def test_nonnegsqrt():
     vals = (-1.0, 0.0, 1.0, 2.0)
     desireds = (0.0, 0.0, 1.0, sqrt(2.0))
 
@@ -13,11 +15,10 @@ def test_nonnegsqrt(self):
         x = torch.tensor(val, requires_grad=True)
         y = pystiche.nonnegsqrt(x)
 
-        actual = y.item()
-        self.assertAlmostEqual(actual, desired)
+        assert y == ptu.approx(desired)
 
 
-def test_nonnegsqrt_grad(self):
+def test_nonnegsqrt_grad():
     vals = (-1.0, 0.0, 1.0, 2.0)
     desireds = (0.0, 0.0, 1.0 / 2.0, 1.0 / (2.0 * sqrt(2.0)))
 
@@ -26,11 +27,10 @@ def test_nonnegsqrt_grad(self):
         y = pystiche.nonnegsqrt(x)
         y.backward()
 
-        actual = x.grad.item()
-        self.assertAlmostEqual(actual, desired)
+        assert x.grad == ptu.approx(desired)
 
 
-def test_gram_matrix(self):
+def test_gram_matrix():
     size = 100
 
     for dim in (1, 2, 3):
@@ -39,10 +39,10 @@ def test_gram_matrix(self):
 
         actual = y.item()
         desired = float(size ** dim)
-        self.assertAlmostEqual(actual, desired)
+        assert actual == desired
 
 
-def test_gram_matrix_size(self):
+def test_gram_matrix_size():
     batch_size = 1
     num_channels = 3
 
@@ -54,10 +54,10 @@ def test_gram_matrix_size(self):
 
         actual = y.size()
         desired = (batch_size, num_channels, num_channels)
-        self.assertTupleEqual(actual, desired)
+        assert actual == desired
 
 
-def test_gram_matrix_normalize1(self):
+def test_gram_matrix_normalize1():
     num_channels = 3
 
     x = torch.ones((1, num_channels, 128, 128))
@@ -65,10 +65,10 @@ def test_gram_matrix_normalize1(self):
 
     actual = y.flatten()
     desired = torch.ones((num_channels ** 2,))
-    self.assertTensorAlmostEqual(actual, desired)
+    ptu.assert_allclose(actual, desired)
 
 
-def test_gram_matrix_normalize2(self):
+def test_gram_matrix_normalize2():
     torch.manual_seed(0)
     tensor_constructors = (torch.ones, torch.rand, torch.randn)
 
@@ -76,4 +76,4 @@ def test_gram_matrix_normalize2(self):
         x = pystiche.gram_matrix(constructor((1, 3, 128, 128)), normalize=True)
         y = pystiche.gram_matrix(constructor((1, 3, 256, 256)), normalize=True)
 
-        self.assertTensorAlmostEqual(x, y, atol=2e-2)
+        ptu.assert_allclose(x, y, atol=2e-2)

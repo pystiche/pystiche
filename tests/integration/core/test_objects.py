@@ -1,6 +1,9 @@
 import itertools
 from collections import OrderedDict
 
+import pytest
+import pytorch_testing_utils as ptu
+
 import torch
 
 import pystiche
@@ -9,15 +12,15 @@ from pystiche.misc import build_complex_obj_repr
 from tests.utils import skip_if_cuda_not_available
 
 
-def test_ComplexObject_repr_smoke(self):
+def test_ComplexObject_repr_smoke():
     class TestObject(pystiche.ComplexObject):
         pass
 
     test_object = TestObject()
-    self.assertIsInstance(repr(test_object), str)
+    assert isinstance(repr(test_object), str)
 
 
-def test_ComplexObject_repr(self):
+def test_ComplexObject_repr():
     _properties = OrderedDict((("a", 1),))
     extra_properties = OrderedDict((("b", 2),))
     _named_children = (("c", 3),)
@@ -51,10 +54,10 @@ def test_ComplexObject_repr(self):
     desired = build_complex_obj_repr(
         name="TestObject", properties=properties, named_children=named_children
     )
-    self.assertEqual(actual, desired)
+    assert actual == desired
 
 
-def test_LossDict_setitem_Tensor(self):
+def test_LossDict_setitem_Tensor():
     name = "loss"
     loss_dict = pystiche.LossDict()
 
@@ -63,18 +66,18 @@ def test_LossDict_setitem_Tensor(self):
 
     actual = loss_dict[name]
     desired = loss
-    self.assertTensorAlmostEqual(actual, desired)
+    ptu.assert_allclose(actual, desired)
 
 
-def test_LossDict_setitem_non_scalar_Tensor(self):
+def test_LossDict_setitem_non_scalar_Tensor():
     name = "loss"
     loss_dict = pystiche.LossDict()
 
-    with self.assertRaises(TypeError):
+    with pytest.raises(TypeError):
         loss_dict[name] = torch.ones(1)
 
 
-def test_LossDict_setitem_LossDict(self):
+def test_LossDict_setitem_LossDict():
     name = "loss"
     loss_dict = pystiche.LossDict()
     num_sub_losses = 3
@@ -87,18 +90,18 @@ def test_LossDict_setitem_LossDict(self):
     for idx in range(num_sub_losses):
         actual = loss_dict[f"{name}.{idx}"]
         desired = loss[str(idx)]
-        self.assertTensorAlmostEqual(actual, desired)
+        ptu.assert_allclose(actual, desired)
 
 
-def test_LossDict_setitem_other(self):
+def test_LossDict_setitem_other():
     name = "loss"
     loss_dict = pystiche.LossDict()
 
-    with self.assertRaises(TypeError):
+    with pytest.raises(TypeError):
         loss_dict[name] = 1.0
 
 
-def test_LossDict_aggregate_max_depth_gt_0(self):
+def test_LossDict_aggregate_max_depth_gt_0():
     def loss():
         return torch.tensor(1.0)
 
@@ -108,22 +111,22 @@ def test_LossDict_aggregate_max_depth_gt_0(self):
 
     actual = loss_dict.aggregate(1)
     desired = pystiche.LossDict((("0", 3 * loss()), ("1", loss())))
-    self.assertDictEqual(actual, desired)
+    ptu.assert_allclose(actual, desired)
 
     actual = loss_dict.aggregate(2)
     desired = pystiche.LossDict((("0.0", 2 * loss()), ("0.1", loss()), ("1", loss())))
-    self.assertDictEqual(actual, desired)
+    ptu.assert_allclose(actual, desired)
 
     actual = loss_dict.aggregate(3)
     desired = loss_dict
-    self.assertDictEqual(actual, desired)
+    ptu.assert_allclose(actual, desired)
 
     actual = loss_dict.aggregate(4)
     desired = loss_dict
-    self.assertDictEqual(actual, desired)
+    ptu.assert_allclose(actual, desired)
 
 
-def test_LossDict_total(self):
+def test_LossDict_total():
     loss1 = torch.tensor(1.0)
     loss2 = torch.tensor(2.0)
 
@@ -131,10 +134,10 @@ def test_LossDict_total(self):
 
     actual = loss_dict.total()
     desired = loss1 + loss2
-    self.assertTensorAlmostEqual(actual, desired)
+    ptu.assert_allclose(actual, desired)
 
 
-def test_LossDict_backward(self):
+def test_LossDict_backward():
     losses = [
         torch.tensor(val, dtype=torch.float, requires_grad=True) for val in range(3)
     ]
@@ -157,10 +160,10 @@ def test_LossDict_backward(self):
     desireds = extract_grads()
 
     for actual, desired in zip(actuals, desireds):
-        self.assertTensorAlmostEqual(actual, desired)
+        ptu.assert_allclose(actual, desired)
 
 
-def test_LossDict_item(self):
+def test_LossDict_item():
     losses = (1.0, 2.0)
 
     loss_dict = pystiche.LossDict(
@@ -169,15 +172,15 @@ def test_LossDict_item(self):
 
     actual = loss_dict.item()
     desired = sum(losses)
-    self.assertAlmostEqual(actual, desired)
+    assert actual == pytest.approx(desired)
 
 
-def test_LossDict_float(self):
+def test_LossDict_float():
     loss_dict = pystiche.LossDict((("a", torch.tensor(0.0)), ("b", torch.tensor(1.0))))
-    self.assertAlmostEqual(float(loss_dict), loss_dict.item())
+    assert float(loss_dict) == pytest.approx(loss_dict.item())
 
 
-def test_LossDict_mul(self):
+def test_LossDict_mul():
     losses = (2.0, 3.0)
     factor = 4.0
 
@@ -189,65 +192,63 @@ def test_LossDict_mul(self):
     for idx, loss in enumerate(losses):
         actual = float(loss_dict[f"loss{idx}"])
         desired = loss * factor
-        self.assertAlmostEqual(actual, desired)
+        assert actual == ptu.approx(desired)
 
 
-def test_LossDict_repr_smoke(self):
+def test_LossDict_repr_smoke():
     loss_dict = pystiche.LossDict((("a", torch.tensor(0.0)), ("b", torch.tensor(1.0))))
-    self.assertIsInstance(repr(loss_dict), str)
+    assert isinstance(repr(loss_dict), str)
 
 
-def test_TensorKey_eq(self):
+def test_TensorKey_eq():
     x = torch.tensor((0.0, 0.5, 1.0))
     key = pystiche.TensorKey(x)
 
-    self.assertTrue(key == key)
-    self.assertTrue(key == pystiche.TensorKey(x.flip(0)))
+    assert key == key
+    assert key == pystiche.TensorKey(x.flip(0))
 
 
-def test_TensorKey_eq_precision(self):
+def test_TensorKey_eq_precision():
     x = torch.tensor(1.0)
     y = torch.tensor(1.0001)
 
-    self.assertFalse(pystiche.TensorKey(x) == pystiche.TensorKey(y))
-    self.assertTrue(
-        pystiche.TensorKey(x, precision=3) == pystiche.TensorKey(y, precision=3)
-    )
+    assert pystiche.TensorKey(x) != pystiche.TensorKey(y)
+    assert pystiche.TensorKey(x, precision=3) == pystiche.TensorKey(y, precision=3)
 
 
-def test_TensorKey_eq_tensor(self):
+def test_TensorKey_eq_tensor():
     x = torch.tensor((0.0, 0.5, 1.0))
     key = pystiche.TensorKey(x)
 
-    self.assertTrue(key == x)
+    assert key == x
 
 
 @skip_if_cuda_not_available
-def test_TensorKey_eq_device(self):
+def test_TensorKey_eq_device():
     x = torch.tensor((0.0, 0.5, 1.0))
 
     key1 = pystiche.TensorKey(x.cpu())
     key2 = pystiche.TensorKey(x.cuda())
-    self.assertFalse(key1 == key2)
+    assert key1 != key2
 
 
-def test_TensorKey_eq_dtype(self):
+def test_TensorKey_eq_dtype():
     x = torch.tensor((0.0, 0.5, 1.0))
 
     key1 = pystiche.TensorKey(x.float())
     key2 = pystiche.TensorKey(x.double())
-    self.assertFalse(key1 == key2)
+    assert key1 != key2
 
 
-def test_TensorKey_eq_size(self):
+def test_TensorKey_eq_size():
     x = torch.tensor((0.0, 0.5, 1.0))
 
     key1 = pystiche.TensorKey(x)
     key2 = pystiche.TensorKey(x[:-1])
-    self.assertFalse(key1 == key2)
+    assert key1 != key2
 
 
-def test_TensorKey_eq_min(self):
+def test_TensorKey_eq_min():
     x = torch.tensor((0.0, 0.5, 1.0))
 
     # This creates a tensor with given min and the same max and norm values as x
@@ -257,10 +258,10 @@ def test_TensorKey_eq_min(self):
 
     key1 = pystiche.TensorKey(x)
     key2 = pystiche.TensorKey(y)
-    self.assertFalse(key1 == key2)
+    assert key1 != key2
 
 
-def test_TensorKey_eq_max(self):
+def test_TensorKey_eq_max():
     x = torch.tensor((0.0, 0.5, 1.0))
 
     # This creates a tensor with given max and the same min and norm values as x
@@ -270,27 +271,27 @@ def test_TensorKey_eq_max(self):
 
     key1 = pystiche.TensorKey(x)
     key2 = pystiche.TensorKey(y)
-    self.assertFalse(key1 == key2)
+    assert key1 != key2
 
 
-def test_TensorKey_eq_norm(self):
+def test_TensorKey_eq_norm():
     x = torch.tensor((0.0, 0.5, 1.0))
     y = torch.tensor((0.0, 0.6, 1.0))
 
     key1 = pystiche.TensorKey(x)
     key2 = pystiche.TensorKey(y)
-    self.assertFalse(key1 == key2)
+    assert key1 != key2
 
 
-def test_TensorKey_hash_smoke(self):
+def test_TensorKey_hash_smoke():
     x = torch.tensor((0.0, 0.5, 1.0))
     key = pystiche.TensorKey(x)
 
-    self.assertIsInstance(hash(key), int)
+    assert isinstance(hash(key), int)
 
 
-def test_TensorKey_repr_smoke(self):
+def test_TensorKey_repr_smoke():
     x = torch.tensor((0.0, 0.5, 1.0))
     key = pystiche.TensorKey(x)
 
-    self.assertIsInstance(repr(key), str)
+    assert isinstance(repr(key), str)

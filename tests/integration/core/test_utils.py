@@ -1,9 +1,11 @@
+import pytorch_testing_utils as ptu
+
 import torch
 
 import pystiche
 
 
-def test_extract_patchesnd_num_patches(self):
+def test_extract_patchesnd_num_patches():
     batch_size = 2
     size = 64
     patch_size = 3
@@ -24,10 +26,10 @@ def test_extract_patchesnd_num_patches(self):
 
         actual = patches.size()[0]
         desired = batch_size * num_patches_per_dim ** dims
-        self.assertEqual(actual, desired)
+        assert actual == desired
 
 
-def test_extract_patches1d(self):
+def test_extract_patches1d():
     batch_size = 2
     length = 9
     patch_size = 3
@@ -38,12 +40,12 @@ def test_extract_patches1d(self):
 
     actual = patches[0]
     desired = x[0, :, :patch_size]
-    self.assertTensorAlmostEqual(actual, desired)
+    ptu.assert_allclose(actual, desired)
 
     actual = patches[1]
     desired = x[0, :, stride : (stride + patch_size)]
-    self.assertTensorAlmostEqual(actual, desired)
+    ptu.assert_allclose(actual, desired)
 
     actual = patches[-1]
     desired = x[-1, :, -patch_size:]
-    self.assertTensorAlmostEqual(actual, desired)
+    ptu.assert_allclose(actual, desired)

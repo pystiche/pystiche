@@ -38,6 +38,7 @@ known_third_party = [
   "pillow_affine",
   "pyimagetest",
   "pytest",
+  "pytorch_testing_utils",
   "requests",
   "sphinx_gallery",
   "yaml",
