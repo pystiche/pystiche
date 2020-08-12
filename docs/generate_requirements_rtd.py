@@ -2,8 +2,8 @@ import configparser
 from os import path
 
 try:
-    import yaml
     import light_the_torch as ltt
+    import yaml
 
     assert ltt.__version__ >= "0.2"
 except (ImportError, AssertionError):
