@@ -2,6 +2,8 @@ import pytest
 
 import torch
 
+from .fixtures import *
+
 
 class MarkConfig:
     def __init__(
