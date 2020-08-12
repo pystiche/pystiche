@@ -1,4 +1,8 @@
+import functools
+
 import pytest
+
+from torch import nn
 
 from . import assets
 
@@ -16,3 +20,22 @@ def test_image_url():
 @pytest.fixture
 def test_image():
     return assets.read_image("test_image")
+
+
+@pytest.fixture
+def enc_asset_loader():
+    return functools.partial(assets.load_asset, "enc")
+
+
+@pytest.fixture
+def forward_pass_counter():
+    class ForwardPassCounter(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.count = 0
+
+        def forward(self, input):
+            self.count += 1
+            return input
+
+    return ForwardPassCounter()
