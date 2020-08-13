@@ -22,9 +22,14 @@ def test_image():
     return assets.read_image("test_image")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def enc_asset_loader():
     return functools.partial(assets.load_asset, "enc")
+
+
+@pytest.fixture(scope="session")
+def optim_asset_loader():
+    return functools.partial(assets.load_asset, "optim")
 
 
 @pytest.fixture
