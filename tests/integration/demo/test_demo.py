@@ -1,5 +1,4 @@
 import itertools
-import logging
 from os import path
 
 import pytest
@@ -7,6 +6,8 @@ import pytest
 from torchvision.datasets.utils import calculate_md5
 
 from pystiche import demo
+
+from tests import asserts
 
 
 @pytest.mark.large_download
@@ -39,7 +40,5 @@ def test_demo_images_smoke(subtests, tmpdir):
 def test_demo_logger_smoke(caplog):
     optim_logger = demo.demo_logger()
 
-    with caplog.at_level(logging.INFO, optim_logger.logger.name):
+    with asserts.assert_logs(caplog, logger=optim_logger):
         optim_logger.message("test message")
-
-    assert caplog.records
