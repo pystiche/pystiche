@@ -1,4 +1,9 @@
-__all__ = ["assert_modules_identical", "assert_named_modules_identical"]
+import contextlib
+import logging
+
+from pystiche import optim
+
+__all__ = ["assert_modules_identical", "assert_named_modules_identical", "assert_logs"]
 
 
 def assert_modules_identical(actual, desired, equality_sufficient=False):
@@ -20,3 +25,16 @@ def assert_named_modules_identical(actual, desired, equality_sufficient=False):
     assert_modules_identical(
         actual_modules, desired_modules, equality_sufficient=equality_sufficient
     )
+
+
+@contextlib.contextmanager
+def assert_logs(caplog, level=logging.INFO, logger=None):
+    if isinstance(logger, optim.OptimLogger):
+        logger = logger.logger
+    if isinstance(logger, logging.Logger):
+        logger = logger.name
+
+    with caplog.at_level(level, logger=logger):
+        yield
+
+    assert any(record.levelno == level for record in caplog.records)
