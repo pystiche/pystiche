@@ -22,6 +22,11 @@ def test_image():
     return assets.read_image("test_image")
 
 
+@pytest.fixture
+def test_image_pil():
+    return assets.read_image("test_image", pil=True)
+
+
 @pytest.fixture(scope="session")
 def enc_asset_loader():
     return functools.partial(assets.load_asset, "enc")

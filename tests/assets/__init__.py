@@ -1,11 +1,11 @@
 import functools
-import os
 from os import path
 from urllib.parse import urljoin
 
 import dill
+from PIL import Image
 
-from pystiche.image import read_image as _read_image
+from torchvision.transforms.functional import to_tensor
 
 HERE = path.abspath(path.dirname(__file__))
 
@@ -23,14 +23,15 @@ def get_image_url(name):
     )
 
 
-# Since a torch.Tensor is mutable we only cache the raw input and clone the image for
-# every call
-_read_image = functools.lru_cache()(_read_image)
+Image.open = functools.lru_cache()(Image.open)
 
 
-def read_image(name):
-    image = _read_image(get_image_file(name))
-    return image.clone()
+def read_image(name, pil=False):
+    image = Image.open(get_image_file(name))
+    if pil:
+        return image
+
+    return to_tensor(image)
 
 
 @functools.lru_cache()
