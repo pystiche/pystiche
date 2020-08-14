@@ -31,7 +31,7 @@ class PysticheImageBackend(pyimagetest.ImageBackend):
         return image.permute((1, 2, 0)).numpy()
 
 
-@pytest.fixture(scope="package", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def add_pystiche_image_backend():
     pyimagetest.remove_image_backend("torchvision")
     pyimagetest.add_image_backend("pystiche", PysticheImageBackend())
