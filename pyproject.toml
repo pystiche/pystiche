@@ -38,13 +38,14 @@ known_third_party = [
   "pillow_affine",
   "pyimagetest",
   "pytest",
+  "pytorch_testing_utils",
   "requests",
   "sphinx_gallery",
   "yaml",
 ]
 known_pytorch = ["torch", "torchvision"]
 known_first_party = ["pystiche"]
-known_local_folder = ["utils"]
+known_local_folder = ["tests", "utils"]
 sections= ["FUTURE", "STDLIB", "THIRDPARTY", "PYTORCH", "FIRSTPARTY", "LOCALFOLDER"]
 
 skip = [
