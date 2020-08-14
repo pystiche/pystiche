@@ -31,7 +31,7 @@ def read_image(name, pil=False):
     if pil:
         return image
 
-    return to_tensor(image)
+    return to_tensor(image).unsqueeze(0)
 
 
 @functools.lru_cache()
