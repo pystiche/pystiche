@@ -153,7 +153,7 @@ def test_edge_to_image_size_vert_horz():
     assert actual == desired
 
     actual = image_.edge_to_image_size(edge_size, aspect_ratio, edge="horz")
-    desired = (round(edge_size * aspect_ratio), edge_size)
+    desired = (round(edge_size / aspect_ratio), edge_size)
     assert actual == desired
 
 

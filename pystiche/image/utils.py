@@ -148,7 +148,7 @@ def edge_to_image_size(
     if edge == "vert":
         return edge_size, round(edge_size * aspect_ratio)
     elif edge == "horz":
-        return round(edge_size * aspect_ratio), edge_size
+        return round(edge_size / aspect_ratio), edge_size
 
     if (edge == "short") ^ (aspect_ratio < 1.0):
         return edge_size, round(edge_size * aspect_ratio)
