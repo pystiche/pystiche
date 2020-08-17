@@ -13,8 +13,7 @@ from typing import (
     TypeVar,
     Union,
 )
-
-import requests
+from urllib.request import Request, urlopen
 
 import torch
 
@@ -237,9 +236,12 @@ def download_file(
 ) -> str:
     if file is None:
         file = path.basename(url)
-    headers = {"User-Agent": user_agent}
+
     with open(file, "wb") as fh:
-        fh.write(requests.get(url, headers=headers).content)
+        request = Request(url, headers={"User-Agent": user_agent})
+        with urlopen(request) as response:
+            fh.write(response.read())
+
     return file
 
 
