@@ -54,7 +54,8 @@ run_by_ci = (
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-PROJECT_ROOT = path.abspath(path.join(path.dirname(__file__), "..", ".."))
+HERE = path.dirname(__file__)
+PROJECT_ROOT = path.abspath(path.join(HERE, "..", ".."))
 
 
 # -- Project information ---------------------------------------------------------------
@@ -215,7 +216,7 @@ html_theme = "sphinx_rtd_theme"
 
 # -- Latex / Mathjax config ------------------------------------------------------------
 
-with open("custom_cmds.tex", "r") as fh:
+with open(path.join(HERE, "custom_cmds.tex"), "r") as fh:
     custom_cmds = fh.read()
 
 latex_elements = {"preamble": custom_cmds}
