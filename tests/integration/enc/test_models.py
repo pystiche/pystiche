@@ -38,13 +38,11 @@ def test_AlexNetMultiLayerEncoder(enc_asset_loader):
     assert actual == desired
 
 
-@pytest.mark.slow
 def test_alexnet_multi_layer_encoder_smoke(patch_multi_layer_encoder_load_weights):
     multi_layer_encoder = enc.alexnet_multi_layer_encoder()
     assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
 
 
-@pytest.mark.slow
 def test_AlexNetMultiLayerEncoder_repr_smoke(patch_multi_layer_encoder_load_weights):
     multi_layer_encoder = enc.alexnet_multi_layer_encoder()
     assert isinstance(repr(multi_layer_encoder), str)
