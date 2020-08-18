@@ -2,7 +2,6 @@ import os
 import re
 from os import path
 
-import matplotlib.pyplot as plt
 import pytest
 
 from . import exec_file
@@ -48,9 +47,6 @@ def sphinx_gallery_scripts(sphinx_gallery_config):
 @pytest.fixture(scope="package", autouse=True)
 def patch_multi_layer_encoder_load_weights(package_mocker):
     mocks.patch_multi_layer_encoder_load_weights(mocker=package_mocker)
-
-
-plt.show()
 
 
 @pytest.fixture(scope="package", autouse=True)
