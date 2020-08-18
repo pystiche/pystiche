@@ -20,14 +20,14 @@ optimization, could be performed without ``pystiche``.
 #
 # We start this example by importing everything we need and setting the device we will
 # be working on. :mod:`torch` and :mod:`torchvision` will be used for the actual NST.
-# Furthermore, we use :mod:`requests` for the download, :mod:`PIL.Image` for the file
-# input, and :mod:`matplotlib.pyplot` to show the images.
+# Furthermore, we use :mod:`PIL.Image` for the file input, and :mod:`matplotlib.pyplot`
+# to show the images.
 
 import itertools
 from collections import OrderedDict
+from urllib.request import Request, urlopen
 
 import matplotlib.pyplot as plt
-import requests
 from PIL import Image
 
 import torch
@@ -329,8 +329,9 @@ export_to_pil = transforms.Compose(
 def download_image(url, file):
     with open(file, "wb") as fh:
         # without User-Agent the access is denied
-        headers = {"User-Agent": "pystiche"}
-        fh.write(requests.get(url, headers=headers).content)
+        request = Request(url, headers={"User-Agent": "pystiche"})
+        with urlopen(request) as response:
+            fh.write(response.read())
 
 
 def read_image(file, size=500):
