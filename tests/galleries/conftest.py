@@ -4,7 +4,6 @@ from os import path
 
 import pytest
 
-from . import exec_file
 from tests import mocks, utils
 
 SPHINX_CONFIG_FILE = path.abspath(
@@ -14,7 +13,7 @@ SPHINX_CONFIG_FILE = path.abspath(
 
 @pytest.fixture(scope="package")
 def sphinx_config():
-    config, _ = exec_file(SPHINX_CONFIG_FILE)
+    config, _ = utils.exec_file(SPHINX_CONFIG_FILE)
     return config
 
 
