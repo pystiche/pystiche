@@ -104,7 +104,7 @@ def _vgg_loader(arch: str) -> Callable[..., torchvision.models.VGG]:
         verify_str_arg(framework, "framework", ("torch", "caffe"))
 
         state_dict = hub.load_state_dict_from_url(
-            MODEL_URLS[(framework, arch)], progress=progress, check_hash=True,
+            MODEL_URLS[(arch, framework)], progress=progress, check_hash=True,
         )
         model.load_state_dict(state_dict)
         return model
