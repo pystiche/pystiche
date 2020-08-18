@@ -1,2 +1,5 @@
-[run]
-source=pystiche/
+[report]
+
+exclude_lines =
+  @abstractmethod
+  raise NotImplementedError
