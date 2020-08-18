@@ -59,7 +59,7 @@ def vgg_archs():
 
 
 @pytest.fixture(scope="module")
-def vgg_multi_layer_encoder_loaders():
+def vgg_multi_layer_encoder_loaders(vgg_archs):
     return tuple(getattr(enc, f"{arch}_multi_layer_encoder") for arch in vgg_archs)
 
 
