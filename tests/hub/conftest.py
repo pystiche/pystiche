@@ -11,6 +11,10 @@ def github():
     def format(owner, repository, branch):
         return f"{owner}/{repository}:{branch}"
 
+    pystiche_hub_github = os.getenv("PYSTICHE_HUB_GITHUB")
+    if pystiche_hub_github:
+        return pystiche_hub_github
+
     default = format("pmeier", "pystiche", "master")
 
     if os.getenv("GITHUB_ACTIONS", False):
