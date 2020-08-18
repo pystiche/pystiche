@@ -5,6 +5,13 @@ import torch
 import pystiche
 from pystiche import enc
 
+from tests import mocks
+
+
+@pytest.fixture
+def patch_multi_layer_encoder_load_weights(mocker):
+    return mocks.patch_multi_layer_encoder_load_weights(mocker=mocker)
+
 
 @pytest.mark.large_download
 @pytest.mark.slow
@@ -29,9 +36,8 @@ def test_AlexNetMultiLayerEncoder(enc_asset_loader):
     assert actual == desired
 
 
-@pytest.mark.large_download
 @pytest.mark.slow
-def test_alexnet_multi_layer_encoder_smoke():
+def test_alexnet_multi_layer_encoder_smoke(patch_multi_layer_encoder_load_weights):
     multi_layer_encoder = enc.alexnet_multi_layer_encoder()
     assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
 
@@ -68,9 +74,10 @@ def test_VGGMultiLayerEncoder(subtests, enc_asset_loader):
             assert actual == desired
 
 
-@pytest.mark.large_download
 @pytest.mark.slow
-def test_vgg_multi_layer_encoder_smoke(subtests):
+def test_vgg_multi_layer_encoder_smoke(
+    subtests, patch_multi_layer_encoder_load_weights
+):
     fns = (
         enc.vgg11_multi_layer_encoder,
         enc.vgg11_bn_multi_layer_encoder,
