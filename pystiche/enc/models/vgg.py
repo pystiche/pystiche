@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple, cast
 
 import torchvision
 from torch import hub, nn
@@ -41,14 +41,9 @@ NUM_LAYERS_TO_CONFIGURATION = {
     16: "D",
     19: "E",
 }
-ARCH_PATTERN = re.compile(r"vgg(?P<num_layers>\d+)(?P<batch_norm>_bn)?")
 
 
-def _make_vgg_docstring(arch):
-    match = ARCH_PATTERN.match(arch)
-    num_layers = int(match.group("num_layers"))
-    batch_norm = match.group("batch_norm") is not None
-
+def _make_vgg_docstring(num_layers: int, batch_norm: bool) -> str:
     description = (
         f"VGG{num_layers} model "
         f"(configuration '{NUM_LAYERS_TO_CONFIGURATION[num_layers]}') "
@@ -76,15 +71,28 @@ def _make_vgg_docstring(arch):
     return "\n".join((description, args))
 
 
-def _vgg_loader(arch: str):
-    loader = getattr(torchvision.models, arch)
+ARCH_PATTERN = re.compile(r"vgg(?P<num_layers>(11|13|16|19)+)(?P<batch_norm>_bn)?")
+
+
+def _vgg_loader(arch: str) -> Callable[..., torchvision.models.VGG]:
+    match = ARCH_PATTERN.match(arch)
+    if match is None:
+        raise ValueError(
+            f"Unknown arch '{arch}'. It has to match 'vgg_(11|13|16|19)(_bn?)'"
+        )
+    num_layers = int(match.group("num_layers"))
+    batch_norm = match.group("batch_norm") is not None
+
+    loader = cast(
+        Callable[..., torchvision.models.VGG], getattr(torchvision.models, arch)
+    )
 
     def vgg(
         pretrained: bool = False,
         framework: str = "torch",
         progress: bool = True,
         num_classes: int = 1000,
-    ):
+    ) -> torchvision.models.VGG:
         if pretrained and num_classes != 1000:
             raise RuntimeError
 
@@ -101,7 +109,7 @@ def _vgg_loader(arch: str):
         model.load_state_dict(state_dict)
         return model
 
-    vgg.__doc__ = _make_vgg_docstring(arch)
+    vgg.__doc__ = _make_vgg_docstring(num_layers, batch_norm)
 
     return vgg
 
