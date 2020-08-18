@@ -12,6 +12,7 @@ def github():
         return f"{owner}/{repository}:{branch}"
 
     pystiche_hub_github = os.getenv("PYSTICHE_HUB_GITHUB")
+
     if pystiche_hub_github:
         return pystiche_hub_github
 
