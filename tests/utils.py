@@ -8,8 +8,8 @@ import tempfile
 from distutils import dir_util
 from os import path
 
+import igittigitt
 import pytest
-from gitignore_parser import parse_gitignore as _parse_gitignore
 
 import torch
 
@@ -59,27 +59,18 @@ skip_if_cuda_not_available = pytest.mark.skipif(
 )
 
 
-def parse_gitignore(full_path, base_dir=None):
-    matches = _parse_gitignore(full_path, base_dir=base_dir)
-
-    def is_ignored(file_path):
-        try:
-            return matches(file_path)
-        except ValueError:
-            # This is raised if a file_path is out of scope of the .gitignore
-            return False
-
-    return is_ignored
-
-
-def walk_git_project(*args, **kwargs):
-    is_ignored = parse_gitignore(path.join(PROJECT_ROOT, ".gitignore"))
+def walk_git_project(*args, exlude_git_dir=True, **kwargs):
+    parser = igittigitt.IgnoreParser()
+    parser.parse_rule_files(PROJECT_ROOT)
+    is_ignored = parser.match
     for root, dirs, files in os.walk(*args, **kwargs):
 
         if is_ignored(root):
             continue
 
-        ignored_dirs = [dir for dir in dirs if is_ignored(dir) or dir == ".git"]
+        ignored_dirs = [
+            dir for dir in dirs if is_ignored(dir) or (exlude_git_dir and dir == ".git")
+        ]
         # remove them in-place to avoid further exploration
         for dir in ignored_dirs:
             dirs.remove(dir)
