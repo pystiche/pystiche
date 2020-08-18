@@ -154,3 +154,21 @@ def temp_add_to_sys_path(*rel_paths, root=PROJECT_ROOT):
     finally:
         for abs_path in abs_paths:
             sys.path.remove(abs_path)
+
+
+def maybe_update(dct, key, val):
+    if key not in dct:
+        dct[key] = val
+
+
+def exec_file(rel_path, root=PROJECT_ROOT, globals=None, locals=None):
+    abs_path = _rel_to_abs_path(rel_path, root)
+    if globals is None:
+        globals = {}
+    maybe_update(globals, "__file__", abs_path)
+    maybe_update(globals, "__name__", "__main__")
+
+    with open(abs_path, "r") as fh:
+        exec(fh.read(), globals, locals)
+
+    return globals, locals
