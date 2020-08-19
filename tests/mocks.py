@@ -73,14 +73,25 @@ _MULTI_LAYER_ENCODER_LOAD_WEIGHTS_TARGETS = {
 }
 
 
+class MockDict(dict):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for mock in self.values():
+            mock.reset_mock()
+
+
 def patch_multi_layer_encoder_load_weights(models=None, mocker=DEFAULT_MOCKER):
     if models is None:
         models = _MULTI_LAYER_ENCODER_LOAD_WEIGHTS_TARGETS.keys()
 
-    return {
-        model: mocker.patch(_MULTI_LAYER_ENCODER_LOAD_WEIGHTS_TARGETS[model])
-        for model in models
-    }
+    return MockDict(
+        (
+            (model, mocker.patch(_MULTI_LAYER_ENCODER_LOAD_WEIGHTS_TARGETS[model]))
+            for model in models
+        )
+    )
 
 
 def patch_home(home, copy=True, mocker=DEFAULT_MOCKER):

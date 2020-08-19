@@ -1,3 +1,5 @@
+import itertools
+
 import pytest
 
 import torch
@@ -36,25 +38,40 @@ def test_AlexNetMultiLayerEncoder(enc_asset_loader):
     assert actual == desired
 
 
-@pytest.mark.slow
 def test_alexnet_multi_layer_encoder_smoke(patch_multi_layer_encoder_load_weights):
     multi_layer_encoder = enc.alexnet_multi_layer_encoder()
     assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
 
 
+def test_AlexNetMultiLayerEncoder_repr_smoke(patch_multi_layer_encoder_load_weights):
+    multi_layer_encoder = enc.alexnet_multi_layer_encoder()
+    assert isinstance(repr(multi_layer_encoder), str)
+
+
+@pytest.fixture(scope="module")
+def vgg_archs():
+    return tuple(
+        f"vgg{num_layers}{'_bn' if batch_norm else ''}"
+        for num_layers, batch_norm in itertools.product((11, 13, 16, 19), (False, True))
+    )
+
+
+@pytest.fixture(scope="module")
+def vgg_multi_layer_encoder_loaders(vgg_archs):
+    return tuple(getattr(enc, f"{arch}_multi_layer_encoder") for arch in vgg_archs)
+
+
 @pytest.mark.large_download
 @pytest.mark.slow
 @pytest.mark.flaky
-def test_VGGMultiLayerEncoder(subtests, enc_asset_loader):
-    archs = ("vgg11", "vgg13", "vgg16", "vgg19")
-    archs = (*archs, *[f"{arch}_bn" for arch in archs])
-
-    for arch in archs:
+def test_VGGMultiLayerEncoder(
+    subtests, vgg_archs, vgg_multi_layer_encoder_loaders, enc_asset_loader
+):
+    for arch, loader in zip(vgg_archs, vgg_multi_layer_encoder_loaders):
         with subtests.test(arch=arch):
             asset = enc_asset_loader(arch)
 
-            get_vgg_multi_layer_encoder = enc.__dict__[f"{arch}_multi_layer_encoder"]
-            multi_layer_encoder = get_vgg_multi_layer_encoder(
+            multi_layer_encoder = loader(
                 weights="torch", preprocessing=False, allow_inplace=False
             )
             layers = tuple(multi_layer_encoder.children_names())
@@ -75,20 +92,20 @@ def test_VGGMultiLayerEncoder(subtests, enc_asset_loader):
 
 
 @pytest.mark.slow
-def test_vgg_multi_layer_encoder_smoke(
-    subtests, patch_multi_layer_encoder_load_weights
+def test_VGGMultiLayerEncoder_repr_smoke(
+    subtests, vgg_multi_layer_encoder_loaders, patch_multi_layer_encoder_load_weights
 ):
-    fns = (
-        enc.vgg11_multi_layer_encoder,
-        enc.vgg11_bn_multi_layer_encoder,
-        enc.vgg13_multi_layer_encoder,
-        enc.vgg13_bn_multi_layer_encoder,
-        enc.vgg16_multi_layer_encoder,
-        enc.vgg16_bn_multi_layer_encoder,
-        enc.vgg19_multi_layer_encoder,
-        enc.vgg19_bn_multi_layer_encoder,
-    )
-    for fn in fns:
-        with subtests.test(fn=fn.__name__):
-            multi_layer_encoder = fn()
-            assert isinstance(multi_layer_encoder, enc.vgg.VGGMultiLayerEncoder)
+    for loader in vgg_multi_layer_encoder_loaders:
+        with subtests.test(fn=loader.__name__):
+            with patch_multi_layer_encoder_load_weights:
+                assert isinstance(repr(loader()), str)
+
+
+@pytest.mark.slow
+def test_vgg_multi_layer_encoder_smoke(
+    subtests, vgg_multi_layer_encoder_loaders, patch_multi_layer_encoder_load_weights
+):
+    for loader in vgg_multi_layer_encoder_loaders:
+        with subtests.test(fn=loader.__name__):
+            with patch_multi_layer_encoder_load_weights:
+                assert isinstance(loader(), enc.vgg.VGGMultiLayerEncoder)
