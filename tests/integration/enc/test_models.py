@@ -97,7 +97,8 @@ def test_VGGMultiLayerEncoder_repr_smoke(
 ):
     for loader in vgg_multi_layer_encoder_loaders:
         with subtests.test(fn=loader.__name__):
-            assert isinstance(repr(loader()), str)
+            with patch_multi_layer_encoder_load_weights:
+                assert isinstance(repr(loader()), str)
 
 
 @pytest.mark.slow
@@ -106,4 +107,5 @@ def test_vgg_multi_layer_encoder_smoke(
 ):
     for loader in vgg_multi_layer_encoder_loaders:
         with subtests.test(fn=loader.__name__):
-            assert isinstance(loader(), enc.vgg.VGGMultiLayerEncoder)
+            with patch_multi_layer_encoder_load_weights:
+                assert isinstance(loader(), enc.vgg.VGGMultiLayerEncoder)
