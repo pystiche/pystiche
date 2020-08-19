@@ -26,6 +26,14 @@
 Models
 ------
 
+.. autoclass:: ModelMultiLayerEncoder
+  :members:
+    collect_modules,
+    load_state_dict
+
+VGG
+^^^
+
 .. autoclass:: VGGMultiLayerEncoder
 .. autofunction:: vgg11_multi_layer_encoder
 .. autofunction:: vgg11_bn_multi_layer_encoder
@@ -35,6 +43,9 @@ Models
 .. autofunction:: vgg16_bn_multi_layer_encoder
 .. autofunction:: vgg19_multi_layer_encoder
 .. autofunction:: vgg19_bn_multi_layer_encoder
+
+AlexNet
+^^^^^^^
 
 .. autoclass:: AlexNetMultiLayerEncoder
 .. autofunction:: alexnet_multi_layer_encoder

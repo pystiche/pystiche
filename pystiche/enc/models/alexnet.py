@@ -1,62 +1,65 @@
-from typing import Any, Dict, List, Tuple
+import warnings
+from typing import Any, Dict, List, Optional, Tuple
 
 from torch import nn
-from torch.utils import model_zoo
-from torchvision.models import AlexNet, alexnet
+from torchvision.models import alexnet
 
-from ..multi_layer_encoder import MultiLayerEncoder
-from ..preprocessing import get_preprocessor
+from pystiche.misc import build_deprecation_message
 
-MODEL_URLS = {"torch": "https://download.pytorch.org/models/alexnet-owt-4df8aa71.pth"}
-
+from .utils import ModelMultiLayerEncoder
 
 __all__ = ["AlexNetMultiLayerEncoder", "alexnet_multi_layer_encoder"]
 
 
-class AlexNetMultiLayerEncoder(MultiLayerEncoder):
-    r"""Multi-layer encoder based on the AlexNet architecture that was introduced by
+def _make_description() -> str:
+    return r"""Multi-layer encoder based on :class:`~torchvision.models.AlexNet`.
+
+    The :class:`~torchvision.models.AlexNet` architecture was introduced by
     Krizhevsky, Sutskever, and Hinton in :cite:`KSH2012`.
-
-    Args:
-        internal_preprocessing: If ``True``, adds a preprocessing layer for the
-            selected ``weights`` as first layer. Defaults to ``"True"``.
-        allow_inplace: If ``True``, allows inplace operations in the
-            :class:`torch.nn.Relu` layers to reduce the memory requirement during the
-            forward pass. Defaults to ``False``.
-
-            .. warning::
-                After performing an inplace operation in a :class:`torch.nn.Relu` layer
-                the encoding of the previous :class:`torch.nn.Conv2d` layer is no
-                longer accessible. Only set this to ``True`` if you are sure that you
-                do **not** need the encodings of the :class:`torch.nn.Conv2d` layers.
     """
 
-    def __init__(
-        self,
-        weights: str = "torch",
-        internal_preprocessing: bool = True,
-        allow_inplace: bool = False,
-    ) -> None:
-        self.weights = weights
-        self.internal_preprocessing = internal_preprocessing
-        self.allow_inplace = allow_inplace
-        super().__init__(self._collect_modules())
 
-    def _collect_modules(self) -> List[Tuple[str, nn.Module]]:
-        base_model = alexnet(pretrained=False)
-        self._load_weights(base_model)
+def _make_docstring(body: str) -> str:
+    return f"{_make_description()}\n{body}"
 
-        model = base_model.features
+
+class AlexNetMultiLayerEncoder(ModelMultiLayerEncoder):
+    __doc__ = _make_docstring(
+        r"""    Args:
+        pretrained: If ``True``, loads builtin weights. Defaults to ``True``.
+        framework: Name of the framework that was used to train the builtin weights.
+            Defaults to ``"torch"``.
+        kwargs: Optional arguments of :class:`ModelMultiLayerEncoder` .
+
+    Raises:
+        RuntimeError: If ``pretrained`` and no weights are available for the
+        ``framework``.
+        """
+    )
+
+    def __init__(self, weights: Optional[str] = None, **kwargs: Any) -> None:
+        if weights is not None:
+            msg = build_deprecation_message(
+                "The parameter weights", "0.6.0", info="It was renamed to framework"
+            )
+            warnings.warn(msg, UserWarning)
+            kwargs["framework"] = weights
+
+        super().__init__(**kwargs)
+
+    def collect_modules(
+        self, pretrained: bool, framework: str, inplace: bool
+    ) -> Tuple[List[Tuple[str, nn.Module]], Dict[str, str]]:
+        model = alexnet(pretrained=pretrained)
+
         modules = []
-        if self.internal_preprocessing:
-            modules.append(("preprocessing", get_preprocessor(self.weights)))
+        state_dict_key_map = {}
         block = 1
-        for module in model.children():
+        for idx, module in model.features.named_children():
             if isinstance(module, nn.Conv2d):
                 name = f"conv{block}"
             elif isinstance(module, nn.ReLU):
-                if not self.allow_inplace:
-                    module = nn.ReLU(inplace=False)
+                module = nn.ReLU(inplace=inplace)
                 name = f"relu{block}"
                 if block in (3, 4):
                     # in the third and forth block the ReLU layer marks the end of the
@@ -68,28 +71,22 @@ class AlexNetMultiLayerEncoder(MultiLayerEncoder):
                 block += 1
 
             modules.append((name, module))
+            state_dict_key_map.update(
+                {
+                    f"features.{idx}.{key}": f"{name}.{key}"
+                    for key in module.state_dict().keys()
+                }
+            )
 
-        return modules
-
-    def _load_weights(self, base_model: AlexNet) -> None:
-        url = MODEL_URLS[self.weights]
-        state_dict = model_zoo.load_url(url)
-        base_model.load_state_dict(state_dict)
-
-    def _properties(self) -> Dict[str, Any]:
-        dct = super()._properties()
-        dct["weights"] = self.weights
-        if not self.internal_preprocessing:
-            dct["internal_preprocessing"] = self.internal_preprocessing
-        if self.allow_inplace:
-            dct["allow_inplace"] = self.allow_inplace
-        return dct
+        return modules, state_dict_key_map
 
 
 def alexnet_multi_layer_encoder(**kwargs: Any) -> AlexNetMultiLayerEncoder:
-    r"""Multi-layer encoder based on the AlexNet architecture.
-
-    Args:
-        **kwargs: Optional parameters for :class:`AlexNetMultiLayerEncoder`.
-    """
     return AlexNetMultiLayerEncoder(**kwargs)
+
+
+alexnet_multi_layer_encoder.__doc__ = _make_docstring(
+    r"""    Args:
+        kwargs: Optional arguments of :class:`AlexNetMultiLayerEncoder` .
+"""
+)

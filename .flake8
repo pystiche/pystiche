@@ -21,5 +21,6 @@ max-line-length = 88
 per-file-ignores =
     __init__.py: F401, F403, F405
     tests/conftest.py: F401, F403, F405
+    pystiche/enc/models/vgg.py: F822
 show_source = True
 statistics = True
