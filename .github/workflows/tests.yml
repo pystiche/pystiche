@@ -133,3 +133,8 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: tox -e tests-hub
+
+      - name: List cache dir
+        run: |
+          echo "$(python -c 'from torch import hub; print(hub.get_dir())')/checkpoints"
+          ls -l  ~/.cache/torch/hub/checkpoints
