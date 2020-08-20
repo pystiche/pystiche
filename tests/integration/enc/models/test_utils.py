@@ -1,5 +1,4 @@
 import functools
-import itertools
 from collections import OrderedDict
 from copy import copy
 from urllib.parse import urljoin
@@ -10,100 +9,9 @@ import pytorch_testing_utils as ptu
 import torch
 from torch import nn
 
-import pystiche
 from pystiche import enc
 
 from tests import asserts, mocks
-
-
-@pytest.mark.large_download
-@pytest.mark.slow
-@pytest.mark.flaky
-def test_AlexNetMultiLayerEncoder(enc_asset_loader):
-    asset = enc_asset_loader("alexnet")
-
-    multi_layer_encoder = enc.alexnet_multi_layer_encoder(
-        pretrained=True, weights="torch", preprocessing=False, allow_inplace=False
-    )
-    layers = tuple(multi_layer_encoder.children_names())
-    with torch.no_grad():
-        encs = multi_layer_encoder(asset.input.image, layers)
-
-    actual = dict(
-        zip(
-            layers,
-            [pystiche.TensorKey(x, precision=asset.params.precision) for x in encs],
-        )
-    )
-    desired = asset.output.enc_keys
-    assert actual == desired
-
-
-def test_alexnet_multi_layer_encoder_smoke(subtests):
-    multi_layer_encoder = enc.alexnet_multi_layer_encoder(pretrained=False)
-    assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
-
-    with subtests.test("repr"):
-        assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
-
-
-@pytest.fixture(scope="module")
-def vgg_archs():
-    return tuple(
-        f"vgg{num_layers}{'_bn' if batch_norm else ''}"
-        for num_layers, batch_norm in itertools.product((11, 13, 16, 19), (False, True))
-    )
-
-
-@pytest.fixture(scope="module")
-def vgg_multi_layer_encoder_loaders(vgg_archs):
-    return tuple(getattr(enc, f"{arch}_multi_layer_encoder") for arch in vgg_archs)
-
-
-@pytest.mark.large_download
-@pytest.mark.slow
-@pytest.mark.flaky
-def test_VGGMultiLayerEncoder(
-    subtests, vgg_archs, vgg_multi_layer_encoder_loaders, enc_asset_loader
-):
-    for arch, loader in zip(vgg_archs, vgg_multi_layer_encoder_loaders):
-        with subtests.test(arch=arch):
-            asset = enc_asset_loader(arch)
-
-            multi_layer_encoder = loader(
-                pretrained=True,
-                weights="torch",
-                preprocessing=False,
-                allow_inplace=False,
-            )
-            layers = tuple(multi_layer_encoder.children_names())
-            with torch.no_grad():
-                encs = multi_layer_encoder(asset.input.image, layers)
-
-            actual = dict(
-                zip(
-                    layers,
-                    [
-                        pystiche.TensorKey(x, precision=asset.params.precision)
-                        for x in encs
-                    ],
-                )
-            )
-            desired = asset.output.enc_keys
-            assert actual == desired
-
-
-@pytest.mark.slow
-def test_vgg_multi_layer_encoder_smoke(
-    subtests, vgg_multi_layer_encoder_loaders,
-):
-    for loader in vgg_multi_layer_encoder_loaders:
-        with subtests.test(fn=loader.__name__):
-            multi_layer_encoder = loader(pretrained=False)
-            assert isinstance(multi_layer_encoder, enc.vgg.VGGMultiLayerEncoder)
-
-            with subtests.test("repr"):
-                assert isinstance(repr(multi_layer_encoder), str)
 
 
 def test_select_url():
@@ -137,7 +45,7 @@ def test_select_url_custom_format():
         assert actual.endswith(expected)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def frameworks():
     return ("torch", "caffe")
 
