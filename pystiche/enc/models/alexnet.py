@@ -3,12 +3,16 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from torch import nn
 from torchvision.models import alexnet
+from torchvision.models.alexnet import model_urls as TORCH_MODEL_URLS
 
 from pystiche.misc import build_deprecation_message
 
-from .utils import ModelMultiLayerEncoder
+from .utils import ModelMultiLayerEncoder, select_url
 
 __all__ = ["AlexNetMultiLayerEncoder", "alexnet_multi_layer_encoder"]
+
+
+MODEL_URLS = {"torch": TORCH_MODEL_URLS["alexnet"]}
 
 
 def _make_description() -> str:
@@ -47,10 +51,13 @@ class AlexNetMultiLayerEncoder(ModelMultiLayerEncoder):
 
         super().__init__(**kwargs)
 
+    def state_dict_url(self, framework: str) -> str:
+        return select_url(MODEL_URLS, framework)
+
     def collect_modules(
-        self, pretrained: bool, framework: str, inplace: bool
+        self, inplace: bool
     ) -> Tuple[List[Tuple[str, nn.Module]], Dict[str, str]]:
-        model = alexnet(pretrained=pretrained)
+        model = alexnet(pretrained=False)
 
         modules = []
         state_dict_key_map = {}

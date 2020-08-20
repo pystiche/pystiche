@@ -28,8 +28,10 @@ Models
 
 .. autoclass:: ModelMultiLayerEncoder
   :members:
+    state_dict_url,
     collect_modules,
-    load_state_dict
+    load_state_dict,
+    load_state_dict_from_url
 
 VGG
 ^^^

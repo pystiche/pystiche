@@ -23,6 +23,7 @@ __all__ = [
     "vgg19_bn_multi_layer_encoder",
 ]
 
+ARCH_PATTERN = re.compile(r"^vgg(?P<num_layers>(11|13|16|19)+)(?P<batch_norm>_bn)?$")
 
 NUM_LAYERS_TO_CONFIGURATION = {
     11: "A",
@@ -30,8 +31,6 @@ NUM_LAYERS_TO_CONFIGURATION = {
     16: "D",
     19: "E",
 }
-
-ARCH_PATTERN = re.compile(r"^vgg(?P<num_layers>(11|13|16|19)+)(?P<batch_norm>_bn)?$")
 
 
 def _parse_arch(arch: str) -> Tuple[int, bool]:
@@ -169,10 +168,13 @@ class VGGMultiLayerEncoder(ModelMultiLayerEncoder):
         self.arch = arch
         super().__init__(**kwargs)
 
+    def state_dict_url(self, framework: str) -> str:
+        return select_url(self.arch, framework)
+
     def collect_modules(
-        self, pretrained: bool, framework: str, inplace: bool
+        self, inplace: bool
     ) -> Tuple[List[Tuple[str, nn.Module]], Dict[str, str]]:
-        model = MODELS[self.arch](pretrained=pretrained, framework=framework)
+        model = MODELS[self.arch](pretrained=False)
 
         modules = []
         state_dict_key_map = {}
