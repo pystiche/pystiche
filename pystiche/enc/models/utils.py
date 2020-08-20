@@ -21,8 +21,8 @@ def select_url(
 
     try:
         return urls[key]
-    except KeyError:
-        raise RuntimeError(f"No URL is available for\n\n{format(key)}")
+    except KeyError as error:
+        raise RuntimeError(f"No URL is available for\n\n{format(key)}") from error
 
 
 class ModelMultiLayerEncoder(MultiLayerEncoder):
