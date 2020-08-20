@@ -239,4 +239,4 @@ for arch in ARCHS:
     doc = _make_vgg_multi_layer_encoder_docstring(arch)
     loader = functools.partial(VGGMultiLayerEncoder, arch)
     _update_loader_magic(loader, name, doc)
-    locals()[name] = loader
+    globals()[name] = loader
