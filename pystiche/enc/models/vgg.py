@@ -165,6 +165,7 @@ class VGGMultiLayerEncoder(ModelMultiLayerEncoder):
             warnings.warn(msg, UserWarning)
             kwargs["framework"] = weights
 
+        _parse_arch(arch)
         self.arch = arch
         super().__init__(**kwargs)
 
