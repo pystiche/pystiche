@@ -124,7 +124,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: TORCH_HUB_CHECKPOINTS
-          key: torch-hub-checkpoints-${{ hashFiles('hubconf.py') }}
+          key: torch-hub-checkpoints-${{ hashFiles('hubconf.py', 'pystiche/enc/models/**') }}
+          restore-keys: |
+            torch-hub-checkpoints-
 
       - name: Run tests
         env:
