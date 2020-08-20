@@ -9,7 +9,8 @@ import pystiche
 __all__ = [
     "make_mock_target",
     "patch_imports",
-    "patch_multi_layer_encoder_load_weights",
+    "ContextMock",
+    "patch_models_load_state_dict_from_url",
     "patch_home",
 ]
 
@@ -63,33 +64,43 @@ def patch_imports(
     )
 
 
-_MULTI_LAYER_ENCODER_LOAD_WEIGHTS_TARGETS = {
-    "vgg": make_mock_target(
-        "enc", "models", "vgg", "VGGMultiLayerEncoder", "_load_weights"
-    ),
-    "alexnet": make_mock_target(
-        "enc", "models", "alexnet", "AlexNetMultiLayerEncoder", "_load_weights",
-    ),
-}
+class ContextMock:
+    def __init__(self, mock):
+        self.__mock__ = mock
 
+    def __getattribute__(self, item):
+        if item == "__mock__":
+            return object.__getattribute__(self, "__mock__")
+        else:
+            return getattr(self.__mock__, item)
 
-class MockDict(dict):
+    def __setattr__(self, key, value):
+        if key == "__mock__":
+            object.__setattr__(self, key, value)
+        else:
+            self.__mock__.__setattr__(key, value)
+
+    def __call__(self, *args, **kwargs):
+        return self.__mock__(*args, **kwargs)
+
     def __enter__(self):
+        self.__mock__.reset_mock()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        for mock in self.values():
-            mock.reset_mock()
+        pass
 
 
-def patch_multi_layer_encoder_load_weights(models=None, mocker=DEFAULT_MOCKER):
-    if models is None:
-        models = _MULTI_LAYER_ENCODER_LOAD_WEIGHTS_TARGETS.keys()
-
-    return MockDict(
-        (
-            (model, mocker.patch(_MULTI_LAYER_ENCODER_LOAD_WEIGHTS_TARGETS[model]))
-            for model in models
+def patch_models_load_state_dict_from_url(mocker=DEFAULT_MOCKER):
+    return ContextMock(
+        mocker.patch(
+            make_mock_target(
+                "enc",
+                "models",
+                "utils",
+                "ModelMultiLayerEncoder",
+                "load_state_dict_from_url",
+            )
         )
     )
 

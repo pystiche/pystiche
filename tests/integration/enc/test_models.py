@@ -7,13 +7,6 @@ import torch
 import pystiche
 from pystiche import enc
 
-from tests import mocks
-
-
-@pytest.fixture
-def patch_multi_layer_encoder_load_weights(mocker):
-    return mocks.patch_multi_layer_encoder_load_weights(mocker=mocker)
-
 
 @pytest.mark.large_download
 @pytest.mark.slow
@@ -22,7 +15,7 @@ def test_AlexNetMultiLayerEncoder(enc_asset_loader):
     asset = enc_asset_loader("alexnet")
 
     multi_layer_encoder = enc.alexnet_multi_layer_encoder(
-        weights="torch", preprocessing=False, allow_inplace=False
+        pretrained=True, weights="torch", preprocessing=False, allow_inplace=False
     )
     layers = tuple(multi_layer_encoder.children_names())
     with torch.no_grad():
@@ -38,14 +31,12 @@ def test_AlexNetMultiLayerEncoder(enc_asset_loader):
     assert actual == desired
 
 
-def test_alexnet_multi_layer_encoder_smoke(patch_multi_layer_encoder_load_weights):
-    multi_layer_encoder = enc.alexnet_multi_layer_encoder()
+def test_alexnet_multi_layer_encoder_smoke(subtests):
+    multi_layer_encoder = enc.alexnet_multi_layer_encoder(pretrained=False)
     assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
 
-
-def test_AlexNetMultiLayerEncoder_repr_smoke(patch_multi_layer_encoder_load_weights):
-    multi_layer_encoder = enc.alexnet_multi_layer_encoder()
-    assert isinstance(repr(multi_layer_encoder), str)
+    with subtests.test("repr"):
+        assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
 
 
 @pytest.fixture(scope="module")
@@ -72,7 +63,10 @@ def test_VGGMultiLayerEncoder(
             asset = enc_asset_loader(arch)
 
             multi_layer_encoder = loader(
-                weights="torch", preprocessing=False, allow_inplace=False
+                pretrained=True,
+                weights="torch",
+                preprocessing=False,
+                allow_inplace=False,
             )
             layers = tuple(multi_layer_encoder.children_names())
             with torch.no_grad():
@@ -92,20 +86,13 @@ def test_VGGMultiLayerEncoder(
 
 
 @pytest.mark.slow
-def test_VGGMultiLayerEncoder_repr_smoke(
-    subtests, vgg_multi_layer_encoder_loaders, patch_multi_layer_encoder_load_weights
-):
-    for loader in vgg_multi_layer_encoder_loaders:
-        with subtests.test(fn=loader.__name__):
-            with patch_multi_layer_encoder_load_weights:
-                assert isinstance(repr(loader()), str)
-
-
-@pytest.mark.slow
 def test_vgg_multi_layer_encoder_smoke(
-    subtests, vgg_multi_layer_encoder_loaders, patch_multi_layer_encoder_load_weights
+    subtests, vgg_multi_layer_encoder_loaders,
 ):
     for loader in vgg_multi_layer_encoder_loaders:
         with subtests.test(fn=loader.__name__):
-            with patch_multi_layer_encoder_load_weights:
-                assert isinstance(loader(), enc.vgg.VGGMultiLayerEncoder)
+            multi_layer_encoder = loader(pretrained=False)
+            assert isinstance(multi_layer_encoder, enc.vgg.VGGMultiLayerEncoder)
+
+            with subtests.test("repr"):
+                assert isinstance(repr(multi_layer_encoder), str)
