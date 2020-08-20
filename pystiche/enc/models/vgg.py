@@ -1,3 +1,4 @@
+import functools
 import re
 import warnings
 from typing import Any, Callable, Dict, List, Optional, Tuple, cast
@@ -10,7 +11,6 @@ from pystiche.misc import build_deprecation_message
 from .utils import ModelMultiLayerEncoder
 from .utils import select_url as _select_url
 
-# the functions are only defined at import
 __all__ = [
     "VGGMultiLayerEncoder",
     "vgg11_multi_layer_encoder",
@@ -222,14 +222,20 @@ def _make_vgg_multi_layer_encoder_docstring(arch: str) -> str:
     return "\n".join((description, "", args))
 
 
-def _vgg_multi_layer_encoder_loader(arch: str) -> Callable[..., VGGMultiLayerEncoder]:
-    def vgg_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
-        return VGGMultiLayerEncoder(arch, **kwargs)
-
-    vgg_multi_layer_encoder.__doc__ = _make_vgg_multi_layer_encoder_docstring(arch)
-
-    return vgg_multi_layer_encoder
+def _update_loader_magic(loader: Callable, name: str, doc: str) -> None:
+    loader.__module__ = VGGMultiLayerEncoder.__module__
+    loader.__name__ = loader.__qualname__ = name
+    loader.__annotations__ = {
+        param: annotation
+        for param, annotation in VGGMultiLayerEncoder.__init__.__annotations__.items()
+        if param != "arch"
+    }
+    loader.__doc__ = doc
 
 
 for arch in ARCHS:
-    locals()[f"{arch}_multi_layer_encoder"] = _vgg_multi_layer_encoder_loader(arch)
+    name = f"{arch}_multi_layer_encoder"
+    doc = _make_vgg_multi_layer_encoder_docstring(arch)
+    loader = functools.partial(VGGMultiLayerEncoder, arch)
+    _update_loader_magic(loader, name, doc)
+    locals()[name] = loader
