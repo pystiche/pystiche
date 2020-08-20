@@ -10,6 +10,7 @@ on:
     paths:
       - "pystiche/**"
       - "tests/**"
+      - "hubconf.py"
       - "setup.cfg"
       - "pyproject.toml"
       - "pytest.ini"
