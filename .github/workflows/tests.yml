@@ -123,14 +123,14 @@ jobs:
         id: torch-hub-checkpoints-cache
         run: |
           source .tox/tests-hub/bin/activate
-          DIR=$(python -c 'from os import path; from torch import hub; print(path.join(hub.get_dir(), "checkpoints"))')
+          DIR="$(python -c 'from torch import hub; print(hub.get_dir())')/checkpoints"
           echo "::set-output name=dir::$DIR"
           deactivate
 
       - name: Load torch.hub checkpoints from cache
         uses: actions/cache@v2
         with:
-          path: ${{ steps.torch-hub-checkpoints-cache.outputs.dir }}
+          path: ${{ steps.torch-hub-checkpoints-cache.outputs.dir }}/vgg@(16|19)!(_bn)*
           key: torch-hub-checkpoints-${{ hashFiles('hubconf.py', 'pystiche/enc/models/**') }}
           restore-keys: |
             torch-hub-checkpoints-
