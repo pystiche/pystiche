@@ -124,9 +124,9 @@ jobs:
         run: >
           source .tox/tests-hub/bin/activate
           && DIR=$(python -c "
-            from os import path;
-            from torch import hub;
-            print(path.join(hub.get_dir(), 'checkpoints'))
+          from os import path;
+          from torch import hub;
+          print(path.join(hub.get_dir(), 'checkpoints'))
           ")
           && echo "::set-output name=dir::$DIR" &&
           && deactivate
