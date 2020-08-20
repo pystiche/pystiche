@@ -121,15 +121,11 @@ jobs:
 
       - name: Get torch.hub checkpoints cache directory
         id: torch-hub-checkpoints-cache
-        run: >
+        run: |
           source .tox/tests-hub/bin/activate
-          && DIR=$(python -c "
-          from os import path;
-          from torch import hub;
-          print(path.join(hub.get_dir(), 'checkpoints'))
-          ")
-          && echo "::set-output name=dir::$DIR" &&
-          && deactivate
+          DIR=$(python -c 'from os import path; from torch import hub; print(path.join(hub.get_dir(), "checkpoints"))')
+          echo "::set-output name=dir::$DIR"
+          deactivate
 
       - name: Load torch.hub checkpoints from cache
         uses: actions/cache@v2
