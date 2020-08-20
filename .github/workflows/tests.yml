@@ -119,12 +119,22 @@ jobs:
       - name: Create environment
         run: tox -e tests-hub --notest
 
+      - name: Get torch.hub checkpoints cache directory
+        id: torch-hub-checkpoints-cache
+        run: >
+          source .tox/tests-hub/bin/activate
+          && DIR=$(python -c "
+            from os import path;
+            from torch import hub;
+            print(path.join(hub.get_dir(), 'checkpoints'))
+          ")
+          && echo "::set-output name=dir::$DIR" &&
+          && deactivate
+
       - name: Load torch.hub checkpoints from cache
-        env:
-          TORCH_HUB_CHECKPOINTS: "$(python -c 'from torch import hub; print(hub.get_dir())')/checkpoints"
         uses: actions/cache@v2
         with:
-          path: TORCH_HUB_CHECKPOINTS
+          path: ${{ steps.torch-hub-checkpoints-cache.outputs.dir }}
           key: torch-hub-checkpoints-${{ hashFiles('hubconf.py', 'pystiche/enc/models/**') }}
           restore-keys: |
             torch-hub-checkpoints-
