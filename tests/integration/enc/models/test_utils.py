@@ -45,11 +45,6 @@ def test_select_url_custom_format():
         assert actual.endswith(expected)
 
 
-@pytest.fixture(scope="module")
-def frameworks():
-    return ("torch", "caffe")
-
-
 @pytest.fixture
 def multi_layer_encoder_urls(frameworks):
     base = "https://download.pystiche.org/models/"
