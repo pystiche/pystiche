@@ -3,7 +3,12 @@ import logging
 
 from pystiche import optim
 
-__all__ = ["assert_modules_identical", "assert_named_modules_identical", "assert_logs"]
+__all__ = [
+    "assert_modules_identical",
+    "assert_named_modules_identical",
+    "assert_logs",
+    "assert_property_in_repr",
+]
 
 
 def assert_modules_identical(actual, desired, equality_sufficient=False):
@@ -38,3 +43,7 @@ def assert_logs(caplog, level=logging.INFO, logger=None):
         yield
 
     assert any(record.levelno == level for record in caplog.records)
+
+
+def assert_property_in_repr(repr, name, value):
+    assert f"{name}={value}" in repr

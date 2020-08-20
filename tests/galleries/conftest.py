@@ -4,6 +4,8 @@ from os import path
 
 import pytest
 
+from torchvision.models.vgg import _vgg
+
 from tests import mocks, utils
 
 SPHINX_CONFIG_FILE = path.abspath(
@@ -44,8 +46,20 @@ def sphinx_gallery_scripts(sphinx_gallery_config):
 
 
 @pytest.fixture(scope="package", autouse=True)
-def patch_multi_layer_encoder_load_weights(package_mocker):
-    mocks.patch_multi_layer_encoder_load_weights(mocker=package_mocker)
+def patch_models_load_state_dict_from_url(package_mocker):
+    mocks.patch_models_load_state_dict_from_url(mocker=package_mocker)
+
+    # Since the beginner example "NST without pystiche" does not use a builtin
+    # multi-layer encoder we are patching the model loader inplace.
+    vgg_loader = _vgg
+
+    def patched_vgg_loader(arch, cfg, batch_norm, pretrained, progress, **kwargs):
+        return vgg_loader(arch, cfg, batch_norm, False, progress, **kwargs)
+
+    package_mocker.patch(
+        mocks.make_mock_target("models", "vgg", "_vgg", pkg="torchvision"),
+        new=patched_vgg_loader,
+    )
 
 
 @pytest.fixture(scope="package", autouse=True)
