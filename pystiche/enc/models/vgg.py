@@ -1,6 +1,7 @@
 import functools
 import re
 import warnings
+from copy import copy
 from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 import torchvision
@@ -226,11 +227,11 @@ def _make_vgg_multi_layer_encoder_docstring(arch: str) -> str:
 def _update_loader_magic(loader: Callable, name: str, doc: str) -> None:
     loader.__module__ = VGGMultiLayerEncoder.__module__
     loader.__name__ = loader.__qualname__ = name
-    loader.__annotations__ = {
-        param: annotation
-        for param, annotation in VGGMultiLayerEncoder.__init__.__annotations__.items()
-        if param != "arch"
-    }
+
+    annotations = copy(VGGMultiLayerEncoder.__init__.__annotations__)
+    del annotations["arch"]
+    annotations["return"] = VGGMultiLayerEncoder
+    loader.__annotations__ = annotations
     loader.__doc__ = doc
 
 
