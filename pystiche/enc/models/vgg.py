@@ -1,7 +1,5 @@
-import functools
 import re
 import warnings
-from copy import copy
 from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 import torchvision
@@ -224,20 +222,39 @@ def _make_vgg_multi_layer_encoder_docstring(arch: str) -> str:
     return "\n".join((description, "", args))
 
 
-def _update_loader_magic(loader: Callable, name: str, doc: str) -> None:
-    loader.__module__ = VGGMultiLayerEncoder.__module__
-    loader.__name__ = loader.__qualname__ = name
+def vgg11_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    return VGGMultiLayerEncoder("vgg11", **kwargs)
 
-    annotations = copy(VGGMultiLayerEncoder.__init__.__annotations__)
-    del annotations["arch"]
-    annotations["return"] = VGGMultiLayerEncoder
-    loader.__annotations__ = annotations
-    loader.__doc__ = doc
+
+def vgg11_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    return VGGMultiLayerEncoder("vgg11_bn", **kwargs)
+
+
+def vgg13_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    return VGGMultiLayerEncoder("vgg13", **kwargs)
+
+
+def vgg13_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    return VGGMultiLayerEncoder("vgg13_bn", **kwargs)
+
+
+def vgg16_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    return VGGMultiLayerEncoder("vgg16", **kwargs)
+
+
+def vgg16_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    return VGGMultiLayerEncoder("vgg16_bn", **kwargs)
+
+
+def vgg19_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    return VGGMultiLayerEncoder("vgg19", **kwargs)
+
+
+def vgg19_bn_multi_layer_encoder(**kwargs: Any) -> VGGMultiLayerEncoder:
+    return VGGMultiLayerEncoder("vgg19_bn", **kwargs)
 
 
 for arch in ARCHS:
     name = f"{arch}_multi_layer_encoder"
     doc = _make_vgg_multi_layer_encoder_docstring(arch)
-    loader = functools.partial(VGGMultiLayerEncoder, arch)
-    _update_loader_magic(loader, name, doc)
-    locals()[name] = loader
+    globals()[name].__doc__ = doc

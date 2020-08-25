@@ -56,17 +56,6 @@ def test_VGGMultiLayerEncoder_unknown_arch():
         enc.VGGMultiLayerEncoder(arch, pretrained=False, internal_preprocessing=False)
 
 
-def test_vgg_multi_layer_encoder_annotations(subtests, vgg_multi_layer_encoder_loaders):
-    # This has to be checked here, since mypy can only check statically defined
-    # annotations
-    for loader in vgg_multi_layer_encoder_loaders:
-        with subtests.test(loader.__name__):
-            annotations = loader.__annotations__
-
-            assert "arch" not in annotations
-            assert annotations["return"] is enc.VGGMultiLayerEncoder
-
-
 @pytest.mark.slow
 def test_vgg_multi_layer_encoder_smoke(
     subtests, vgg_archs, vgg_multi_layer_encoder_loaders,
