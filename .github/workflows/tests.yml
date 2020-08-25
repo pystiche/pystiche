@@ -10,6 +10,7 @@ on:
     paths:
       - "pystiche/**"
       - "tests/**"
+      - "hubconf.py"
       - "setup.cfg"
       - "pyproject.toml"
       - "pytest.ini"
@@ -118,13 +119,20 @@ jobs:
       - name: Create environment
         run: tox -e tests-hub --notest
 
+      - name: Get torch.hub checkpoints cache directory
+        id: torch-hub-checkpoints-cache
+        run: |
+          source .tox/tests-hub/bin/activate
+          DIR="$(python -c 'from torch import hub; print(hub.get_dir())')/checkpoints"
+          echo "::set-output name=dir::$DIR"
+          deactivate
+
       - name: Load torch.hub checkpoints from cache
-        env:
-          TORCH_HUB_CHECKPOINTS: "$(python -c 'from torch import hub; print(hub.get_dir())')/checkpoints"
         uses: actions/cache@v2
         with:
-          path: TORCH_HUB_CHECKPOINTS
-          key: torch-hub-checkpoints-${{ hashFiles('hubconf.py') }}
+          path: ${{ steps.torch-hub-checkpoints-cache.outputs.dir }}/vgg1[69]-*
+          key: torch-hub-checkpoints-${{ hashFiles('hubconf.py', 'pystiche/enc/models/**') }}
+          restore-keys: torch-hub-checkpoints-
 
       - name: Run tests
         env:
