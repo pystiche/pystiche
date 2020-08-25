@@ -130,17 +130,11 @@ jobs:
       - name: Load torch.hub checkpoints from cache
         uses: actions/cache@v2
         with:
-          path: ${{ steps.torch-hub-checkpoints-cache.outputs.dir }}/vgg@(16|19)!(_bn)*
+          path: ${{ steps.torch-hub-checkpoints-cache.outputs.dir }}/vgg1[69]-*
           key: torch-hub-checkpoints-${{ hashFiles('hubconf.py', 'pystiche/enc/models/**') }}
-          restore-keys: |
-            torch-hub-checkpoints-
+          restore-keys: torch-hub-checkpoints-
 
       - name: Run tests
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: tox -e tests-hub
-
-      - name: List cache dir
-        run: |
-          echo "$(python -c 'from torch import hub; print(hub.get_dir())')/checkpoints"
-          ls -l  ~/.cache/torch/hub/checkpoints
