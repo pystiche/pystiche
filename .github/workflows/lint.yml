@@ -17,6 +17,7 @@ on:
       - ".github/workflows/lint.yml"
       - "setup.cfg"
       - "pyproject.toml"
+      - ".pre-commit-config.yaml"
 
 jobs:
   style:
