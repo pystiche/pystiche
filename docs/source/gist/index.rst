@@ -6,7 +6,7 @@ Gist
 From a high viewpoint, Neural Style Transfer (NST) can be described with only three
 images and two symbols:
 
-.. image:: graphics/banner/banner.jpg
+.. image:: ../graphics/banner/banner.jpg
     :alt: pystiche banner
 
 Not only the quality of the results but also the underlying steps are comparable to the
