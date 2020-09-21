@@ -17,24 +17,52 @@
 ``pystiche``
 ============
 
-.. include:: docs/source/general.rst
+``pystiche`` (pronounced
+`/ˈpaɪˈstiʃ/ <http://ipa-reader.xyz/?text=%CB%88pa%C9%AA%CB%88sti%CA%83>`_ ) is a
+framework for
+`Neural Style Transfer (NST) <https://github.com/ycjing/Neural-Style-Transfer-Papers>`_
+built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
+*pastiche* `meaning <https://en.wikipedia.org/wiki/Pastiche>`_:
 
-.. include:: docs/source/getting_started/installation.rst
+    A pastiche is a work of visual art [...] that imitates the style or character of
+    the work of one or more other artists. Unlike parody, pastiche celebrates, rather
+    than mocks, the work it imitates.
+
+``pystiche`` has similar goals as Deep Learning (DL) frameworks such as PyTorch:
+
+1. **Accessibility**
+    Starting off with NST can be quite overwhelming due to the sheer amount of
+    techniques one has to know and be able to deploy. ``pystiche`` aims to provide an
+    easy-to-use interface that reduces the necessary prior knowledge about NST and DL
+    to a minimum.
+2. **Reproducibility**
+    Implementing NST from scratch is not only inconvenient but also error-prone.
+    ``pystiche`` aims to provide reusable tools that let developers focus on their
+    ideas rather than worrying about bugs in everything around it.
 
 
-Usage Examples
-==============
-
-Please consult the
-`documentation for usage examples <https://pystiche.readthedocs.io/en/latest/galleries/examples/index.html>`_.
-
-
-Contributing
+Installation
 ============
 
-We appreciate all contributions to ``pystiche`` be it code or something else! Please
-consult the
-`documentation on how to contribute <https://pystiche.readthedocs.io/en/latest/contributing.html>`_.
+``pystiche`` is a proper Python package and can be installed with ``pip``. The latest
+release can be installed with
+
+.. code-block:: sh
+
+  pip install https://github.com/pmeier/pystiche@v0.5.1
+
+
+Documentation
+=============
+
+For
+
+- `detailed installation instructions <https://pystiche.readthedocs.io/en/latest/getting_started/installation.html>`_,
+- a `gallery of usage examples <https://pystiche.readthedocs.io/en/latest/galleries/examples/index.html>`_,
+- the `API reference <https://pystiche.readthedocs.io/en/latest/api/index.html>`_,
+- the `contributing guidelines <https://pystiche.readthedocs.io/en/latest/getting_started/contributing.html>`_,
+
+or anything else, head over to the `documentation <https://pystiche.readthedocs.io/en/latest/>`_.
 
 
 .. |license|
