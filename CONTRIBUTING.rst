@@ -102,6 +102,12 @@ Guide lines
      drop-down menus.
   4. Click the the green button "Create pull request".
 
+  .. note::
+
+    If the time between the branch being pushed and the PR being opened is not too
+    long, GitHub will offer you a yellow box after step 1. If you click the button,
+    you can skip steps 2. and 3.
+
 .. note::
 
   Steps 1. to 3. only have to performed once. If you want to continue contributing,
