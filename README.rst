@@ -14,37 +14,27 @@
 
 .. end-badges
 
-
 ``pystiche``
 ============
 
-``pystiche`` (pronounced
-`/ˈpaɪˈstiʃ/ <http://ipa-reader.xyz/?text=%CB%88pa%C9%AA%CB%88sti%CA%83>`_ ) is a
-framework for
-`Neural Style Transfer (NST) <https://github.com/ycjing/Neural-Style-Transfer-Papers>`_
-built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
-*pastiche* `meaning <https://en.wikipedia.org/wiki/Pastiche>`_:
+.. include:: docs/source/general.rst
 
-    A pastiche is a work of visual art [...] that imitates the style or character of
-    the work of one or more other artists. Unlike parody, pastiche celebrates, rather
-    than mocks, the work it imitates.
+.. include:: docs/source/getting_started/installation.rst
 
 
-Getting started
----------------
+Usage Examples
+==============
 
-``pystiche`` is a proper Python package and can be installed with ``pip``. It is not
-yet listed on `PyPI <https://pypi.org/>`_, since it will be reviewed at
-`pyOpenSci <https://github.com/pmeier/pystiche/issues/93>`_ . To install the latest
-version of ``pystiche`` run
-
-.. code-block:: sh
-
-  pip install git+https://github.com/pmeier/pystiche
+Please consult the
+`documentation for usage examples <https://pystiche.readthedocs.io/en/latest/galleries/examples/index.html>`_.
 
 
-For extended installation instructions and usage examples please consult the
-documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/latest>`_ .
+Contributing
+============
+
+We appreciate all contributions to ``pystiche`` be it code or something else! Please
+consult the
+`documentation on how to contribute <https://pystiche.readthedocs.io/en/latest/contributing.html>`_.
 
 
 .. |license|
