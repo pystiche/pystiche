@@ -14,7 +14,6 @@
 
 .. end-badges
 
-
 ``pystiche``
 ============
 
@@ -29,22 +28,41 @@ built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
     the work of one or more other artists. Unlike parody, pastiche celebrates, rather
     than mocks, the work it imitates.
 
+``pystiche`` has similar goals as Deep Learning (DL) frameworks such as PyTorch:
 
-Getting started
----------------
+1. **Accessibility**
+    Starting off with NST can be quite overwhelming due to the sheer amount of
+    techniques one has to know and be able to deploy. ``pystiche`` aims to provide an
+    easy-to-use interface that reduces the necessary prior knowledge about NST and DL
+    to a minimum.
+2. **Reproducibility**
+    Implementing NST from scratch is not only inconvenient but also error-prone.
+    ``pystiche`` aims to provide reusable tools that let developers focus on their
+    ideas rather than worrying about bugs in everything around it.
 
-``pystiche`` is a proper Python package and can be installed with ``pip``. It is not
-yet listed on `PyPI <https://pypi.org/>`_, since it will be reviewed at
-`pyOpenSci <https://github.com/pmeier/pystiche/issues/93>`_ . To install the latest
-version of ``pystiche`` run
+
+Installation
+============
+
+``pystiche`` is a proper Python package and can be installed with ``pip``. The latest
+release can be installed with
 
 .. code-block:: sh
 
-  pip install git+https://github.com/pmeier/pystiche
+  pip install https://github.com/pmeier/pystiche@v0.5.1
 
 
-For extended installation instructions and usage examples please consult the
-documentation `hosted on readthedocs.com <https://pystiche.readthedocs.io/en/latest>`_ .
+Documentation
+=============
+
+For
+
+- `detailed installation instructions <https://pystiche.readthedocs.io/en/latest/getting_started/installation.html>`_,
+- a `gallery of usage examples <https://pystiche.readthedocs.io/en/latest/galleries/examples/index.html>`_,
+- the `API reference <https://pystiche.readthedocs.io/en/latest/api/index.html>`_,
+- the `contributing guidelines <https://pystiche.readthedocs.io/en/latest/getting_started/contributing.html>`_,
+
+or anything else, head over to the `documentation <https://pystiche.readthedocs.io/en/latest/>`_.
 
 
 .. |license|

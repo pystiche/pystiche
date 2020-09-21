@@ -1,10 +1,11 @@
 Welcome to ``pystiche`` 's documentation!
 =========================================
 
-``pystiche`` is a framework for
+``pystiche`` (pronounced
+`/ˈpaɪˈstiʃ/ <http://ipa-reader.xyz/?text=%CB%88pa%C9%AA%CB%88sti%CA%83>`_ ) is a
+framework for
 `Neural Style Transfer (NST) <https://github.com/ycjing/Neural-Style-Transfer-Papers>`_
-built upon `PyTorch <https://pytorch.org>`_. An NST allows enables a fully automatic
-merge of arbitrary content and artistic style. The name of the project is a pun on
+built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
 *pastiche* `meaning <https://en.wikipedia.org/wiki/Pastiche>`_:
 
     A pastiche is a work of visual art [...] that imitates the style or character of
@@ -27,9 +28,8 @@ merge of arbitrary content and artistic style. The name of the project is a pun 
   :maxdepth: 1
   :caption: Contents
 
-  Installation <installation>
-  Gist <gist>
-  Examples <galleries/examples/index>
-  Contributing <contributing>
+  Getting Started <getting_started/index>
+  Gist <gist/index>
+  Usage Examples <galleries/examples/index>
   Package Reference <api/index>
   Literature Reference <literature>
