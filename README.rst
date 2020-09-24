@@ -64,6 +64,20 @@ For
 
 or anything else, head over to the `documentation <https://pystiche.readthedocs.io/en/latest/>`_.
 
+Citation
+========
+
+If you use this software, please cite it as
+
+.. code-block:: bibtex
+
+  @Article{ML2020,
+    author    = {Meier, Philip and Volker, Lohweg},
+    title     = {pmeier/pystiche: v0.5.1.post0},
+    year      = {2020},
+    publisher = {Zenodo},
+    doi       = {10.5281/zenodo.4048734},
+  }
 
 .. |license|
   image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
