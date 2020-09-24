@@ -9,13 +9,13 @@ The latest **stable** version can be installed with
 
 .. code-block:: sh
 
-  pip install https://github.com/pmeier/pystiche@v0.5.1
+  pip install git+https://github.com/pmeier/pystiche@v0.5.1
 
 The latest **potentially unstable** version can be installed with
 
 .. code-block::
 
-  pip install https://github.com/pmeier/pystiche@master
+  pip install git+https://github.com/pmeier/pystiche@master
 
 
 Installation of PyTorch

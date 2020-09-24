@@ -49,7 +49,7 @@ release can be installed with
 
 .. code-block:: sh
 
-  pip install https://github.com/pmeier/pystiche@v0.5.1
+  pip install git+https://github.com/pmeier/pystiche@v0.5.1
 
 
 Documentation
