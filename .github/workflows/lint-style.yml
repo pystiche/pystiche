@@ -1,0 +1,39 @@
+name: lint
+
+on:
+  push:
+    branches:
+      - master
+      - releases/*
+
+  pull_request:
+
+jobs:
+  style:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.6"
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Upgrade or install additional system packages
+        run: pip install --upgrade pip setuptools virtualenv wheel
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install dev requirements
+        run: pip install -r requirements-dev.txt
+
+      - name: Create environment
+        run: tox -e lint-style --notest
+
+      - name: Run lint
+        run: tox -e lint-style
