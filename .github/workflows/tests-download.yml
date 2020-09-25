@@ -40,7 +40,7 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Create environment
-        run: tox -e tests-hub --notest
+        run: tox -e tests-download --notest
 
       - name: Get torch.hub checkpoints cache directory
         id: torch-hub-checkpoints-cache
@@ -68,8 +68,3 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: tox -e tests-download -- tests/download --skip-large-download
-
-      - name: Run tests
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: tox -e tests-hub
