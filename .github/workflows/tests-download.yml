@@ -57,6 +57,18 @@ jobs:
           key: torch-hub-checkpoints-${{ hashFiles('hubconf.py', 'pystiche/enc/models/**') }}
           restore-keys: torch-hub-checkpoints-
 
+      - name: Run tests with large downloads
+        if: github.event_name == 'schedule'
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: tox -e tests-download
+
+      - name: Run tests without large downloads
+        if: github.event_name != 'schedule'
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: tox -e tests-download -- tests/download --skip-large-download
+
       - name: Run tests
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
