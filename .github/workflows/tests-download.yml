@@ -1,0 +1,63 @@
+name: tests
+
+on:
+  pull_request:
+    paths:
+      - "tests/hub/**"
+      - "hubconf.py"
+      - ".github/workflows/tests-download.yml"
+      - "pyproject.toml"
+      - "pytest.ini"
+      - "requirements-dev.txt"
+      - "setup.cfg"
+      - "tox.ini"
+
+  schedule:
+    - cron: "0 4 * * *"
+
+jobs:
+  hub:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Upgrade and install additional system packages
+        run: pip install --upgrade setuptools virtualenv wheel
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install dev requirements
+        run: pip install -r requirements-dev.txt
+
+      - name: Create environment
+        run: tox -e tests-hub --notest
+
+      - name: Get torch.hub checkpoints cache directory
+        id: torch-hub-checkpoints-cache
+        run: |
+          source .tox/tests-hub/bin/activate
+          DIR="$(python -c 'from torch import hub; print(hub.get_dir())')/checkpoints"
+          echo "::set-output name=dir::$DIR"
+          deactivate
+
+      - name: Load torch.hub checkpoints from cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.torch-hub-checkpoints-cache.outputs.dir }}
+          key: torch-hub-checkpoints-${{ hashFiles('hubconf.py', 'pystiche/enc/models/**') }}
+          restore-keys: torch-hub-checkpoints-
+
+      - name: Run tests
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: tox -e tests-hub
