@@ -16,7 +16,7 @@ on:
     - cron: "0 4 * * *"
 
 jobs:
-  hub:
+  download:
     runs-on: ubuntu-latest
 
     steps:
