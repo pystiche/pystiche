@@ -16,6 +16,7 @@ from typing import (
 from urllib.request import Request, urlopen
 
 import torch
+from torchvision.datasets.utils import check_md5
 
 __all__ = [
     "prod",
@@ -232,15 +233,24 @@ def get_device(device: Optional[str] = None) -> torch.device:
 
 
 def download_file(
-    url: str, file: Optional[str] = None, user_agent: str = "pystiche"
+    url: str, file: Optional[str] = None, md5: Optional[str] = None,
 ) -> str:
     if file is None:
         file = path.basename(url)
 
-    with open(file, "wb") as fh:
-        request = Request(url, headers={"User-Agent": user_agent})
-        with urlopen(request) as response:
+    request = Request(url, headers={"User-Agent": "pystiche"})
+
+    with urlopen(request) as a:
+        print(a)
+
+    with urlopen(request) as response:
+        if not (200 <= response.code < 300):
+            raise RuntimeError(f"The server returned status code {response.code}.")
+        with open(file, "wb") as fh:
             fh.write(response.read())
+
+    if md5 is not None and not check_md5(file, md5):
+        raise RuntimeError(f"The MD5 checksum of {file} mismatches.")
 
     return file
 

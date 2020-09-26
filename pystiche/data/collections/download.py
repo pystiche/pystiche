@@ -106,7 +106,7 @@ class DownloadableImage(_Image):
 
         def _download(file: str) -> None:
             os.makedirs(path.dirname(file), exist_ok=True)
-            download_file(self.url, file)
+            download_file(self.url, file=file, md5=self.md5)
 
         if root is None:
             root = pystiche.home()

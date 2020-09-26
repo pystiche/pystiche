@@ -9,6 +9,8 @@ import torch
 from pystiche import misc
 from pystiche.image import read_image
 
+from tests.mocks import make_mock_target
+
 
 def test_prod():
     n = 10
@@ -187,11 +189,30 @@ def test_get_device_str():
 
 def test_download_file(tmpdir, test_image_url, test_image):
     file = path.join(tmpdir, path.basename(test_image_url))
-    misc.download_file(test_image_url, file)
+    misc.download_file(test_image_url, file, md5="a858d33c424eaac1322cf3cab6d3d568")
 
     actual = read_image(file)
     desired = test_image
     ptu.assert_allclose(actual, desired)
+
+
+@pytest.mark.parametrize("code", (400, 401, 403, 404, 409, 500))
+def test_download_file_response_code(mocker, test_image_url, code):
+    mock = mocker.MagicMock(code=code)
+    mock.__enter__ = mocker.Mock(return_value=mock)
+    mocker.patch(make_mock_target("misc", "urlopen"), return_value=mock)
+
+    with pytest.raises(RuntimeError):
+        misc.download_file(test_image_url)
+
+
+def test_download_file_md5_mismatch(tmpdir, test_image_url):
+    with pytest.raises(RuntimeError):
+        misc.download_file(
+            test_image_url,
+            path.join(tmpdir, path.basename(test_image_url)),
+            md5="invalidmd5",
+        )
 
 
 def test_reduce():
