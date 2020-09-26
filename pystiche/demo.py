@@ -35,7 +35,8 @@ def demo_images() -> DownloadableImageCollection:
                 author="gholmz0",
                 date="09.03.2013",
                 license=PixabayLicense(),
-                md5="36e5fef725943a5d1d22b5048095da86",
+                md5="ca869559701156c66fc1519ffc26123c",
+                note="https://pixabay.com/photos/bird-wildlife-australian-bird-1139734/",
             ),
             "paint": DownloadableImage(
                 "https://cdn.pixabay.com/photo/2017/07/03/20/17/abstract-2468874_960_720.jpg",
@@ -44,6 +45,7 @@ def demo_images() -> DownloadableImageCollection:
                 date="03.07.2017",
                 license=PixabayLicense(),
                 md5="a991e222806ef49d34b172a67cf97d91",
+                note="https://pixabay.com/de/photos/abstrakt-kunst-hintergrund-farbe-2468874/",
             ),
             "bird2": DownloadableImage(
                 "https://cdn.pixabay.com/photo/2013/03/12/17/53/bird-92956_960_720.jpg",
@@ -51,7 +53,8 @@ def demo_images() -> DownloadableImageCollection:
                 author="12019",
                 date="09.04.2012",
                 license=PixabayLicense(),
-                md5="8c5b608bd579d931e2cfe7229840fe9b",
+                md5="2398e8f6d102b9b8de7c74d4c73b71f4",
+                note="https://pixabay.com/photos/bird-wildlife-sky-clouds-nature-92956/",
             ),
             "mosaic": DownloadableImage(
                 "https://upload.wikimedia.org/wikipedia/commons/2/23/Mosaic_ducks_Massimo.jpg",
@@ -67,7 +70,8 @@ def demo_images() -> DownloadableImageCollection:
                 author="Christian Hänsel",
                 date="23.03.2014",
                 license=PixabayLicense(),
-                md5="f6e7d9ed61223c12230b99ed496849a9",
+                md5="9d085fac77065e0da66629162f759f90",
+                note="https://pixabay.com/de/photos/lemgo-brake-schloss-br%C3%BCcke-310586/",
                 guides=DownloadableImageCollection(
                     {
                         "building": DownloadableImage(
