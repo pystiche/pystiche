@@ -1,4 +1,5 @@
 import itertools
+import warnings
 from functools import reduce as _reduce
 from operator import mul
 from os import path
@@ -233,15 +234,19 @@ def get_device(device: Optional[str] = None) -> torch.device:
 
 
 def download_file(
-    url: str, file: Optional[str] = None, md5: Optional[str] = None,
+    url: str,
+    file: Optional[str] = None,
+    user_agent: Optional[str] = None,
+    md5: Optional[str] = None,
 ) -> str:
     if file is None:
         file = path.basename(url)
+    if user_agent is None:
+        user_agent = "pystiche"
+    else:
+        warnings.warn(build_deprecation_message("The parameter user_agent", "0.6.0"))
 
-    request = Request(url, headers={"User-Agent": "pystiche"})
-
-    with urlopen(request) as a:
-        print(a)
+    request = Request(url, headers={"User-Agent": user_agent})
 
     with urlopen(request) as response:
         if not (200 <= response.code < 300):
