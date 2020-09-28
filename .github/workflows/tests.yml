@@ -93,5 +93,19 @@ jobs:
       - name: Create environment
         run: tox -e tests-galleries --notest
 
+      - name: Get pystiche.home() directory
+        id: pystiche-home
+        run: |
+          PYTHON=".tox/tests-galleries/bin/python"
+          DIR="$($PYTHON -c 'import pystiche; print(pystiche.home())')"
+          echo "::set-output name=dir::$DIR"
+
+      - name: Load pystiche.home() from cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.pystiche-home.outputs.dir }}
+          key: pystiche-home-${{ hashFiles('pystiche/demo.py') }}
+          restore-keys: pystiche-home-
+
       - name: Run tests
         run: tox -e tests-galleries
