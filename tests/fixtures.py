@@ -4,9 +4,9 @@ import pytest
 
 from torch import nn
 
-import pystiche
-
 from . import assets, utils
+
+# import pystiche
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -15,10 +15,10 @@ def watch_project_dir():
         yield
 
 
-@pytest.fixture(scope="session", autouse=True)
-def watch_pystiche_home():
-    with utils.watch_dir(pystiche.home()):
-        yield
+# @pytest.fixture(scope="session", autouse=True)
+# def watch_pystiche_home():
+#     with utils.watch_dir(pystiche.home()):
+#         yield
 
 
 @pytest.fixture(scope="session")
