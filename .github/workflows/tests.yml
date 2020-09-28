@@ -109,14 +109,3 @@ jobs:
 
       - name: Run tests
         run: tox -e tests-galleries
-
-      - name: List pystiche.home()
-        if: failure()
-        run: md5sum "${{ steps.pystiche-home.outputs.dir }}/*"
-
-      - name: Upload demo images
-        if: failure()
-        uses: actions/upload-artifact@v2
-        with:
-          name: images
-          path: ${{ steps.pystiche-home.outputs.dir }}
