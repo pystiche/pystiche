@@ -30,7 +30,7 @@ def demo_images() -> DownloadableImageCollection:
     return DownloadableImageCollection(
         {
             "bird1": DownloadableImage(
-                "https://cdn.pixabay.com/photo/2016/01/14/11/26/bird-1139734_960_720.jpg",
+                "https://download.pystiche.org/images/bird1.jpg",
                 file="bird1.jpg",
                 author="gholmz0",
                 date="09.03.2013",
@@ -39,7 +39,7 @@ def demo_images() -> DownloadableImageCollection:
                 note="https://pixabay.com/photos/bird-wildlife-australian-bird-1139734/",
             ),
             "paint": DownloadableImage(
-                "https://cdn.pixabay.com/photo/2017/07/03/20/17/abstract-2468874_960_720.jpg",
+                "https://download.pystiche.org/images/paint.jpg",
                 file="paint.jpg",
                 author="garageband",
                 date="03.07.2017",
@@ -48,7 +48,7 @@ def demo_images() -> DownloadableImageCollection:
                 note="https://pixabay.com/de/photos/abstrakt-kunst-hintergrund-farbe-2468874/",
             ),
             "bird2": DownloadableImage(
-                "https://cdn.pixabay.com/photo/2013/03/12/17/53/bird-92956_960_720.jpg",
+                "https://download.pystiche.org/images/bird2.jpg",
                 file="bird2.jpg",
                 author="12019",
                 date="09.04.2012",
@@ -65,7 +65,7 @@ def demo_images() -> DownloadableImageCollection:
                 md5="5b60cd1724395f7a0c21dc6dd006f8ae",
             ),
             "castle": DownloadableImage(
-                "https://cdn.pixabay.com/photo/2014/04/03/10/28/lemgo-310586_960_720.jpg",
+                "https://download.pystiche.org/images/castle.jpg",
                 file="castle.jpg",
                 author="Christian Hänsel",
                 date="23.03.2014",
