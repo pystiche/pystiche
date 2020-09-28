@@ -14,6 +14,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 import torch
@@ -248,11 +249,12 @@ def download_file(
 
     request = Request(url, headers={"User-Agent": user_agent})
 
-    with urlopen(request) as response:
-        if not (200 <= response.code < 300):
-            raise RuntimeError(f"The server returned status code {response.code}.")
-        with open(file, "wb") as fh:
+    try:
+        with urlopen(request) as response, open(file, "wb") as fh:
             fh.write(response.read())
+    except HTTPError as error:
+        msg = f"The server returned {error.code}: {error.reason}."
+        raise RuntimeError(msg) from error
 
     if md5 is not None and not check_md5(file, md5):
         raise RuntimeError(f"The MD5 checksum of {file} mismatches.")

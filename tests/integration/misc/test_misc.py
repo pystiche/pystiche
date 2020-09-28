@@ -1,5 +1,6 @@
 import math
 from os import path
+from urllib.error import HTTPError
 
 import pytest
 import pytorch_testing_utils as ptu
@@ -196,11 +197,20 @@ def test_download_file(tmpdir, test_image_url, test_image):
     ptu.assert_allclose(actual, desired)
 
 
-@pytest.mark.parametrize("code", (400, 401, 403, 404, 409, 500))
-def test_download_file_response_code(mocker, test_image_url, code):
-    mock = mocker.MagicMock(code=code)
-    mock.__enter__ = mocker.Mock(return_value=mock)
-    mocker.patch(make_mock_target("misc", "urlopen"), return_value=mock)
+@pytest.mark.parametrize(
+    ("code", "reason"),
+    [
+        (400, "Bad request"),
+        (401, "Unauthorized"),
+        (403, "Forbidden"),
+        (404, "Not Found"),
+        (409, "Conflict"),
+        (500, "Internal Server Error"),
+    ],
+)
+def test_download_file_response_code(mocker, test_image_url, code, reason):
+    side_effect = HTTPError(test_image_url, code, reason, {}, None)
+    mocker.patch(make_mock_target("misc", "urlopen"), side_effect=side_effect)
 
     with pytest.raises(RuntimeError):
         misc.download_file(test_image_url)
