@@ -109,3 +109,6 @@ jobs:
 
       - name: Run tests
         run: tox -e tests-galleries
+
+      - name: List pystiche.home()
+        run: md5sum "${{ steps.pystiche-home.outputs.dir }}/*"
