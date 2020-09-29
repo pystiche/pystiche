@@ -28,6 +28,9 @@ built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
     the work of one or more other artists. Unlike parody, pastiche celebrates, rather
     than mocks, the work it imitates.
 
+.. image:: docs/source/graphics/banner/banner.jpg
+    :alt: pystiche banner
+
 ``pystiche`` has similar goals as Deep Learning (DL) frameworks such as PyTorch:
 
 1. **Accessibility**
@@ -51,6 +54,35 @@ release can be installed with
 
   pip install git+https://github.com/pmeier/pystiche@v0.5.1
 
+Usage
+=====
+
+``pystiche`` makes it easy to define the optimization criterion for an NST task fully
+compatible with PyTorch. For example, the banner above was generated with the following
+``criterion``:
+
+.. code-block:: python
+
+  from pystiche import enc, loss, ops
+
+  multi_layer_encoder = enc.vgg19_multi_layer_encoder()
+
+  criterion = loss.PerceptualLoss(
+      content_loss=ops.FeatureReconstructionOperator(
+          multi_layer_encoder.extract_encoder("relu4_2")
+      ),
+      style_loss=ops.MultiLayerEncodingOperator(
+          multi_layer_encoder,
+          ("relu1_1", "relu2_1", "relu3_1", "relu4_1", "relu5_1"),
+          lambda encoder, layer_weight: ops.GramOperator(
+              encoder, score_weight=layer_weight
+          ),
+          score_weight=1e3,
+      ),
+  )
+
+For the full example, head over to the example
+`NST with pystiche <https://pystiche.readthedocs.io/en/latest/galleries/examples/beginner/example_nst_with_pystiche.html>`_.
 
 Documentation
 =============
