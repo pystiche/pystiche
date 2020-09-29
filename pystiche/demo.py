@@ -1,5 +1,6 @@
 import logging
 import sys
+import warnings
 from datetime import datetime
 
 from pystiche.data import (
@@ -11,10 +12,12 @@ from pystiche.data import (
 )
 from pystiche.optim import OptimLogger
 
-__all__ = ["demo_images", "demo_logger"]
+from .misc import build_deprecation_message
+
+__all__ = ["images", "logger"]
 
 
-def demo_images() -> DownloadableImageCollection:
+def images() -> DownloadableImageCollection:
     """Collection of images used in the usage examples.
 
     .. note::
@@ -23,7 +26,7 @@ def demo_images() -> DownloadableImageCollection:
 
         .. code-block:: python
 
-            print(demo_images())
+            print(images())
 
         to get a list of all available images.
     """
@@ -170,7 +173,16 @@ def demo_images() -> DownloadableImageCollection:
     )
 
 
-def demo_logger() -> OptimLogger:
+def demo_images():
+    warnings.warn(
+        build_deprecation_message(
+            "The function demo_images", "0.6.0", info="It was renamed to images."
+        )
+    )
+    return images()
+
+
+def logger() -> OptimLogger:
     """Simple logger used in the usage examples.
     """
     logger = logging.getLogger(
@@ -183,3 +195,12 @@ def demo_logger() -> OptimLogger:
     logger.addHandler(sh)
 
     return OptimLogger(logger)
+
+
+def demo_logger():
+    warnings.warn(
+        build_deprecation_message(
+            "The function demo_logger", "0.6.0", info="It was renamed to logger."
+        )
+    )
+    return logger()
