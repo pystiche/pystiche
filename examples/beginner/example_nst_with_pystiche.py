@@ -21,7 +21,7 @@ optimization, could be performed with ``pystiche``.
 # be working on.
 
 import pystiche
-from pystiche.demo import demo_images, demo_logger
+from pystiche import demo
 from pystiche.enc import vgg19_multi_layer_encoder
 from pystiche.image import show_image
 from pystiche.loss import PerceptualLoss
@@ -112,7 +112,7 @@ print(criterion)
 # We now load and show the images that will be used in the NST. The images will be
 # resized to ``size=500`` pixels.
 
-images = demo_images()
+images = demo.images()
 images.download()
 size = 500
 
@@ -191,10 +191,10 @@ show_image(input_image, title="Input image")
 # .. note::
 #
 #   By default ``pystiche`` logs the time during an optimization. In order to reduce
-#   the clutter, we use the minimal :func:`~pystiche.demo.demo_logger` here.
+#   the clutter, we use a minimal :func:`~pystiche.demo.logger` here.
 
 output_image = default_image_optim_loop(
-    input_image, criterion, num_steps=500, logger=demo_logger()
+    input_image, criterion, num_steps=500, logger=demo.logger()
 )
 
 
