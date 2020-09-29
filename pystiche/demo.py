@@ -173,7 +173,7 @@ def images() -> DownloadableImageCollection:
     )
 
 
-def demo_images():
+def demo_images() -> DownloadableImageCollection:
     warnings.warn(
         build_deprecation_message(
             "The function demo_images", "0.6.0", info="It was renamed to images."
@@ -197,7 +197,7 @@ def logger() -> OptimLogger:
     return OptimLogger(logger)
 
 
-def demo_logger():
+def demo_logger() -> OptimLogger:
     warnings.warn(
         build_deprecation_message(
             "The function demo_logger", "0.6.0", info="It was renamed to logger."
