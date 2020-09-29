@@ -29,6 +29,14 @@ class TotalVariationOperator(PixelRegularizationOperator):
             results. Defaults to ``2.0``.
         score_weight: Score weight of the operator. Defaults to ``1.0``.
 
+    Examples:
+
+        >>> op = ops.TotalVariationOperator()
+        >>> input = torch.rand(2, 3, 256, 256)
+        >>> target = torch.rand(2, 3, 256, 256)
+        >>> op.set_target_image(target)
+        >>> score = op(input)
+
     .. seealso::
 
         The total variation loss was introduced by Mahendran and Vedaldi in
