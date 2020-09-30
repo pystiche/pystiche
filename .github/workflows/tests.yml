@@ -110,3 +110,32 @@ jobs:
 
       - name: Run tests
         run: tox -e tests-galleries
+
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Upgrade and install additional system packages
+        run: pip install --upgrade setuptools virtualenv wheel
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install dev requirements
+        run: pip install -r requirements-dev.txt
+
+      - name: Create environment
+        run: tox -e tests-docs --notest
+
+      - name: Run tests
+        run: tox -e tests-docs
