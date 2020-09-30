@@ -23,7 +23,7 @@ the overall result :cite:`LW2016,GEB+2017`.
 import time
 
 import pystiche
-from pystiche.demo import demo_images, demo_logger
+from pystiche import demo
 from pystiche.enc import vgg19_multi_layer_encoder
 from pystiche.image import show_image
 from pystiche.loss import PerceptualLoss
@@ -76,7 +76,7 @@ print(criterion)
 ########################################################################################
 # Next up, we load and show the images that will be used in the NST.
 
-images = demo_images()
+images = demo.images()
 images.download()
 size = 500
 
@@ -112,7 +112,7 @@ show_image(input_image, title="Input image")
 
 start_without_pyramid = time.time()
 output_image = default_image_optim_loop(
-    input_image, criterion, num_steps=400, logger=demo_logger()
+    input_image, criterion, num_steps=400, logger=demo.logger()
 )
 stop_without_pyramid = time.time()
 
@@ -178,7 +178,7 @@ input_image = get_input_image(starting_point, content_image=content_image)
 
 start_with_pyramid = time.time()
 output_image = default_image_pyramid_optim_loop(
-    input_image, criterion, pyramid, logger=demo_logger()
+    input_image, criterion, pyramid, logger=demo.logger()
 )
 stop_with_pyramid = time.time()
 

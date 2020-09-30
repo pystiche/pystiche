@@ -19,7 +19,7 @@ also called ``guides`` (:cite:`GEB+2017`).
 # be working on.
 
 import pystiche
-from pystiche.demo import demo_images, demo_logger
+from pystiche import demo
 from pystiche.enc import vgg19_multi_layer_encoder
 from pystiche.image import guides_to_segmentation, show_image
 from pystiche.loss import GuidedPerceptualLoss, PerceptualLoss
@@ -41,7 +41,7 @@ print(f"I'm working with {device}")
 ########################################################################################
 # In a first step we load and show the images that will be used in the NST.
 
-images = demo_images()
+images = demo.images()
 images.download()
 size = 500
 
@@ -105,7 +105,7 @@ starting_point = "content"
 input_image = get_input_image(starting_point, content_image=content_image)
 
 output_image = default_image_optim_loop(
-    input_image, criterion, num_steps=500, logger=demo_logger()
+    input_image, criterion, num_steps=500, logger=demo.logger()
 )
 
 
@@ -213,7 +213,7 @@ starting_point = "content"
 input_image = get_input_image(starting_point, content_image=content_image)
 
 output_image = default_image_optim_loop(
-    input_image, criterion, num_steps=500, logger=demo_logger()
+    input_image, criterion, num_steps=500, logger=demo.logger()
 )
 
 
@@ -273,7 +273,7 @@ starting_point = "content"
 input_image = get_input_image(starting_point, content_image=content_image)
 
 output_image = default_image_optim_loop(
-    input_image, criterion, num_steps=500, logger=demo_logger()
+    input_image, criterion, num_steps=500, logger=demo.logger()
 )
 
 
