@@ -19,18 +19,9 @@ also called ``guides`` (:cite:`GEB+2017`).
 # be working on.
 
 import pystiche
-from pystiche import demo
-from pystiche.enc import vgg19_multi_layer_encoder
+from pystiche import demo, enc, loss, ops, optim
 from pystiche.image import guides_to_segmentation, show_image
-from pystiche.loss import GuidedPerceptualLoss, PerceptualLoss
 from pystiche.misc import get_device, get_input_image
-from pystiche.ops import (
-    FeatureReconstructionOperator,
-    GramOperator,
-    MultiLayerEncodingOperator,
-    MultiRegionOperator,
-)
-from pystiche.optim import default_image_optim_loop
 
 print(f"I'm working with pystiche=={pystiche.__version__}")
 
@@ -65,12 +56,12 @@ show_image(style_image)
 # :class:`~pystiche.ops.FeatureReconstructionOperator` as ``content_loss`` and
 # :class:`~pystiche.ops.GramOperator` s as ``style_loss``.
 
-multi_layer_encoder = vgg19_multi_layer_encoder()
+multi_layer_encoder = enc.vgg19_multi_layer_encoder()
 
 content_layer = "relu4_2"
 content_encoder = multi_layer_encoder.extract_encoder(content_layer)
 content_weight = 1e0
-content_loss = FeatureReconstructionOperator(
+content_loss = ops.FeatureReconstructionOperator(
     content_encoder, score_weight=content_weight
 )
 
@@ -79,15 +70,15 @@ style_weight = 1e4
 
 
 def get_style_op(encoder, layer_weight):
-    return GramOperator(encoder, score_weight=layer_weight)
+    return ops.GramOperator(encoder, score_weight=layer_weight)
 
 
-style_loss = MultiLayerEncodingOperator(
+style_loss = ops.MultiLayerEncodingOperator(
     multi_layer_encoder, style_layers, get_style_op, score_weight=style_weight,
 )
 
 
-criterion = PerceptualLoss(content_loss, style_loss).to(device)
+criterion = loss.PerceptualLoss(content_loss, style_loss).to(device)
 print(criterion)
 
 
@@ -104,7 +95,7 @@ criterion.set_style_image(style_image)
 starting_point = "content"
 input_image = get_input_image(starting_point, content_image=content_image)
 
-output_image = default_image_optim_loop(
+output_image = optim.default_image_optim_loop(
     input_image, criterion, num_steps=500, logger=demo.logger()
 )
 
@@ -181,14 +172,14 @@ style_guides["water"] = style_guides["sky"]
 
 
 def get_region_op(region, region_weight):
-    return MultiLayerEncodingOperator(
+    return ops.MultiLayerEncodingOperator(
         multi_layer_encoder, style_layers, get_style_op, score_weight=region_weight,
     )
 
 
-style_loss = MultiRegionOperator(regions, get_region_op, score_weight=style_weight)
+style_loss = ops.MultiRegionOperator(regions, get_region_op, score_weight=style_weight)
 
-criterion = GuidedPerceptualLoss(content_loss, style_loss).to(device)
+criterion = loss.GuidedPerceptualLoss(content_loss, style_loss).to(device)
 print(criterion)
 
 
@@ -212,7 +203,7 @@ for region in regions:
 starting_point = "content"
 input_image = get_input_image(starting_point, content_image=content_image)
 
-output_image = default_image_optim_loop(
+output_image = optim.default_image_optim_loop(
     input_image, criterion, num_steps=500, logger=demo.logger()
 )
 
@@ -272,7 +263,7 @@ criterion.set_style_image(region, second_style_image)
 starting_point = "content"
 input_image = get_input_image(starting_point, content_image=content_image)
 
-output_image = default_image_optim_loop(
+output_image = optim.default_image_optim_loop(
     input_image, criterion, num_steps=500, logger=demo.logger()
 )
 

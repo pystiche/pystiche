@@ -23,18 +23,9 @@ the overall result :cite:`LW2016,GEB+2017`.
 import time
 
 import pystiche
-from pystiche import demo
-from pystiche.enc import vgg19_multi_layer_encoder
+from pystiche import demo, enc, loss, ops, optim, pyramid
 from pystiche.image import show_image
-from pystiche.loss import PerceptualLoss
 from pystiche.misc import get_device, get_input_image
-from pystiche.ops import (
-    FeatureReconstructionOperator,
-    MRFOperator,
-    MultiLayerEncodingOperator,
-)
-from pystiche.optim import default_image_optim_loop, default_image_pyramid_optim_loop
-from pystiche.pyramid import ImagePyramid
 
 print(f"I'm working with pystiche=={pystiche.__version__}")
 
@@ -46,13 +37,13 @@ print(f"I'm working with {device}")
 # At first we define a :class:`~pystiche.loss.PerceptualLoss` that is used as
 # optimization ``criterion``.
 
-multi_layer_encoder = vgg19_multi_layer_encoder()
+multi_layer_encoder = enc.vgg19_multi_layer_encoder()
 
 
 content_layer = "relu4_2"
 content_encoder = multi_layer_encoder.extract_encoder(content_layer)
 content_weight = 1e0
-content_loss = FeatureReconstructionOperator(
+content_loss = ops.FeatureReconstructionOperator(
     content_encoder, score_weight=content_weight
 )
 
@@ -62,14 +53,14 @@ style_weight = 2e0
 
 
 def get_style_op(encoder, layer_weight):
-    return MRFOperator(encoder, patch_size=3, stride=2, score_weight=layer_weight)
+    return ops.MRFOperator(encoder, patch_size=3, stride=2, score_weight=layer_weight)
 
 
-style_loss = MultiLayerEncodingOperator(
+style_loss = ops.MultiLayerEncodingOperator(
     multi_layer_encoder, style_layers, get_style_op, score_weight=style_weight,
 )
 
-criterion = PerceptualLoss(content_loss, style_loss).to(device)
+criterion = loss.PerceptualLoss(content_loss, style_loss).to(device)
 print(criterion)
 
 
@@ -111,7 +102,7 @@ show_image(input_image, title="Input image")
 # show the result.
 
 start_without_pyramid = time.time()
-output_image = default_image_optim_loop(
+output_image = optim.default_image_optim_loop(
     input_image, criterion, num_steps=400, logger=demo.logger()
 )
 stop_without_pyramid = time.time()
@@ -160,8 +151,8 @@ print(
 
 edge_sizes = (250, 500)
 num_steps = 200
-pyramid = ImagePyramid(edge_sizes, num_steps, resize_targets=(criterion,))
-print(pyramid)
+image_pyramid = pyramid.ImagePyramid(edge_sizes, num_steps, resize_targets=(criterion,))
+print(image_pyramid)
 
 
 ########################################################################################
@@ -177,8 +168,8 @@ print(pyramid)
 input_image = get_input_image(starting_point, content_image=content_image)
 
 start_with_pyramid = time.time()
-output_image = default_image_pyramid_optim_loop(
-    input_image, criterion, pyramid, logger=demo.logger()
+output_image = optim.default_image_pyramid_optim_loop(
+    input_image, criterion, image_pyramid, logger=demo.logger()
 )
 stop_with_pyramid = time.time()
 
