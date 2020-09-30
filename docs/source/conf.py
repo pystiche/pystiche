@@ -81,6 +81,7 @@ extensions = [
     "sphinxcontrib.bibtex",
     "sphinx_gallery.gen_gallery",
     "sphinx_autodoc_typehints",
+    "sphinx.ext.doctest",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
