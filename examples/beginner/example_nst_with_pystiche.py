@@ -21,17 +21,9 @@ optimization, could be performed with ``pystiche``.
 # be working on.
 
 import pystiche
-from pystiche import demo
-from pystiche.enc import vgg19_multi_layer_encoder
+from pystiche import demo, enc, loss, ops, optim
 from pystiche.image import show_image
-from pystiche.loss import PerceptualLoss
 from pystiche.misc import get_device, get_input_image
-from pystiche.ops import (
-    FeatureReconstructionOperator,
-    GramOperator,
-    MultiLayerEncodingOperator,
-)
-from pystiche.optim import default_image_optim_loop
 
 print(f"I'm working with pystiche=={pystiche.__version__}")
 
@@ -49,7 +41,7 @@ print(f"I'm working with {device}")
 # based on the ``VGG19`` architecture introduced by Simonyan and Zisserman
 # :cite:`SZ2014` .
 
-multi_layer_encoder = vgg19_multi_layer_encoder()
+multi_layer_encoder = enc.vgg19_multi_layer_encoder()
 print(multi_layer_encoder)
 
 
@@ -70,7 +62,7 @@ print(multi_layer_encoder)
 content_layer = "relu4_2"
 content_encoder = multi_layer_encoder.extract_encoder(content_layer)
 content_weight = 1e0
-content_loss = FeatureReconstructionOperator(
+content_loss = ops.FeatureReconstructionOperator(
     content_encoder, score_weight=content_weight
 )
 print(content_loss)
@@ -87,10 +79,10 @@ style_weight = 1e3
 
 
 def get_style_op(encoder, layer_weight):
-    return GramOperator(encoder, score_weight=layer_weight)
+    return ops.GramOperator(encoder, score_weight=layer_weight)
 
 
-style_loss = MultiLayerEncodingOperator(
+style_loss = ops.MultiLayerEncodingOperator(
     multi_layer_encoder, style_layers, get_style_op, score_weight=style_weight,
 )
 print(style_loss)
@@ -101,7 +93,7 @@ print(style_loss)
 # :class:`~pystiche.loss.perceptual.PerceptualLoss`, which will serve as ``criterion``
 # for the optimization.
 
-criterion = PerceptualLoss(content_loss, style_loss).to(device)
+criterion = loss.PerceptualLoss(content_loss, style_loss).to(device)
 print(criterion)
 
 
@@ -193,7 +185,7 @@ show_image(input_image, title="Input image")
 #   By default ``pystiche`` logs the time during an optimization. In order to reduce
 #   the clutter, we use a minimal :func:`~pystiche.demo.logger` here.
 
-output_image = default_image_optim_loop(
+output_image = optim.default_image_optim_loop(
     input_image, criterion, num_steps=500, logger=demo.logger()
 )
 
