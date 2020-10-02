@@ -96,6 +96,20 @@ For
 
 or anything else, head over to the `documentation <https://pystiche.readthedocs.io/en/latest/>`_.
 
+Citation
+========
+
+If you use this software, please cite it as
+
+.. code-block:: bibtex
+
+  @Article{ML2020,
+    author    = {Meier, Philip and Volker, Lohweg},
+    title     = {pmeier/pystiche: v0.5.1.post0},
+    year      = {2020},
+    publisher = {Zenodo},
+    doi       = {10.5281/zenodo.3965784},
+  }
 
 .. |license|
   image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
@@ -108,8 +122,8 @@ or anything else, head over to the `documentation <https://pystiche.readthedocs.
     :alt: Project Status: Active
 
 .. |doi|
-  image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3965785.svg
-    :target: https://doi.org/10.5281/zenodo.3965785
+  image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3965784.svg
+    :target: https://doi.org/10.5281/zenodo.3965784
     :alt: DOI
 
 .. |black|
