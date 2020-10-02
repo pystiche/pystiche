@@ -76,7 +76,7 @@ If you use this software, please cite it as
     title     = {pmeier/pystiche: v0.5.1.post0},
     year      = {2020},
     publisher = {Zenodo},
-    doi       = {10.5281/zenodo.4048734},
+    doi       = {10.5281/zenodo.3965784},
   }
 
 .. |license|
@@ -90,8 +90,8 @@ If you use this software, please cite it as
     :alt: Project Status: Active
 
 .. |doi|
-  image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3965785.svg
-    :target: https://doi.org/10.5281/zenodo.3965785
+  image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3965784.svg
+    :target: https://doi.org/10.5281/zenodo.3965784
     :alt: DOI
 
 .. |black|
