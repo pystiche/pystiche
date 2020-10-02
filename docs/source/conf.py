@@ -188,6 +188,14 @@ warnings.filterwarnings(
     ),
 )
 
+# -- Options for doctest ---------------------------------------------------------------
+
+doctest_global_setup = """
+import torch
+from torch import nn
+
+from pystiche import enc, ops, loss
+"""
 
 # -- Options for HTML output -----------------------------------------------------------
 
