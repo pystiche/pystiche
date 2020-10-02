@@ -33,8 +33,6 @@ class TotalVariationOperator(PixelRegularizationOperator):
 
         >>> op = ops.TotalVariationOperator()
         >>> input = torch.rand(2, 3, 256, 256)
-        >>> target = torch.rand(2, 3, 256, 256)
-        >>> op.set_target_image(target)
         >>> score = op(input)
 
     .. seealso::
