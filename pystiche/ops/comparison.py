@@ -41,6 +41,16 @@ class FeatureReconstructionOperator(EncodingComparisonOperator):
         encoder: Encoder :math:`\Phi`.
         score_weight: Score weight of the operator. Defaults to ``1.0``.
 
+    Examples:
+
+        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
+        >>> encoder = multi_layer_encoder.extract_encoder("relu4_2")
+        >>> op = ops.FeatureReconstructionOperator(encoder)
+        >>> input = torch.rand(2, 3, 256, 256)
+        >>> target = torch.rand(2, 3, 256, 256)
+        >>> op.set_target_image(target)
+        >>> score = op(input)
+
     .. seealso::
 
         The feature reconstruction loss was introduced by Mahendran and Vedaldi in
@@ -93,6 +103,16 @@ class GramOperator(EncodingComparisonOperator):
             sized images. See :func:`pystiche.gram_matrix` for details. Defaults to
             ``True``.
         score_weight: Score weight of the operator. Defaults to ``1.0``.
+
+    Examples:
+
+        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
+        >>> encoder = multi_layer_encoder.extract_encoder("relu4_2")
+        >>> op = ops.GramOperator(encoder)
+        >>> input = torch.rand(2, 3, 256, 256)
+        >>> target = torch.rand(2, 3, 256, 256)
+        >>> op.set_target_image(target)
+        >>> score = op(input)
 
     .. seealso::
 
@@ -162,6 +182,17 @@ class MRFOperator(EncodingComparisonOperator):
         target_transforms: Optional transformations to apply to the target image before
             the neural patches are extracted. Defaults to ``None``.
         score_weight: Score weight of the operator. Defaults to ``1.0``.
+
+    Examples:
+
+        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
+        >>> encoder = multi_layer_encoder.extract_encoder("relu4_2")
+        >>> patch_size = 3
+        >>> op = ops.MRFOperator(encoder, patch_size)
+        >>> input = torch.rand(2, 3, 256, 256)
+        >>> target = torch.rand(2, 3, 256, 256)
+        >>> op.set_target_image(target)
+        >>> score = op(input)
 
     .. seealso::
 
