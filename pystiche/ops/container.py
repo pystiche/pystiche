@@ -200,6 +200,22 @@ class MultiLayerEncodingOperator(SameOperatorContainer):
             layer weight is set to ``1.0 / len(layers)``. If sequence of ``float``s its
             length has to match ``layers``. Defaults to ``"mean"``.
         score_weight: Score weight of the operator. Defaults to ``1.0``.
+
+    Examples:
+
+        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
+        >>> layers = ("relu1_1", "relu2_1", "relu3_1", "relu4_1", "relu5_1")
+        >>> def get_encoding_op(encoder, layer_weight):
+        ...     return ops.GramOperator(encoder, score_weight=layer_weight)
+        >>> op = ops.MultiLayerEncodingOperator(
+        ...     multi_layer_encoder,
+        ...     layers,
+        ...     get_encoding_op,
+        ... )
+        >>> input = torch.rand(2, 3, 256, 256)
+        >>> target = torch.rand(2, 3, 256, 256)
+        >>> op.set_target_image(target)
+        >>> score = op(input)
     """
 
     def __init__(
@@ -260,6 +276,27 @@ class MultiRegionOperator(SameOperatorContainer):
             weight is set to ``1.0 / len(layers)``. If sequence of ``float``s its
             length has to match ``regions``. Defaults to ``"mean"``.
         score_weight: Score weight of the operator. Defaults to ``1.0``.
+
+    Examples:
+
+        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
+        >>> layers = ("relu1_1", "relu2_1", "relu3_1", "relu4_1", "relu5_1")
+        >>> def get_encoding_op(encoder, layer_weight):
+        ...     return ops.GramOperator(encoder, score_weight=layer_weight)
+        >>> regions = ("sky", "landscape")
+        >>> def get_region_op(region, region_weight):
+        ...     return ops.MultiLayerEncodingOperator(
+        ...         multi_layer_encoder,
+        ...         layers,
+        ...         get_encoding_op,
+        ...         score_weight=region_weight,
+        ...     )
+        >>> op = ops.MultiRegionOperator(regions, get_region_op)
+        >>> input = torch.rand(2, 3, 256, 256)
+        >>> op.set_regional_target_image("sky", torch.rand(2, 3, 256, 256))
+        >>> op.set_regional_target_image("landscape", torch.rand(2, 3, 256, 256))
+        >>> score = op(input)
+
     """
 
     def __init__(
