@@ -19,6 +19,13 @@ def mrf_loss(
         eps: Small value to avoid zero division. Defaults to ``1e-8``.
         reduction: Reduction method of the output passed to
             :func:`pystiche.misc.reduce`. Defaults to ``"mean"``.
+
+    Examples:
+
+        >>> input = torch.rand(256, 64, 3, 3)
+        >>> target = torch.rand(256, 64, 3, 3)
+        >>> score = F.mrf_loss(input, target)
+
     """
     with torch.no_grad():
         similarity = pystiche.cosine_similarity(input, target, eps=eps)
@@ -47,6 +54,11 @@ def total_variation_loss(
             results. Defaults to ``2.0``.
         reduction: Reduction method of the output passed to
             :func:`pystiche.misc.reduce`. Defaults to ``"mean"``.
+
+    Examples:
+
+        >>> input = torch.rand(2, 3, 256, 256)
+        >>> score = F.total_variation_loss(input)
     """
     # this ignores the last row and column of the image
     grad_vert = input[:, :, :-1, :-1] - input[:, :, 1:, :-1]
