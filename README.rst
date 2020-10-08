@@ -105,7 +105,7 @@ If you use this software, please cite it as
 
   @Article{ML2020,
     author    = {Meier, Philip and Volker, Lohweg},
-    title     = {pmeier/pystiche: v0.5.1.post0},
+    title     = {pmeier/pystiche: v0.6.1},
     year      = {2020},
     publisher = {Zenodo},
     doi       = {10.5281/zenodo.3965784},
