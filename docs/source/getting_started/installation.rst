@@ -9,7 +9,7 @@ The latest **stable** version can be installed with
 
 .. code-block:: sh
 
-  pip install git+https://github.com/pmeier/pystiche@v0.5.1
+  pip install pystiche
 
 The latest **potentially unstable** version can be installed with
 
@@ -31,7 +31,7 @@ installation:
 .. code-block:: sh
 
   pip install light-the-torch
-  ltt install https://github.com/pmeier/pystiche
+  ltt install pystiche
 
 Otherwise, please follow the
 `official installation instructions of PyTorch <https://pytorch.org/get-started/>`_ for
