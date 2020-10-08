@@ -4,7 +4,7 @@
     :stub-columns: 1
 
     * - package
-      - |license| |status| |doi|
+      - |license| |status| |doi| |pyopensci|
     * - code
       - |black| |mypy| |lint|
     * - tests
@@ -125,6 +125,11 @@ If you use this software, please cite it as
   image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3965784.svg
     :target: https://doi.org/10.5281/zenodo.3965784
     :alt: DOI
+
+.. |pyopensci|
+  image:: https://tinyurl.com/y22nb8up
+    :target: https://github.com/pyOpenSci/software-review/issues/25
+    :alt: pyOpenSci
 
 .. |black|
   image:: https://img.shields.io/badge/code%20style-black-000000.svg
