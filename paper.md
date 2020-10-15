@@ -44,24 +44,24 @@ to supply encodings of images from various depths.
 
 `pystiche` is a framework for NST written in Python and built upon the _Deep Learning_ 
 (DL) framework PyTorch [@PGM+2019]. It provides modular and efficient implementations 
-for both core parts detailed above. Furthermore, `pystiche` offers builtin 
-implementations for commonly used perceptual losses [@MV2015; @GEB2016; @LW2016] as 
-well as neural net architectures [@SZ2014; @KSH2012]. This enables users to mix current 
-state-of-the-art techniques with new ideas with ease. 
+for commonly used perceptual losses [@MV2015; @GEB2016; @LW2016] as well as neural net 
+architectures [@SZ2014; @KSH2012]. This enables users to mix current state-of-the-art 
+techniques with new ideas with ease. 
 
-Due to its vivid nature, the field of NST gained a lot of traction after its emergence 
-[@JYF+2019]. While many new techniques or augmentations have been developed, the field 
-lacks standardization, which is especially evident in the reference implementations of 
-the authors. `pystiche` aims to fill this gap.
+Due to its vivid nature, the field of NST gained a lot of traction in the short time 
+after its emergence [@JYF+2019]. While many new techniques or augmentations have been 
+developed, the field lacks standardization, which is especially evident in the 
+reference implementations of the authors. `pystiche` aims to fill this gap.
 
 # Statement of Need
 
-Unlike for DL, currently no library or framework exists for NST. Thus, authors of new 
-NST techniques either implement everything from scratch or base their implementation 
-upon existing ones of other authors. Both ways have there downsides: while the former 
-dampens innovation due to implementation of reusable parts, with the latter the 
-author inherits the technical debt due to the rapid development pace of DL hard- and 
-software. In order to overcome this, `pystiche` pursues similar goals as DL frameworks:
+Currently, unlike DL, there exist no library or framework for implementing NST. Thus, 
+authors of new NST techniques either implement everything from scratch or base their 
+implementation upon existing ones of other authors. Both ways have their downsides: 
+while the former dampens innovation due to the lengthy implementation of reusable 
+parts, with the latter the author inherits the technical debt due to the rapid 
+development pace of DL hard- and software. In order to overcome this, `pystiche` 
+pursues similar goals as DL frameworks:
 
 1. **Accessibility**
    Starting off with NST can be quite overwhelming due to the sheer amount of 
