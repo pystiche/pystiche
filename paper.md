@@ -13,7 +13,9 @@ authors:
     orcid: 0000-0002-3325-7887
     affiliation: 1
 affiliations:
- - name: inIT –- Institute Industrial IT, Technische Hochschule Ostwestfalen-Lippe (TH-OWL)
+ - name: >
+     inIT –- Institute Industrial IT, 
+     Technische Hochschule Ostwestfalen-Lippe (TH-OWL)
    index: 1
    
 date: 15 October 2020
