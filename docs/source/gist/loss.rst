@@ -26,13 +26,13 @@ In total ``pystiche`` supports four archetypes:
 +-------------------------------------------------------+-----------------------------------------------------------------------+
 | :class:`~pystiche.ops.Operator`                       | Builtin examples                                                      |
 +=======================================================+=======================================================================+
-| :class:`~pystiche.ops.PixelRegularizationOperator`    | - :class:`~pystiche.ops.TotalVariationOperator` :cite:`MV2014`        |
+| :class:`~pystiche.ops.PixelRegularizationOperator`    | - :class:`~pystiche.ops.TotalVariationOperator` :cite:`MV2015`        |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
 | :class:`~pystiche.ops.EncodingRegularizationOperator` |                                                                       |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
 | :class:`~pystiche.ops.PixelComparisonOperator`        |                                                                       |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
-| :class:`~pystiche.ops.EncodingComparisonOperator`     | - :class:`~pystiche.ops.FeatureReconstructionOperator` :cite:`MV2014` |
+| :class:`~pystiche.ops.EncodingComparisonOperator`     | - :class:`~pystiche.ops.FeatureReconstructionOperator` :cite:`MV2015` |
 |                                                       | - :class:`~pystiche.ops.GramOperator` :cite:`GEB2016`                 |
 |                                                       | - :class:`~pystiche.ops.MRFOperator` :cite:`LW2016`                   |
 +-------------------------------------------------------+-----------------------------------------------------------------------+

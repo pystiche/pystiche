@@ -38,7 +38,7 @@ class TotalVariationOperator(PixelRegularizationOperator):
     .. seealso::
 
         The total variation loss was introduced by Mahendran and Vedaldi in
-        :cite:`MV2014` .
+        :cite:`MV2015` .
     """
 
     def __init__(self, exponent: float = 2.0, score_weight: float = 1.0):

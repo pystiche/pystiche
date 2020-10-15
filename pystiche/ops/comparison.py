@@ -54,7 +54,7 @@ class FeatureReconstructionOperator(EncodingComparisonOperator):
     .. seealso::
 
         The feature reconstruction loss was introduced by Mahendran and Vedaldi in
-        :cite:`MV2014` , but its name was coined by Johnson, Alahi, and Fei-Fei in
+        :cite:`MV2015` , but its name was coined by Johnson, Alahi, and Fei-Fei in
         :cite:`JAFF2016` .
     """
 

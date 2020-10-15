@@ -266,7 +266,7 @@ class MultiLayerLoss(nn.Module):
 
 ########################################################################################
 # In this example we use the ``feature_reconstruction_loss`` introduced by Mahendran
-# and Vedaldi :cite:`MV2014` as ``ContentLoss`` as well as the ``gram_loss`` introduced
+# and Vedaldi :cite:`MV2015` as ``ContentLoss`` as well as the ``gram_loss`` introduced
 # by Gatys, Ecker, and Bethge :cite:`GEB2016` as ``StyleLoss``.
 
 
