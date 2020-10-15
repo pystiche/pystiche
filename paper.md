@@ -54,7 +54,7 @@ Deep Neural Network. `pystiche` pursues similar goals as DL frameworks:
    rather than worrying about bugs in everything around it.
 
 `pystiche` provides built-in implementations of the most used NST techniques 
-[@MV2014; @GEB2016; @LW2016]. Furthermore, due its modular implementation, it provides
+[@MV2015; @GEB2016; @LW2016]. Furthermore, due its modular implementation, it provides
 the ability to mix current state-of-the-art techniques with new ideas with ease. 
 Finally, `pystiche`s core audience are researchers, but its easy-to-use user interface 
 opens up the field of NST for recreational use by laypersons.

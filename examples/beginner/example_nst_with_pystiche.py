@@ -52,7 +52,7 @@ print(multi_layer_encoder)
 # The core components of every NST are the ``content_loss`` and the ``style_loss``.
 # Combined they make up the perceptual loss, i.e. the optimization criterion. In this
 # example we use the ``feature_reconstruction_loss`` introduced by Mahendran and
-# Vedaldi :cite:`MV2014` as ``content_loss``.
+# Vedaldi :cite:`MV2015` as ``content_loss``.
 #
 # We first extract the ``content_encoder`` that generates encodings from the
 # ``content_layer``. Together with the ``content_weight`` we initialize a
