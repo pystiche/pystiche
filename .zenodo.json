@@ -1,5 +1,6 @@
 {
     "license":"BSD-3-Clause",
+    "title":"pystiche: A Framework for Neural Style Transfer",
     "creators":[
         {
             "name":"Philip Meier",
