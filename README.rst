@@ -4,7 +4,9 @@
     :stub-columns: 1
 
     * - package
-      - |license| |status| |doi| |pyopensci|
+      - |license| |status|
+    * - citation
+      - |pyopensci| |joss|
     * - code
       - |black| |mypy| |lint|
     * - tests
@@ -104,11 +106,11 @@ If you use this software, please cite it as
 .. code-block:: bibtex
 
   @Article{ML2020,
-    author    = {Meier, Philip and Volker, Lohweg},
-    title     = {pmeier/pystiche: v0.6.1},
-    year      = {2020},
-    publisher = {Zenodo},
-    doi       = {10.5281/zenodo.3965784},
+    author  = {Meier, Philip and Lohweg, Volker},
+    journal = {Journal of Open Source Software {JOSS}},
+    title   = {pystiche: A Framework for Neural Style Transfer},
+    year    = {2020},
+    doi     = {10.21105/joss.02761},
   }
 
 .. |license|
@@ -121,15 +123,15 @@ If you use this software, please cite it as
     :target: https://www.repostatus.org/#active
     :alt: Project Status: Active
 
-.. |doi|
-  image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3965784.svg
-    :target: https://doi.org/10.5281/zenodo.3965784
-    :alt: DOI
-
 .. |pyopensci|
   image:: https://tinyurl.com/y22nb8up
     :target: https://github.com/pyOpenSci/software-review/issues/25
     :alt: pyOpenSci
+
+.. |joss|
+  image:: https://joss.theoj.org/papers/10.21105/joss.02761/status.svg
+    :target: https://doi.org/10.21105/joss.02761
+    :alt: JOSS
 
 .. |black|
   image:: https://img.shields.io/badge/code%20style-black-000000.svg
