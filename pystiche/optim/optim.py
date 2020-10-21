@@ -505,6 +505,9 @@ def multi_epoch_model_optimization(
             # but this is not reflected in the torch type hints
             optimizer = lr_scheduler.optimizer  # type: ignore[attr-defined]
 
+    if logger is None:
+        logger = OptimLogger()
+
     if get_epoch_header is None:
         with suppress_warnings():
             get_epoch_header = default_epoch_header
