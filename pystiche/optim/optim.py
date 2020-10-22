@@ -29,6 +29,11 @@ __all__ = [
     "default_model_optimizer",
     "model_optimization",
     "multi_epoch_model_optimization",
+    "default_image_optim_loop",
+    "default_image_pyramid_optim_loop",
+    "default_transformer_optimizer",
+    "default_transformer_optim_loop",
+    "default_transformer_epoch_optim_loop",
 ]
 
 
@@ -420,9 +425,9 @@ def multi_epoch_model_optimization(
     return transformer
 
 
-def default_epoch_transformer_optim_loop(*args: Any, **kwargs: Any) -> Any:
+def default_transformer_epoch_optim_loop(*args: Any, **kwargs: Any) -> Any:
     msg = build_deprecation_message(
-        "The function default_epoch_transformer_optim_loop",
+        "The function default_transformer_epoch_optim_loop",
         "0.7.0",
         info="It was renamed to multi_epoch_model_optimization",
     )
