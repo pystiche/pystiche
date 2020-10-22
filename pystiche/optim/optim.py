@@ -52,6 +52,7 @@ def default_image_optimizer(input_image: torch.Tensor) -> optim.LBFGS:
 def image_optimization(
     input_image: torch.Tensor,
     criterion: nn.Module,
+    optimizer: Optional[Union[Optimizer, Callable[[torch.Tensor], Optimizer]]] = None,
     get_optimizer: Optional[Callable[[torch.Tensor], Optimizer]] = None,
     num_steps: Union[int, Iterable[int]] = 500,
     preprocessor: Optional[nn.Module] = None,
@@ -67,8 +68,9 @@ def image_optimization(
     Args:
         input_image: Image to be optimized.
         criterion: Optimization criterion.
-        get_optimizer: Optional getter for the optimizer. If ``None``,
-            :func:`default_image_optimizer` is used. Defaults to ``None``.
+        optimizer: Optional optimizer or optimizer getter. If omitted,
+            :func:`default_image_optimizer` is used. If a ``preprocessor`` is used, has
+            to be a getter.
         num_steps: Number of optimization steps. Defaults to ``500``.
         preprocessor: Optional preprocessor that is called with the ``input_image``
             before the optimization.
@@ -82,9 +84,23 @@ def image_optimization(
             step with the current step and loss. If ``None``,
             :func:`pystiche.optim.default_image_optim_log_fn` is used. Defaults to
             ``None``.
+
+    Raises:
+        RuntimeError: If ``optimizer`` is not passed as getter and a ``preprocessor``
+        is used.
     """
-    if get_optimizer is None:
-        get_optimizer = default_image_optimizer
+    if get_optimizer is not None:
+        msg = build_deprecation_message(
+            "The parameter get_optimizer", "0.7.0", info="It was renamed to optimizer"
+        )
+        warnings.warn(msg)
+        optimizer = get_optimizer
+
+    if isinstance(optimizer, Optimizer) and preprocessor:
+        raise RuntimeError
+
+    if optimizer is None:
+        optimizer = default_image_optimizer
 
     if isinstance(num_steps, int):
         num_steps = range(1, num_steps + 1)
@@ -99,12 +115,14 @@ def image_optimization(
         with torch.no_grad():
             input_image = preprocessor(input_image)
 
-    optimizer = get_optimizer(input_image)
+    if not isinstance(optimizer, Optimizer):
+        optimizer = optimizer(input_image)
 
     for step in num_steps:
 
         def closure() -> float:
-            optimizer.zero_grad()
+            # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
+            optimizer.zero_grad()  # type: ignore[union-attr]
 
             loss = criterion(input_image)
             loss.backward()
