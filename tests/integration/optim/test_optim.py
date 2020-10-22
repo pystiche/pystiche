@@ -35,7 +35,7 @@ def test_default_image_optimizer():
 def test_default_image_optim_loop(optim_asset_loader):
     asset = optim_asset_loader("default_image_optim_loop")
 
-    actual = optim.image_optimization(
+    actual = optim.default_image_optim_loop(
         asset.input.image,
         asset.input.criterion,
         get_optimizer=asset.params.get_optimizer,
@@ -50,7 +50,7 @@ def test_default_image_optim_loop(optim_asset_loader):
 def test_default_image_optim_loop_processing(optim_asset_loader):
     asset = optim_asset_loader("default_image_optim_loop_processing")
 
-    actual = optim.image_optimization(
+    actual = optim.default_image_optim_loop(
         asset.input.image,
         asset.input.criterion,
         get_optimizer=asset.params.get_optimizer,
@@ -71,7 +71,7 @@ def test_default_image_optim_loop_logging_smoke(caplog, optim_asset_loader):
     optim_logger = optim.OptimLogger()
     log_fn = optim.default_image_optim_log_fn(optim_logger, log_freq=1)
     with asserts.assert_logs(caplog, logger=optim_logger):
-        optim.image_optimization(
+        optim.default_image_optim_loop(
             asset.input.image,
             asset.input.criterion,
             num_steps=num_steps,
@@ -83,7 +83,7 @@ def test_default_image_optim_loop_logging_smoke(caplog, optim_asset_loader):
 def test_default_image_pyramid_optim_loop(optim_asset_loader):
     asset = optim_asset_loader("default_image_pyramid_optim_loop")
 
-    actual = optim.pyramid_image_optimization(
+    actual = optim.default_image_pyramid_optim_loop(
         asset.input.image,
         asset.input.criterion,
         asset.input.pyramid,
@@ -98,7 +98,7 @@ def test_default_image_pyramid_optim_loop(optim_asset_loader):
 def test_default_image_pyramid_optim_loop_processing(optim_asset_loader):
     asset = optim_asset_loader("default_image_pyramid_optim_loop")
 
-    actual = optim.pyramid_image_optimization(
+    actual = optim.default_image_pyramid_optim_loop(
         asset.input.image,
         asset.input.criterion,
         asset.input.pyramid,
@@ -120,7 +120,7 @@ def test_default_image_pyramid_optim_loop_logging_smoke(caplog, optim_asset_load
     log_fn = optim.default_image_optim_log_fn(optim_logger, log_freq=log_freq)
 
     with asserts.assert_logs(caplog, logger=optim_logger):
-        optim.pyramid_image_optimization(
+        optim.default_image_pyramid_optim_loop(
             asset.input.image,
             asset.input.criterion,
             asset.input.pyramid,
@@ -132,7 +132,7 @@ def test_default_image_pyramid_optim_loop_logging_smoke(caplog, optim_asset_load
 def test_default_transformer_optimizer():
     torch.manual_seed(0)
     transformer = nn.Conv2d(3, 3, 1)
-    optimizer = optim.default_model_optimizer(transformer)
+    optimizer = optim.default_transformer_optimizer(transformer)
 
     assert isinstance(optimizer, torch.optim.Optimizer)
 
@@ -160,7 +160,7 @@ def test_default_transformer_optim_loop(optim_asset_loader):
 
     transformer = asset.input.transformer
     optimizer = asset.params.get_optimizer(transformer)
-    transformer = optim.model_optimization(
+    transformer = optim.default_transformer_optim_loop(
         image_loader,
         transformer,
         criterion,
@@ -188,7 +188,7 @@ def test_default_transformer_optim_loop_logging_smoke(caplog, optim_asset_loader
     )
 
     with asserts.assert_logs(caplog, logger=optim_logger):
-        optim.model_optimization(
+        optim.default_transformer_optim_loop(
             image_loader,
             asset.input.transformer,
             criterion,
@@ -209,7 +209,7 @@ def test_default_transformer_epoch_optim_loop(optim_asset_loader):
     transformer = asset.input.transformer
     optimizer = asset.params.get_optimizer(transformer)
     lr_scheduler = asset.params.get_lr_scheduler(optimizer)
-    transformer = optim.multi_epoch_model_optimization(
+    transformer = optim.default_transformer_epoch_optim_loop(
         image_loader,
         transformer,
         criterion,
@@ -240,7 +240,7 @@ def test_default_transformer_epoch_optim_loop_logging_smoke(caplog, optim_asset_
     )
 
     with asserts.assert_logs(caplog, logger=optim_logger):
-        optim.multi_epoch_model_optimization(
+        optim.default_transformer_epoch_optim_loop(
             image_loader,
             asset.input.transformer,
             criterion,
