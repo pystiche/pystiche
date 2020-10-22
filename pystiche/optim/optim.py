@@ -1,5 +1,6 @@
 import time
-from typing import Callable, Iterable, Optional, Tuple, Union, cast
+import warnings
+from typing import Any, Callable, Iterable, Optional, Tuple, Union, cast
 
 import torch
 from torch import nn, optim
@@ -9,6 +10,7 @@ from torch.utils.data import DataLoader
 
 import pystiche
 from pystiche.image import extract_aspect_ratio, extract_image_size
+from pystiche.misc import build_deprecation_message
 from pystiche.pyramid import ImagePyramid
 from pystiche.pyramid.level import PyramidLevel
 
@@ -19,6 +21,20 @@ from .log import (
     default_pyramid_level_header,
     default_transformer_optim_log_fn,
 )
+
+__all__ = [
+    "default_image_optimizer",
+    "image_optimization",
+    "pyramid_image_optimization",
+    "default_model_optimizer",
+    "model_optimization",
+    "multi_epoch_model_optimization",
+    "default_image_optim_loop",
+    "default_image_pyramid_optim_loop",
+    "default_transformer_optimizer",
+    "default_transformer_optim_loop",
+    "default_transformer_epoch_optim_loop",
+]
 
 
 def default_image_optimizer(input_image: torch.Tensor) -> optim.LBFGS:
@@ -33,7 +49,7 @@ def default_image_optimizer(input_image: torch.Tensor) -> optim.LBFGS:
     return optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
 
 
-def default_image_optim_loop(
+def image_optimization(
     input_image: torch.Tensor,
     criterion: nn.Module,
     get_optimizer: Optional[Callable[[torch.Tensor], Optimizer]] = None,
@@ -108,7 +124,17 @@ def default_image_optim_loop(
     return input_image.detach()
 
 
-def default_image_pyramid_optim_loop(
+def default_image_optim_loop(*args: Any, **kwargs: Any) -> Any:
+    msg = build_deprecation_message(
+        "The function default_image_optim_loop",
+        "0.7.0",
+        info="It was renamed to image_optimization",
+    )
+    warnings.warn(msg)
+    return image_optimization(*args, **kwargs)
+
+
+def pyramid_image_optimization(
     input_image: torch.Tensor,
     criterion: nn.Module,
     pyramid: ImagePyramid,
@@ -165,8 +191,8 @@ def default_image_pyramid_optim_loop(
     output_image = input_image
     for num, level in enumerate(pyramid, 1):
 
-        def image_optim_loop(input_image: torch.Tensor) -> torch.Tensor:
-            return default_image_optim_loop(
+        def optimization(input_image: torch.Tensor) -> torch.Tensor:
+            return image_optimization(
                 input_image,
                 criterion,
                 get_optimizer=get_optimizer,
@@ -182,17 +208,27 @@ def default_image_pyramid_optim_loop(
             input_image = level.resize_image(output_image, aspect_ratio=aspect_ratio)
 
         if quiet:
-            output_image = image_optim_loop(input_image)
+            output_image = optimization(input_image)
         else:
             input_image_size = extract_image_size(input_image)
             header = get_pyramid_level_header(num, level, input_image_size)
             with logger.environment(header):
-                output_image = image_optim_loop(input_image)
+                output_image = optimization(input_image)
 
     return output_image
 
 
-def default_transformer_optimizer(transformer: nn.Module) -> Optimizer:
+def default_image_pyramid_optim_loop(*args: Any, **kwargs: Any) -> Any:
+    msg = build_deprecation_message(
+        "The function default_image_pyramid_optim_loop",
+        "0.7.0",
+        info="It was renamed to pyramid_image_optimization",
+    )
+    warnings.warn(msg)
+    return pyramid_image_optimization(*args, **kwargs)
+
+
+def default_model_optimizer(transformer: nn.Module) -> Optimizer:
     r"""
     Args:
         transformer: Transformer to be optimized.
@@ -204,7 +240,17 @@ def default_transformer_optimizer(transformer: nn.Module) -> Optimizer:
     return optim.Adam(transformer.parameters(), lr=1e-3)
 
 
-def default_transformer_optim_loop(
+def default_transformer_optimizer(*args: Any, **kwargs: Any) -> Any:
+    msg = build_deprecation_message(
+        "The function default_transformer_optimizer",
+        "0.7.0",
+        info="It was renamed to default_model_optimizer",
+    )
+    warnings.warn(msg)
+    return default_model_optimizer(*args, **kwargs)
+
+
+def model_optimization(
     image_loader: DataLoader,
     transformer: nn.Module,
     criterion: nn.Module,
@@ -217,7 +263,7 @@ def default_transformer_optim_loop(
         Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
     ] = None,
 ) -> nn.Module:
-    r"""Perform a transformer optimization for a single epoch with integrated logging.
+    r"""Perform a model optimization for a single epoch with integrated logging.
 
     Args:
         image_loader: Images used as input for the ``transformer``. Drawing from this
@@ -227,7 +273,7 @@ def default_transformer_optim_loop(
         criterion_update_fn: Is called before each optimization step with the current
             images and the optimization ``criterion``.
         optimizer: Optional optimizer. If ``None``,
-            :func:`default_transformer_optimizer` is used.
+            :func:`default_model_optimizer` is used.
         quiet: If ``True``, not information is logged during the optimization. Defaults
             to ``False``.
         logger: Optional custom logger. If ``None``,
@@ -239,7 +285,7 @@ def default_transformer_optim_loop(
             to ``None``.
     """
     if optimizer is None:
-        optimizer = default_transformer_optimizer(transformer)
+        optimizer = default_model_optimizer(transformer)
 
     if logger is None:
         logger = OptimLogger()
@@ -284,7 +330,17 @@ def default_transformer_optim_loop(
     return transformer
 
 
-def default_transformer_epoch_optim_loop(
+def default_transformer_optim_loop(*args: Any, **kwargs: Any) -> Any:
+    msg = build_deprecation_message(
+        "The function default_transformer_optim_loop",
+        "0.7.0",
+        info="It was renamed to model_optimization",
+    )
+    warnings.warn(msg)
+    return model_optimization(*args, **kwargs)
+
+
+def multi_epoch_model_optimization(
     image_loader: DataLoader,
     transformer: nn.Module,
     criterion: nn.Module,
@@ -301,7 +357,7 @@ def default_transformer_epoch_optim_loop(
         Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
     ] = None,
 ) -> nn.Module:
-    r"""Perform a transformer optimization for multiple epochs with integrated logging.
+    r"""Perform a model optimization for multiple epochs with integrated logging.
 
     Args:
         image_loader: Images used as input for the ``transformer``. Drawing from this
@@ -312,7 +368,7 @@ def default_transformer_epoch_optim_loop(
             images and the optimization ``criterion``.
         epochs: Number of epochs.
         optimizer: Optional optimizer. If ``None``, it is extracted from
-            ``lr_scheduler`` or func:`default_transformer_optimizer` is used.
+            ``lr_scheduler`` or func:`default_model_optimizer` is used.
         lr_scheduler: Optional learning rate scheduler. ``step()`` is invoked after
             every epoch.
         quiet: If ``True``, not information is logged during the optimization. Defaults
@@ -331,7 +387,7 @@ def default_transformer_epoch_optim_loop(
         """
     if optimizer is None:
         if lr_scheduler is None:
-            optimizer = default_transformer_optimizer(transformer)
+            optimizer = default_model_optimizer(transformer)
         else:
             # Every LRScheduler has optimizer as a valid attribute
             # https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
@@ -343,7 +399,7 @@ def default_transformer_epoch_optim_loop(
 
     def transformer_optim_loop(transformer: nn.Module) -> nn.Module:
         # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
-        return default_transformer_optim_loop(
+        return model_optimization(
             image_loader,
             transformer,
             criterion,
@@ -367,3 +423,13 @@ def default_transformer_epoch_optim_loop(
             lr_scheduler.step()
 
     return transformer
+
+
+def default_transformer_epoch_optim_loop(*args: Any, **kwargs: Any) -> Any:
+    msg = build_deprecation_message(
+        "The function default_transformer_epoch_optim_loop",
+        "0.7.0",
+        info="It was renamed to multi_epoch_model_optimization",
+    )
+    warnings.warn(msg)
+    return multi_epoch_model_optimization(*args, **kwargs)

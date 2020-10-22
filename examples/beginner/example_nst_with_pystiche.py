@@ -171,8 +171,8 @@ show_image(input_image, title="Input image")
 
 
 ########################################################################################
-# Finally we run the NST with the
-# :func:`~pystiche.optim.optim.default_image_optim_loop` for ``num_steps=500`` steps.
+# Finally we run the NST with the :func:`~pystiche.optim.optim.image_optimization` for
+# ``num_steps=500`` steps.
 #
 # In every step perceptual loss is calculated
 # with the ``criterion`` and propagated backward to the ``input_image``. If
@@ -185,7 +185,7 @@ show_image(input_image, title="Input image")
 #   By default ``pystiche`` logs the time during an optimization. In order to reduce
 #   the clutter, we use a minimal :func:`~pystiche.demo.logger` here.
 
-output_image = optim.default_image_optim_loop(
+output_image = optim.image_optimization(
     input_image, criterion, num_steps=500, logger=demo.logger()
 )
 

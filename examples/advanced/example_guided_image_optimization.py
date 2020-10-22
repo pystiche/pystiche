@@ -95,7 +95,7 @@ criterion.set_style_image(style_image)
 starting_point = "content"
 input_image = get_input_image(starting_point, content_image=content_image)
 
-output_image = optim.default_image_optim_loop(
+output_image = optim.image_optimization(
     input_image, criterion, num_steps=500, logger=demo.logger()
 )
 
@@ -203,7 +203,7 @@ for region in regions:
 starting_point = "content"
 input_image = get_input_image(starting_point, content_image=content_image)
 
-output_image = optim.default_image_optim_loop(
+output_image = optim.image_optimization(
     input_image, criterion, num_steps=500, logger=demo.logger()
 )
 
@@ -263,7 +263,7 @@ criterion.set_style_image(region, second_style_image)
 starting_point = "content"
 input_image = get_input_image(starting_point, content_image=content_image)
 
-output_image = optim.default_image_optim_loop(
+output_image = optim.image_optimization(
     input_image, criterion, num_steps=500, logger=demo.logger()
 )
 
