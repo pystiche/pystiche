@@ -76,10 +76,10 @@ def patch_optim_loops(mocker):
         return input
 
     for name in (
-        "default_image_optim_loop",
-        "default_image_pyramid_optim_loop",
-        "default_transformer_optim_loop",
-        "default_transformer_epoch_optim_loop",
+        "image_optimization",
+        "pyramid_image_optimization",
+        "model_optimization",
+        "multi_epoch_model_optimization",
     ):
         mocker.patch(
             mocks.make_mock_target("optim", name), side_effect=optim_loop_side_effect

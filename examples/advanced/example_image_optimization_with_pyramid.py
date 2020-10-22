@@ -98,11 +98,11 @@ show_image(input_image, title="Input image")
 
 
 ########################################################################################
-# We time the NST performed by :func:`~pystiche.optim.default_image_optim_loop` and
-# show the result.
+# We time the NST performed by :func:`~pystiche.optim.image_optimization` and show the
+# result.
 
 start_without_pyramid = time.time()
-output_image = optim.default_image_optim_loop(
+output_image = optim.image_optimization(
     input_image, criterion, num_steps=400, logger=demo.logger()
 )
 stop_without_pyramid = time.time()
@@ -157,8 +157,8 @@ print(image_pyramid)
 
 ########################################################################################
 # With a pyramid the NST is performed by
-# :func:`~pystiche.optim.default_image_pyramid_optim_loop`. We time the execution and
-# show the result afterwards.
+# :func:`~pystiche.optim.pyramid_image_optimization`. We time the execution and show
+# the result afterwards.
 #
 # .. note::
 #
@@ -168,7 +168,7 @@ print(image_pyramid)
 input_image = get_input_image(starting_point, content_image=content_image)
 
 start_with_pyramid = time.time()
-output_image = optim.default_image_pyramid_optim_loop(
+output_image = optim.pyramid_image_optimization(
     input_image, criterion, image_pyramid, logger=demo.logger()
 )
 stop_with_pyramid = time.time()

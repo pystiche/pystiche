@@ -8,12 +8,12 @@ Optimization
 ------------
 
 .. autofunction:: default_image_optimizer
-.. autofunction:: default_image_optim_loop
-.. autofunction:: default_image_pyramid_optim_loop
+.. autofunction:: image_optimization
+.. autofunction:: pyramid_image_optimization
 
-.. autofunction:: default_transformer_optimizer
-.. autofunction:: default_transformer_optim_loop
-.. autofunction:: default_transformer_epoch_optim_loop
+.. autofunction:: default_model_optimizer
+.. autofunction:: model_optimization
+.. autofunction:: multi_epoch_model_optimization
 
 
 Logging

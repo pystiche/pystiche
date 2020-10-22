@@ -12,7 +12,7 @@ Image optimization
 In its basic form, an NST optimizes the pixels of the ``input_image`` directly. That
 means they are iteratively adapted to reduce the perceptual loss. This
 process is called *image optimization* and can be performed in ``pystiche`` with a
-:func:`~pystiche.optim.default_image_optim_loop` .
+:func:`~pystiche.optim.image_optimization` .
 
 Model optimization
 ------------------
@@ -27,7 +27,7 @@ performed in a single forward pass of the ``input_image`` through the ``transfor
 The quality however, while still high, is lower than for image optimisation approaches
 since the ``transformer`` cannot finetune the ``output_image``. In ``pystiche`` a model
 optimization can be performed with a
-:func:`~pystiche.optim.default_transformer_optim_loop` .
+:func:`~pystiche.optim.model_optimization` .
 
 .. note::
   Due to the differences in execution time image and model optimization approaches are

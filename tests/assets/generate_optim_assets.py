@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from pystiche.image import extract_aspect_ratio
 from pystiche.image.transforms import CaffePostprocessing, CaffePreprocessing
 from pystiche.ops import PixelComparisonOperator, TotalVariationOperator
-from pystiche.optim import default_image_optimizer, default_transformer_optimizer
+from pystiche.optim import default_image_optimizer, default_model_optimizer
 from pystiche.pyramid import ImagePyramid
 
 from utils import store_asset
@@ -58,7 +58,7 @@ def _generate_default_image_optim_loop_asset(
     store_asset(input, params, output, file)
 
 
-def generate_default_image_optim_loop_asset(root, file="default_image_optim_loop"):
+def generate_default_image_optim_loop_asset(root, file="image_optimization"):
     torch.manual_seed(0)
     input_image = torch.rand(1, 3, 32, 32)
     criterion = TotalVariationOperator()
@@ -154,7 +154,7 @@ def _generate_default_image_pyramid_optim_loop_asset(
 
 
 def generate_default_image_pyramid_optim_loop_asset(
-    root, file="default_image_pyramid_optim_loop"
+    root, file="pyramid_image_optimization"
 ):
     torch.manual_seed(0)
     input_image = torch.rand(1, 3, 32, 32)
@@ -214,7 +214,7 @@ def _generate_default_transformer_optim_loop_asset(
     input_transformer = deepcopy(transformer)
 
     if get_optimizer is None:
-        get_optimizer = default_transformer_optimizer
+        get_optimizer = default_model_optimizer
     optimizer = get_optimizer(transformer)
 
     for target_image in image_loader:
@@ -246,9 +246,7 @@ def _generate_default_transformer_optim_loop_asset(
     store_asset(input, params, output, file)
 
 
-def generate_default_transformer_optim_loop_asset(
-    root, file="default_transformer_optim_loop"
-):
+def generate_default_transformer_optim_loop_asset(root, file="model_optimization"):
     torch.manual_seed(0)
     image_loader = DataLoader([torch.rand(3, 32, 32) for _ in range(3)])
     device = torch.device("cpu")
@@ -300,7 +298,7 @@ def _generate_default_transformer_epoch_optim_loop_asset(
     input_transformer = deepcopy(transformer)
 
     if get_optimizer is None:
-        get_optimizer = default_transformer_optimizer
+        get_optimizer = default_model_optimizer
     optimizer = get_optimizer(transformer)
 
     lr_scheduler = get_lr_scheduler(optimizer)
@@ -338,7 +336,7 @@ def _generate_default_transformer_epoch_optim_loop_asset(
 
 
 def generate_default_transformer_epoch_optim_loop_asset(
-    root, file="default_transformer_epoch_optim_loop"
+    root, file="multi_epoch_model_optimization"
 ):
     torch.manual_seed(0)
     image_loader = DataLoader([torch.rand(3, 32, 32) for _ in range(2)])
