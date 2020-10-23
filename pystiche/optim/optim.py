@@ -86,8 +86,8 @@ def image_optimization(
             ``None``.
 
     Raises:
-        RuntimeError: If ``optimizer`` is not passed as getter and a ``preprocessor``
-        is used.
+        RuntimeError: If ``preprocessor`` is used and ``optimizer`` is not passed as
+        getter.
     """
     if get_optimizer is not None:
         msg = build_deprecation_message(
@@ -97,7 +97,9 @@ def image_optimization(
         optimizer = get_optimizer
 
     if isinstance(optimizer, Optimizer) and preprocessor:
-        raise RuntimeError
+        raise RuntimeError(
+            "If a preprocessor is used, optimizer has to be passed as getter"
+        )
 
     if optimizer is None:
         optimizer = default_image_optimizer
