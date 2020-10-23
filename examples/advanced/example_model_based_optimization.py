@@ -130,19 +130,26 @@ print(transformer)
 
 multi_layer_encoder = enc.vgg16_multi_layer_encoder()
 
-content_layer = "relu4_2"
+content_layer = "relu2_2"
 content_encoder = multi_layer_encoder.extract_encoder(content_layer)
 content_weight = 1e5
 content_loss = ops.FeatureReconstructionOperator(
     content_encoder, score_weight=content_weight
 )
 
+
+class StyleOp(ops.GramOperator):
+    def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
+        repr = super().enc_to_repr(enc)
+        return repr / repr.size()[1]
+
+
 style_layers = ("relu1_2", "relu2_2", "relu3_3", "relu4_3")
 style_weight = 1e10
 style_loss = ops.MultiLayerEncodingOperator(
     multi_layer_encoder,
     style_layers,
-    lambda encoder, layer_weight: ops.GramOperator(encoder, score_weight=layer_weight),
+    lambda encoder, layer_weight: StyleOp(encoder, score_weight=layer_weight),
     layer_weights="sum",
     score_weight=style_weight,
 )
@@ -158,14 +165,8 @@ class OptionalGrayscaleToFakeGrayscale(transforms.Transform):
         num_channels = input.size()[0]
         if num_channels == 1:
             return input.repeat(3, 1, 1)
-        elif num_channels == 3:
-            return input
-        else:
-            raise RuntimeError
 
-
-# preprocessor = transforms.FloatToUint8Range().to(device)
-# postprocessor = transforms.Uint8ToFloatRange().to(device)
+        return input
 
 
 def train(
@@ -183,12 +184,12 @@ def train(
     dataset = ImageFolderDataset(root, transform=transform)
     image_loader = DataLoader(dataset, batch_size=batch_size)
 
-    criterion.set_style_image(style_image.repeat(batch_size, 1, 1, 1))
+    criterion.set_style_image(style_image)
 
     def criterion_update_fn(input_image, criterion) -> None:
         criterion.set_content_image(input_image)
 
-    optim.default_transformer_epoch_optim_loop(
+    optim.multi_epoch_model_optimization(
         image_loader,
         transformer.train(),
         criterion,
