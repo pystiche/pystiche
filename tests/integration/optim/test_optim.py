@@ -31,6 +31,18 @@ def test_default_image_optimizer():
     ptu.assert_allclose(actual, desired)
 
 
+def test_image_optimization_optimizer_preprocessor():
+    input_image = torch.empty(1)
+    criterion = nn.Module()
+    optimizer = optim.default_image_optimizer(input_image)
+    preprocessor = nn.Module()
+
+    with pytest.raises(RuntimeError):
+        optim.image_optimization(
+            input_image, criterion, optimizer, preprocessor=preprocessor
+        )
+
+
 @skip_if_py38
 def test_default_image_optim_loop(optim_asset_loader):
     asset = optim_asset_loader("default_image_optim_loop")
