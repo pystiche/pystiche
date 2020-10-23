@@ -273,6 +273,61 @@ def test_PixelComparisonOperator_call_no_target():
         test_op(input_image)
 
 
+def test_PixelComparisonOperator_call_batch_size_mismatch():
+    class TestOperator(ops.PixelComparisonOperator):
+        def __init__(self):
+            super().__init__()
+            self.batch_size_equal = False
+
+        def target_image_to_repr(self, image):
+            return image, None
+
+        def input_image_to_repr(self, image, ctx):
+            return image
+
+        def calculate_score(self, input_repr, target_repr, ctx):
+            input_batch_size = input_repr.size()[0]
+            target_batch_size = target_repr.size()[0]
+            self.batch_size_equal = input_batch_size == target_batch_size
+            return 0.0
+
+    torch.manual_seed(0)
+    target_image = torch.rand(1, 3, 128, 128)
+    input_image = torch.rand(2, 3, 128, 128)
+
+    test_op = TestOperator()
+    test_op.set_target_image(target_image)
+
+    test_op(input_image)
+    assert test_op.batch_size_equal
+
+
+def test_PixelComparisonOperator_call_batch_size_error():
+    class TestOperator(ops.PixelComparisonOperator):
+        def __init__(self):
+            super().__init__()
+            self.batch_size_equal = False
+
+        def target_image_to_repr(self, image):
+            return image, None
+
+        def input_image_to_repr(self, image, ctx):
+            return image
+
+        def calculate_score(self, input_repr, target_repr, ctx):
+            pass
+
+    torch.manual_seed(0)
+    target_image = torch.rand(2, 1, 1, 1)
+    input_image = torch.rand(1, 1, 1, 1)
+
+    test_op = TestOperator()
+    test_op.set_target_image(target_image)
+
+    with pytest.raises(RuntimeError):
+        test_op(input_image)
+
+
 def test_PixelComparisonOperator_call_guided():
     class TestOperator(ops.PixelComparisonOperator):
         def target_image_to_repr(self, image):
@@ -446,6 +501,63 @@ def test_EncodingComparisonOperator_call_no_target():
     encoder = enc.SequentialEncoder((nn.Conv2d(3, 3, 1),))
 
     test_op = TestOperator(encoder)
+
+    with pytest.raises(RuntimeError):
+        test_op(input_image)
+
+
+def test_EncodingComparisonOperator_call_batch_size_mismatch():
+    class TestOperator(ops.EncodingComparisonOperator):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.batch_size_equal = False
+
+        def target_enc_to_repr(self, enc):
+            return enc, None
+
+        def input_enc_to_repr(self, enc, ctx):
+            return enc
+
+        def calculate_score(self, input_repr, target_repr, ctx):
+            input_batch_size = input_repr.size()[0]
+            target_batch_size = target_repr.size()[0]
+            self.batch_size_equal = input_batch_size == target_batch_size
+            return 0.0
+
+    torch.manual_seed(0)
+    target_image = torch.rand(1, 1, 1, 1)
+    input_image = torch.rand(2, 1, 1, 1)
+    encoder = enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
+
+    test_op = TestOperator(encoder)
+    test_op.set_target_image(target_image)
+
+    test_op(input_image)
+    assert test_op.batch_size_equal
+
+
+def test_EncodingComparisonOperator_call_batch_size_error():
+    class TestOperator(ops.EncodingComparisonOperator):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.batch_size_equal = False
+
+        def target_enc_to_repr(self, enc):
+            return enc, None
+
+        def input_enc_to_repr(self, enc, ctx):
+            return enc
+
+        def calculate_score(self, input_repr, target_repr, ctx):
+            pass
+
+    torch.manual_seed(0)
+    target_image = torch.rand(2, 1, 1, 1)
+    input_image = torch.rand(1, 1, 1, 1)
+    encoder = enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
+
+    test_op = TestOperator(encoder)
+    test_op.set_target_image(target_image)
 
     with pytest.raises(RuntimeError):
         test_op(input_image)

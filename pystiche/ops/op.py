@@ -147,6 +147,24 @@ class ComparisonOperator(Operator):
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         pass
 
+    @staticmethod
+    def _match_batch_sizes(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
+        target_batch_size = target.size()[0]
+        input_batch_size = input.size()[0]
+
+        if target_batch_size == input_batch_size:
+            return target
+
+        if target_batch_size != 1:
+            raise RuntimeError(
+                f"If the batch size of the target != 1, "
+                f"it has to match the batch size of the input. "
+                f"Got {target_batch_size} != {input_batch_size}"
+            )
+
+        with torch.no_grad():
+            return target.repeat(input_batch_size, *[1] * (target.dim() - 1))
+
 
 class PixelOperator(Operator):
     r"""Abstract base class for all operators working in the pixel space."""
@@ -337,6 +355,7 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
             image = self.apply_guide(image, self.input_guide)
         input_repr = self.input_image_to_repr(image, ctx)
 
+        target_repr = self._match_batch_sizes(target_repr, input_repr)
         return self.calculate_score(input_repr, target_repr, ctx)
 
     @abstractmethod
@@ -454,6 +473,8 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
             raise RuntimeError(msg)
         target_repr, ctx = self.target_repr, self.ctx
         input_repr = self.input_image_to_repr(image, ctx)
+
+        target_repr = self._match_batch_sizes(target_repr, input_repr)
         return self.calculate_score(input_repr, target_repr, ctx)
 
     def input_image_to_repr(
