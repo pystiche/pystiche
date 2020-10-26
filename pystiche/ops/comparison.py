@@ -269,6 +269,11 @@ class MRFOperator(EncodingComparisonOperator):
             )
         ]
 
+    @staticmethod
+    def _match_batch_sizes(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
+        # FIXME
+        return target
+
     def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
         # Since the target representation of the MRFOperator possibly comprises
         # scaled or rotated patches, it is not useful to store the target encoding
