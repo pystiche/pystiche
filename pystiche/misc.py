@@ -1,3 +1,4 @@
+import contextlib
 import itertools
 import warnings
 from functools import reduce as _reduce
@@ -8,6 +9,7 @@ from typing import (
     Callable,
     Dict,
     Iterable,
+    Iterator,
     Optional,
     Sequence,
     Tuple,
@@ -34,6 +36,7 @@ __all__ = [
     "get_device",
     "download_file",
     "reduce",
+    "suppress_future_warnings",
 ]
 
 
@@ -278,3 +281,12 @@ def reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:
         return torch.sum(x)
     else:  # reduction == "none":
         return x
+
+
+@contextlib.contextmanager
+def suppress_future_warnings() -> Iterator[None]:
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    try:
+        yield
+    finally:
+        warnings.resetwarnings()

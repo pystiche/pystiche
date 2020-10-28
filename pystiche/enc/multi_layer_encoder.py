@@ -1,3 +1,4 @@
+import warnings
 from collections import OrderedDict
 from copy import copy
 from typing import Collection, Dict, Iterator, Optional, Sequence, Set, Tuple, cast
@@ -6,11 +7,21 @@ import torch
 from torch import nn
 
 import pystiche
+from pystiche.misc import suppress_future_warnings
 
 from .encoder import Encoder
 from .guides import propagate_guide
 
 __all__ = ["MultiLayerEncoder", "SingleLayerEncoder"]
+
+
+def _future_warning(name):
+    msg = (
+        f"The functionality of MultiLayerEncoder.{name} will change in the future. "
+        f"If you depend on this functionality, "
+        f"see https://github.com/pmeier/pystiche/issues/435 for details "
+    )
+    warnings.warn(msg, FutureWarning)
 
 
 class MultiLayerEncoder(pystiche.Module):
@@ -92,6 +103,7 @@ class MultiLayerEncoder(pystiche.Module):
         Returns:
             Tuple of encodings which order corresponds to ``layers``.
         """
+        _future_warning("__call__")
         storage = copy(self._storage)
         input_key = pystiche.TensorKey(input)
         stored_layers = [name for name, key in storage.keys() if key == input_key]
@@ -127,6 +139,8 @@ class MultiLayerEncoder(pystiche.Module):
         Args:
             input: Input.
         """
+        _future_warning("encode")
+
         if not self.registered_layers:
             return
 
@@ -209,10 +223,11 @@ class SingleLayerEncoder(Encoder):
         Args:
             input_image: Input image.
         """
-        return cast(
-            Tuple[torch.Tensor],
-            self.multi_layer_encoder(input_image, layers=(self.layer,)),
-        )[0]
+        with suppress_future_warnings():
+            return cast(
+                Tuple[torch.Tensor],
+                self.multi_layer_encoder(input_image, layers=(self.layer,)),
+            )[0]
 
     def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
         r"""Propagate the given guide on :attr:`SingleLayerEncoder.layer` of
