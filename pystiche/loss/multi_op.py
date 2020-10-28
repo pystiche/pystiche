@@ -1,12 +1,52 @@
-from typing import Iterator, Sequence, Tuple
+from types import TracebackType
+from typing import Iterator, Sequence, Tuple, Type
 
 import torch
+from torch import nn
 
 import pystiche
-from pystiche.enc import MultiLayerEncoder, SingleLayerEncoder
-from pystiche.ops import EncodingOperator, Operator
+from pystiche import enc, ops
 
-__all__ = ["MultiOperatorLoss"]
+__all__ = ["MLEHandler", "MultiOperatorLoss"]
+
+
+class MLEHandler(pystiche.ComplexObject):
+    def __init__(self, criterion: nn.Module) -> None:
+        self.multi_layer_encoders = {
+            encoding_op.encoder.multi_layer_encoder
+            for encoding_op in criterion.modules()
+            if isinstance(encoding_op, ops.EncodingOperator)
+            and isinstance(encoding_op.encoder, enc.SingleLayerEncoder)
+        }
+
+    def encode(self, input_image: torch.Tensor) -> None:
+        for encoder in self.multi_layer_encoders:
+            encoder.encode(input_image)
+
+    def empty_storage(self) -> None:
+        for mle in self.multi_layer_encoders:
+            mle.empty_storage()
+
+    def trim(self) -> None:
+        for mle in self.multi_layer_encoders:
+            mle.trim()
+
+    def __call__(self, input_image: torch.Tensor) -> "MLEHandler":
+        for mle in self.multi_layer_encoders:
+            mle.encode(input_image)
+        return self
+
+    def __enter__(self) -> None:
+        pass
+
+    def __exit__(
+        self, exc_type: Type[Exception], exc_val: Exception, exc_tb: TracebackType
+    ) -> None:
+        for encoder in self.multi_layer_encoders:
+            encoder.empty_storage()
+
+    def _named_children(self) -> Iterator[Tuple[str, enc.MultiLayerEncoder]]:
+        return ((str(idx), mle) for idx, mle in enumerate(self.multi_layer_encoders))
 
 
 class MultiOperatorLoss(pystiche.Module):
@@ -24,48 +64,28 @@ class MultiOperatorLoss(pystiche.Module):
     """
 
     def __init__(
-        self, named_ops: Sequence[Tuple[str, Operator]], trim: bool = True
+        self, named_ops: Sequence[Tuple[str, ops.Operator]], trim: bool = True
     ) -> None:
-        super().__init__(named_children=named_ops,)
-
-        self._multi_layer_encoders = self._collect_multi_layer_encoders()
+        super().__init__(named_children=named_ops)
+        self._mle_handler = MLEHandler(self)
 
         if trim:
-            for encoder in self._multi_layer_encoders:
-                encoder.trim()
+            self._mle_handler.trim()
 
-    def named_operators(self, recurse: bool = False) -> Iterator[Tuple[str, Operator]]:
+    def named_operators(
+        self, recurse: bool = False
+    ) -> Iterator[Tuple[str, ops.Operator]]:
         iterator = self.named_modules() if recurse else self.named_children()
         for name, child in iterator:
-            if isinstance(child, Operator):
+            if isinstance(child, ops.Operator):
                 yield name, child
 
-    def operators(self, recurse: bool = False) -> Iterator[Operator]:
+    def operators(self, recurse: bool = False) -> Iterator[ops.Operator]:
         for _, op in self.named_operators(recurse=recurse):
             yield op
 
-    def _collect_multi_layer_encoders(self) -> Tuple[MultiLayerEncoder, ...]:
-        def encoding_ops() -> Iterator[Operator]:
-            for op in self.operators(recurse=True):
-                if isinstance(op, EncodingOperator):
-                    yield op
-
-        multi_layer_encoders = set()
-        for op in encoding_ops():
-            if isinstance(op.encoder, SingleLayerEncoder):
-                multi_layer_encoders.add(op.encoder.multi_layer_encoder)
-
-        return tuple(multi_layer_encoders)
-
     def forward(self, input_image: torch.Tensor) -> pystiche.LossDict:
-        for encoder in self._multi_layer_encoders:
-            encoder.encode(input_image)
-
-        loss = pystiche.LossDict(
-            [(name, op(input_image)) for name, op in self.named_children()]
-        )
-
-        for encoder in self._multi_layer_encoders:
-            encoder.empty_storage()
-
-        return loss
+        with self._mle_handler(input_image):
+            return pystiche.LossDict(
+                [(name, op(input_image)) for name, op in self.named_children()]
+            )

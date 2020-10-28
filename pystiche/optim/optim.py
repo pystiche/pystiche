@@ -1,6 +1,7 @@
 import time
 import warnings
-from typing import Any, Callable, Iterable, Optional, Tuple, Union, cast
+from types import TracebackType
+from typing import Any, Callable, Iterable, Optional, Tuple, Type, Union, cast
 
 import torch
 from torch import nn, optim
@@ -9,6 +10,7 @@ from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
 import pystiche
+from pystiche import loss
 from pystiche.image import extract_aspect_ratio, extract_image_size
 from pystiche.misc import build_deprecation_message
 from pystiche.pyramid import ImagePyramid
@@ -47,6 +49,21 @@ def default_image_optimizer(input_image: torch.Tensor) -> optim.LBFGS:
         pixels of ``input_image`` are set as optimization parameters.
     """
     return optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
+
+
+# Unfortunately contextlib.nullcontext is only available since Python 3.7
+# https://docs.python.org/3.7/library/contextlib.html#contextlib.nullcontext
+class _NullContext:
+    def __call__(self, input_image: torch.Tensor) -> "_NullContext":
+        return self
+
+    def __enter__(self) -> None:
+        pass
+
+    def __exit__(
+        self, exc_type: Type[Exception], exc_val: Exception, exc_tb: TracebackType,
+    ) -> None:
+        pass
 
 
 def image_optimization(
@@ -120,13 +137,20 @@ def image_optimization(
     if not isinstance(optimizer, Optimizer):
         optimizer = optimizer(input_image)
 
+    mle_handler = (
+        loss.MLEHandler(criterion)
+        if not isinstance(criterion, loss.MultiOperatorLoss)
+        else _NullContext()
+    )
+
     for step in num_steps:
 
         def closure() -> float:
             # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
             optimizer.zero_grad()  # type: ignore[union-attr]
 
-            loss = criterion(input_image)
+            with mle_handler(input_image):  # type: ignore[operator]
+                loss = criterion(input_image)
             loss.backward()
 
             if not quiet:
@@ -315,6 +339,12 @@ def model_optimization(
 
     device = next(transformer.parameters()).device
 
+    mle_handler = (
+        loss.MLEHandler(criterion)
+        if not isinstance(criterion, loss.MultiOperatorLoss)
+        else _NullContext()
+    )
+
     loading_time_start = time.time()
     for batch, input_image in enumerate(image_loader, 1):
         input_image = input_image.to(device)
@@ -330,7 +360,8 @@ def model_optimization(
             optimizer.zero_grad()  # type: ignore[union-attr]
 
             output_image = transformer(input_image)
-            loss = criterion(output_image)
+            with mle_handler(output_image):  # type: ignore[operator]
+                loss = criterion(output_image)
             loss.backward()
 
             processing_time = time.time() - processing_time_start
