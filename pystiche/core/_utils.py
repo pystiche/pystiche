@@ -1,3 +1,4 @@
+import warnings
 from typing import Sequence, Union
 
 import torch
@@ -9,6 +10,18 @@ __all__ = [
     "extract_patches2d",
     "extract_patches3d",
 ]
+
+
+def _warn_output_shape(*dim_names: str) -> None:
+    name = f"extract_patches{len(dim_names)}d"
+    partial_shape = "x".join(dim_names)
+    warnings.warn(
+        f"The output shape of {name} will change in the future. "
+        f"The current shape B*PxCx{partial_shape} will be replaced by "
+        f"BxPxCx{partial_shape} thus adding a dimension. "
+        f"Here, 'P' denotes the number of extracted patches.",
+        FutureWarning,
+    )
 
 
 def _extract_patchesnd(
@@ -29,6 +42,7 @@ def extract_patches1d(
     stride: Union[int, Sequence[int]] = 1,
 ) -> torch.Tensor:
     assert x.dim() == 3
+    _warn_output_shape("L")
     return _extract_patchesnd(x, to_1d_arg(patch_size), to_1d_arg(stride))
 
 
@@ -38,6 +52,7 @@ def extract_patches2d(
     stride: Union[int, Sequence[int]] = 1,
 ) -> torch.Tensor:
     assert x.dim() == 4
+    _warn_output_shape("H", "W")
     return _extract_patchesnd(x, to_2d_arg(patch_size), to_2d_arg(stride))
 
 
@@ -47,4 +62,5 @@ def extract_patches3d(
     stride: Union[int, Sequence[int]] = 1,
 ) -> torch.Tensor:
     assert x.dim() == 5
+    _warn_output_shape("D", "H", "W")
     return _extract_patchesnd(x, to_3d_arg(patch_size), to_3d_arg(stride))

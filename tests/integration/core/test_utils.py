@@ -1,3 +1,4 @@
+import pytest
 import pytorch_testing_utils as ptu
 
 import torch
@@ -49,3 +50,11 @@ def test_extract_patches1d():
     actual = patches[-1]
     desired = x[-1, :, -patch_size:]
     ptu.assert_allclose(actual, desired)
+
+
+@pytest.mark.parametrize("n", (1, 2, 3))
+def test_extract_patchesnd_future_warning(n):
+    x = torch.empty(1, 1, *[1] * n)
+    with pytest.warns(FutureWarning):
+        fn = getattr(pystiche, f"extract_patches{n}d")
+        fn(x, 1)
