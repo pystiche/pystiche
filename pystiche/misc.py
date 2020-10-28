@@ -13,6 +13,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    Type,
     TypeVar,
     Union,
 )
@@ -284,7 +285,7 @@ def reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:
 
 
 @contextlib.contextmanager
-def suppress_warnings(*categories) -> Iterator[None]:
+def suppress_warnings(*categories: Type[Warning]) -> Iterator[None]:
     for category in categories:
         warnings.filterwarnings("ignore", category=category)
     try:
