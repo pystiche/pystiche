@@ -3,6 +3,7 @@ from math import sqrt
 import pytorch_testing_utils as ptu
 
 import torch
+import torch.nn.functional as F
 
 import pystiche
 
@@ -77,3 +78,21 @@ def test_gram_matrix_normalize2():
         y = pystiche.gram_matrix(constructor((1, 3, 256, 256)), normalize=True)
 
         ptu.assert_allclose(x, y, atol=2e-2)
+
+
+def test_cosine_similarity():
+    torch.manual_seed(0)
+    input = torch.rand(1, 256)
+    target = torch.rand(1, 256)
+
+    actual = pystiche.cosine_similarity(input, target)
+    expected = F.cosine_similarity(input, target)
+    ptu.assert_allclose(actual, expected)
+
+
+def test_cosine_similarity_shape():
+    torch.manual_seed(0)
+    input = torch.rand(2, 3, 4, 5)
+    target = torch.rand(2, 3, 4, 5)
+
+    assert pystiche.cosine_similarity(input, target).size() == (2, 2)
