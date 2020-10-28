@@ -188,6 +188,16 @@ warnings.filterwarnings(
     ),
 )
 
+warnings.filterwarnings(
+    "ignore",
+    category=UserWarning,
+    message=(
+        "UserWarning: The parameter logger is deprecated since pystiche==0.7.0 and "
+        "will be removed in a future release. See "
+        "https://github.com/pmeier/pystiche/issues/434 for details."
+    ),
+)
+
 # -- Options for doctest ---------------------------------------------------------------
 
 doctest_global_setup = """

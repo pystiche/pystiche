@@ -66,6 +66,15 @@ class _NullContext:
         pass
 
 
+def _log_parameter_deprecation(name: str) -> None:
+    msg = build_deprecation_message(
+        f"The parameter {name}",
+        "0.7.0",
+        info="See https://github.com/pmeier/pystiche/issues/434 for details.",
+    )
+    warnings.warn(msg, UserWarning)
+
+
 def image_optimization(
     input_image: torch.Tensor,
     criterion: nn.Module,
@@ -126,9 +135,13 @@ def image_optimization(
 
     if logger is None:
         logger = OptimLogger()
+    else:
+        _log_parameter_deprecation("logger")
 
     if log_fn is None:
         log_fn = default_image_optim_log_fn(optim_logger=logger)
+    else:
+        _log_parameter_deprecation("log_fn")
 
     if preprocessor:
         with torch.no_grad():
@@ -228,9 +241,13 @@ def pyramid_image_optimization(
 
     if logger is None:
         logger = OptimLogger()
+    else:
+        _log_parameter_deprecation("logger")
 
     if get_pyramid_level_header is None:
         get_pyramid_level_header = default_pyramid_level_header
+    else:
+        _log_parameter_deprecation("get_pyramid_level_header")
 
     output_image = input_image
     for num, level in enumerate(pyramid, 1):
@@ -333,9 +350,13 @@ def model_optimization(
 
     if logger is None:
         logger = OptimLogger()
+    else:
+        _log_parameter_deprecation("logger")
 
     if log_fn is None:
         log_fn = default_transformer_optim_log_fn(logger, len(image_loader))
+    else:
+        _log_parameter_deprecation("log_fn")
 
     device = next(transformer.parameters()).device
 
@@ -447,6 +468,8 @@ def multi_epoch_model_optimization(
 
     if get_epoch_header is None:
         get_epoch_header = default_epoch_header
+    else:
+        _log_parameter_deprecation("get_epoch_header")
 
     def transformer_optim_loop(transformer: nn.Module) -> nn.Module:
         # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029

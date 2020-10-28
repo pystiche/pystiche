@@ -284,9 +284,16 @@ def reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:
 
 
 @contextlib.contextmanager
-def suppress_future_warnings() -> Iterator[None]:
-    warnings.filterwarnings("ignore", category=FutureWarning)
+def suppress_warnings(*categories) -> Iterator[None]:
+    for category in categories:
+        warnings.filterwarnings("ignore", category=category)
     try:
         yield
     finally:
         warnings.resetwarnings()
+
+
+@contextlib.contextmanager
+def suppress_future_warnings() -> Iterator[None]:
+    with suppress_warnings(FutureWarning):
+        yield
