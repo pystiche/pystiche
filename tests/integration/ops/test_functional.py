@@ -1,3 +1,4 @@
+import pytest
 import pytorch_testing_utils as ptu
 
 import torch
@@ -18,6 +19,13 @@ def test_mrf_loss():
     actual = F.mrf_loss(input, target)
     desired = mse_loss(input, torch.stack((rand_patch, rand_patch)))
     ptu.assert_allclose(actual, desired)
+
+
+def test_mrf_loss_future_warning():
+    input = torch.empty(1, 2)
+    target = torch.empty(1, 2)
+    with pytest.warns(FutureWarning):
+        F.mrf_loss(input, target)
 
 
 def test_value_range_loss_zero():

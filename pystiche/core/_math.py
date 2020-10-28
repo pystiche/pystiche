@@ -1,4 +1,5 @@
-from typing import cast
+import warnings
+from typing import Optional, cast
 
 import torch
 from torch.nn.functional import relu
@@ -69,25 +70,47 @@ def gram_matrix(x: torch.Tensor, normalize: bool = False) -> torch.Tensor:
     return gram_matrix / numel
 
 
-def _norm(x: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
-    return cast(torch.Tensor, x / (torch.norm(x, dim=1, keepdim=True) + eps))
+def _norm(x: torch.Tensor, dim: int = 1, eps: float = 1e-8) -> torch.Tensor:
+    return cast(torch.Tensor, x / (torch.norm(x, dim=dim, keepdim=True) + eps))
 
 
 def cosine_similarity(
-    input: torch.Tensor, target: torch.Tensor, eps: float = 1e-8
+    x1: torch.Tensor,
+    x2: torch.Tensor,
+    eps: float = 1e-8,
+    batched_input: Optional[bool] = None,
 ) -> torch.Tensor:
     r"""Calculates the cosine similarity between the samples of ``x1`` and ``x2``.
 
     Args:
-        input: First input of shape :math:`B_1 \times N_1 \times \dots \times N_D`.
-        target: Second input of shape :math:`B_2 \times N_1 \times \dots \times N_D`.
+        x1: First input of shape :math:`S_1 \times N_1 \times \dots \times N_D`.
+        x2: Second input of shape :math:`S_2 \times N_1 \times \dots \times N_D`.
         eps: Small value to avoid zero division. Defaults to ``1e-8``.
+        batched_input: If ``True``, treat the first dimension of the inputs as batch
+            dimension, i.e. :math:`B \times S \times N_1 \times \dots \times N_D`.
+            Defaults to ``False``.
 
     Returns:
-        Similarity matrix of shape :math:`B_1 \times B_2` in which every element
-        represents the cosine similarity between the corresponding samples of ``x1``
-        and ``x2``.
+        Similarity matrix of shape :math:`S_1 \times S_2` in which every element
+        represents the cosine similarity between the corresponding samples :math:`S` of
+        ``x1`` and ``x2``. If ``batched_input is True``, the output shape is
+        :math:`B \times S_1 \times S_2`
+
+    Note:
+        The default value of ``batched_input`` will change from ``False`` to ``True``
+        in the future.
+
     """
-    input = _norm(torch.flatten(input, 1), eps=eps)
-    target = _norm(torch.flatten(target, 1), eps=eps)
-    return torch.clamp(torch.mm(input, target.t()), max=1.0 / eps)
+    if batched_input is None:
+        msg = (
+            "The default value of batched_input will change "
+            "from False to True in the future."
+        )
+        warnings.warn(msg, FutureWarning)
+        batched_input = False
+
+    mm, dim = (torch.bmm, 2) if batched_input else (torch.mm, 1)
+
+    x1 = _norm(torch.flatten(x1, dim), dim=dim, eps=eps)
+    x2 = _norm(torch.flatten(x2, dim), dim=dim, eps=eps)
+    return torch.clamp(mm(x1, x2.transpose(-1, -2)), max=1.0 / eps)

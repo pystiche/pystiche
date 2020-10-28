@@ -1,3 +1,5 @@
+from typing import Optional
+
 import torch
 from torch.nn.functional import mse_loss, relu
 
@@ -10,15 +12,23 @@ def mrf_loss(
     target: torch.Tensor,
     eps: float = 1e-8,
     reduction: str = "mean",
+    batched_input: Optional[bool] = None,
 ) -> torch.Tensor:
-    """Calculates the MRF loss. See :class:`pystiche.ops.MRFOperator` for details.
+    r"""Calculates the MRF loss. See :class:`pystiche.ops.MRFOperator` for details.
 
     Args:
-        input: Input tensor.
-        target: Target tensor.
+        input: Input of shape :math:`S_1 \times N_1 \times \dots \times N_D`.
+        target: Target of shape :math:`S_2 \times N_1 \times \dots \times N_D`.
         eps: Small value to avoid zero division. Defaults to ``1e-8``.
         reduction: Reduction method of the output passed to
             :func:`pystiche.misc.reduce`. Defaults to ``"mean"``.
+        batched_input: If ``True``, treat the first dimension of the inputs as batch
+            dimension, i.e. :math:`B \times S \times N_1 \times \dots \times N_D`.
+            Defaults to ``False``. See :func:`pystiche.cosine_similarity` for details.
+
+    Note:
+        The default value of ``batched_input`` will change from ``False`` to ``True``
+        in the future.
 
     Examples:
 
@@ -28,7 +38,9 @@ def mrf_loss(
 
     """
     with torch.no_grad():
-        similarity = pystiche.cosine_similarity(input, target, eps=eps)
+        similarity = pystiche.cosine_similarity(
+            input, target, eps=eps, batched_input=batched_input
+        )
         idcs = torch.argmax(similarity, dim=1)
         target = torch.index_select(target, dim=0, index=idcs)
     return mse_loss(input, target, reduction=reduction)

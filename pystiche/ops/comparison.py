@@ -342,7 +342,7 @@ class MRFOperator(EncodingComparisonOperator):
         target_repr: torch.Tensor,
         ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
-        return F.mrf_loss(input_repr, target_repr)
+        return F.mrf_loss(input_repr, target_repr, batched_input=True)
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
