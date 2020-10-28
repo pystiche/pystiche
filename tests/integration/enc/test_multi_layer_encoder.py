@@ -245,6 +245,30 @@ def test_MultiLayerEncoder_trim_layers():
             getattr(multi_layer_encoder, name)
 
 
+def test_MultiLayerEncoder_call_future_warning():
+    torch.manual_seed(0)
+    conv = nn.Conv2d(3, 1, 1)
+    input = torch.rand(1, 3, 1, 1)
+
+    modules = (("conv", conv),)
+    multi_layer_encoder = enc.MultiLayerEncoder(modules)
+
+    with pytest.warns(FutureWarning):
+        multi_layer_encoder(input, ("conv",))
+
+
+def test_MultiLayerEncoder_encode_future_warning():
+    torch.manual_seed(0)
+    conv = nn.Conv2d(3, 1, 1)
+    input = torch.rand(1, 3, 1, 1)
+
+    modules = (("conv", conv),)
+    multi_layer_encoder = enc.MultiLayerEncoder(modules)
+
+    with pytest.warns(FutureWarning):
+        multi_layer_encoder.encode(input)
+
+
 def test_SingleLayerEncoder_call():
     torch.manual_seed(0)
     conv = nn.Conv2d(3, 1, 1)

@@ -6,6 +6,7 @@ from torch import nn
 
 import pystiche
 from pystiche import enc, ops
+from pystiche.misc import suppress_future_warnings
 
 __all__ = ["MLEHandler", "MultiOperatorLoss"]
 
@@ -32,8 +33,9 @@ class MLEHandler(pystiche.ComplexObject):
             mle.trim()
 
     def __call__(self, input_image: torch.Tensor) -> "MLEHandler":
-        for mle in self.multi_layer_encoders:
-            mle.encode(input_image)
+        with suppress_future_warnings():
+            for mle in self.multi_layer_encoders:
+                mle.encode(input_image)
         return self
 
     def __enter__(self) -> None:
