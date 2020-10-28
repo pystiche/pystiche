@@ -86,7 +86,7 @@ def test_cosine_similarity():
     target = torch.rand(1, 256)
 
     actual = pystiche.cosine_similarity(input, target)
-    expected = F.cosine_similarity(input, target)
+    expected = F.cosine_similarity(input, target, dim=1).unsqueeze(1)
     ptu.assert_allclose(actual, expected)
 
 
