@@ -8,7 +8,7 @@ import torch
 import pystiche
 from pystiche.enc import Encoder
 from pystiche.image.transforms import Transform, TransformMotifAffinely
-from pystiche.misc import to_2d_arg
+from pystiche.misc import suppress_future_warnings, to_2d_arg
 
 from . import functional as F
 from .op import EncodingComparisonOperator
@@ -300,7 +300,8 @@ class MRFOperator(EncodingComparisonOperator):
         return repr[mask]
 
     def enc_to_repr(self, enc: torch.Tensor, is_guided: bool) -> torch.Tensor:
-        repr = pystiche.extract_patches2d(enc, self.patch_size, self.stride)
+        with suppress_future_warnings():
+            repr = pystiche.extract_patches2d(enc, self.patch_size, self.stride)
         if not is_guided:
             return repr
 
@@ -341,7 +342,7 @@ class MRFOperator(EncodingComparisonOperator):
         target_repr: torch.Tensor,
         ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
-        return F.mrf_loss(input_repr, target_repr)
+        return F.mrf_loss(input_repr, target_repr, batched_input=False)
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
