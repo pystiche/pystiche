@@ -78,24 +78,58 @@ def patch_matplotlib_figures(package_mocker):
 
 @pytest.fixture(autouse=True)
 def patch_optimization(mocker):
-    def optim_loop_side_effect(input, *args, **kwargs):
-        return input
+    def patch_image_optimization():
+        def image_optimization_side_effect(input_image, criterion, *args, **kwargs):
+            criterion(input_image)
+            return input_image
 
-    for name in (
-        "image_optimization",
-        "pyramid_image_optimization",
-        "model_optimization",
-        "multi_epoch_model_optimization",
-    ):
+        for name in (
+            "image_optimization",
+            "pyramid_image_optimization",
+        ):
+            mocker.patch(
+                mocks.make_mock_target("optim", name),
+                side_effect=image_optimization_side_effect,
+            )
+
+    def patch_model_optimization():
+        def model_optimization_side_effect(
+            image_loader, transformer, criterion, *args, **kwargs
+        ):
+            input_image = next(image_loader)
+            criterion(input_image)
+            return transformer
+
+        for name in ("model_optimization", "multi_epoch_model_optimization"):
+            mocker.patch(
+                mocks.make_mock_target("optim", name),
+                side_effect=model_optimization_side_effect,
+            )
+
+    def patch_optimizer_step():
+        orig_loss = None
+
+        def lbfgs_step_side_effect(closure):
+            nonlocal orig_loss
+            if orig_loss is not None:
+                return orig_loss
+
+            orig_loss = closure()
+            return orig_loss
+
         mocker.patch(
-            mocks.make_mock_target("optim", name), side_effect=optim_loop_side_effect
+            mocks.make_mock_target("optim", "LBFGS", "step", pkg="torch"),
+            side_effect=lbfgs_step_side_effect,
         )
+
+    patch_image_optimization()
+    patch_model_optimization()
 
     # Since the beginner example "NST without pystiche" does not use a builtin
     # optimization function we are patching the optimizer. The actual computation
     # happens inside a closure. Thus, the loop will run, albeit with an almost empty
     # body.
-    mocker.patch(mocks.make_mock_target("optim", "LBFGS", pkg="torch"))
+    patch_optimizer_step()
 
 
 @pytest.mark.slow
