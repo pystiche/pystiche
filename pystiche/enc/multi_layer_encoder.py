@@ -15,7 +15,7 @@ from .guides import propagate_guide
 __all__ = ["MultiLayerEncoder", "SingleLayerEncoder"]
 
 
-def _future_warning(name):
+def _future_warning(name: str) -> None:
     msg = (
         f"The functionality of MultiLayerEncoder.{name} will change in the future. "
         f"If you depend on this functionality, "
