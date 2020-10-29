@@ -1,7 +1,8 @@
-import time
+import sys
 import warnings
-from types import TracebackType
-from typing import Any, Callable, Iterable, Iterator, Optional, Tuple, Type, Union, cast
+from typing import Any, Callable, Iterable, Optional, Union
+
+from tqdm.auto import tqdm
 
 import torch
 from torch import nn, optim
@@ -10,20 +11,10 @@ from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
 import pystiche
-from pystiche import loss
-from pystiche.image import extract_aspect_ratio, extract_image_size
-from pystiche.misc import build_deprecation_message, suppress_warnings
+from pystiche.image import extract_aspect_ratio
+from pystiche.loss import MLEHandler
+from pystiche.misc import build_deprecation_message
 from pystiche.pyramid import ImagePyramid
-from pystiche.pyramid.level import PyramidLevel
-
-with suppress_warnings():
-    from .log import (
-        OptimLogger,
-        default_epoch_header,
-        default_image_optim_log_fn,
-        default_pyramid_level_header,
-        default_transformer_optim_log_fn,
-    )
 
 __all__ = [
     "default_image_optimizer",
@@ -52,28 +43,36 @@ def default_image_optimizer(input_image: torch.Tensor) -> optim.LBFGS:
     return optim.LBFGS([input_image.requires_grad_(True)], lr=1.0, max_iter=1)
 
 
-# Unfortunately contextlib.nullcontext is only available since Python 3.7
-# https://docs.python.org/3.7/library/contextlib.html#contextlib.nullcontext
-class _NullContext:
-    def __call__(self, input_image: torch.Tensor) -> "_NullContext":
-        return self
-
-    def __enter__(self) -> None:
-        pass
-
-    def __exit__(
-        self, exc_type: Type[Exception], exc_val: Exception, exc_tb: TracebackType,
+class OptimProgressBar(tqdm):
+    def __init__(
+        self,
+        name: str,
+        total_or_iterable: Union[int, Iterable],
+        quiet: bool = False,
+        **kwargs: Any,
     ) -> None:
-        pass
+        if isinstance(total_or_iterable, int):
+            total: Optional[int] = total_or_iterable
+            iterable: Optional[Iterable] = None
+        else:
+            total = None
+            iterable = total_or_iterable
 
+        super().__init__(
+            desc=name,
+            iterable=iterable,
+            total=total,
+            disable=quiet,
+            file=sys.stdout,
+            **kwargs,
+        )
 
-def _log_parameter_deprecation(name: str) -> None:
-    msg = build_deprecation_message(
-        f"The parameter {name}",
-        "0.7.0",
-        info="See https://github.com/pmeier/pystiche/issues/434 for details.",
-    )
-    warnings.warn(msg, UserWarning)
+    def update(
+        self, n: int = 1, loss: Optional[Union[float, pystiche.LossDict]] = None
+    ) -> None:
+        if loss is not None:
+            self.set_postfix(loss=f"{float(loss):.3e}", refresh=False)
+        super().update(n)
 
 
 def image_optimization(
@@ -85,10 +84,6 @@ def image_optimization(
     preprocessor: Optional[nn.Module] = None,
     postprocessor: Optional[nn.Module] = None,
     quiet: bool = False,
-    logger: Optional[OptimLogger] = None,
-    log_fn: Optional[
-        Callable[[int, Union[torch.Tensor, pystiche.LossDict]], None]
-    ] = None,
 ) -> torch.Tensor:
     r"""Perform an image optimization with integrated logging.
 
@@ -103,14 +98,8 @@ def image_optimization(
             before the optimization.
         postprocessor: Optional preprocessor that is called with the ``input_image``
             after the optimization.
-        quiet: If ``True``, not information is logged during the optimization. Defaults
-            to ``False``.
-        logger: Optional custom logger. If ``None``,
-            :class:`pystiche.optim.OptimLogger` is used. Defaults to ``None``.
-        log_fn: Optional custom logging function. It is called in every optimization
-            step with the current step and loss. If ``None``,
-            :func:`pystiche.optim.default_image_optim_log_fn` is used. Defaults to
-            ``None``.
+        quiet: If ``True``, no information is printed to STDOUT during the
+            optimization. Defaults to ``False``.
 
     Raises:
         RuntimeError: If ``preprocessor`` is used and ``optimizer`` is not passed as
@@ -132,19 +121,10 @@ def image_optimization(
         optimizer = default_image_optimizer
 
     if isinstance(num_steps, int):
-        num_steps = range(1, num_steps + 1)
-
-    if logger is None:
-        with suppress_warnings():
-            logger = OptimLogger()
+        num_steps = range(num_steps)
     else:
-        _log_parameter_deprecation("logger")
-
-    if log_fn is None:
-        with suppress_warnings():
-            log_fn = default_image_optim_log_fn(optim_logger=logger)
-    else:
-        _log_parameter_deprecation("log_fn")
+        msg = build_deprecation_message("Passing num_steps iterable of ints", "1.0.0")
+        warnings.warn(msg)
 
     if preprocessor:
         with torch.no_grad():
@@ -153,29 +133,22 @@ def image_optimization(
     if not isinstance(optimizer, Optimizer):
         optimizer = optimizer(input_image)
 
-    mle_handler = (
-        loss.MLEHandler(criterion)
-        if not isinstance(criterion, loss.MultiOperatorLoss)
-        else _NullContext()
-    )
+    mle_handler = MLEHandler(criterion)
 
-    for step in num_steps:
+    def closure(input_image: torch.Tensor) -> float:
+        # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
+        optimizer.zero_grad()  # type: ignore[union-attr]
 
-        def closure() -> float:
-            # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
-            optimizer.zero_grad()  # type: ignore[union-attr]
+        with mle_handler(input_image):
+            loss = criterion(input_image)
+        loss.backward()
 
-            with mle_handler(input_image):  # type: ignore[operator]
-                loss = criterion(input_image)
-            loss.backward()
+        return float(loss)
 
-            if not quiet:
-                # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
-                log_fn(step, loss)  # type: ignore[misc]
-
-            return cast(float, loss.item())
-
-        optimizer.step(closure)
+    with OptimProgressBar("Image optimization", num_steps, quiet=quiet) as progress_bar:
+        for _ in num_steps:
+            loss = optimizer.step(lambda: closure(input_image))
+            progress_bar.update(loss=loss)
 
     if postprocessor:
         with torch.no_grad():
@@ -202,13 +175,6 @@ def pyramid_image_optimization(
     preprocessor: Optional[nn.Module] = None,
     postprocessor: Optional[nn.Module] = None,
     quiet: bool = False,
-    logger: Optional[OptimLogger] = None,
-    get_pyramid_level_header: Optional[
-        Callable[[int, PyramidLevel, Tuple[int, int]], str]
-    ] = None,
-    log_fn: Optional[
-        Callable[[int, Union[torch.Tensor, pystiche.LossDict]], None]
-    ] = None,
 ) -> torch.Tensor:
     r"""Perform a image optimization for :class:`pystiche.pyramid.ImagePyramid` s with
     integrated logging.
@@ -223,63 +189,27 @@ def pyramid_image_optimization(
             before the optimization.
         postprocessor: Optional preprocessor that is called with the ``input_image``
             after the optimization.
-        quiet: If ``True``, not information is logged during the optimization. Defaults
-            to ``False``.
-        logger: Optional custom logger. If ``None``,
-            :class:`pystiche.optim.OptimLogger` is used. Defaults to ``None``.
-        get_pyramid_level_header: Optional custom getter for the logged pyramid level
-            header. It is called before each level with the current level number,
-            the :class:`pystiche.pyramid.PyramidLevel`, and the size of the
-            ``input_image``. If ``None``
-            :func:`pystiche.optim.default_pyramid_level_header` is used. Defaults to
-            ``None``.
-        log_fn: Optional custom logging function. It is called in every optimization
-            step with the current step and loss. If ``None``,
-            :func:`pystiche.optim.default_image_optim_log_fn` is used. Defaults to
-            ``None``.
+        quiet: If ``True``, no information is printed to STDOUT during the
+            optimization. Defaults to ``False``.
     """
     aspect_ratio = extract_aspect_ratio(input_image)
     if get_optimizer is None:
         get_optimizer = default_image_optimizer
 
-    if logger is None:
-        with suppress_warnings():
-            logger = OptimLogger()
-    else:
-        _log_parameter_deprecation("logger")
-
-    if get_pyramid_level_header is None:
-        get_pyramid_level_header = default_pyramid_level_header
-    else:
-        _log_parameter_deprecation("get_pyramid_level_header")
-
     output_image = input_image
-    for num, level in enumerate(pyramid, 1):
-
-        def optimization(input_image: torch.Tensor) -> torch.Tensor:
-            return image_optimization(
-                input_image,
-                criterion,
-                optimizer=get_optimizer,
-                num_steps=iter(level),
-                preprocessor=preprocessor,
-                postprocessor=postprocessor,
-                quiet=quiet,
-                logger=logger,
-                log_fn=log_fn,
-            )
-
+    for level in OptimProgressBar("Pyramid", pyramid, quiet=quiet):
         with torch.no_grad():
             input_image = level.resize_image(output_image, aspect_ratio=aspect_ratio)
 
-        if quiet:
-            output_image = optimization(input_image)
-        else:
-            input_image_size = extract_image_size(input_image)
-            with suppress_warnings():
-                header = get_pyramid_level_header(num, level, input_image_size)
-            with logger.environment(header):
-                output_image = optimization(input_image)
+        output_image = image_optimization(
+            input_image,
+            criterion,
+            get_optimizer=get_optimizer,
+            num_steps=level.num_steps,
+            preprocessor=preprocessor,
+            postprocessor=postprocessor,
+            quiet=quiet,
+        )
 
     return output_image
 
@@ -330,12 +260,7 @@ def model_optimization(
     criterion: nn.Module,
     criterion_update_fn: Optional[Callable[[torch.Tensor, nn.Module], None]] = None,
     optimizer: Optional[Optimizer] = None,
-    get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
     quiet: bool = False,
-    logger: Optional[OptimLogger] = None,
-    log_fn: Optional[
-        Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
-    ] = None,
 ) -> nn.Module:
     r"""Perform a model optimization for a single epoch with integrated logging.
 
@@ -352,15 +277,8 @@ def model_optimization(
             :meth:`~pystiche.loss.PerceptualLoss.set_content_image`.
         optimizer: Optional optimizer. If ``None``,
             :func:`default_model_optimizer` is used.
-        quiet: If ``True``, not information is logged during the optimization. Defaults
-            to ``False``.
-        logger: Optional custom logger. If ``None``,
-            :class:`pystiche.optim.OptimLogger` is used. Defaults to ``None``.
-        log_fn: Optional custom logging function. It is called in every optimization
-            step with the current batch, loss as well as the image loading and
-            processing velocities in img/s. If ``None``,
-            :func:`pystiche.optim.default_transformer_optim_log_fn` is used. Defaults
-            to ``None``.
+        quiet: If ``True``, no information is printed to STDOUT during the
+            optimization. Defaults to ``False``.
     """
     if criterion_update_fn is None:
         if isinstance(criterion, (loss.PerceptualLoss, loss.GuidedPerceptualLoss)):
@@ -381,58 +299,30 @@ def model_optimization(
     if optimizer is None:
         optimizer = default_model_optimizer(transformer)
 
-    if logger is None:
-        with suppress_warnings():
-            logger = OptimLogger()
-    else:
-        _log_parameter_deprecation("logger")
-
-    if log_fn is None:
-        with suppress_warnings():
-            log_fn = default_transformer_optim_log_fn(logger, len(image_loader))
-    else:
-        _log_parameter_deprecation("log_fn")
-
     device = next(transformer.parameters()).device
+    mle_handler = MLEHandler(criterion)
 
-    mle_handler = (
-        loss.MLEHandler(criterion)
-        if not isinstance(criterion, loss.MultiOperatorLoss)
-        else _NullContext()
-    )
+    def closure(input_image: torch.Tensor) -> float:
+        # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
+        optimizer.zero_grad()  # type: ignore[union-attr]
 
-    loading_time_start = time.time()
-    for batch, input_image in enumerate(unsupervise(image_loader), 1):
-        input_image = input_image.to(device)
+        output_image = transformer(input_image)
 
-        criterion_update_fn(input_image, criterion)  # type: ignore[misc]
+        with mle_handler(output_image):
+            loss = criterion(output_image)
+        loss.backward()
 
-        loading_time = time.time() - loading_time_start
+        return float(loss)
 
-        def closure() -> float:
-            processing_time_start = time.time()
+    with OptimProgressBar(
+        "Model optimization", image_loader, quiet=quiet
+    ) as progress_bar:
+        for input_image in image_loader:
+            input_image = input_image.to(device)
+            criterion_update_fn(input_image, criterion)
 
-            # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
-            optimizer.zero_grad()  # type: ignore[union-attr]
-
-            output_image = transformer(input_image)
-            with mle_handler(output_image):  # type: ignore[operator]
-                loss = criterion(output_image)
-            loss.backward()
-
-            processing_time = time.time() - processing_time_start
-
-            if not quiet:
-                batch_size = input_image.size()[0]
-                image_loading_velocity = batch_size / max(loading_time, 1e-6)
-                image_processing_velocity = batch_size / max(processing_time, 1e-6)
-                # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
-                log_fn(batch, loss, image_loading_velocity, image_processing_velocity)  # type: ignore[misc]
-
-            return cast(float, loss.item())
-
-        optimizer.step(closure)
-        loading_time_start = time.time()
+            loss = optimizer.step(lambda: closure(input_image))
+            progress_bar.update(loss=loss)
 
     return transformer
 
@@ -456,13 +346,6 @@ def multi_epoch_model_optimization(
     optimizer: Optional[Optimizer] = None,
     lr_scheduler: Optional[LRScheduler] = None,
     quiet: bool = False,
-    logger: Optional[OptimLogger] = None,
-    get_epoch_header: Optional[
-        Callable[[int, Optimizer, Optional[LRScheduler]], str]
-    ] = None,
-    log_fn: Optional[
-        Callable[[int, Union[torch.Tensor, pystiche.LossDict], float, float], None]
-    ] = None,
 ) -> nn.Module:
     r"""Perform a model optimization for multiple epochs with integrated logging.
 
@@ -482,19 +365,8 @@ def multi_epoch_model_optimization(
             ``lr_scheduler`` or func:`default_model_optimizer` is used.
         lr_scheduler: Optional learning rate scheduler. ``step()`` is invoked after
             every epoch.
-        quiet: If ``True``, not information is logged during the optimization. Defaults
-            to ``False``.
-        logger: Optional custom logger. If ``None``,
-            :class:`pystiche.optim.OptimLogger` is used. Defaults to ``None``.
-        get_epoch_header: Optional custom getter for the logged epoch header. It is
-        called before each epoch with the current epoch number, the ``optimizer``, and
-            the ``lr_scheduler``. If ``None``
-            :func:`pystiche.optim.default_epoch_header` is used. Defaults to ``None``.
-        log_fn: Optional custom logging function. It is called in every optimization
-            step with the current batch, loss as well as the image loading and
-            processing velocities in img/s. If ``None``,
-            :func:`pystiche.optim.default_transformer_optim_log_fn` is used. Defaults
-            to ``None``.
+        quiet: If ``True``, no information is printed to STDOUT during the
+            optimization. Defaults to ``False``.
         """
     if optimizer is None:
         if lr_scheduler is None:
@@ -505,38 +377,15 @@ def multi_epoch_model_optimization(
             # but this is not reflected in the torch type hints
             optimizer = lr_scheduler.optimizer  # type: ignore[attr-defined]
 
-    if logger is None:
-        with suppress_warnings():
-            logger = OptimLogger()
-    else:
-        _log_parameter_deprecation("logger")
-
-    if get_epoch_header is None:
-        get_epoch_header = default_epoch_header
-    else:
-        _log_parameter_deprecation("get_epoch_header")
-
-    def transformer_optim_loop(transformer: nn.Module) -> nn.Module:
-        # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
-        return model_optimization(
+    for _ in OptimProgressBar("Epochs", epochs, quiet=quiet):
+        transformer = model_optimization(
             image_loader,
             transformer,
             criterion,
             criterion_update_fn,
             optimizer,
             quiet=quiet,
-            logger=logger,
-            log_fn=log_fn,
         )
-
-    for epoch in range(epochs):
-        if quiet:
-            transformer = transformer_optim_loop(transformer)
-        else:
-            with suppress_warnings():
-                header = get_epoch_header(epoch, optimizer, lr_scheduler)
-            with logger.environment(header):
-                transformer = transformer_optim_loop(transformer)
 
         if lr_scheduler is not None:
             lr_scheduler.step()
