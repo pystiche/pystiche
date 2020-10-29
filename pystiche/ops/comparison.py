@@ -8,7 +8,7 @@ import torch
 import pystiche
 from pystiche.enc import Encoder
 from pystiche.image.transforms import Transform, TransformMotifAffinely
-from pystiche.misc import suppress_future_warnings, to_2d_arg
+from pystiche.misc import suppress_warnings, to_2d_arg
 
 from . import functional as F
 from .op import EncodingComparisonOperator
@@ -258,16 +258,19 @@ class MRFOperator(EncodingComparisonOperator):
         )
         rotation_angles *= rotate_step_width
 
-        return [
-            TransformMotifAffinely(
-                scaling_factor=scaling_factor,
-                rotation_angle=rotation_angle,
-                canvas="same",  # FIXME: this should be valid after it is implemented
-            )
-            for scaling_factor, rotation_angle in itertools.product(
-                scaling_factors, rotation_angles
-            )
-        ]
+        transforms = []
+        for scaling_factor, rotation_angle in itertools.product(
+            scaling_factors, rotation_angles
+        ):
+            with suppress_warnings(UserWarning):
+                transform = TransformMotifAffinely(
+                    scaling_factor=scaling_factor,
+                    rotation_angle=rotation_angle,
+                    canvas="same",  # FIXME: this should be valid after it is implemented
+                )
+            transforms.append(transform)
+
+        return transforms
 
     @staticmethod
     def _match_batch_sizes(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
@@ -300,7 +303,7 @@ class MRFOperator(EncodingComparisonOperator):
         return repr[mask]
 
     def enc_to_repr(self, enc: torch.Tensor, is_guided: bool) -> torch.Tensor:
-        with suppress_future_warnings():
+        with suppress_warnings(FutureWarning):
             repr = pystiche.extract_patches2d(enc, self.patch_size, self.stride)
         if not is_guided:
             return repr

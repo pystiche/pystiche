@@ -1,14 +1,25 @@
 import itertools
-from typing import Iterable, Union
+import warnings
+from typing import Any, Iterable, Union
 
 import torch
 
 import pystiche
+from pystiche.misc import build_deprecation_message
 
 __all__ = ["Transform", "ComposedTransform"]
 
 
 class Transform(pystiche.Module):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        msg = build_deprecation_message(
+            "Using functionality from pystiche.image.transforms",
+            "0.7.0",
+            info="See https://github.com/pmeier/pystiche/issues/382 for details.",
+        )
+        warnings.warn(msg, UserWarning)
+        super().__init__(*args, **kwargs)
+
     def __add__(
         self, other: Union["Transform", "ComposedTransform"]
     ) -> "ComposedTransform":
