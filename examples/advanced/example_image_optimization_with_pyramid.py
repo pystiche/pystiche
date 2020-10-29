@@ -102,9 +102,7 @@ show_image(input_image, title="Input image")
 # result.
 
 start_without_pyramid = time.time()
-output_image = optim.image_optimization(
-    input_image, criterion, num_steps=400, logger=demo.logger()
-)
+output_image = optim.image_optimization(input_image, criterion, num_steps=400)
 stop_without_pyramid = time.time()
 
 show_image(output_image, title="Output image without pyramid")
@@ -168,9 +166,7 @@ print(image_pyramid)
 input_image = get_input_image(starting_point, content_image=content_image)
 
 start_with_pyramid = time.time()
-output_image = optim.pyramid_image_optimization(
-    input_image, criterion, image_pyramid, logger=demo.logger()
-)
+output_image = optim.pyramid_image_optimization(input_image, criterion, image_pyramid)
 stop_with_pyramid = time.time()
 
 # sphinx_gallery_thumbnail_number = 5

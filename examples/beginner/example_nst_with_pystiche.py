@@ -185,9 +185,7 @@ show_image(input_image, title="Input image")
 #   By default ``pystiche`` logs the time during an optimization. In order to reduce
 #   the clutter, we use a minimal :func:`~pystiche.demo.logger` here.
 
-output_image = optim.image_optimization(
-    input_image, criterion, num_steps=500, logger=demo.logger()
-)
+output_image = optim.image_optimization(input_image, criterion, num_steps=500)
 
 
 ########################################################################################
