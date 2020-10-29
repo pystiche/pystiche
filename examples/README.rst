@@ -1,4 +1,5 @@
 .. _usage_examples:
+
 ``pystiche`` usage examples
 ===========================
 
