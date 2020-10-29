@@ -32,16 +32,8 @@ def get_bool_env_var(name, default=False):
 
 
 run_by_github_actions = get_bool_env_var("GITHUB_ACTIONS")
-run_by_travis_ci = get_bool_env_var("TRAVIS")
-run_by_appveyor = get_bool_env_var("APPVEYOR")
 run_by_rtd = get_bool_env_var("READTHEDOCS")
-run_by_ci = (
-    run_by_github_actions
-    or run_by_travis_ci
-    or run_by_appveyor
-    or run_by_rtd
-    or get_bool_env_var("CI")
-)
+run_by_ci = run_by_github_actions or run_by_rtd or get_bool_env_var("CI")
 
 # -- Path setup ------------------------------------------------------------------------
 
@@ -107,8 +99,8 @@ intersphinx_mapping = {
 
 # -- sphinx-gallery configuration ------------------------------------------------------
 
-plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=True) and not run_by_ci
-download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY") or run_by_ci
+plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=not run_by_ci)
+download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY", default=run_by_ci)
 
 if download_gallery:
     base = "https://download.pystiche.org/galleries/"
