@@ -185,6 +185,12 @@ def demo_images() -> DownloadableImageCollection:
 def logger() -> OptimLogger:
     """Simple logger used in the usage examples.
     """
+    msg = build_deprecation_message(
+        "The function logger",
+        "0.7.0",
+        "See https://github.com/pmeier/pystiche/issues/434 for details.",
+    )
+    warnings.warn(msg, UserWarning)
     logger = logging.getLogger(
         name=f"pystiche_{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
     )
