@@ -3,8 +3,10 @@ from typing import Any, Dict, Iterator, Optional
 import torch
 
 from pystiche import ComplexObject
-from pystiche.image.transforms.functional import resize
-from pystiche.misc import verify_str_arg
+from pystiche.misc import suppress_warnings, verify_str_arg
+
+with suppress_warnings(UserWarning):
+    from pystiche.image.transforms.functional import resize
 
 __all__ = ["PyramidLevel"]
 
@@ -61,8 +63,7 @@ class PyramidLevel(ComplexObject):
         .. warning::
 
             The resizing is performed without gradient calculation. Do **not** use this
-            if image needs a gradient. If that is the case use
-            :class:`pystiche.image.transforms.Resize` instead.
+            if the image needs a gradient.
         """
         return self._resize(image, aspect_ratio, interpolation_mode)
 

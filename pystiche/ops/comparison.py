@@ -258,16 +258,19 @@ class MRFOperator(EncodingComparisonOperator):
         )
         rotation_angles *= rotate_step_width
 
-        return [
-            TransformMotifAffinely(
-                scaling_factor=scaling_factor,
-                rotation_angle=rotation_angle,
-                canvas="same",  # FIXME: this should be valid after it is implemented
-            )
-            for scaling_factor, rotation_angle in itertools.product(
-                scaling_factors, rotation_angles
-            )
-        ]
+        transforms = []
+        for scaling_factor, rotation_angle in itertools.product(
+            scaling_factors, rotation_angles
+        ):
+            with suppress_warnings(UserWarning):
+                transform = TransformMotifAffinely(
+                    scaling_factor=scaling_factor,
+                    rotation_angle=rotation_angle,
+                    canvas="same",  # FIXME: this should be valid after it is implemented
+                )
+            transforms.append(transform)
+
+        return transforms
 
     @staticmethod
     def _match_batch_sizes(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
