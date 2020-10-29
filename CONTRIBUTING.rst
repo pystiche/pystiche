@@ -59,7 +59,7 @@ Guide lines
 
   Use ``git checkout`` to create local branch with a descriptive name:
 
-  .. code-block::
+  .. code-block:: sh
 
     $ PYSTICHE_BRANCH="my-awesome-feature-or-bug-fix"
     $ git checkout -b $PYSTICHE_BRANCH
@@ -68,19 +68,29 @@ Guide lines
 
 5. Use ``tox`` to run various checks
 
-  .. code-block::
+  .. code-block:: sh
 
-    $ tox -f lint
     $ tox
-    $ tox -f docs  # only if applicable
 
-  You can find details what the individual commands do below of this guide.
+  .. note::
+
+    Running ``tox`` is equivalent to running
+
+    .. code-block:: sh
+
+      $ tox -e lint-style
+      $ tox -e lint-typing
+      $ tox -e tests-integration
+      $ tox -e tests-galleries
+      $ tox -e tests-docs
+
+    You can find details what the individual commands do below of this guide.
 
 6. Commit and push your changes
 
   If all checks are passing you can commit your changes an push them to your fork:
 
-  .. code-block::
+  .. code-block:: sh
 
     $ git add .
     $ git commit -m "Descriptive message of the changes made"
@@ -113,7 +123,7 @@ Guide lines
   Steps 1. to 3. only have to performed once. If you want to continue contributing,
   make sure to branch from the current ``master`` branch. You can use ``git pull``
 
-  .. code-block::
+  .. code-block:: sh
 
     $ git checkout master
     $ git pull origin
@@ -122,7 +132,7 @@ Guide lines
   If you forgot to do that or if since the creation of your branch many commits have
   been made to the ``master`` branch, simply rebase your branch on top of it.
 
-  .. code-block::
+  .. code-block:: sh
 
     $ git checkout master
     $ git pull origin
