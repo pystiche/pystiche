@@ -1,5 +1,11 @@
 pystiche/_version.py
 
+# temporary files
+dummy.py
+hack.py
+tmp.py
+temp.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
