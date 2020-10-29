@@ -209,6 +209,17 @@ import pystiche.ops.functional as F
 
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
+
+from unittest import mock
+
+patcher = mock.patch(
+    "pystiche.enc.models.utils.ModelMultiLayerEncoder.load_state_dict_from_url"
+)
+patcher.start()
+"""
+
+doctest_global_cleanup = """
+mock.patch.stopall()
 """
 
 # -- Options for HTML output -----------------------------------------------------------
