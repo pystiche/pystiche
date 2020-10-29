@@ -7,7 +7,7 @@ import torch
 from torch import nn
 
 import pystiche
-from pystiche.misc import suppress_future_warnings
+from pystiche.misc import suppress_warnings
 
 from .encoder import Encoder
 from .guides import propagate_guide
@@ -223,7 +223,7 @@ class SingleLayerEncoder(Encoder):
         Args:
             input_image: Input image.
         """
-        with suppress_future_warnings():
+        with suppress_warnings(FutureWarning):
             return cast(
                 Tuple[torch.Tensor],
                 self.multi_layer_encoder(input_image, layers=(self.layer,)),

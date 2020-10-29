@@ -37,7 +37,7 @@ __all__ = [
     "get_device",
     "download_file",
     "reduce",
-    "suppress_future_warnings",
+    "suppress_warnings",
 ]
 
 
@@ -292,9 +292,3 @@ def suppress_warnings(*categories: Type[Warning]) -> Iterator[None]:
         yield
     finally:
         warnings.resetwarnings()
-
-
-@contextlib.contextmanager
-def suppress_future_warnings() -> Iterator[None]:
-    with suppress_warnings(FutureWarning):
-        yield
