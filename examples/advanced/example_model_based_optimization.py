@@ -102,6 +102,7 @@ class Transformer(nn.Module):
     def __init__(self):
         super().__init__()
         self.encoder = nn.Sequential(
+            transforms.FloatToUint8Range(),
             Conv(3, 32, kernel_size=9),
             Conv(32, 64, kernel_size=3, stride=2),
             Conv(64, 128, kernel_size=3, stride=2),
@@ -115,6 +116,7 @@ class Transformer(nn.Module):
             Conv(128, 64, kernel_size=3, stride=2, upsample=True),
             Conv(64, 32, kernel_size=3, stride=2, upsample=True),
             Conv(32, 3, kernel_size=9, norm=False, activation=False),
+            transforms.Uint8ToFloatRange(),
         )
 
     def forward(self, input):
@@ -130,17 +132,25 @@ multi_layer_encoder = enc.vgg16_multi_layer_encoder()
 
 content_layer = "relu2_2"
 content_encoder = multi_layer_encoder.extract_encoder(content_layer)
-content_weight = 1e0
+content_weight = 1e5
 content_loss = ops.FeatureReconstructionOperator(
     content_encoder, score_weight=content_weight
 )
 
+
+class StyleOp(ops.GramOperator):
+    def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
+        repr = super().enc_to_repr(enc)
+        return repr / repr.size()[1]
+
+
 style_layers = ("relu1_2", "relu2_2", "relu3_3", "relu4_3")
-style_weight = 1e0
+style_weight = 1e10
 style_loss = ops.MultiLayerEncodingOperator(
     multi_layer_encoder,
     style_layers,
-    lambda encoder, layer_weight: ops.GramOperator(encoder, score_weight=layer_weight),
+    lambda encoder, layer_weight: StyleOp(encoder, score_weight=layer_weight),
+    layer_weights="sum",
     score_weight=style_weight,
 )
 
@@ -179,9 +189,7 @@ def train(
     def criterion_update_fn(input_image, criterion) -> None:
         criterion.set_content_image(input_image)
 
-    transformer = Transformer().to(device)
-
-    return optim.multi_epoch_model_optimization(
+    optim.multi_epoch_model_optimization(
         image_loader,
         transformer.train(),
         criterion,
@@ -193,52 +201,49 @@ def train(
 
 ########################################################################################
 
-for style_weight in (1e1, 3e1, 1e2, 3e2, 1e3, 3e3, 1e4):
-    # FIXME
-    use_pretrained_transformer = False
-    checkpoint = "example_transformer.pth"
+# FIXME
+use_pretrained_transformer = False
+checkpoint = "example_transformer.pth"
 
-    if use_pretrained_transformer:
-        if path.exists(checkpoint):
-            state_dict = torch.load(checkpoint)
-        else:
-            url = "https://download.pystiche.org/models/example_transformer.pth"
-            state_dict = hub.load_state_dict_from_url(url)
-
-        transformer.load_state_dict(state_dict)
+if use_pretrained_transformer:
+    if path.exists(checkpoint):
+        state_dict = torch.load(checkpoint)
     else:
-        transformer = train()
+        url = "https://download.pystiche.org/models/example_transformer.pth"
+        state_dict = hub.load_state_dict_from_url(url)
 
-        state_dict = OrderedDict(
-            [
-                (name, parameter.detach().cpu())
-                for name, parameter in transformer.state_dict().items()
-            ]
-        )
-        torch.save(state_dict, f"example_transformer_{style_weight:.2e}.pth")
+    transformer.load_state_dict(state_dict)
+else:
+    train()
 
-    ########################################################################################
+    state_dict = OrderedDict(
+        [
+            (name, parameter.detach().cpu())
+            for name, parameter in transformer.state_dict().items()
+        ]
+    )
+    torch.save(state_dict, "example_transformer.pth")
 
-    content_image = images["bird1"].read(device=device)
-    # show_image(content_image)
+########################################################################################
 
-    ########################################################################################
+content_image = images["bird1"].read(device=device)
+# show_image(content_image)
 
-    transformer.eval()
+########################################################################################
 
-    start = time.time()
 
-    with torch.no_grad():
-        output_image = transformer(content_image)
+transformer.eval()
 
-    stop = time.time()
+start = time.time()
 
-    # sphinx_gallery_thumbnail_number = 3
-    show_image(output_image, title="Output image")
-    from pystiche.image import write_image
+with torch.no_grad():
+    output_image = transformer(content_image)
 
-    write_image(output_image, f"output_{style_weight:.2e}.jpg")
+stop = time.time()
 
-    ########################################################################################
+# sphinx_gallery_thumbnail_number = 3
+show_image(output_image, title="Output image")
 
-    print(f"The stylization took {(stop - start) * 1e3:.0f} milliseconds.")
+########################################################################################
+
+print(f"The stylization took {(stop - start) * 1e3:.0f} milliseconds.")
