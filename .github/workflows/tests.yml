@@ -10,6 +10,7 @@ on:
     paths:
       - "pystiche/**"
       - "tests/**"
+      - "docs/source/conf.py"
       - "examples/**.py"
       - "!tests/download/**"
       - "setup.cfg"
