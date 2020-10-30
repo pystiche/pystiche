@@ -12,7 +12,7 @@ from pystiche.data import (
 )
 from pystiche.optim import OptimLogger
 
-from .misc import build_deprecation_message
+from .misc import build_deprecation_message, suppress_warnings
 
 __all__ = ["images", "logger"]
 
@@ -200,7 +200,8 @@ def logger() -> OptimLogger:
     sh.setLevel(logging.INFO)
     logger.addHandler(sh)
 
-    return OptimLogger(logger)
+    with suppress_warnings(UserWarning):
+        return OptimLogger(logger)
 
 
 def demo_logger() -> OptimLogger:
