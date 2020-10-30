@@ -1,8 +1,8 @@
+import contextlib
 import os
 import shutil
 import warnings
 from datetime import datetime
-from distutils.dir_util import remove_tree
 from distutils.util import strtobool
 from importlib_metadata import metadata as extract_metadata
 from os import path
@@ -162,7 +162,8 @@ def sphinx_gallery():
         print(f"Downloading pre-built galleries from {url}")
         download_file(url, file)
 
-        remove_tree("galleries")
+        with contextlib.suppress(FileNotFoundError):
+            shutil.rmtree(path.join(HERE, "galleries"))
         shutil.unpack_archive(file, extract_dir=".")
         os.remove(file)
 
@@ -181,8 +182,8 @@ def sphinx_gallery():
 
     class PysticheExampleTitleSortKey(ExampleTitleSortKey):
         def __call__(self, filename):
-            # The beginner example *without* pystiche is placed before the example *with*
-            # to clarify the narrative.
+            # The beginner example *without* pystiche is placed before the example
+            # *with* to clarify the narrative.
             if filename == "example_nst_without_pystiche.py":
                 return "1"
             elif filename == "example_nst_with_pystiche.py":
