@@ -1,11 +1,4 @@
-# Configuration file for the Sphinx documentation builder.
-#
-# This file only contains a selection of the most common options. For a full list see
-# the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
-
-# -- Imports ---------------------------------------------------------------------------
-
+import contextlib
 import os
 import shutil
 import warnings
@@ -21,7 +14,8 @@ import torch
 
 from pystiche.misc import download_file
 
-# -- Run config ------------------------------------------------------------------------
+HERE = path.dirname(__file__)
+PROJECT_ROOT = path.abspath(path.join(HERE, "..", ".."))
 
 
 def get_bool_env_var(name, default=False):
@@ -31,168 +25,94 @@ def get_bool_env_var(name, default=False):
         return default
 
 
-run_by_github_actions = get_bool_env_var("GITHUB_ACTIONS")
-run_by_rtd = get_bool_env_var("READTHEDOCS")
-run_by_ci = run_by_github_actions or run_by_rtd or get_bool_env_var("CI")
-
-# -- Path setup ------------------------------------------------------------------------
-
-# If extensions (or modules to document with autodoc) are in another directory, add
-# these directories to sys.path here. If the directory is relative to the documentation
-# root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
-
-HERE = path.dirname(__file__)
-PROJECT_ROOT = path.abspath(path.join(HERE, "..", ".."))
+GITHUB_ACTIONS = get_bool_env_var("GITHUB_ACTIONS")
+RTD = get_bool_env_var("READTHEDOCS")
+CI = GITHUB_ACTIONS or RTD or get_bool_env_var("CI")
 
 
-# -- Project information ---------------------------------------------------------------
+def project():
+    extension = None
 
-metadata = extract_metadata("pystiche")
-
-project = metadata["name"]
-author = metadata["author"]
-copyright = f"{datetime.now().year}, {author}"
-release = metadata["version"]
-canonical_version = release.split("+")[0]
-version = ".".join(canonical_version.split(".")[:3])
-
-
-# -- General configuration -------------------------------------------------------------
-
-# Add any Sphinx extension module names here, as strings. They can be extensions coming
-# with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
-    "sphinx.ext.coverage",
-    "sphinx.ext.intersphinx",
-    "sphinxcontrib.bibtex",
-    "sphinx_gallery.gen_gallery",
-    "sphinx_autodoc_typehints",
-    "sphinx.ext.doctest",
-]
-
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ["_templates"]
-
-# List of patterns, relative to source directory, that match files and directories to
-# ignore when looking for source files. This pattern also affects html_static_path and
-# html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-
-# -- intersphinx configuration ---------------------------------------------------------
-
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/3.6", None),
-    "torch": ("https://pytorch.org/docs/stable/", None),
-    "torchvision": ("https://pytorch.org/docs/stable/", None),
-    "PIL": ("https://pillow.readthedocs.io/en/stable/", None),
-    "numpy": ("https://numpy.org/doc/1.18/", None),
-    "requests": ("https://requests.readthedocs.io/en/stable/", None),
-    "matplotlib": ("https://matplotlib.org", None),
-}
-
-
-# -- sphinx-gallery configuration ------------------------------------------------------
-
-plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=not run_by_ci)
-download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY", default=run_by_ci)
-
-if download_gallery:
-    base = "https://download.pystiche.org/galleries/"
-    is_dev = version != release
-    file = "master.zip" if is_dev else f"v{version}.zip"
-
-    url = urljoin(base, file)
-    print(f"Downloading pre-built galleries from {url}")
-    download_file(url, file)
-
-    try:
-        shutil.rmtree("galleries")
-    except FileNotFoundError:
-        pass
-    shutil.unpack_archive(file, extract_dir=".")
-    os.remove(file)
-
-    extensions.remove("sphinx_gallery.gen_gallery")
-    extensions.append("sphinx_gallery.load_style")
-    plot_gallery = False
-
-if plot_gallery and not torch.cuda.is_available():
-    msg = (
-        "The galleries will be built, but CUDA is not available. "
-        "This will take a long time."
+    metadata = extract_metadata("pystiche")
+    project = metadata["name"]
+    author = metadata["author"]
+    copyright = f"{datetime.now().year}, {author}"
+    release = metadata["version"]
+    canonical_version = release.split("+")[0]
+    version = ".".join(canonical_version.split(".")[:3])
+    config = dict(
+        project=project,
+        author=author,
+        copyright=copyright,
+        release=release,
+        version=version,
     )
-    print(msg)
+
+    return extension, config
 
 
-def show_cuda_memory(func):
-    torch.cuda.reset_peak_memory_stats()
-    out = func()
+def autodoc():
+    extensions = [
+        "sphinx.ext.autodoc",
+        "sphinx.ext.napoleon",
+        "sphinx_autodoc_typehints",
+    ]
 
-    stats = torch.cuda.memory_stats()
-    peak_bytes_usage = stats["allocated_bytes.all.peak"]
-    memory = peak_bytes_usage / 1024 ** 2
+    config = None
 
-    return memory, out
-
-
-class PysticheExampleTitleSortKey(ExampleTitleSortKey):
-    def __call__(self, filename):
-        # The beginner example *without* pystiche is placed before the example *with*
-        # to clarify the narrative.
-        if filename == "example_nst_without_pystiche.py":
-            return "1"
-        elif filename == "example_nst_with_pystiche.py":
-            return "2"
-        else:
-            return super().__call__(filename)
+    return extensions, config
 
 
-sphinx_gallery_conf = {
-    "examples_dirs": path.join(PROJECT_ROOT, "examples"),
-    "gallery_dirs": path.join("galleries", "examples"),
-    "filename_pattern": os.sep + "example_",
-    "line_numbers": True,
-    "remove_config_comments": True,
-    "plot_gallery": plot_gallery,
-    "subsection_order": ExplicitOrder(
-        [
-            path.join("..", "..", "examples", sub_gallery)
-            for sub_gallery in ("beginner", "advanced")
-        ]
-    ),
-    "within_subsection_order": PysticheExampleTitleSortKey,
-    "show_memory": show_cuda_memory if torch.cuda.is_available() else True,
-}
+def intersphinx():
+    extension = "sphinx.ext.intersphinx"
+    config = dict(
+        intersphinx_mapping={
+            "python": ("https://docs.python.org/3.6", None),
+            "torch": ("https://pytorch.org/docs/stable/", None),
+            "torchvision": ("https://pytorch.org/docs/stable/", None),
+            "PIL": ("https://pillow.readthedocs.io/en/stable/", None),
+            "numpy": ("https://numpy.org/doc/1.18/", None),
+            "requests": ("https://requests.readthedocs.io/en/stable/", None),
+            "matplotlib": ("https://matplotlib.org", None),
+        }
+    )
+    return extension, config
 
-# Remove matplotlib agg warnings from generated doc when using plt.show
-warnings.filterwarnings(
-    "ignore",
-    category=UserWarning,
-    message=(
-        "Matplotlib is currently using agg, which is a non-GUI backend, so cannot show "
-        "the figure."
-    ),
-)
 
-warnings.filterwarnings(
-    "ignore",
-    category=UserWarning,
-    message=(
-        "The (function|parameter) logger is deprecated since pystiche==0.7.0 "
-        "and will be removed in a future release. "
-        "See https://github.com/pmeier/pystiche/issues/434 for details."
-    ),
-)
+def html():
+    extension = None
 
-# -- Options for doctest ---------------------------------------------------------------
+    config = dict(html_theme="sphinx_rtd_theme")
 
-doctest_global_setup = """
+    return extension, config
+
+
+def latex():
+    extension = None
+
+    with open(path.join(HERE, "custom_cmds.tex"), "r") as fh:
+        custom_cmds = fh.read()
+    config = dict(
+        latex_elements={"preamble": custom_cmds},
+        mathjax_inline=[r"\(" + custom_cmds, r"\)"],
+        mathjax_display=[r"\[" + custom_cmds, r"\]"],
+    )
+
+    return extension, config
+
+
+def bibtex():
+    extension = "sphinxcontrib.bibtex"
+
+    config = None
+
+    return extension, config
+
+
+def doctest():
+    extension = "sphinx.ext.doctest"
+
+    doctest_global_setup = """
 import torch
 from torch import nn
 
@@ -210,28 +130,130 @@ patcher = mock.patch(
 patcher.start()
 """
 
-doctest_global_cleanup = """
+    doctest_global_cleanup = """
 mock.patch.stopall()
 """
+    config = dict(
+        doctest_global_setup=doctest_global_setup,
+        doctest_global_cleanup=doctest_global_cleanup,
+    )
 
-# -- Options for HTML output -----------------------------------------------------------
-
-# The theme to use for HTML and HTML Help pages.  See the documentation for a list of
-# builtin themes.
-html_theme = "sphinx_rtd_theme"
-
-# Add any paths that contain custom static files (such as style sheets) here, relative
-# to this directory. They are copied after the builtin static files, so a file named
-# "default.css" will overwrite the builtin "default.css".
-# html_static_path = ["_static"]
+    return extension, config
 
 
-# -- Latex / Mathjax config ------------------------------------------------------------
+def sphinx_gallery():
+    extension = "sphinx_gallery.gen_gallery"
 
-with open(path.join(HERE, "custom_cmds.tex"), "r") as fh:
-    custom_cmds = fh.read()
+    plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=not CI)
+    download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY", default=CI)
 
-latex_elements = {"preamble": custom_cmds}
+    def download():
+        nonlocal extension
+        nonlocal plot_gallery
 
-mathjax_inline = [r"\(" + custom_cmds, r"\)"]
-mathjax_display = [r"\[" + custom_cmds, r"\]"]
+        # version and release are available as soon as the project config is loaded
+        version = globals()["version"]
+        release = globals()["release"]
+
+        base = "https://download.pystiche.org/galleries/"
+        is_dev = version != release
+        file = "master.zip" if is_dev else f"v{version}.zip"
+
+        url = urljoin(base, file)
+        print(f"Downloading pre-built galleries from {url}")
+        download_file(url, file)
+
+        with contextlib.suppress(FileNotFoundError):
+            shutil.rmtree(path.join(HERE, "galleries"))
+        shutil.unpack_archive(file, extract_dir=".")
+        os.remove(file)
+
+        extension = "sphinx_gallery.load_style"
+        plot_gallery = False
+
+    def show_cuda_memory(func):
+        torch.cuda.reset_peak_memory_stats()
+        out = func()
+
+        stats = torch.cuda.memory_stats()
+        peak_bytes_usage = stats["allocated_bytes.all.peak"]
+        memory = peak_bytes_usage / 1024 ** 2
+
+        return memory, out
+
+    class PysticheExampleTitleSortKey(ExampleTitleSortKey):
+        def __call__(self, filename):
+            # The beginner example *without* pystiche is placed before the example
+            # *with* to clarify the narrative.
+            if filename == "example_nst_without_pystiche.py":
+                return "1"
+            elif filename == "example_nst_with_pystiche.py":
+                return "2"
+            else:
+                return super().__call__(filename)
+
+    def filter_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            category=UserWarning,
+            message=(
+                "The (function|parameter) logger is deprecated since pystiche==0.7.0 "
+                "and will be removed in a future release. "
+                "See https://github.com/pmeier/pystiche/issues/434 for details."
+            ),
+        )
+
+    if download_gallery:
+        download()
+
+    if plot_gallery and not torch.cuda.is_available():
+        msg = (
+            "The galleries will be built, but CUDA is not available. "
+            "This will take a long time."
+        )
+        print(msg)
+
+    sphinx_gallery_conf = {
+        "examples_dirs": path.join(PROJECT_ROOT, "examples"),
+        "gallery_dirs": path.join("galleries", "examples"),
+        "filename_pattern": os.sep + "example_",
+        "line_numbers": True,
+        "remove_config_comments": True,
+        "plot_gallery": plot_gallery,
+        "subsection_order": ExplicitOrder(
+            [
+                path.join("..", "..", "examples", sub_gallery)
+                for sub_gallery in ("beginner", "advanced")
+            ]
+        ),
+        "within_subsection_order": PysticheExampleTitleSortKey,
+        "show_memory": show_cuda_memory if torch.cuda.is_available() else True,
+    }
+
+    config = dict(sphinx_gallery_conf=sphinx_gallery_conf)
+
+    filter_warnings()
+
+    return extension, config
+
+
+extensions = []
+for loader in (
+    project,
+    autodoc,
+    intersphinx,
+    html,
+    latex,
+    bibtex,
+    doctest,
+    sphinx_gallery,
+):
+    extension, config = loader()
+
+    if extension:
+        if isinstance(extension, str):
+            extension = (extension,)
+        extensions.extend(extension)
+
+    if config:
+        globals().update(config)
