@@ -2,6 +2,7 @@ import contextlib
 import logging
 import sys
 import time
+import warnings
 from datetime import datetime
 from typing import Callable, Iterator, Optional, Tuple, Union, cast
 
@@ -10,9 +11,20 @@ from torch.optim.lr_scheduler import _LRScheduler as LRScheduler
 from torch.optim.optimizer import Optimizer
 
 import pystiche
+from pystiche.misc import build_deprecation_message
 from pystiche.pyramid.level import PyramidLevel
 
 from .meter import AverageMeter, ETAMeter, LossMeter, ProgressMeter
+
+
+def _deprecation_warning() -> None:
+    msg = build_deprecation_message(
+        "Using any functionality from pystiche.optim.log",
+        "0.7.0",
+        info="See https://github.com/pmeier/pystiche/issues/434 for details.",
+    )
+    warnings.warn(msg, UserWarning)
+
 
 __all__ = [
     "default_logger",
@@ -35,6 +47,7 @@ def default_logger(
         name: Optional name. See :class:`logging.Logger` for details.
         log_file: Optional path to log file.
     """
+    _deprecation_warning()
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 
@@ -74,6 +87,7 @@ class OptimLogger:
     SEP_CHARS = ("#", "*", "=", "-", "^", '"')
 
     def __init__(self, logger: Optional[logging.Logger] = None):
+        _deprecation_warning()
         if logger is None:
             name = f"pystiche_{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
             logger = default_logger(name=name)
@@ -178,6 +192,7 @@ def default_image_optim_log_fn(
         max_depth: If loss is :class:`pystiche.LossDict`, aggregate it to this maximum
             depth before logging. Defaults to ``1``.
     """
+    _deprecation_warning()
 
     def log_fn(step: int, loss: Union[torch.Tensor, pystiche.LossDict]) -> None:
         if step % log_freq == 0:
@@ -213,6 +228,7 @@ def default_pyramid_level_header(
     Returns:
         Header that includes information about the current level.
     """
+    _deprecation_warning()
     height, width = input_image_size
     return f"Pyramid level {num} with {level.num_steps} steps " f"({width} x {height})"
 
@@ -241,6 +257,7 @@ def default_transformer_optim_log_fn(
             current values in the log entries. The window size is chosen based on
             ``log_freq``. Defaults to ``True``.
     """
+    _deprecation_warning()
     if log_freq is None:
         log_freq = max(min(round(1e-3 * num_batches) * 10, 50), 1)
 
@@ -303,4 +320,5 @@ def default_epoch_header(
     Returns:
         Header that includes information about the current epoch.
     """
+    _deprecation_warning()
     return f"Epoch {epoch}"

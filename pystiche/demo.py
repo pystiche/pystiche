@@ -12,7 +12,7 @@ from pystiche.data import (
 )
 from pystiche.optim import OptimLogger
 
-from .misc import build_deprecation_message
+from .misc import build_deprecation_message, suppress_warnings
 
 __all__ = ["images", "logger"]
 
@@ -185,6 +185,12 @@ def demo_images() -> DownloadableImageCollection:
 def logger() -> OptimLogger:
     """Simple logger used in the usage examples.
     """
+    msg = build_deprecation_message(
+        "The function logger",
+        "0.7.0",
+        "See https://github.com/pmeier/pystiche/issues/434 for details.",
+    )
+    warnings.warn(msg, UserWarning)
     logger = logging.getLogger(
         name=f"pystiche_{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
     )
@@ -194,7 +200,8 @@ def logger() -> OptimLogger:
     sh.setLevel(logging.INFO)
     logger.addHandler(sh)
 
-    return OptimLogger(logger)
+    with suppress_warnings(UserWarning):
+        return OptimLogger(logger)
 
 
 def demo_logger() -> OptimLogger:

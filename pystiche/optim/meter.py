@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict, deque
 from datetime import datetime, timedelta
@@ -6,7 +7,7 @@ from typing import Any, Callable, Optional, Sequence, Union, cast
 import torch
 
 import pystiche
-from pystiche.misc import build_fmtstr
+from pystiche.misc import build_deprecation_message, build_fmtstr
 
 __all__ = [
     "Meter",
@@ -18,8 +19,18 @@ __all__ = [
 ]
 
 
+def _deprecation_warning() -> None:
+    msg = build_deprecation_message(
+        "Using any functionality from pystiche.optim.meter",
+        "0.7.0",
+        info="See https://github.com/pmeier/pystiche/issues/434 for details.",
+    )
+    warnings.warn(msg, UserWarning)
+
+
 class Meter(ABC):
     def __init__(self, name: Optional[str] = None):
+        _deprecation_warning()
         self.name = name
 
     @abstractmethod

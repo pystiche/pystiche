@@ -12,17 +12,18 @@ from torch.utils.data import DataLoader
 import pystiche
 from pystiche import loss
 from pystiche.image import extract_aspect_ratio, extract_image_size
-from pystiche.misc import build_deprecation_message
+from pystiche.misc import build_deprecation_message, suppress_warnings
 from pystiche.pyramid import ImagePyramid
 from pystiche.pyramid.level import PyramidLevel
 
-from .log import (
-    OptimLogger,
-    default_epoch_header,
-    default_image_optim_log_fn,
-    default_pyramid_level_header,
-    default_transformer_optim_log_fn,
-)
+with suppress_warnings(UserWarning):
+    from .log import (
+        OptimLogger,
+        default_epoch_header,
+        default_image_optim_log_fn,
+        default_pyramid_level_header,
+        default_transformer_optim_log_fn,
+    )
 
 __all__ = [
     "default_image_optimizer",
@@ -256,7 +257,7 @@ def pyramid_image_optimization(
             return image_optimization(
                 input_image,
                 criterion,
-                get_optimizer=get_optimizer,
+                optimizer=get_optimizer,
                 num_steps=iter(level),
                 preprocessor=preprocessor,
                 postprocessor=postprocessor,
