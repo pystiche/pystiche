@@ -1,5 +1,7 @@
 import os
 import re
+import unittest.mock
+import warnings
 from os import path
 
 import pytest
@@ -10,15 +12,16 @@ from tests import mocks, utils
 
 
 def extract_sphinx_gallery_config():
-    sphinx_config_file = path.abspath(
-        path.join(path.dirname(__file__), "..", "..", "docs", "source", "conf.py")
-    )
-    sphinx_config, _ = utils.exec_file(sphinx_config_file)
-    return sphinx_config["sphinx_gallery_conf"]
+    filters = []
+    with unittest.mock.patch.object(warnings, "filters", filters):
+        with utils.temp_add_to_sys_path(path.join("docs", "source")):
+            sphinx_config = __import__("conf")
+
+    return sphinx_config.sphinx_gallery_conf, filters
 
 
 def collect_sphinx_gallery_scripts():
-    sphinx_gallery_config = extract_sphinx_gallery_config()
+    sphinx_gallery_config, filters = extract_sphinx_gallery_config()
     file_pattern = re.compile(
         sphinx_gallery_config["filename_pattern"][1:] + r"[^.]*.py$"
     )
@@ -34,10 +37,10 @@ def collect_sphinx_gallery_scripts():
             dirs.add(root)
             scripts.append(path.splitext(file)[0])
 
-    return dirs, scripts
+    return dirs, scripts, filters
 
 
-DIRS, SCRIPTS = collect_sphinx_gallery_scripts()
+DIRS, SCRIPTS, FILTERS = collect_sphinx_gallery_scripts()
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -132,16 +135,44 @@ def patch_optimization(mocker):
     patch_optimizer_step()
 
 
-@pytest.mark.slow
-@pytest.mark.parametrize("script", SCRIPTS)
-def test_gallery_scripts_smoke(recwarn, script):
-    __import__(script)
+def would_be_filtered(warning):
+    text = str(warning.message)
+    category = warning.category
+    module = warning.filename
+    lineno = warning.lineno
 
+    # taken from warnings.warn_explicit
+    for item in FILTERS:
+        action, msg, cat, mod, ln = item
+        print()
+        if (
+            (msg is None or msg.match(text))
+            and issubclass(category, cat)
+            and (mod is None or mod.match(module))
+            and (ln == 0 or lineno == ln)
+        ):
+            return True
+    return False
+
+
+def assert_no_warnings(recorder, script):
+    warnings = [
+        f"{warning.lineno}: {warning.category.__name__}: {warning.message}"
+        for warning in recorder
+        if not would_be_filtered(warning)
+    ]
     msg = f"The execution of '{script}' emitted the following warnings:\n"
     msg += "\n".join(
         [
             f"{warning.lineno}: {warning.category.__name__}: {warning.message}"
-            for warning in recwarn
+            for warning in recorder
         ]
     )
-    assert not recwarn, msg
+    assert not warnings, msg
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("script", SCRIPTS)
+def test_gallery_scripts_smoke(recwarn, script):
+    __import__(script)
+    assert_no_warnings(recwarn, script)
