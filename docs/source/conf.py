@@ -113,25 +113,26 @@ def doctest():
     extension = "sphinx.ext.doctest"
 
     doctest_global_setup = """
-    import torch
-    from torch import nn
+import torch
+from torch import nn
 
-    from pystiche import enc, ops, loss
-    import pystiche.ops.functional as F
+from pystiche import enc, ops, loss
+import pystiche.ops.functional as F
 
-    import warnings
-    warnings.filterwarnings("ignore", category=FutureWarning)
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
-    from unittest import mock
+from unittest import mock
 
-    patcher = mock.patch(
-        "pystiche.enc.models.utils.ModelMultiLayerEncoder.load_state_dict_from_url"
-    )
-    patcher.start()
-    """
+patcher = mock.patch(
+    "pystiche.enc.models.utils.ModelMultiLayerEncoder.load_state_dict_from_url"
+)
+patcher.start()
+"""
+
     doctest_global_cleanup = """
-    mock.patch.stopall()
-    """
+mock.patch.stopall()
+"""
     config = dict(
         doctest_global_setup=doctest_global_setup,
         doctest_global_cleanup=doctest_global_cleanup,
