@@ -5,7 +5,7 @@ import torch
 from pystiche import ComplexObject
 from pystiche.misc import suppress_warnings, verify_str_arg
 
-with suppress_warnings(UserWarning):
+with suppress_warnings():
     from pystiche.image.transforms.functional import resize
 
 __all__ = ["PyramidLevel"]

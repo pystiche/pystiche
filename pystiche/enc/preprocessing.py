@@ -9,5 +9,5 @@ __all__ = ["get_preprocessor"]
 
 
 def get_preprocessor(framework: str) -> nn.Module:
-    with suppress_warnings(UserWarning):
+    with suppress_warnings():
         return PREPROCESSORS[framework]()
