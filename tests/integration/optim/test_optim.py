@@ -1,12 +1,15 @@
 import sys
+from unittest import mock
 
 import pytest
 import pytorch_testing_utils as ptu
 
 import torch
+import torch.nn.functional as F
 from torch import nn
+from torch.utils.data import DataLoader
 
-from pystiche import optim
+from pystiche import loss, ops, optim
 
 from tests import asserts
 
@@ -261,3 +264,106 @@ def test_default_transformer_epoch_optim_loop_logging_smoke(caplog, optim_asset_
             logger=optim_logger,
             log_fn=log_fn,
         )
+
+
+@pytest.fixture
+def image_loader(test_image):
+    return DataLoader((test_image.squeeze(0),))
+
+
+class ModuleMock(nn.Module):
+    def __init__(self, *methods):
+        super().__init__()
+        self._call_args_list = []
+        for method in methods:
+            setattr(self, method, mock.MagicMock(name=f"{type(self).__name__}.method"))
+
+    @property
+    def call_args_list(self):
+        return self._call_args_list
+
+    @property
+    def called(self):
+        return bool(self.call_args_list)
+
+    def call_args(self):
+        return self.call_args_list[0]
+
+    def call_count(self):
+        return len(self.call_args_list)
+
+    def forward(self, input, *args, **kwargs):
+        self._call_args_list.insert(0, (input, args, kwargs))
+        return input
+
+
+class TransformerMock(ModuleMock):
+    def __init__(self):
+        super().__init__()
+        self.register_parameter(
+            "parameter", nn.Parameter(torch.zeros(1).squeeze(), requires_grad=True)
+        )
+
+    def forward(self, input, *args, **kwargs):
+        return super().forward(input + self.parameter, *args, **kwargs)
+
+
+@pytest.fixture
+def transformer():
+    return TransformerMock()
+
+
+@pytest.fixture
+def module():
+    return ModuleMock()
+
+
+class CriterionMock(ModuleMock):
+    def forward(self, *args, **kwargs):
+        return torch.sum(super().forward(*args, **kwargs))
+
+
+@pytest.fixture
+def criterion():
+    return CriterionMock()
+
+
+class MSEOperator(ops.PixelComparisonOperator):
+    def image_to_repr(self, image):
+        return image
+
+    def input_image_to_repr(
+        self, image, ctx,
+    ):
+        return image
+
+    def target_image_to_repr(self, image):
+        return image, None
+
+    def calculate_score(
+        self, input_repr, target_repr, ctx,
+    ):
+        return F.mse_loss(input_repr, target_repr)
+
+
+def test_model_default_optimization_criterion_update_fn(
+    image_loader, transformer, module, test_image,
+):
+    image_loader = DataLoader((test_image.squeeze(0),))
+
+    content_loss = MSEOperator()
+    style_loss = MSEOperator()
+    criterion = loss.PerceptualLoss(content_loss, style_loss)
+
+    content_loss.set_target_image(torch.rand_like(test_image))
+    style_loss.set_target_image(torch.rand_like(test_image))
+    optim.model_optimization(image_loader, transformer, criterion)
+
+    ptu.assert_allclose(content_loss.target_image, test_image)
+
+
+def test_model_optimization_criterion_update_fn_error(
+    image_loader, transformer, criterion
+):
+    with pytest.raises(RuntimeError):
+        optim.model_optimization(image_loader, transformer, criterion)

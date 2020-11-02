@@ -320,7 +320,7 @@ def model_optimization(
     image_loader: DataLoader,
     transformer: nn.Module,
     criterion: nn.Module,
-    criterion_update_fn: Callable[[torch.Tensor, nn.Module], None],
+    criterion_update_fn: Optional[Callable[[torch.Tensor, nn.Module], None]] = None,
     optimizer: Optional[Optimizer] = None,
     get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
     quiet: bool = False,
@@ -337,7 +337,10 @@ def model_optimization(
         transformer: Transformer to be optimized.
         criterion: Optimization criterion.
         criterion_update_fn: Is called before each optimization step with the current
-            images and the optimization ``criterion``.
+            images and the optimization ``criterion``. If omitted and ``criterion`` is
+            a :class:`~pystiche.loss.PerceptualLoss` or a
+            :class:`~pystiche.loss.GuidedPerceptualLoss` this defaults to invoking
+            :meth:`~pystiche.loss.PerceptualLoss.set_content_image`.
         optimizer: Optional optimizer. If ``None``,
             :func:`default_model_optimizer` is used.
         quiet: If ``True``, not information is logged during the optimization. Defaults
@@ -350,6 +353,22 @@ def model_optimization(
             :func:`pystiche.optim.default_transformer_optim_log_fn` is used. Defaults
             to ``None``.
     """
+    if criterion_update_fn is None:
+        if isinstance(criterion, (loss.PerceptualLoss, loss.GuidedPerceptualLoss)):
+
+            def criterion_update_fn(  # type: ignore[misc]
+                input_image: torch.Tensor,
+                criterion: Union[loss.PerceptualLoss, loss.GuidedPerceptualLoss],
+            ) -> None:
+                criterion.set_content_image(input_image)
+
+        else:
+            raise RuntimeError(
+                f"The parameter 'criterion_update_fn' can only be omitted if the "
+                f"'criterion' is a loss.PerceptualLoss or a loss.GuidedPerceptualLoss. "
+                f"Got {type(criterion)} instead."
+            )
+
     if optimizer is None:
         optimizer = default_model_optimizer(transformer)
 
@@ -377,7 +396,7 @@ def model_optimization(
     for batch, input_image in enumerate(image_loader, 1):
         input_image = input_image.to(device)
 
-        criterion_update_fn(input_image, criterion)
+        criterion_update_fn(input_image, criterion)  # type: ignore[misc]
 
         loading_time = time.time() - loading_time_start
 
@@ -423,8 +442,8 @@ def multi_epoch_model_optimization(
     image_loader: DataLoader,
     transformer: nn.Module,
     criterion: nn.Module,
-    criterion_update_fn: Callable[[torch.Tensor, nn.Module], None],
-    epochs: int,
+    criterion_update_fn: Optional[Callable[[torch.Tensor, nn.Module], None]] = None,
+    epochs: int = 2,
     optimizer: Optional[Optimizer] = None,
     lr_scheduler: Optional[LRScheduler] = None,
     quiet: bool = False,
@@ -444,8 +463,11 @@ def multi_epoch_model_optimization(
         transformer: Transformer to be optimized.
         criterion: Optimization criterion.
         criterion_update_fn: Is called before each optimization step with the current
-            images and the optimization ``criterion``.
-        epochs: Number of epochs.
+            images and the optimization ``criterion``. If omitted and ``criterion`` is
+            a :class:`~pystiche.loss.PerceptualLoss` or a
+            :class:`~pystiche.loss.GuidedPerceptualLoss` this defaults to invoking
+            :meth:`~pystiche.loss.PerceptualLoss.set_content_image`.
+        epochs: Number of epochs. Defaults to ``2``.
         optimizer: Optional optimizer. If ``None``, it is extracted from
             ``lr_scheduler`` or func:`default_model_optimizer` is used.
         lr_scheduler: Optional learning rate scheduler. ``step()`` is invoked after
