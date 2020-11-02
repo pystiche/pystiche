@@ -321,9 +321,6 @@ def unsupervise(image_loader: Iterable) -> Iterator[torch.Tensor]:
         if isinstance(input, (tuple, list)):
             input = input[0]
 
-        if not isinstance(input, torch.Tensor):
-            raise RuntimeError(f"Expected tensor, but got {type(input)} at index {idx}")
-
         yield input
 
 
@@ -344,8 +341,8 @@ def model_optimization(
 
     Args:
         image_loader: Images used as input for the ``transformer``. Drawing from this
-            should yield either an batched image or a tuple with a batched image as
-            first item.
+            should yield either an batched image or a tuple or list with a batched
+            image as first item.
         transformer: Transformer to be optimized.
         criterion: Optimization criterion.
         criterion_update_fn: Is called before each optimization step with the current
@@ -471,8 +468,8 @@ def multi_epoch_model_optimization(
 
     Args:
         image_loader: Images used as input for the ``transformer``. Drawing from this
-            should yield either an batched image or a tuple with a batched image as
-            first item.
+            should yield either an batched image or a tuple or list with a batched
+            image as first item.
         transformer: Transformer to be optimized.
         criterion: Optimization criterion.
         criterion_update_fn: Is called before each optimization step with the current
