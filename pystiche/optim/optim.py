@@ -317,7 +317,7 @@ def default_transformer_optimizer(*args: Any, **kwargs: Any) -> Any:
 
 
 def unsupervise(image_loader: Iterable) -> Iterator[torch.Tensor]:
-    for idx, input in enumerate(image_loader):
+    for input in image_loader:
         if isinstance(input, (tuple, list)):
             input = input[0]
 

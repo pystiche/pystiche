@@ -405,7 +405,8 @@ def test_model_optimization_criterion_update_fn_error(
 
 @pytest.mark.parametrize(
     "supervised",
-    (pytest.param(True, id="supervised"), pytest.param(False, id="unsupervised")),
+    (True, False),
+    ids=lambda supervised: f"{'' if supervised else 'un'}supervised",
 )
 def test_model_optimization_image_loader(
     transformer, criterion, test_image, supervised
@@ -420,12 +421,3 @@ def test_model_optimization_image_loader(
     )
 
     transformer.assert_called_once_with(test_image)
-
-
-def test_model_optimization_image_loader_no_tensor(transformer, criterion):
-    image_loader = data.DataLoader((None,))
-
-    with pytest.raises(RuntimeError):
-        optim.model_optimization(
-            image_loader, transformer, criterion,
-        )
