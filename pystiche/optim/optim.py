@@ -320,7 +320,7 @@ def model_optimization(
     image_loader: DataLoader,
     transformer: nn.Module,
     criterion: nn.Module,
-    criterion_update_fn: Callable[[torch.Tensor, nn.Module], None] = None,
+    criterion_update_fn: Optional[Callable[[torch.Tensor, nn.Module], None]] = None,
     optimizer: Optional[Optimizer] = None,
     get_optimizer: Optional[Callable[[nn.Module], Optimizer]] = None,
     quiet: bool = False,
@@ -356,7 +356,7 @@ def model_optimization(
     if criterion_update_fn is None:
         if isinstance(criterion, (loss.PerceptualLoss, loss.GuidedPerceptualLoss)):
 
-            def criterion_update_fn(
+            def criterion_update_fn(  # type: ignore[misc]
                 input_image: torch.Tensor,
                 criterion: Union[loss.PerceptualLoss, loss.GuidedPerceptualLoss],
             ) -> None:
@@ -396,7 +396,7 @@ def model_optimization(
     for batch, input_image in enumerate(image_loader, 1):
         input_image = input_image.to(device)
 
-        criterion_update_fn(input_image, criterion)
+        criterion_update_fn(input_image, criterion)  # type: ignore[misc]
 
         loading_time = time.time() - loading_time_start
 
