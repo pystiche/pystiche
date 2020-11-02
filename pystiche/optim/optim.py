@@ -16,7 +16,7 @@ from pystiche.misc import build_deprecation_message, suppress_warnings
 from pystiche.pyramid import ImagePyramid
 from pystiche.pyramid.level import PyramidLevel
 
-with suppress_warnings(UserWarning):
+with suppress_warnings():
     from .log import (
         OptimLogger,
         default_epoch_header,
@@ -135,13 +135,13 @@ def image_optimization(
         num_steps = range(1, num_steps + 1)
 
     if logger is None:
-        with suppress_warnings(UserWarning):
+        with suppress_warnings():
             logger = OptimLogger()
     else:
         _log_parameter_deprecation("logger")
 
     if log_fn is None:
-        with suppress_warnings(UserWarning):
+        with suppress_warnings():
             log_fn = default_image_optim_log_fn(optim_logger=logger)
     else:
         _log_parameter_deprecation("log_fn")
@@ -243,13 +243,13 @@ def pyramid_image_optimization(
         get_optimizer = default_image_optimizer
 
     if logger is None:
-        with suppress_warnings(UserWarning):
+        with suppress_warnings():
             logger = OptimLogger()
     else:
         _log_parameter_deprecation("logger")
 
     if get_pyramid_level_header is None:
-        with suppress_warnings(UserWarning):
+        with suppress_warnings():
             get_pyramid_level_header = default_pyramid_level_header
     else:
         _log_parameter_deprecation("get_pyramid_level_header")
@@ -354,13 +354,13 @@ def model_optimization(
         optimizer = default_model_optimizer(transformer)
 
     if logger is None:
-        with suppress_warnings(UserWarning):
+        with suppress_warnings():
             logger = OptimLogger()
     else:
         _log_parameter_deprecation("logger")
 
     if log_fn is None:
-        with suppress_warnings(UserWarning):
+        with suppress_warnings():
             log_fn = default_transformer_optim_log_fn(logger, len(image_loader))
     else:
         _log_parameter_deprecation("log_fn")
@@ -474,7 +474,7 @@ def multi_epoch_model_optimization(
             optimizer = lr_scheduler.optimizer  # type: ignore[attr-defined]
 
     if get_epoch_header is None:
-        with suppress_warnings(UserWarning):
+        with suppress_warnings():
             get_epoch_header = default_epoch_header
     else:
         _log_parameter_deprecation("get_epoch_header")

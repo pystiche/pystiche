@@ -262,7 +262,7 @@ class MRFOperator(EncodingComparisonOperator):
         for scaling_factor, rotation_angle in itertools.product(
             scaling_factors, rotation_angles
         ):
-            with suppress_warnings(UserWarning):
+            with suppress_warnings():
                 transform = TransformMotifAffinely(
                     scaling_factor=scaling_factor,
                     rotation_angle=rotation_angle,

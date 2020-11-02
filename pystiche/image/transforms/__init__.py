@@ -1,6 +1,6 @@
 from pystiche.misc import suppress_warnings
 
-with suppress_warnings(UserWarning):
+with suppress_warnings():
     from .color import *
     from .core import *
     from .crop import *

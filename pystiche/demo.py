@@ -200,7 +200,7 @@ def logger() -> OptimLogger:
     sh.setLevel(logging.INFO)
     logger.addHandler(sh)
 
-    with suppress_warnings(UserWarning):
+    with suppress_warnings():
         return OptimLogger(logger)
 
 
