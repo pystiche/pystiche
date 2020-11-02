@@ -286,6 +286,8 @@ def reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:
 
 @contextlib.contextmanager
 def suppress_warnings(*categories: Type[Warning]) -> Iterator[None]:
+    if not categories:
+        categories = (UserWarning,)
     old_filters = set(warnings.filters)  # type: ignore[attr-defined]
     for category in categories:
         warnings.filterwarnings("ignore", category=category)
