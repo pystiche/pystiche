@@ -1,7 +1,7 @@
 import time
 import warnings
 from types import TracebackType
-from typing import Any, Callable, Iterable, Optional, Tuple, Type, Union, cast
+from typing import Any, Callable, Iterable, Iterator, Optional, Tuple, Type, Union, cast
 
 import torch
 from torch import nn, optim
@@ -316,6 +316,14 @@ def default_transformer_optimizer(*args: Any, **kwargs: Any) -> Any:
     return default_model_optimizer(*args, **kwargs)
 
 
+def unsupervise(image_loader: Iterable) -> Iterator[torch.Tensor]:
+    for input in image_loader:
+        if isinstance(input, (tuple, list)):
+            input = input[0]
+
+        yield input
+
+
 def model_optimization(
     image_loader: DataLoader,
     transformer: nn.Module,
@@ -333,7 +341,8 @@ def model_optimization(
 
     Args:
         image_loader: Images used as input for the ``transformer``. Drawing from this
-            should yield a single item.
+            should yield either an batched image or a tuple or list with a batched
+            image as first item.
         transformer: Transformer to be optimized.
         criterion: Optimization criterion.
         criterion_update_fn: Is called before each optimization step with the current
@@ -393,7 +402,7 @@ def model_optimization(
     )
 
     loading_time_start = time.time()
-    for batch, input_image in enumerate(image_loader, 1):
+    for batch, input_image in enumerate(unsupervise(image_loader), 1):
         input_image = input_image.to(device)
 
         criterion_update_fn(input_image, criterion)  # type: ignore[misc]
@@ -459,7 +468,8 @@ def multi_epoch_model_optimization(
 
     Args:
         image_loader: Images used as input for the ``transformer``. Drawing from this
-            should yield a single item.
+            should yield either an batched image or a tuple or list with a batched
+            image as first item.
         transformer: Transformer to be optimized.
         criterion: Optimization criterion.
         criterion_update_fn: Is called before each optimization step with the current

@@ -7,7 +7,7 @@ import pytorch_testing_utils as ptu
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torch.utils.data import DataLoader
+from torch.utils import data
 
 from pystiche import loss, ops, optim
 
@@ -266,9 +266,26 @@ def test_default_transformer_epoch_optim_loop_logging_smoke(caplog, optim_asset_
         )
 
 
+class Dataset(data.Dataset):
+    def __init__(self, image, supervised=False):
+        if image.dim() == 4:
+            image = image.squeeze(0)
+        self.image = image
+        self.supervised = supervised
+
+    def __len__(self):
+        return 1
+
+    def __getitem__(self, _):
+        if self.supervised:
+            return self.image, torch.zeros(self.image.size()[0])
+        else:
+            return self.image
+
+
 @pytest.fixture
 def image_loader(test_image):
-    return DataLoader((test_image.squeeze(0),))
+    return data.DataLoader(Dataset(test_image))
 
 
 class ModuleMock(nn.Module):
@@ -276,7 +293,13 @@ class ModuleMock(nn.Module):
         super().__init__()
         self._call_args_list = []
         for method in methods:
-            setattr(self, method, mock.MagicMock(name=f"{type(self).__name__}.method"))
+            setattr(
+                self, method, mock.MagicMock(name=f"{type(self).__name__}.{method}")
+            )
+
+    def forward(self, input, *args, **kwargs):
+        self._call_args_list.insert(0, ((input, *args), kwargs))
+        return input
 
     @property
     def call_args_list(self):
@@ -286,15 +309,26 @@ class ModuleMock(nn.Module):
     def called(self):
         return bool(self.call_args_list)
 
+    @property
     def call_args(self):
         return self.call_args_list[0]
 
+    @property
     def call_count(self):
         return len(self.call_args_list)
 
-    def forward(self, input, *args, **kwargs):
-        self._call_args_list.insert(0, (input, args, kwargs))
-        return input
+    def assert_called(self):
+        assert self.called
+
+    def assert_called_once(self):
+        assert self.call_count == 1
+
+    def assert_called_once_with(self, input, *args, **kwargs):
+        self.assert_called_once()
+        (input_, *args_), kwargs_ = self.call_args
+        ptu.assert_allclose(input_, input)
+        assert tuple(args_) == args
+        assert kwargs_ == kwargs
 
 
 class TransformerMock(ModuleMock):
@@ -347,9 +381,9 @@ class MSEOperator(ops.PixelComparisonOperator):
 
 
 def test_model_default_optimization_criterion_update_fn(
-    image_loader, transformer, module, test_image,
+    transformer, test_image,
 ):
-    image_loader = DataLoader((test_image.squeeze(0),))
+    image_loader = data.DataLoader(Dataset(test_image))
 
     content_loss = MSEOperator()
     style_loss = MSEOperator()
@@ -367,3 +401,23 @@ def test_model_optimization_criterion_update_fn_error(
 ):
     with pytest.raises(RuntimeError):
         optim.model_optimization(image_loader, transformer, criterion)
+
+
+@pytest.mark.parametrize(
+    "supervised",
+    (True, False),
+    ids=lambda supervised: f"{'' if supervised else 'un'}supervised",
+)
+def test_model_optimization_image_loader(
+    transformer, criterion, test_image, supervised
+):
+    image_loader = data.DataLoader(Dataset(test_image, supervised=supervised))
+
+    optim.model_optimization(
+        image_loader,
+        transformer,
+        criterion,
+        criterion_update_fn=lambda input_image, criterion: None,
+    )
+
+    transformer.assert_called_once_with(test_image)
