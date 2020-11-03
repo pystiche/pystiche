@@ -536,7 +536,7 @@ def multi_epoch_model_optimization(
         else:
             header = get_epoch_header(epoch, optimizer, lr_scheduler)
             # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
-            with logger.environment(header):  # type: ignore[union-attr]
+            with logger.environment(header):
                 transformer = transformer_optim_loop(transformer)
 
         if lr_scheduler is not None:
