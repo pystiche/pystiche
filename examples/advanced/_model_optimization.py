@@ -67,5 +67,8 @@ class OptionalGrayscaleToFakeGrayscale(transforms.Transform):
 
 
 if __name__ == "__main__":
-    root = sys.argv[1] if len(sys.argv) >= 2 else "."
-    main(root=root)
+    if len(sys.argv) != 2:
+        raise RuntimeError(
+            "Please supply the root of the dataset as positional argument"
+        )
+    main(root=sys.argv[1])
