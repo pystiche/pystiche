@@ -228,7 +228,8 @@ style_loss = ops.MultiLayerEncodingOperator(
     score_weight=style_weight,
 )
 
-criterion = loss.PerceptualLoss(content_loss, style_loss).to(device)
+criterion = loss.PerceptualLoss(content_loss, style_loss)
+criterion = criterion.to(device)
 print(criterion)
 
 
