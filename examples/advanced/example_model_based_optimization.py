@@ -8,7 +8,7 @@ from torch.nn.functional import interpolate
 
 import pystiche
 from pystiche import demo, enc, loss, ops, optim
-from pystiche.image import show_image, transforms
+from pystiche.image import show_image
 from pystiche.misc import get_device
 
 print(f"I'm working with pystiche=={pystiche.__version__}")
@@ -24,8 +24,8 @@ size = 500
 
 ########################################################################################
 
-style_image = images["paint"].read(device=device)
-# show_image(style_image)
+style_image = images["paint"].read(size=size, device=device)
+show_image(style_image)
 
 ########################################################################################
 
@@ -87,6 +87,9 @@ class Conv(nn.Module):
         return output
 
 
+########################################################################################
+
+
 class Residual(nn.Module):
     def __init__(self, channels):
         super().__init__()
@@ -98,11 +101,26 @@ class Residual(nn.Module):
         return output + input
 
 
+########################################################################################
+
+
+class FloatToUint8Range(nn.Module):
+    def forward(self, input):
+        return input * 255.0
+
+
+class Uint8ToFloatRange(nn.Module):
+    def forward(self, input):
+        return input / 255.0
+
+
+########################################################################################
+
+
 class Transformer(nn.Module):
     def __init__(self):
         super().__init__()
         self.encoder = nn.Sequential(
-            transforms.FloatToUint8Range(),
             Conv(3, 32, kernel_size=9),
             Conv(32, 64, kernel_size=3, stride=2),
             Conv(64, 128, kernel_size=3, stride=2),
@@ -116,11 +134,15 @@ class Transformer(nn.Module):
             Conv(128, 64, kernel_size=3, stride=2, upsample=True),
             Conv(64, 32, kernel_size=3, stride=2, upsample=True),
             Conv(32, 3, kernel_size=9, norm=False, activation=False),
-            transforms.Uint8ToFloatRange(),
         )
 
+        self.preprocessor = FloatToUint8Range()
+        self.postprocessor = Uint8ToFloatRange()
+
     def forward(self, input):
-        return self.decoder(self.encoder(input))
+        input = self.preprocessor(input)
+        output = self.decoder(self.encoder(input))
+        return self.postprocessor(output)
 
 
 transformer = Transformer().to(device)
@@ -130,6 +152,8 @@ print(transformer)
 
 multi_layer_encoder = enc.vgg16_multi_layer_encoder()
 
+########################################################################################
+
 content_layer = "relu2_2"
 content_encoder = multi_layer_encoder.extract_encoder(content_layer)
 content_weight = 1e5
@@ -137,11 +161,14 @@ content_loss = ops.FeatureReconstructionOperator(
     content_encoder, score_weight=content_weight
 )
 
+########################################################################################
 
-class StyleOp(ops.GramOperator):
+
+class GramOperator(ops.GramOperator):
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         repr = super().enc_to_repr(enc)
-        return repr / repr.size()[1]
+        num_channels = repr.size()[1]
+        return repr / num_channels
 
 
 style_layers = ("relu1_2", "relu2_2", "relu3_3", "relu4_3")
@@ -149,10 +176,12 @@ style_weight = 1e10
 style_loss = ops.MultiLayerEncodingOperator(
     multi_layer_encoder,
     style_layers,
-    lambda encoder, layer_weight: StyleOp(encoder, score_weight=layer_weight),
+    lambda encoder, layer_weight: GramOperator(encoder, score_weight=layer_weight),
     layer_weights="sum",
     score_weight=style_weight,
 )
+
+########################################################################################
 
 criterion = loss.PerceptualLoss(content_loss, style_loss).to(device)
 print(criterion)
@@ -160,49 +189,31 @@ print(criterion)
 ########################################################################################
 
 
-class OptionalGrayscaleToFakeGrayscale(transforms.Transform):
-    def forward(self, input):
-        num_channels = input.size()[0]
-        if num_channels == 1:
-            return input.repeat(3, 1, 1)
-
-        return input
-
-
 def train(
-    root="~/datasets/coco/train2014", image_size=256, batch_size=4, epochs=2,
+    transformer, dataset, batch_size=4, epochs=2,
 ):
+    if dataset is None:
+        raise RuntimeError(
+            "You forgot to define a dataset. For example, "
+            "you can use any image dataset from torchvision.datasets."
+        )
+
     from torch.utils.data import DataLoader
-
-    from pystiche.data import ImageFolderDataset
-
-    transform = transforms.ComposedTransform(
-        transforms.Resize(image_size),
-        transforms.CenterCrop(image_size),
-        OptionalGrayscaleToFakeGrayscale(),
-    )
-    dataset = ImageFolderDataset(root, transform=transform)
-    image_loader = DataLoader(dataset, batch_size=batch_size)
 
     criterion.set_style_image(style_image)
 
-    def criterion_update_fn(input_image, criterion) -> None:
-        criterion.set_content_image(input_image)
-
-    optim.multi_epoch_model_optimization(
-        image_loader,
+    return optim.multi_epoch_model_optimization(
+        DataLoader(dataset, batch_size=batch_size),
         transformer.train(),
         criterion,
-        criterion_update_fn,
         epochs=epochs,
-        # logger=demo.logger(),
+        logger=demo.logger(),
     )
 
 
 ########################################################################################
 
-# FIXME
-use_pretrained_transformer = False
+use_pretrained_transformer = True
 checkpoint = "example_transformer.pth"
 
 if use_pretrained_transformer:
@@ -214,7 +225,8 @@ if use_pretrained_transformer:
 
     transformer.load_state_dict(state_dict)
 else:
-    train()
+    dataset = None
+    transformer = train(transformer, dataset)
 
     state_dict = OrderedDict(
         [
@@ -222,12 +234,12 @@ else:
             for name, parameter in transformer.state_dict().items()
         ]
     )
-    torch.save(state_dict, "example_transformer.pth")
+    torch.save(state_dict, checkpoint)
 
 ########################################################################################
 
-content_image = images["bird1"].read(device=device)
-# show_image(content_image)
+content_image = images["bird1"].read(size=size, device=device)
+show_image(content_image)
 
 ########################################################################################
 
