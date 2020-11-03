@@ -36,7 +36,7 @@ def import_transformer_and_train():
             yield
 
     with disable(), contextlib.redirect_stdout(None):
-        import example_based_optimization as example
+        import example_model_optimization as example
 
     return example.transformer, example.train
 
