@@ -506,7 +506,10 @@ def multi_epoch_model_optimization(
             optimizer = lr_scheduler.optimizer  # type: ignore[attr-defined]
 
     if logger is None:
-        logger = OptimLogger()
+        with suppress_warnings():
+            logger = OptimLogger()
+    else:
+        _log_parameter_deprecation("logger")
 
     if get_epoch_header is None:
         with suppress_warnings():
