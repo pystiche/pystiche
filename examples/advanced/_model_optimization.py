@@ -10,9 +10,12 @@ from pystiche.image import transforms
 
 
 def main(root="."):
-    transformer, train = import_transformer_and_train()
+    mle, transformer, train = import_example()
+
+    reload_mle(mle)
     dataset = make_dataset(root)
     train(transformer, dataset)
+
     state_dict = OrderedDict(
         [
             (name, parameter.detach().cpu())
@@ -22,7 +25,7 @@ def main(root="."):
     torch.save(state_dict, "example_transformer.pth")
 
 
-def import_transformer_and_train():
+def import_example():
     @contextlib.contextmanager
     def disable():
         targets = (
@@ -38,7 +41,11 @@ def import_transformer_and_train():
     with disable(), contextlib.redirect_stdout(None):
         import example_model_optimization as example
 
-    return example.transformer, example.train
+    return example.multi_layer_encoder, example.transformer, example.train
+
+
+def reload_mle(mle):
+    mle.load_state_dict_from_url(mle.framework, strict=False)
 
 
 def make_dataset(root, image_size=256):
