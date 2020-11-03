@@ -1,6 +1,9 @@
 import contextlib
 import sys
+from collections import OrderedDict
 from unittest import mock
+
+import torch
 
 from pystiche.data import ImageFolderDataset
 from pystiche.image import transforms
@@ -10,7 +13,13 @@ def main(root="."):
     transformer, train = import_transformer_and_train()
     dataset = make_dataset(root)
     train(transformer, dataset)
-    print()
+    state_dict = OrderedDict(
+        [
+            (name, parameter.detach().cpu())
+            for name, parameter in transformer.state_dict().items()
+        ]
+    )
+    torch.save(state_dict, "example_transformer.pth")
 
 
 def import_transformer_and_train():
