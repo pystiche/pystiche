@@ -22,20 +22,26 @@ def extract_sphinx_gallery_config():
 
 def collect_sphinx_gallery_scripts():
     sphinx_gallery_config, filters = extract_sphinx_gallery_config()
-    file_pattern = re.compile(
-        sphinx_gallery_config["filename_pattern"][1:] + r"[^.]*.py$"
-    )
+
+    examples_dirs = sphinx_gallery_config["examples_dirs"]
+    if isinstance(examples_dirs, str):
+        examples_dirs = (examples_dirs,)
+
+    filename_pattern = re.compile(sphinx_gallery_config["filename_pattern"])
+    ignore_pattern = re.compile(sphinx_gallery_config["ignore_pattern"])
 
     dirs = set()
     scripts = []
-    for root, _, files in os.walk(sphinx_gallery_config["examples_dirs"]):
-        for file in files:
-            match = file_pattern.match(file)
-            if match is None:
-                continue
+    for example_dir in examples_dirs:
+        for root, _, files in os.walk(example_dir):
+            for file in (path.join(root, file) for file in files):
+                filename_match = filename_pattern.search(file)
+                ignore_match = ignore_pattern.search(file)
+                if filename_match is None or ignore_match is not None:
+                    continue
 
-            dirs.add(root)
-            scripts.append(path.splitext(file)[0])
+                dirs.add(root)
+                scripts.append(path.splitext(path.basename(file))[0])
 
     return dirs, scripts, filters
 
