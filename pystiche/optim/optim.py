@@ -505,6 +505,12 @@ def multi_epoch_model_optimization(
             # but this is not reflected in the torch type hints
             optimizer = lr_scheduler.optimizer  # type: ignore[attr-defined]
 
+    if logger is None:
+        with suppress_warnings():
+            logger = OptimLogger()
+    else:
+        _log_parameter_deprecation("logger")
+
     if get_epoch_header is None:
         with suppress_warnings():
             get_epoch_header = default_epoch_header
@@ -530,7 +536,7 @@ def multi_epoch_model_optimization(
         else:
             header = get_epoch_header(epoch, optimizer, lr_scheduler)
             # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
-            with logger.environment(header):  # type: ignore[union-attr]
+            with logger.environment(header):
                 transformer = transformer_optim_loop(transformer)
 
         if lr_scheduler is not None:

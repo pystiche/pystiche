@@ -1,5 +1,6 @@
 import contextlib
 import os
+import re
 import shutil
 import warnings
 from datetime import datetime
@@ -216,7 +217,8 @@ def sphinx_gallery():
     sphinx_gallery_conf = {
         "examples_dirs": path.join(PROJECT_ROOT, "examples"),
         "gallery_dirs": path.join("galleries", "examples"),
-        "filename_pattern": os.sep + "example_",
+        "filename_pattern": re.escape(os.sep) + r"example_\w+[.]py$",
+        "ignore_pattern": re.escape(os.sep) + r"_\w+[.]py$",
         "line_numbers": True,
         "remove_config_comments": True,
         "plot_gallery": plot_gallery,
