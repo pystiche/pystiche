@@ -13,6 +13,8 @@ which in turn is based on :cite:`JAL2016`.
 # We start this example by importing everything we need and setting the device we will
 # be working on.
 
+import contextlib
+import os
 import time
 from collections import OrderedDict
 from os import path
@@ -320,8 +322,21 @@ if use_pretrained_transformer:
     if path.exists(checkpoint):
         state_dict = torch.load(checkpoint)
     else:
+        # Unfortunately, torch.hub.load_state_dict_from_url has no option to disable
+        # printing the downloading process. Since this would clutter the output, we
+        # suppress it completely.
+        @contextlib.contextmanager
+        def suppress_output():
+            with open(os.devnull, "w") as devnull:
+                with contextlib.redirect_stdout(devnull), contextlib.redirect_stderr(
+                    devnull
+                ):
+                    yield
+
         url = "https://download.pystiche.org/models/example_transformer.pth"
-        state_dict = hub.load_state_dict_from_url(url)
+
+        with suppress_output():
+            state_dict = hub.load_state_dict_from_url(url)
 
     transformer.load_state_dict(state_dict)
 else:
