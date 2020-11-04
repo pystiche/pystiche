@@ -51,20 +51,13 @@ class OptimProgressBar(tqdm):
         quiet: bool = False,
         **kwargs: Any,
     ) -> None:
-        if isinstance(total_or_iterable, int):
-            total: Optional[int] = total_or_iterable
-            iterable: Optional[Iterable] = None
-        else:
-            total = None
-            iterable = total_or_iterable
-
+        iterable = (
+            range(total_or_iterable)
+            if isinstance(total_or_iterable, int)
+            else total_or_iterable
+        )
         super().__init__(
-            desc=name,
-            iterable=iterable,
-            total=total,
-            disable=quiet,
-            file=sys.stdout,
-            **kwargs,
+            desc=name, iterable=iterable, disable=quiet, file=sys.stdout, **kwargs,
         )
 
     def update(
@@ -317,7 +310,7 @@ def model_optimization(
     with OptimProgressBar(
         "Model optimization", image_loader, quiet=quiet
     ) as progress_bar:
-        for input_image in image_loader:
+        for input_image in unsupervise(image_loader):
             input_image = input_image.to(device)
             criterion_update_fn(input_image, criterion)
 
