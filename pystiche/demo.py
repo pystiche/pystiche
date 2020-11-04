@@ -8,7 +8,7 @@ from pystiche.data import (
     PublicDomainLicense,
 )
 
-from .misc import build_deprecation_message, suppress_warnings
+from .misc import build_deprecation_message
 
 __all__ = ["images"]
 

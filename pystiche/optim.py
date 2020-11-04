@@ -312,7 +312,7 @@ def model_optimization(
     ) as progress_bar:
         for input_image in unsupervise(image_loader):
             input_image = input_image.to(device)
-            criterion_update_fn(input_image, criterion)
+            criterion_update_fn(input_image, criterion)  # type: ignore[misc]
 
             loss = optimizer.step(lambda: closure(input_image))
             progress_bar.update(loss=loss)
