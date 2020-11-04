@@ -179,11 +179,6 @@ show_image(input_image, title="Input image")
 # ``get_optimizer`` is not specified, as is the case here, the
 # :func:`~pystiche.optim.optim.default_image_optimizer`, i.e.
 # :class:`~torch.optim.lbfgs.LBFGS` is used.
-#
-# .. note::
-#
-#   By default ``pystiche`` logs the time during an optimization. In order to reduce
-#   the clutter, we use a minimal :func:`~pystiche.demo.logger` here.
 
 output_image = optim.image_optimization(input_image, criterion, num_steps=500)
 
