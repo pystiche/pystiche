@@ -2,8 +2,6 @@ import pytest
 
 from pystiche import data, demo
 
-from tests import asserts
-
 
 def test_demo_images_smoke():
     images = demo.demo_images()
@@ -36,10 +34,3 @@ def test_demo_images_guides_smoke(name, regions):
 
     names, _ = zip(*iter(image.guides))
     assert set(names).issuperset(set(regions))
-
-
-def test_demo_logger_smoke(caplog):
-    optim_logger = demo.demo_logger()
-
-    with asserts.assert_logs(caplog, logger=optim_logger):
-        optim_logger.message("test message")
