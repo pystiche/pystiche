@@ -249,8 +249,7 @@ def pyramid_image_optimization(
         _log_parameter_deprecation("logger")
 
     if get_pyramid_level_header is None:
-        with suppress_warnings():
-            get_pyramid_level_header = default_pyramid_level_header
+        get_pyramid_level_header = default_pyramid_level_header
     else:
         _log_parameter_deprecation("get_pyramid_level_header")
 
@@ -277,7 +276,8 @@ def pyramid_image_optimization(
             output_image = optimization(input_image)
         else:
             input_image_size = extract_image_size(input_image)
-            header = get_pyramid_level_header(num, level, input_image_size)
+            with suppress_warnings():
+                header = get_pyramid_level_header(num, level, input_image_size)
             with logger.environment(header):
                 output_image = optimization(input_image)
 
@@ -512,8 +512,7 @@ def multi_epoch_model_optimization(
         _log_parameter_deprecation("logger")
 
     if get_epoch_header is None:
-        with suppress_warnings():
-            get_epoch_header = default_epoch_header
+        get_epoch_header = default_epoch_header
     else:
         _log_parameter_deprecation("get_epoch_header")
 
@@ -534,8 +533,8 @@ def multi_epoch_model_optimization(
         if quiet:
             transformer = transformer_optim_loop(transformer)
         else:
-            header = get_epoch_header(epoch, optimizer, lr_scheduler)
-            # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
+            with suppress_warnings():
+                header = get_epoch_header(epoch, optimizer, lr_scheduler)
             with logger.environment(header):
                 transformer = transformer_optim_loop(transformer)
 
