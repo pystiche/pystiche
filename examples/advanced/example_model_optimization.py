@@ -49,7 +49,8 @@ print(f"I'm working with {device}")
 ########################################################################################
 # In the decoder we need to upsample the image. While it is possible to achieve this
 # with a :class:`~torch.nn.ConvTranspose2d`, it was found that traditional upsampling
-# followed by a standard convolution produces fewer artifacts :cite:`JAL2016`. Thus,
+# followed by a standard convolution
+# `produces fewer artifacts <https://distill.pub/2016/deconv-checkerboard/>`_. Thus,
 # we create an module that wraps :func:`~torch.nn.functional.interpolate`.
 
 
