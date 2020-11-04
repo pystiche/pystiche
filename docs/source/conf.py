@@ -6,9 +6,11 @@ from datetime import datetime
 from distutils.util import strtobool
 from importlib_metadata import metadata as extract_metadata
 from os import path
+from unittest import mock
 from urllib.parse import urljoin
 
 from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
+from tqdm import tqdm
 
 import torch
 
@@ -181,6 +183,32 @@ def sphinx_gallery():
 
         return memory, out
 
+    def patch_tqdm():
+        patchers = [mock.patch("tqdm.std._supports_unicode", return_value=True)]
+
+        display = tqdm.display
+        close = tqdm.close
+        displayed = set()
+
+        def display_only_last(self, msg=None, pos=None):
+            if self.n != self.total or self in displayed:
+                return
+
+            display(self, msg=msg, pos=pos)
+            displayed.add(self)
+
+        patchers.append(mock.patch("tqdm.std.tqdm.display", new=display_only_last))
+
+        def close_(self):
+            close(self)
+            with contextlib.suppress(KeyError):
+                displayed.remove(self)
+
+        patchers.append(mock.patch("tqdm.std.tqdm.close", new=close_))
+
+        for patcher in patchers:
+            patcher.start()
+
     class PysticheExampleTitleSortKey(ExampleTitleSortKey):
         def __call__(self, filename):
             # The beginner example *without* pystiche is placed before the example
@@ -221,6 +249,8 @@ def sphinx_gallery():
     }
 
     config = dict(sphinx_gallery_conf=sphinx_gallery_conf)
+
+    patch_tqdm()
 
     return extension, config
 
