@@ -13,6 +13,8 @@ which in turn is based on :cite:`JAL2016`.
 # We start this example by importing everything we need and setting the device we will
 # be working on.
 
+import contextlib
+import os
 import time
 from collections import OrderedDict
 from os import path
@@ -35,7 +37,7 @@ print(f"I'm working with {device}")
 ########################################################################################
 # Transformer
 # -----------
-
+#
 # In contrast to image optimization, for model optimization we need to define a
 # transformer that, after it is trained, performs the stylization. In general different
 # architectures are possible (:cite:`JAL2016,ULVL2016`). For this example we use an
@@ -47,7 +49,8 @@ print(f"I'm working with {device}")
 ########################################################################################
 # In the decoder we need to upsample the image. While it is possible to achieve this
 # with a :class:`~torch.nn.ConvTranspose2d`, it was found that traditional upsampling
-# followed by a standard convolution produces fewer artifacts :cite:`JAL2016`. Thus,
+# followed by a standard convolution
+# `produces fewer artifacts <https://distill.pub/2016/deconv-checkerboard/>`_. Thus,
 # we create an module that wraps :func:`~torch.nn.functional.interpolate`.
 
 
@@ -320,8 +323,21 @@ if use_pretrained_transformer:
     if path.exists(checkpoint):
         state_dict = torch.load(checkpoint)
     else:
+        # Unfortunately, torch.hub.load_state_dict_from_url has no option to disable
+        # printing the downloading process. Since this would clutter the output, we
+        # suppress it completely.
+        @contextlib.contextmanager
+        def suppress_output():
+            with open(os.devnull, "w") as devnull:
+                with contextlib.redirect_stdout(devnull), contextlib.redirect_stderr(
+                    devnull
+                ):
+                    yield
+
         url = "https://download.pystiche.org/models/example_transformer.pth"
-        state_dict = hub.load_state_dict_from_url(url)
+
+        with suppress_output():
+            state_dict = hub.load_state_dict_from_url(url)
 
     transformer.load_state_dict(state_dict)
 else:
