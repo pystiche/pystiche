@@ -2,7 +2,6 @@ import contextlib
 import os
 import re
 import shutil
-import warnings
 from datetime import datetime
 from distutils.util import strtobool
 from importlib_metadata import metadata as extract_metadata
@@ -193,17 +192,6 @@ def sphinx_gallery():
             else:
                 return super().__call__(filename)
 
-    def filter_warnings():
-        warnings.filterwarnings(
-            "ignore",
-            category=UserWarning,
-            message=(
-                "The (function|parameter) logger is deprecated since pystiche==0.7.0 "
-                "and will be removed in a future release. "
-                "See https://github.com/pmeier/pystiche/issues/434 for details."
-            ),
-        )
-
     if download_gallery:
         download()
 
@@ -233,8 +221,6 @@ def sphinx_gallery():
     }
 
     config = dict(sphinx_gallery_conf=sphinx_gallery_conf)
-
-    filter_warnings()
 
     return extension, config
 
