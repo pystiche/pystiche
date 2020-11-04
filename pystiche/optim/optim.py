@@ -1,6 +1,6 @@
 import sys
 import warnings
-from typing import Any, Callable, Iterable, Optional, Union
+from typing import Any, Callable, Iterable, Iterator, Optional, Union
 
 from tqdm.auto import tqdm
 
@@ -11,8 +11,8 @@ from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
 import pystiche
+from pystiche import loss as loss_
 from pystiche.image import extract_aspect_ratio
-from pystiche.loss import MLEHandler
 from pystiche.misc import build_deprecation_message
 from pystiche.pyramid import ImagePyramid
 
@@ -133,7 +133,7 @@ def image_optimization(
     if not isinstance(optimizer, Optimizer):
         optimizer = optimizer(input_image)
 
-    mle_handler = MLEHandler(criterion)
+    mle_handler = loss_.MLEHandler(criterion)
 
     def closure(input_image: torch.Tensor) -> float:
         # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
@@ -281,11 +281,11 @@ def model_optimization(
             optimization. Defaults to ``False``.
     """
     if criterion_update_fn is None:
-        if isinstance(criterion, (loss.PerceptualLoss, loss.GuidedPerceptualLoss)):
+        if isinstance(criterion, (loss_.PerceptualLoss, loss_.GuidedPerceptualLoss)):
 
             def criterion_update_fn(  # type: ignore[misc]
                 input_image: torch.Tensor,
-                criterion: Union[loss.PerceptualLoss, loss.GuidedPerceptualLoss],
+                criterion: Union[loss_.PerceptualLoss, loss_.GuidedPerceptualLoss],
             ) -> None:
                 criterion.set_content_image(input_image)
 
@@ -300,7 +300,7 @@ def model_optimization(
         optimizer = default_model_optimizer(transformer)
 
     device = next(transformer.parameters()).device
-    mle_handler = MLEHandler(criterion)
+    mle_handler = loss_.MLEHandler(criterion)
 
     def closure(input_image: torch.Tensor) -> float:
         # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
