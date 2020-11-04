@@ -290,11 +290,7 @@ def train(
     criterion.set_style_image(style_image)
 
     return optim.multi_epoch_model_optimization(
-        image_loader,
-        transformer.train(),
-        criterion,
-        epochs=epochs,
-        logger=demo.logger(),
+        image_loader, transformer.train(), criterion, epochs=epochs,
     )
 
 
