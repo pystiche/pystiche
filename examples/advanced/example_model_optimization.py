@@ -35,7 +35,7 @@ print(f"I'm working with {device}")
 ########################################################################################
 # Transformer
 # -----------
-
+#
 # In contrast to image optimization, for model optimization we need to define a
 # transformer that, after it is trained, performs the stylization. In general different
 # architectures are possible (:cite:`JAL2016,ULVL2016`). For this example we use an
