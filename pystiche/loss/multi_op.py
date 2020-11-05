@@ -27,7 +27,7 @@ class MLEHandler(pystiche.ComplexObject):
             "1.0",
             info=(
                 "It is no longer needed to pre-encode the input. "
-                "See XXXXXXXXXXXXXXXXXXXX for details"
+                "See https://github.com/pmeier/pystiche/issues/435 for details"
             ),
         )
         warnings.warn(msg)
