@@ -76,7 +76,7 @@ def test_MultiOperatorLoss_call_encode(forward_pass_counter):
             return self._encoder
 
         def process_input_image(self, image):
-            return torch.sum(image)
+            return torch.sum(self.encoder(image))
 
     modules = (("count", forward_pass_counter),)
     multi_layer_encoder = enc.MultiLayerEncoder(modules)
