@@ -12,8 +12,9 @@ from tests import mocks
 @pytest.fixture
 def mle_and_modules(module_factory):
     shallow = module_factory()
+    intermediate = module_factory()
     deep = module_factory()
-    modules = [("shallow", shallow), ("deep", deep)]
+    modules = [("shallow", shallow), ("intermediate", intermediate), ("deep", deep)]
     mle = enc.MultiLayerEncoder(modules)
     return mle, dict(modules)
 
@@ -31,12 +32,9 @@ def input():
 
 def test_MultiLayerEncoder_contains(mle):
     assert "shallow" in mle
+    assert "intermediate" in mle
     assert "deep" in mle
     assert "unknown" not in mle
-
-
-def test_MultiLayerEncoder_registered_layer(mle):
-    assert not mle.registered_layers
 
 
 def test_MultiLayerEncoder_register_layer(mle):
@@ -172,81 +170,52 @@ def test_MultiLayerEncoder_encode_cache(mle_and_modules, input, layers):
     modules["deep"].assert_called_once_with(input)
 
 
-def test_MultiLayerEncoder_trim():
-    layers = [str(idx) for idx in range(3)]
-    modules = [(layer, nn.Module()) for layer in layers]
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
+def test_MultiLayerEncoder_trim(mle):
+    assert "shallow" in mle
+    assert "intermediate" in mle
+    assert "deep" in mle
 
-    for name, module in modules:
-        actual = getattr(multi_layer_encoder, name)
-        desired = module
-        assert actual is desired
+    mle.trim(("shallow",))
 
-    idx = 1
-    multi_layer_encoder.trim((str(idx),))
-
-    for name, module in modules[: idx + 1]:
-        actual = getattr(multi_layer_encoder, name)
-        desired = module
-        assert actual is desired
-
-    for name in tuple(zip(*modules))[0][idx + 1 :]:
-        with pytest.raises(AttributeError):
-            getattr(multi_layer_encoder, name)
+    assert "shallow" in mle
+    assert "intermediate" not in mle
+    assert "deep" not in mle
 
 
-def test_MultiLayerEncoder_trim_layers():
-    layers = [str(idx) for idx in range(3)]
-    modules = [(layer, nn.Module()) for layer in layers]
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
+def test_MultiLayerEncoder_trim_registered(mle):
+    mle.register_layer("shallow")
 
-    for name, module in modules:
-        actual = getattr(multi_layer_encoder, name)
-        desired = module
-        assert actual is desired
+    assert "shallow" in mle
+    assert "intermediate" in mle
+    assert "deep" in mle
 
-    idx = 1
-    for layer in [str(idx) for idx in range(idx + 1)]:
-        multi_layer_encoder.register_layer(layer)
-    multi_layer_encoder.trim()
+    mle.trim()
 
-    for name, module in modules[: idx + 1]:
-        actual = getattr(multi_layer_encoder, name)
-        desired = module
-        assert actual is desired
-
-    for name in tuple(zip(*modules))[0][idx + 1 :]:
-        with pytest.raises(AttributeError):
-            getattr(multi_layer_encoder, name)
+    assert "shallow" in mle
+    assert "intermediate" not in mle
+    assert "deep" not in mle
 
 
-def test_MultiLayerEncoder_extract_encoder():
-    conv = nn.Conv2d(3, 1, 1)
-    relu = nn.ReLU(inplace=False)
+def test_MultiLayerEncoder_extract_encoder(mle):
+    layer = "intermediate"
+    encoder = mle.extract_encoder(layer)
 
-    modules = (("conv", conv), ("relu", relu))
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
-
-    layer = "relu"
-    single_layer_encoder = multi_layer_encoder.extract_encoder(layer)
-
-    assert isinstance(single_layer_encoder, enc.SingleLayerEncoder)
-    assert single_layer_encoder.multi_layer_encoder is multi_layer_encoder
-    assert single_layer_encoder.layer == layer
-    assert layer in multi_layer_encoder.registered_layers
+    assert isinstance(encoder, enc.SingleLayerEncoder)
+    assert encoder.multi_layer_encoder is mle
+    assert encoder.layer == layer
+    assert layer in mle.registered_layers
 
 
-def test_SingleLayerEncoder_call():
+def test_SingleLayerEncoder_call(input):
     torch.manual_seed(0)
     conv = nn.Conv2d(3, 1, 1)
     relu = nn.ReLU(inplace=False)
-    input = torch.rand(1, 3, 128, 128)
 
     modules = (("conv", conv), ("relu", relu))
     multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
-    single_layer_encoder = enc.SingleLayerEncoder(multi_layer_encoder, "conv")
+    single_layer_encoder = enc.SingleLayerEncoder(multi_layer_encoder, "relu")
 
     actual = single_layer_encoder(input)
-    desired = conv(input)
-    ptu.assert_allclose(actual, desired)
+    expected = relu(conv(input))
+    ptu.assert_allclose(actual, expected)
