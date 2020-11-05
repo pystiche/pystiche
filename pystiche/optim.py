@@ -23,11 +23,6 @@ __all__ = [
     "default_model_optimizer",
     "model_optimization",
     "multi_epoch_model_optimization",
-    "default_image_optim_loop",
-    "default_image_pyramid_optim_loop",
-    "default_transformer_optimizer",
-    "default_transformer_optim_loop",
-    "default_transformer_epoch_optim_loop",
 ]
 
 
@@ -72,7 +67,6 @@ def image_optimization(
     input_image: torch.Tensor,
     criterion: nn.Module,
     optimizer: Optional[Union[Optimizer, Callable[[torch.Tensor], Optimizer]]] = None,
-    get_optimizer: Optional[Callable[[torch.Tensor], Optimizer]] = None,
     num_steps: Union[int, Iterable[int]] = 500,
     preprocessor: Optional[nn.Module] = None,
     postprocessor: Optional[nn.Module] = None,
@@ -98,13 +92,6 @@ def image_optimization(
         RuntimeError: If ``preprocessor`` is used and ``optimizer`` is not passed as
         getter.
     """
-    if get_optimizer is not None:
-        msg = build_deprecation_message(
-            "The parameter get_optimizer", "0.7.0", info="It was renamed to optimizer"
-        )
-        warnings.warn(msg)
-        optimizer = get_optimizer
-
     if isinstance(optimizer, Optimizer) and preprocessor:
         raise RuntimeError(
             "If a preprocessor is used, optimizer has to be passed as getter"
@@ -150,16 +137,6 @@ def image_optimization(
     return input_image.detach()
 
 
-def default_image_optim_loop(*args: Any, **kwargs: Any) -> Any:
-    msg = build_deprecation_message(
-        "The function default_image_optim_loop",
-        "0.7.0",
-        info="It was renamed to image_optimization",
-    )
-    warnings.warn(msg)
-    return image_optimization(*args, **kwargs)
-
-
 def pyramid_image_optimization(
     input_image: torch.Tensor,
     criterion: nn.Module,
@@ -197,7 +174,7 @@ def pyramid_image_optimization(
         output_image = image_optimization(
             input_image,
             criterion,
-            get_optimizer=get_optimizer,
+            optimizer=get_optimizer,
             num_steps=level.num_steps,
             preprocessor=preprocessor,
             postprocessor=postprocessor,
@@ -205,16 +182,6 @@ def pyramid_image_optimization(
         )
 
     return output_image
-
-
-def default_image_pyramid_optim_loop(*args: Any, **kwargs: Any) -> Any:
-    msg = build_deprecation_message(
-        "The function default_image_pyramid_optim_loop",
-        "0.7.0",
-        info="It was renamed to pyramid_image_optimization",
-    )
-    warnings.warn(msg)
-    return pyramid_image_optimization(*args, **kwargs)
 
 
 def default_model_optimizer(transformer: nn.Module) -> Optimizer:
@@ -227,16 +194,6 @@ def default_model_optimizer(transformer: nn.Module) -> Optimizer:
         parameters of ``transformer`` are set as optimization parameters.
     """
     return optim.Adam(transformer.parameters(), lr=1e-3)
-
-
-def default_transformer_optimizer(*args: Any, **kwargs: Any) -> Any:
-    msg = build_deprecation_message(
-        "The function default_transformer_optimizer",
-        "0.7.0",
-        info="It was renamed to default_model_optimizer",
-    )
-    warnings.warn(msg)
-    return default_model_optimizer(*args, **kwargs)
 
 
 def unsupervise(image_loader: Iterable) -> Iterator[torch.Tensor]:
@@ -320,16 +277,6 @@ def model_optimization(
     return transformer
 
 
-def default_transformer_optim_loop(*args: Any, **kwargs: Any) -> Any:
-    msg = build_deprecation_message(
-        "The function default_transformer_optim_loop",
-        "0.7.0",
-        info="It was renamed to model_optimization",
-    )
-    warnings.warn(msg)
-    return model_optimization(*args, **kwargs)
-
-
 def multi_epoch_model_optimization(
     image_loader: DataLoader,
     transformer: nn.Module,
@@ -384,13 +331,3 @@ def multi_epoch_model_optimization(
             lr_scheduler.step()
 
     return transformer
-
-
-def default_transformer_epoch_optim_loop(*args: Any, **kwargs: Any) -> Any:
-    msg = build_deprecation_message(
-        "The function default_transformer_epoch_optim_loop",
-        "0.7.0",
-        info="It was renamed to multi_epoch_model_optimization",
-    )
-    warnings.warn(msg)
-    return multi_epoch_model_optimization(*args, **kwargs)
