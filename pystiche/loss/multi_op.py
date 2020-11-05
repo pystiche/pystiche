@@ -57,7 +57,7 @@ class MLEHandler(pystiche.ComplexObject):
         self, exc_type: Type[Exception], exc_val: Exception, exc_tb: TracebackType
     ) -> None:
         for encoder in self.multi_layer_encoders:
-            encoder.empty_storage()
+            encoder.clear_cache()
 
     def _named_children(self) -> Iterator[Tuple[str, enc.MultiLayerEncoder]]:
         return ((str(idx), mle) for idx, mle in enumerate(self.multi_layer_encoders))
