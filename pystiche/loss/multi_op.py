@@ -1,3 +1,4 @@
+import warnings
 from types import TracebackType
 from typing import Iterator, Sequence, Tuple, Type
 
@@ -6,7 +7,7 @@ from torch import nn
 
 import pystiche
 from pystiche import enc, ops
-from pystiche.misc import suppress_warnings
+from pystiche.misc import build_deprecation_message
 
 __all__ = ["MLEHandler", "MultiOperatorLoss"]
 
@@ -21,8 +22,15 @@ class MLEHandler(pystiche.ComplexObject):
         }
 
     def encode(self, input_image: torch.Tensor) -> None:
-        for encoder in self.multi_layer_encoders:
-            encoder.encode(input_image)
+        msg = build_deprecation_message(
+            "The method 'encode'",
+            "1.0",
+            info=(
+                "It is no longer needed to pre-encode the input. "
+                "See XXXXXXXXXXXXXXXXXXXX for details"
+            ),
+        )
+        warnings.warn(msg)
 
     def empty_storage(self) -> None:
         for mle in self.multi_layer_encoders:
@@ -33,9 +41,6 @@ class MLEHandler(pystiche.ComplexObject):
             mle.trim()
 
     def __call__(self, input_image: torch.Tensor) -> "MLEHandler":
-        with suppress_warnings(FutureWarning):
-            for mle in self.multi_layer_encoders:
-                mle.encode(input_image)
         return self
 
     def __enter__(self) -> None:
