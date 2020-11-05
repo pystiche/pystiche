@@ -96,7 +96,7 @@ class _Layers:
         name: str,
         names: Iterable[str],
         edge_idx: int,
-        extractor: Callable[[int, List[int]], str],
+        extractor: Callable[[int, List[int]], Optional[str]],
     ) -> Optional[str]:
         if not names:
             return None
@@ -109,20 +109,22 @@ class _Layers:
 
         return extractor(idx, idcs)
 
-    def _extract_prev(self, idx: int, idcs: List[int]) -> str:
-        return next(
-            self._idx_to_name(idx)
-            for other_idx in sorted(idcs, reverse=True)
-            if other_idx < idx
-        )
+    def _extract_prev(self, idx: int, idcs: List[int]) -> Optional[str]:
+        candidates = [other_idx for other_idx in idcs if other_idx < idx]
+        if not candidates:
+            return None
+
+        return self._idx_to_name(max(candidates))
 
     def prev(self, name: str, names: Iterable[str]) -> Optional[str]:
         return self._neighbour(name, names, edge_idx=0, extractor=self._extract_prev)
 
-    def _extract_next(self, idx: int, idcs: List[int]) -> str:
-        return next(
-            self._idx_to_name(idx) for other_idx in sorted(idcs) if other_idx > idx
-        )
+    def _extract_next(self, idx: int, idcs: List[int]) -> Optional[str]:
+        candidates = [other_idx for other_idx in idcs if other_idx > idx]
+        if not candidates:
+            return None
+
+        return self._idx_to_name(min(candidates))
 
     def next(self, name: str, names: Collection[str]) -> Optional[str]:
         return self._neighbour(
