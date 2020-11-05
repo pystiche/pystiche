@@ -6,196 +6,155 @@ from torch import nn
 
 from pystiche import enc
 
-from tests.asserts import assert_named_modules_identical
+
+@pytest.fixture
+def mle_and_modules(module_factory):
+    shallow = module_factory()
+    deep = module_factory()
+    modules = [("shallow", shallow), ("deep", deep)]
+    mle = enc.MultiLayerEncoder(modules)
+    return mle, dict(modules)
 
 
-def test_MultiLayerEncoder():
-    modules = [(str(idx), nn.Module()) for idx in range(3)]
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
-
-    for name, module in modules:
-        actual = getattr(multi_layer_encoder, name)
-        desired = module
-        assert actual is desired
+@pytest.fixture
+def mle(mle_and_modules):
+    return mle_and_modules[0]
 
 
-def test_MultiLayerEncoder_named_children():
-    modules = [(str(idx), nn.Module()) for idx in range(3)]
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
-
-    actual = tuple(multi_layer_encoder.children_names())
-    desired = tuple(zip(*modules))[0]
-    assert actual == desired
+@pytest.fixture
+def input():
+    torch.manual_seed(0)
+    return torch.rand(1, 3, 16, 16)
 
 
-def test_MultiLayerEncoder_contains():
-    idcs = (0, 2)
-    modules = [(str(idx), nn.Module()) for idx in idcs]
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
-
-    for idx in idcs:
-        assert str(idx) in multi_layer_encoder
-
-    for idx in set(range(max(idcs))) - set(idcs):
-        assert str(idx) not in multi_layer_encoder
+def test_MultiLayerEncoder_contains(mle):
+    assert "shallow" in mle
+    assert "deep" in mle
+    assert "unknown" not in mle
 
 
-def test_MultiLayerEncoder_extract_deepest_layer():
-    layers = [str(idx) for idx in range(3)]
-    modules = [(layer, nn.Module()) for layer in layers]
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
+def test_MultiLayerEncoder_registered_layer(mle):
+    assert not mle.registered_layers
 
-    actual = multi_layer_encoder.extract_deepest_layer(layers)
-    desired = layers[-1]
-    assert actual == desired
 
-    actual = multi_layer_encoder.extract_deepest_layer(sorted(layers, reverse=True))
-    desired = layers[-1]
-    assert actual == desired
+def test_MultiLayerEncoder_register_layer(mle):
+    layer = "shallow"
 
-    del multi_layer_encoder._modules[layers[-1]]
+    assert layer not in mle.registered_layers
 
+    mle.register_layer(layer)
+
+    assert layer in mle.registered_layers
+
+
+def test_MultiLayerEncoder_register_layer_error(mle):
     with pytest.raises(ValueError):
-        multi_layer_encoder.extract_deepest_layer(layers)
-
-    layers = layers[:-1]
-
-    actual = multi_layer_encoder.extract_deepest_layer(layers)
-    desired = layers[-1]
-    assert actual == desired
+        mle.register_layer("unknown")
 
 
-def test_MultiLayerEncoder_named_children_to():
-    layers = [str(idx) for idx in range(3)]
-    modules = [(layer, nn.Module()) for layer in layers]
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
-
-    actuals = multi_layer_encoder.named_children_to(layers[-2])
-    desireds = modules[:-2]
-    assert_named_modules_identical(actuals, desireds)
-
-    actuals = multi_layer_encoder.named_children_to(layers[-2], include_last=True)
-    desireds = modules[:-1]
-    assert_named_modules_identical(actuals, desireds)
-
-
-def test_MultiLayerEncoder_named_children_from():
-    layers = [str(idx) for idx in range(3)]
-    modules = [(layer, nn.Module()) for layer in layers]
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
-
-    actuals = multi_layer_encoder.named_children_from(layers[-2])
-    desireds = modules[1:]
-    assert_named_modules_identical(actuals, desireds)
-
-    actuals = multi_layer_encoder.named_children_from(layers[-2], include_first=False)
-    desireds = modules[2:]
-    assert_named_modules_identical(actuals, desireds)
-
-
-def test_MultiLayerEncoder_call():
-    torch.manual_seed(0)
-    conv = nn.Conv2d(3, 1, 1)
-    relu = nn.ReLU(inplace=False)
-    pool = nn.MaxPool2d(2)
-    input = torch.rand(1, 3, 128, 128)
-
-    modules = (("conv", conv), ("relu", relu), ("pool", pool))
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
-
-    layers = ("conv", "pool")
-    encs = multi_layer_encoder(input, layers)
-
-    actual = encs[0]
-    desired = conv(input)
-    ptu.assert_allclose(actual, desired)
-
-    actual = encs[1]
-    desired = pool(relu(conv(input)))
-    ptu.assert_allclose(actual, desired)
-
-
-def test_MultiLayerEncoder_call_store(forward_pass_counter):
-    torch.manual_seed(0)
-
-    modules = (("count", forward_pass_counter),)
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
-
-    layers = ("count",)
-    input = torch.rand(1, 3, 128, 128)
-    multi_layer_encoder(input, layers, store=True)
-    multi_layer_encoder(input, layers)
-
-    actual = forward_pass_counter.count
-    desired = 1
-    assert actual == desired
-
-    new_input = torch.rand(1, 3, 128, 128)
-    multi_layer_encoder(new_input, layers)
-
-    actual = forward_pass_counter.count
-    desired = 2
-    assert actual == desired
-
-
-def test_MultiLayerEncoder_extract_encoder():
+def test_MultiLayerEncoder_call(input):
     conv = nn.Conv2d(3, 1, 1)
     relu = nn.ReLU(inplace=False)
 
     modules = (("conv", conv), ("relu", relu))
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
+    mle = enc.MultiLayerEncoder(modules)
 
-    layer = "relu"
-    single_layer_encoder = multi_layer_encoder.extract_encoder(layer)
+    actual = mle(input, "conv")
+    expected = conv(input)
+    ptu.assert_allclose(actual, expected)
 
-    assert isinstance(single_layer_encoder, enc.SingleLayerEncoder)
-    assert single_layer_encoder.multi_layer_encoder is multi_layer_encoder
-    assert single_layer_encoder.layer == layer
-    assert layer in multi_layer_encoder.registered_layers
+    actual = mle(input, "relu")
+    expected = relu(conv(input))
+    ptu.assert_allclose(actual, expected)
 
 
-def test_MultiLayerEncoder_encode(forward_pass_counter):
-    torch.manual_seed(0)
+def test_MultiLayerEncoder_call_error(mle):
+    with pytest.raises(ValueError):
+        mle(torch.empty(1), "unknown")
+
+
+def test_MultiLayerEncoder_call_use_cached(mle_and_modules, input):
+    mle, modules = mle_and_modules
+    layer = "deep"
+    mle.register_layer(layer)
+
+    mle(input, layer)
+    modules[layer].assert_called_once_with(input)
+
+    mle(input, layer)
+    modules[layer].assert_called_once()
+
+
+def test_MultiLayerEncoder_call_resume_from_cache(mle_and_modules, input):
+    mle, modules = mle_and_modules
+    mle.register_layer("shallow")
+
+    mle(input, "shallow")
+    modules["shallow"].assert_called_once_with(input)
+
+    mle(input, "deep")
+    modules["shallow"].assert_called_once()
+    modules["deep"].assert_called_once_with(input)
+
+
+def test_MultiLayerEncoder_call_pre_cache(mle_and_modules, input):
+    mle, modules = mle_and_modules
+    mle.register_layer("shallow")
+
+    mle(input, "deep")
+    modules["shallow"].assert_called_once_with(input)
+    modules["deep"].assert_called_once_with(input)
+
+    mle(input, "shallow")
+    modules["shallow"].assert_called_once()
+
+
+def test_MultiLayerEncoder_clear_cache(mle_and_modules, input):
+    mle, modules = mle_and_modules
+    layer = "shallow"
+    module = modules[layer]
+    mle.register_layer(layer)
+
+    mle(input, layer)
+    module.assert_called_once_with(input)
+
+    mle.clear_cache()
+
+    mle(input, layer)
+    module.assert_called(2)
+    module.assert_called_with(input)
+
+
+def test_MultiLayerEncoder_encode(input):
     conv = nn.Conv2d(3, 1, 1)
     relu = nn.ReLU(inplace=False)
-    input = torch.rand(1, 3, 128, 128)
 
-    modules = (("count", forward_pass_counter), ("conv", conv), ("relu", relu))
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
+    modules = (("conv", conv), ("relu", relu))
+    mle = enc.MultiLayerEncoder(modules)
 
-    layers = ("conv", "relu")
-    multi_layer_encoder.registered_layers.update(layers)
-    multi_layer_encoder.encode(input)
-    encs = multi_layer_encoder(input, layers)
+    encs = mle.encode(input, ("conv", "relu"))
 
     actual = encs[0]
-    desired = conv(input)
-    ptu.assert_allclose(actual, desired)
+    expected = conv(input)
+    ptu.assert_allclose(actual, expected)
 
     actual = encs[1]
-    desired = relu(conv(input))
-    ptu.assert_allclose(actual, desired)
-
-    actual = forward_pass_counter.count
-    desired = 1
-    assert actual == desired
+    expected = relu(conv(input))
+    ptu.assert_allclose(actual, expected)
 
 
-def test_MultiLayerEncoder_empty_storage(forward_pass_counter):
-    torch.manual_seed(0)
-    input = torch.rand(1, 3, 128, 128)
+@pytest.mark.parametrize(
+    "layers",
+    (("shallow", "deep"), ("deep", "shallow")),
+    ids=lambda layers: f"{layers[0]} to {layers[1]}",
+)
+def test_MultiLayerEncoder_encode_cache(mle_and_modules, input, layers):
+    mle, modules = mle_and_modules
 
-    modules = (("count", forward_pass_counter),)
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
+    mle.encode(input, layers)
 
-    layers = ("count",)
-    multi_layer_encoder(input, layers, store=True)
-    multi_layer_encoder.empty_storage()
-    multi_layer_encoder(input, layers)
-
-    actual = forward_pass_counter.count
-    desired = 2
-    assert actual == desired
+    modules["shallow"].assert_called_once_with(input)
+    modules["deep"].assert_called_once_with(input)
 
 
 def test_MultiLayerEncoder_trim():
@@ -232,7 +191,8 @@ def test_MultiLayerEncoder_trim_layers():
         assert actual is desired
 
     idx = 1
-    multi_layer_encoder.registered_layers.update([str(idx) for idx in range(idx + 1)])
+    for layer in [str(idx) for idx in range(idx + 1)]:
+        multi_layer_encoder.register_layer(layer)
     multi_layer_encoder.trim()
 
     for name, module in modules[: idx + 1]:
@@ -245,28 +205,20 @@ def test_MultiLayerEncoder_trim_layers():
             getattr(multi_layer_encoder, name)
 
 
-def test_MultiLayerEncoder_call_future_warning():
-    torch.manual_seed(0)
+def test_MultiLayerEncoder_extract_encoder():
     conv = nn.Conv2d(3, 1, 1)
-    input = torch.rand(1, 3, 1, 1)
+    relu = nn.ReLU(inplace=False)
 
-    modules = (("conv", conv),)
+    modules = (("conv", conv), ("relu", relu))
     multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
-    with pytest.warns(FutureWarning):
-        multi_layer_encoder(input, ("conv",))
+    layer = "relu"
+    single_layer_encoder = multi_layer_encoder.extract_encoder(layer)
 
-
-def test_MultiLayerEncoder_encode_future_warning():
-    torch.manual_seed(0)
-    conv = nn.Conv2d(3, 1, 1)
-    input = torch.rand(1, 3, 1, 1)
-
-    modules = (("conv", conv),)
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
-
-    with pytest.warns(FutureWarning):
-        multi_layer_encoder.encode(input)
+    assert isinstance(single_layer_encoder, enc.SingleLayerEncoder)
+    assert single_layer_encoder.multi_layer_encoder is multi_layer_encoder
+    assert single_layer_encoder.layer == layer
+    assert layer in multi_layer_encoder.registered_layers
 
 
 def test_SingleLayerEncoder_call():

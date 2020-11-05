@@ -4,6 +4,10 @@ import sys
 import unittest.mock
 from distutils import dir_util
 
+import pytorch_testing_utils as ptu
+
+from torch import nn
+
 import pystiche
 
 __all__ = [
@@ -12,6 +16,7 @@ __all__ = [
     "ContextMock",
     "patch_models_load_state_dict_from_url",
     "patch_home",
+    "ModuleMock",
 ]
 
 DEFAULT_MOCKER = unittest.mock
@@ -110,3 +115,54 @@ def patch_home(home, copy=True, mocker=DEFAULT_MOCKER):
         dir_util.copy_tree(pystiche.home(), home)
 
     return mocker.patch.dict(os.environ, values={"PYSTICHE_HOME": home})
+
+
+class ModuleMock(nn.Module):
+    def __init__(self, *methods):
+        super().__init__()
+        self._call_args_list = []
+        for method in methods:
+            setattr(
+                self,
+                method,
+                unittest.mock.MagicMock(name=f"{type(self).__name__}.{method}"),
+            )
+
+    def forward(self, input, *args, **kwargs):
+        self._call_args_list.insert(0, ((input, *args), kwargs))
+        return input
+
+    @property
+    def call_args_list(self):
+        return self._call_args_list
+
+    @property
+    def called(self):
+        return bool(self.call_args_list)
+
+    @property
+    def call_args(self):
+        return self.call_args_list[0]
+
+    @property
+    def call_count(self):
+        return len(self.call_args_list)
+
+    def assert_called(self, count=None):
+        assert self.called
+        if count is not None:
+            assert self.call_count == count
+
+    def assert_called_with(self, input, *args, **kwargs):
+        self.assert_called()
+        (input_, *args_), kwargs_ = self.call_args
+        ptu.assert_allclose(input_, input)
+        assert tuple(args_) == args
+        assert kwargs_ == kwargs
+
+    def assert_called_once(self):
+        self.assert_called(count=1)
+
+    def assert_called_once_with(self, input, *args, **kwargs):
+        self.assert_called_once()
+        self.assert_called_with(input, *args, **kwargs)

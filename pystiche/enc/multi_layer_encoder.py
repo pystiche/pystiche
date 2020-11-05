@@ -62,13 +62,19 @@ class _Layers:
         if not (start or stop):
             return self._names
 
-        start_idx = 0 if start is None else self._name_to_idx(start)
-        if not include_start:
-            start_idx += 1
+        if start is None:
+            start_idx = 0
+        else:
+            start_idx = self._name_to_idx(start)
+            if not include_start:
+                start_idx += 1
 
-        stop_idx = len(self) - 1 if stop is None else self._name_to_idx(stop)
-        if include_stop:
-            stop_idx += 1
+        if stop is None:
+            stop_idx = len(self)
+        else:
+            stop_idx = self._name_to_idx(stop)
+            if include_stop:
+                stop_idx += 1
 
         return self._names[start_idx:stop_idx]
 
@@ -97,7 +103,7 @@ class _Layers:
         idcs = [self._name_to_idx(name) for name in names]
 
         if edge_idx in idcs:
-            return None
+            return self._idx_to_name(edge_idx)
 
         return extractor(idx, idcs)
 
@@ -131,20 +137,20 @@ class MultiLayerEncoder(pystiche.Module):
             pystiche.TensorKey, Dict[str, torch.Tensor]
         ] = defaultdict(lambda: {})
 
+    def __contains__(self, layer: str) -> bool:
+        return layer in self._layers
+
     def _verify(self, name: str) -> None:
-        if name not in self._layers:
+        if name not in self:
             raise ValueError(f"Layer {name} is not part of the multi-layer encoder.")
 
     @property
-    def registered_layers(self) -> List[str]:
-        return sorted(self._registered_layers)
+    def registered_layers(self) -> Tuple[str, ...]:
+        return tuple(self._registered_layers)
 
     def register_layer(self, layer: str) -> None:
         self._verify(layer)
         self._registered_layers.add(layer)
-
-    def clear_cache(self) -> None:
-        self._cache = defaultdict(lambda: {})
 
     def forward(
         self,
@@ -167,7 +173,7 @@ class MultiLayerEncoder(pystiche.Module):
         if prev is not None:
             input = cache[prev]
 
-        for name in self._layers.range(prev, layer):
+        for name in self._layers.range(prev, layer, include_start=False):
             module = self._modules[name]
             input = module(input)
 
@@ -176,10 +182,12 @@ class MultiLayerEncoder(pystiche.Module):
 
         return input
 
+    def clear_cache(self) -> None:
+        self._cache = defaultdict(lambda: {})
+
     def encode(
-        self, input: torch.Tensor, layers: Optional[Sequence[str]] = None,
+        self, input: torch.Tensor, layers: Sequence[str],
     ) -> Tuple[torch.Tensor, ...]:
-        layers = layers or self._registered_layers
         cache: Dict[str, torch.Tensor] = {}
         return tuple(
             self(input, layer, cache=cache, to_cache=layers) for layer in layers

@@ -6,7 +6,7 @@ from torch import nn
 
 import pystiche
 
-from . import assets, utils
+from . import assets, mocks, utils
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -63,3 +63,16 @@ def forward_pass_counter():
             return input
 
     return ForwardPassCounter()
+
+
+@pytest.fixture
+def module_factory():
+    def factory():
+        return mocks.ModuleMock()
+
+    return factory
+
+
+@pytest.fixture
+def module(module_factory):
+    return module_factory()
