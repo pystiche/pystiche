@@ -32,9 +32,16 @@ class MLEHandler(pystiche.ComplexObject):
         )
         warnings.warn(msg)
 
-    def empty_storage(self) -> None:
+    def clear_cache(self) -> None:
         for mle in self.multi_layer_encoders:
-            mle.empty_storage()
+            mle.clear_cache()
+
+    def empty_storage(self) -> None:
+        msg = build_deprecation_message(
+            "The method 'empty_storage'", "1.0", info="It was renamed to 'clear_cache'."
+        )
+        warnings.warn(msg)
+        self.clear_cache()
 
     def trim(self) -> None:
         for mle in self.multi_layer_encoders:

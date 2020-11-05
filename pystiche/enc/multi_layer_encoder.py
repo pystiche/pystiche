@@ -1,3 +1,4 @@
+import warnings
 from collections import OrderedDict, defaultdict
 from typing import (
     Callable,
@@ -18,6 +19,7 @@ from torch import nn
 
 import pystiche
 
+from ..misc import build_deprecation_message
 from .encoder import Encoder
 from .guides import propagate_guide
 
@@ -184,6 +186,13 @@ class MultiLayerEncoder(pystiche.Module):
 
     def clear_cache(self) -> None:
         self._cache = defaultdict(lambda: {})
+
+    def empty_storage(self) -> None:
+        msg = build_deprecation_message(
+            "The method 'empty_storage'", "1.0", info="It was renamed to 'clear_cache'."
+        )
+        warnings.warn(msg)
+        self.clear_cache()
 
     def encode(
         self, input: torch.Tensor, layers: Sequence[str],

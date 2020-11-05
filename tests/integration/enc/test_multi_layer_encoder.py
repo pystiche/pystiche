@@ -6,6 +6,8 @@ from torch import nn
 
 from pystiche import enc
 
+from tests import mocks
+
 
 @pytest.fixture
 def mle_and_modules(module_factory):
@@ -123,6 +125,19 @@ def test_MultiLayerEncoder_clear_cache(mle_and_modules, input):
     mle(input, layer)
     module.assert_called(2)
     module.assert_called_with(input)
+
+
+def test_MultiLayerEncoder_empty_storage(mocker, mle):
+    mock = mocker.patch(
+        mocks.make_mock_target(
+            "enc", "multi_layer_encoder", "MultiLayerEncoder", "clear_cache"
+        )
+    )
+
+    with pytest.warns(UserWarning):
+        mle.empty_storage()
+
+    mock.assert_called()
 
 
 def test_MultiLayerEncoder_encode(input):
