@@ -134,7 +134,7 @@ class MultiLayerEncoder(pystiche.Module):
     def __init__(self, modules: Sequence[Tuple[str, nn.Module]]) -> None:
         super().__init__(named_children=modules)
         self._layers: _Layers = _Layers(self._modules)
-        self._registered_layers: Set[str] = set()
+        self.registered_layers: Set[str] = set()
         self._cache: DefaultDict[
             pystiche.TensorKey, Dict[str, torch.Tensor]
         ] = defaultdict(lambda: {})
@@ -145,10 +145,6 @@ class MultiLayerEncoder(pystiche.Module):
     def _verify(self, name: str) -> None:
         if name not in self:
             raise ValueError(f"Layer {name} is not part of the multi-layer encoder.")
-
-    @property
-    def registered_layers(self) -> Tuple[str, ...]:
-        return tuple(self._registered_layers)
 
     def register_layer(self, layer: str) -> None:
         self._verify(layer)
