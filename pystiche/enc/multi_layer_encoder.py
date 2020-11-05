@@ -148,7 +148,7 @@ class MultiLayerEncoder(pystiche.Module):
 
     def register_layer(self, layer: str) -> None:
         self._verify(layer)
-        self._registered_layers.add(layer)
+        self.registered_layers.add(layer)
 
     def forward(
         self,
@@ -165,7 +165,7 @@ class MultiLayerEncoder(pystiche.Module):
             return cache[layer]
 
         if to_cache is None:
-            to_cache = self._registered_layers
+            to_cache = self.registered_layers
 
         prev = self._layers.prev(layer, cache.keys())
         if prev is not None:
@@ -200,7 +200,7 @@ class MultiLayerEncoder(pystiche.Module):
 
     def trim(self, layers: Optional[Iterable[str]] = None) -> None:
         if layers is None:
-            layers = self._registered_layers
+            layers = self.registered_layers
         else:
             for name in layers:
                 self._verify(name)
