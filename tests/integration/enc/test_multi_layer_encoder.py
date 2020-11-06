@@ -68,6 +68,13 @@ def test_MultiLayerEncoder_call(input):
     ptu.assert_allclose(actual, expected)
 
 
+def test_MultiLayerEncoder_call_default_layer(mle_and_modules, input):
+    mle, modules = mle_and_modules
+
+    mle(input)
+    modules["deep"].assert_called_once_with(input)
+
+
 def test_MultiLayerEncoder_call_error(mle):
     with pytest.raises(ValueError):
         mle(torch.empty(1), "unknown")

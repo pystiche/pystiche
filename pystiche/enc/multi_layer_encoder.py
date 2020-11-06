@@ -181,15 +181,16 @@ class MultiLayerEncoder(pystiche.Module):
     def forward(
         self,
         input: torch.Tensor,
-        layer: str,
+        layer: Optional[str] = None,
         cache: Optional[Dict[str, torch.Tensor]] = None,
         to_cache: Optional[Collection[str]] = None,
     ) -> torch.Tensor:
-        r"""Encode the input on layer.
+        r"""Encode the input.
 
         Args:
             input: Input to be encoded.
-            layer: Layer on which the ``input`` should be encoded.
+            layer: Layer on which the ``input`` should be encoded. If omitted, defaults
+                to the last layer in the multi-layer encoder.
             cache: Encoding cache. If omitted, defaults to the the internal cache.
             to_cache: Layers, of which the encodings should be cached. If omitted,
                 defaults to :attr:`registered_layers`.
@@ -201,7 +202,10 @@ class MultiLayerEncoder(pystiche.Module):
             >>> input = torch.rand(1, 3, 128, 128)
             >>> output = mle(input, "conv")
         """
-        self._verify(layer)
+        if layer is None:
+            layer = tuple(self._modules.keys())[-1]
+        else:
+            self._verify(layer)
 
         if cache is None:
             cache = self._cache[pystiche.TensorKey(input)]
