@@ -1,5 +1,4 @@
 import sys
-from unittest import mock
 
 import pytest
 import pytorch_testing_utils as ptu
@@ -10,6 +9,8 @@ from torch import nn
 from torch.utils import data
 
 from pystiche import loss, ops, optim
+
+from tests import mocks
 
 skip_if_py38 = pytest.mark.skipif(
     sys.version_info >= (3, 8),
@@ -202,50 +203,7 @@ def image_loader(test_image):
     return data.DataLoader(Dataset(test_image))
 
 
-class ModuleMock(nn.Module):
-    def __init__(self, *methods):
-        super().__init__()
-        self._call_args_list = []
-        for method in methods:
-            setattr(
-                self, method, mock.MagicMock(name=f"{type(self).__name__}.{method}")
-            )
-
-    def forward(self, input, *args, **kwargs):
-        self._call_args_list.insert(0, ((input, *args), kwargs))
-        return input
-
-    @property
-    def call_args_list(self):
-        return self._call_args_list
-
-    @property
-    def called(self):
-        return bool(self.call_args_list)
-
-    @property
-    def call_args(self):
-        return self.call_args_list[0]
-
-    @property
-    def call_count(self):
-        return len(self.call_args_list)
-
-    def assert_called(self):
-        assert self.called
-
-    def assert_called_once(self):
-        assert self.call_count == 1
-
-    def assert_called_once_with(self, input, *args, **kwargs):
-        self.assert_called_once()
-        (input_, *args_), kwargs_ = self.call_args
-        ptu.assert_allclose(input_, input)
-        assert tuple(args_) == args
-        assert kwargs_ == kwargs
-
-
-class TransformerMock(ModuleMock):
+class TransformerMock(mocks.ModuleMock):
     def __init__(self):
         super().__init__()
         self.register_parameter(
@@ -261,12 +219,7 @@ def transformer():
     return TransformerMock()
 
 
-@pytest.fixture
-def module():
-    return ModuleMock()
-
-
-class CriterionMock(ModuleMock):
+class CriterionMock(mocks.ModuleMock):
     def forward(self, *args, **kwargs):
         return torch.sum(super().forward(*args, **kwargs))
 

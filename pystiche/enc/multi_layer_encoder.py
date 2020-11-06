@@ -1,173 +1,253 @@
 import warnings
-from collections import OrderedDict
-from copy import copy
-from typing import Collection, Dict, Iterator, Optional, Sequence, Set, Tuple, cast
+from collections import OrderedDict, defaultdict
+from typing import (
+    Any,
+    Callable,
+    Collection,
+    DefaultDict,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    cast,
+)
 
 import torch
 from torch import nn
 
 import pystiche
-from pystiche.misc import suppress_warnings
 
+from ..misc import build_deprecation_message
 from .encoder import Encoder
 from .guides import propagate_guide
 
 __all__ = ["MultiLayerEncoder", "SingleLayerEncoder"]
 
 
-def _future_warning(name: str) -> None:
-    msg = (
-        f"The functionality of MultiLayerEncoder.{name} will change in the future. "
-        f"If you depend on this functionality, "
-        f"see https://github.com/pmeier/pystiche/issues/435 for details "
-    )
-    warnings.warn(msg, FutureWarning)
+class _Layers:
+    def __init__(self, modules: Dict[str, nn.Module]) -> None:
+        self._modules = modules
+
+    def __contains__(self, name: str) -> bool:
+        return name in self._modules
+
+    def __len__(self) -> int:
+        return len(self._modules)
+
+    @property
+    def _names(self) -> Tuple[str, ...]:
+        # TODO: Check if tuple generation is expensive. If that is the case, cache it
+        #  based on self._modules.keys()
+        return tuple(self._modules.keys())
+
+    def _name_to_idx(self, name: str) -> int:
+        if name not in self:
+            raise ValueError
+
+        return self._names.index(name)
+
+    def _idx_to_name(self, idx: int) -> str:
+        if not (0 <= idx < len(self)):
+            raise ValueError
+
+        return self._names[idx]
+
+    def range(
+        self,
+        start: Optional[str] = None,
+        stop: Optional[str] = None,
+        include_start: bool = True,
+        include_stop: bool = True,
+    ) -> Tuple[str, ...]:
+        if not (start or stop):
+            return self._names
+
+        if start is None:
+            start_idx = 0
+        else:
+            start_idx = self._name_to_idx(start)
+            if not include_start:
+                start_idx += 1
+
+        if stop is None:
+            stop_idx = len(self)
+        else:
+            stop_idx = self._name_to_idx(stop)
+            if include_stop:
+                stop_idx += 1
+
+        return self._names[start_idx:stop_idx]
+
+    def _depth(
+        self, names: Iterable[str], extractor: Callable[[List[int]], int]
+    ) -> str:
+        return self._idx_to_name(extractor([self._name_to_idx(name) for name in names]))
+
+    def shallowest(self, names: Optional[Iterable[str]] = None) -> str:
+        return self._depth(names or self._names, min)
+
+    def deepest(self, names: Optional[Iterable[str]] = None) -> str:
+        return self._depth(names or self._names, max)
+
+    def _neighbour(
+        self,
+        name: str,
+        names: Iterable[str],
+        edge_idx: int,
+        extractor: Callable[[int, List[int]], Optional[str]],
+    ) -> Optional[str]:
+        if not names:
+            return None
+
+        idx = self._name_to_idx(name)
+        idcs = [self._name_to_idx(name) for name in names]
+
+        if edge_idx in idcs:
+            return self._idx_to_name(edge_idx)
+
+        return extractor(idx, idcs)
+
+    def _extract_prev(self, idx: int, idcs: List[int]) -> Optional[str]:
+        candidates = [other_idx for other_idx in idcs if other_idx < idx]
+        if not candidates:
+            return None
+
+        return self._idx_to_name(max(candidates))
+
+    def prev(self, name: str, names: Iterable[str]) -> Optional[str]:
+        return self._neighbour(name, names, edge_idx=0, extractor=self._extract_prev)
+
+    def _extract_next(self, idx: int, idcs: List[int]) -> Optional[str]:
+        candidates = [other_idx for other_idx in idcs if other_idx > idx]
+        if not candidates:
+            return None
+
+        return self._idx_to_name(min(candidates))
+
+    def next(self, name: str, names: Collection[str]) -> Optional[str]:
+        return self._neighbour(
+            name, names, edge_idx=len(self) - 1, extractor=self._extract_next
+        )
 
 
 class MultiLayerEncoder(pystiche.Module):
-    r"""Sequential architecture that supports extracting encodings from intermediate
-    layers in a single forward pass. Encodings can be stored to avoid recalculating
-    them if they are required multiple times. Invokes :meth:`MultiLayerEncoder.forward`
-    if called.
+    r"""Sequential encoder with convenient access to intermediate layers.
 
     Args:
-        modules: Named sequential modules.
+        modules: Named modules that serve as basis for the encoding.
 
     Attributes:
-        registered_layers: Set of registered layers for
-            :meth:`MultiLayerEncoder.encode` and :meth:`MultiLayerEncoder.trim`.
+        registered_layers: Layers, on which the encodings will be cached during the
+            :meth:`forward` pass.
     """
 
     def __init__(self, modules: Sequence[Tuple[str, nn.Module]]) -> None:
         super().__init__(named_children=modules)
+        self._layers: _Layers = _Layers(self._modules)
         self.registered_layers: Set[str] = set()
-        self._storage: Dict[Tuple[str, pystiche.TensorKey], torch.Tensor] = dict()
-
-        # TODO: remove this?
-        self.requires_grad_(False)
-        self.eval()
-
-    def children_names(self) -> Iterator[str]:
-        for name, child in self.named_children():
-            yield name
+        self._cache: DefaultDict[
+            pystiche.TensorKey, Dict[str, torch.Tensor]
+        ] = defaultdict(lambda: {})
 
     def __contains__(self, layer: str) -> bool:
-        r"""Checks if the given layer is part of the :class:`MultiLayerEncoder`
+        r"""Is the layer part of the multi-layer encoder?
 
         Args:
-            layer: Layer.
+            layer: Layer to be checked.
         """
-        return layer in self.children_names()
+        return layer in self._layers
 
-    def _verify_layer(self, layer: str) -> None:
-        if layer not in self:
-            raise ValueError(f"Layer {layer} is not part of the encoder.")
+    def _verify(self, name: str) -> None:
+        if name not in self:
+            raise ValueError(f"Layer {name} is not part of the multi-layer encoder.")
 
-    def extract_deepest_layer(self, layers: Collection[str]) -> str:
-        for layer in layers:
-            self._verify_layer(layer)
-        return sorted(set(layers), key=list(self.children_names()).index)[-1]
+    def register_layer(self, layer: str) -> None:
+        r"""Register a layer for caching the encodings in the :meth:`forward` pass.
 
-    def named_children_to(
-        self, layer: str, include_last: bool = False
-    ) -> Iterator[Tuple[str, nn.Module]]:
-        self._verify_layer(layer)
-        idx = list(self.children_names()).index(layer)
-        if include_last:
-            idx += 1
-        for name, child in tuple(self.named_children())[:idx]:
-            yield name, child
+        Args:
+            layer: Layer to be registered.
+        """
+        self._verify(layer)
+        self.registered_layers.add(layer)
 
-    def named_children_from(
-        self, layer: str, include_first: bool = True
-    ) -> Iterator[Tuple[str, nn.Module]]:
-        self._verify_layer(layer)
-        idx = list(self.children_names()).index(layer)
-        if not include_first:
-            idx += 1
-        for name, child in tuple(self.named_children())[idx:]:
-            yield name, child
+    # FIXME: could this be moved into pystiche.Module?
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        r"""Invokes :meth:`forward`."""
+        return super().__call__(*args, **kwargs)
 
     def forward(
-        self, input: torch.Tensor, layers: Sequence[str], store: bool = False
-    ) -> Tuple[torch.Tensor, ...]:
-        r"""Encode the input on the given layers in a single forward pass. If the input
-        was encoded before the encodings are extracted from the storage rather than
-        executing the forward pass again.
+        self,
+        input: torch.Tensor,
+        layer: str,
+        cache: Optional[Dict[str, torch.Tensor]] = None,
+        to_cache: Optional[Collection[str]] = None,
+    ) -> torch.Tensor:
+        r"""Encode the input on layer.
 
         Args:
-            input: Input.
-            layers: Layers.
-            store: If ``True``, store the encodings.
+            input: Input to be encoded.
+            layer: Layer on which the ``input`` should be encoded.
+            cache: Encoding cache. If omitted, defaults to the the internal cache.
+            to_cache: Layers, of which the encodings should be cached. If omitted,
+                defaults to :attr:`registered_layers`.
 
-        Returns:
-            Tuple of encodings which order corresponds to ``layers``.
+        Examples:
+
+            >>> modules = [("conv", nn.Conv2d(3, 3, 3)), ("pool", nn.MaxPool2d(2))]
+            >>> mle = enc.MultiLayerEncoder(modules)
+            >>> input = torch.rand(1, 3, 128, 128)
+            >>> output = mle(input, "conv")
         """
-        _future_warning("__call__")
-        storage = copy(self._storage)
-        input_key = pystiche.TensorKey(input)
-        stored_layers = [name for name, key in storage.keys() if key == input_key]
-        diff_layers = set(layers) - set(stored_layers)
+        self._verify(layer)
 
-        if diff_layers:
-            deepest_layer = self.extract_deepest_layer(diff_layers)
-            for name, module in self.named_children_to(
-                deepest_layer, include_last=True
-            ):
-                input = storage[(name, input_key)] = module(input)
+        if cache is None:
+            cache = self._cache[pystiche.TensorKey(input)]
+        if layer in cache:
+            return cache[layer]
 
-            if store:
-                self._storage = storage
+        if to_cache is None:
+            to_cache = self.registered_layers
 
-        return tuple(storage[(name, input_key)] for name in layers)
+        prev = self._layers.prev(layer, cache.keys())
+        if prev is not None:
+            input = cache[prev]
 
-    def extract_encoder(self, layer: str) -> "SingleLayerEncoder":
-        r"""Extract a :class:`SingleLayerEncoder` for the given layer and register
-        the layer in :attr:`MultiLayerEncoder.registered_layers`.
+        for name in self._layers.range(prev, layer, include_start=False):
+            module = self._modules[name]
+            input = module(input)
 
-        Args:
-            layer: Layer.
-        """
-        self._verify_layer(layer)
-        self.registered_layers.add(layer)
-        return SingleLayerEncoder(self, layer)
+            if name in to_cache:
+                cache[name] = input
 
-    def encode(self, input: torch.Tensor) -> None:
-        r"""Encode the given input and store the encodings of all
-        :attr:`MultiLayerEncoder.registered_layers`.
+        return input
 
-        Args:
-            input: Input.
-        """
-        _future_warning("encode")
-
-        if not self.registered_layers:
-            return
-
-        key = pystiche.TensorKey(input)
-        keys = [(layer, key) for layer in self.registered_layers]
-        encs = self(input, layers=self.registered_layers, store=True)
-        self._storage = dict(zip(keys, encs))
+    def clear_cache(self) -> None:
+        r"""Clear the internal cache."""
+        self._cache = defaultdict(lambda: {})
 
     def empty_storage(self) -> None:
-        r"""Empty the encodings storage."""
-        self._storage = {}
+        msg = build_deprecation_message(
+            "The method 'empty_storage'", "1.0", info="It was renamed to 'clear_cache'."
+        )
+        warnings.warn(msg)
+        self.clear_cache()
 
-    def trim(self, layers: Optional[Collection[str]] = None) -> None:
-        r"""Remove excess layers that are not necessary to generate the encodings of
-        ``layers``.
+    def encode(
+        self, input: torch.Tensor, layers: Sequence[str],
+    ) -> Tuple[torch.Tensor, ...]:
+        r"""Encode the input on layers.
 
         Args:
-            layers: Layers that the :class:`MultiLayerEncoder` need to be able to
-                generate encodings for. If ``None``,
-                :attr:`MultiLayerEncoder.registered_layers` is used. Defaults to
-                ``None``.
+            input: Input to be encoded.
+            layers: Layers on which the ``input`` should be encoded.
         """
-        if layers is None:
-            layers = self.registered_layers
-        deepest_layer = self.extract_deepest_layer(layers)
-        for name, _ in self.named_children_from(deepest_layer, include_first=False):
-            del self._modules[name]
+        cache: Dict[str, torch.Tensor] = {}
+        return tuple(
+            self(input, layer, cache=cache, to_cache=layers) for layer in layers
+        )
 
     def propagate_guide(
         self,
@@ -188,8 +268,8 @@ class MultiLayerEncoder(pystiche.Module):
             Tuple of guides which order corresponds to ``layers``.
         """
         guides = {}
-        deepest_layer = self.extract_deepest_layer(layers)
-        for name, module in self.named_children_to(deepest_layer, include_last=True):
+        for name in self._layers.range(stop=self._layers.deepest(layers)):
+            module = self._modules[name]
             try:
                 guide = guides[name] = propagate_guide(
                     module, guide, method=method, allow_empty=allow_empty
@@ -200,6 +280,27 @@ class MultiLayerEncoder(pystiche.Module):
                 raise error
 
         return tuple(guides[name] for name in layers)
+
+    def trim(self, layers: Optional[Iterable[str]] = None) -> None:
+        if layers is None:
+            layers = self.registered_layers
+        else:
+            for name in layers:
+                self._verify(name)
+
+        for name in self._layers.range(
+            self._layers.deepest(layers), include_start=False
+        ):
+            del self._modules[name]
+
+    def extract_encoder(self, layer: str) -> "SingleLayerEncoder":
+        r"""Extract a :class:`SingleLayerEncoder` for the layer and register it.
+
+        Args:
+            layer: Layer.
+        """
+        self.register_layer(layer)
+        return SingleLayerEncoder(self, layer)
 
 
 class SingleLayerEncoder(Encoder):
@@ -216,18 +317,14 @@ class SingleLayerEncoder(Encoder):
         self.multi_layer_encoder = multi_layer_encoder
         self.layer = layer
 
-    def forward(self, input_image: torch.Tensor) -> torch.Tensor:
-        r"""Encode the given input image on :attr:`SingleLayerEncoder.layer` of
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        r"""Encode the given input on :attr:`SingleLayerEncoder.layer` of
         :attr:`SingleLayerEncoder.multi_layer_encoder`.
 
         Args:
             input_image: Input image.
         """
-        with suppress_warnings(FutureWarning):
-            return cast(
-                Tuple[torch.Tensor],
-                self.multi_layer_encoder(input_image, layers=(self.layer,)),
-            )[0]
+        return cast(torch.Tensor, self.multi_layer_encoder(input, self.layer))
 
     def propagate_guide(self, guide: torch.Tensor) -> torch.Tensor:
         r"""Propagate the given guide on :attr:`SingleLayerEncoder.layer` of

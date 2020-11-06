@@ -1,3 +1,4 @@
+import warnings
 from types import TracebackType
 from typing import Iterator, Sequence, Tuple, Type
 
@@ -6,7 +7,7 @@ from torch import nn
 
 import pystiche
 from pystiche import enc, ops
-from pystiche.misc import suppress_warnings
+from pystiche.misc import build_deprecation_message
 
 __all__ = ["MLEHandler", "MultiOperatorLoss"]
 
@@ -21,21 +22,32 @@ class MLEHandler(pystiche.ComplexObject):
         }
 
     def encode(self, input_image: torch.Tensor) -> None:
-        for encoder in self.multi_layer_encoders:
-            encoder.encode(input_image)
+        msg = build_deprecation_message(
+            "The method 'encode'",
+            "1.0",
+            info=(
+                "It is no longer needed to pre-encode the input. "
+                "See https://github.com/pmeier/pystiche/issues/435 for details"
+            ),
+        )
+        warnings.warn(msg)
+
+    def clear_cache(self) -> None:
+        for mle in self.multi_layer_encoders:
+            mle.clear_cache()
 
     def empty_storage(self) -> None:
-        for mle in self.multi_layer_encoders:
-            mle.empty_storage()
+        msg = build_deprecation_message(
+            "The method 'empty_storage'", "1.0", info="It was renamed to 'clear_cache'."
+        )
+        warnings.warn(msg)
+        self.clear_cache()
 
     def trim(self) -> None:
         for mle in self.multi_layer_encoders:
             mle.trim()
 
     def __call__(self, input_image: torch.Tensor) -> "MLEHandler":
-        with suppress_warnings(FutureWarning):
-            for mle in self.multi_layer_encoders:
-                mle.encode(input_image)
         return self
 
     def __enter__(self) -> None:
@@ -45,7 +57,7 @@ class MLEHandler(pystiche.ComplexObject):
         self, exc_type: Type[Exception], exc_val: Exception, exc_tb: TracebackType
     ) -> None:
         for encoder in self.multi_layer_encoders:
-            encoder.empty_storage()
+            encoder.clear_cache()
 
     def _named_children(self) -> Iterator[Tuple[str, enc.MultiLayerEncoder]]:
         return ((str(idx), mle) for idx, mle in enumerate(self.multi_layer_encoders))
