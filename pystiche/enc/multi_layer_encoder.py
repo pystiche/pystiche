@@ -203,7 +203,7 @@ class MultiLayerEncoder(pystiche.Module):
             >>> output = mle(input, "conv")
         """
         if layer is None:
-            layer = next(reversed(self._modules.keys()))
+            layer = tuple(self._modules.keys())[-1]
         else:
             self._verify(layer)
 
