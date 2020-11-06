@@ -1,6 +1,7 @@
 import warnings
 from collections import OrderedDict, defaultdict
 from typing import (
+    Any,
     Callable,
     Collection,
     DefaultDict,
@@ -133,6 +134,16 @@ class _Layers:
 
 
 class MultiLayerEncoder(pystiche.Module):
+    r"""Sequential encoder with convenient access to intermediate layers.
+
+    Args:
+        modules: Named modules that serve as basis for the encoding.
+
+    Attributes:
+        registered_layers: Layers, on which the encodings will be cached during the
+            :meth:`forward` pass.
+    """
+
     def __init__(self, modules: Sequence[Tuple[str, nn.Module]]) -> None:
         super().__init__(named_children=modules)
         self._layers: _Layers = _Layers(self._modules)
@@ -142,6 +153,11 @@ class MultiLayerEncoder(pystiche.Module):
         ] = defaultdict(lambda: {})
 
     def __contains__(self, layer: str) -> bool:
+        r"""Is the layer part of the multi-layer encoder?
+
+        Args:
+            layer: Layer to be checked.
+        """
         return layer in self._layers
 
     def _verify(self, name: str) -> None:
@@ -149,8 +165,18 @@ class MultiLayerEncoder(pystiche.Module):
             raise ValueError(f"Layer {name} is not part of the multi-layer encoder.")
 
     def register_layer(self, layer: str) -> None:
+        r"""Register a layer for caching the encodings in the :meth:`forward` pass.
+
+        Args:
+            layer: Layer to be registered.
+        """
         self._verify(layer)
         self.registered_layers.add(layer)
+
+    # FIXME: could this be moved into pystiche.Module?
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        r"""Invokes :meth:`forward`."""
+        return super().__call__(*args, **kwargs)
 
     def forward(
         self,
@@ -159,6 +185,22 @@ class MultiLayerEncoder(pystiche.Module):
         cache: Optional[Dict[str, torch.Tensor]] = None,
         to_cache: Optional[Collection[str]] = None,
     ) -> torch.Tensor:
+        r"""Encode the input on layer.
+
+        Args:
+            input: Input to be encoded.
+            layer: Layer on which the ``input`` should be encoded.
+            cache: Encoding cache. If omitted, defaults to the the internal cache.
+            to_cache: Layers, of which the encodings should be cached. If omitted,
+                defaults to :attr:`registered_layers`.
+
+        Examples:
+
+            >>> modules = [("conv", nn.Conv2d(3, 3, 3)), ("pool", nn.MaxPool2d(2))]
+            >>> mle = enc.MultiLayerEncoder(modules)
+            >>> input = torch.rand(1, 3, 128, 128)
+            >>> output = mle(input, "conv")
+        """
         self._verify(layer)
 
         if cache is None:
@@ -183,6 +225,7 @@ class MultiLayerEncoder(pystiche.Module):
         return input
 
     def clear_cache(self) -> None:
+        r"""Clear the internal cache."""
         self._cache = defaultdict(lambda: {})
 
     def empty_storage(self) -> None:
@@ -195,31 +238,16 @@ class MultiLayerEncoder(pystiche.Module):
     def encode(
         self, input: torch.Tensor, layers: Sequence[str],
     ) -> Tuple[torch.Tensor, ...]:
+        r"""Encode the input on layers.
+
+        Args:
+            input: Input to be encoded.
+            layers: Layers on which the ``input`` should be encoded.
+        """
         cache: Dict[str, torch.Tensor] = {}
         return tuple(
             self(input, layer, cache=cache, to_cache=layers) for layer in layers
         )
-
-    def trim(self, layers: Optional[Iterable[str]] = None) -> None:
-        if layers is None:
-            layers = self.registered_layers
-        else:
-            for name in layers:
-                self._verify(name)
-
-        for name in self._layers.range(
-            self._layers.deepest(layers), include_start=False
-        ):
-            del self._modules[name]
-
-    def extract_encoder(self, layer: str) -> "SingleLayerEncoder":
-        r"""Extract a :class:`SingleLayerEncoder` for the given layer and register it.
-
-        Args:
-            layer: Layer.
-        """
-        self.register_layer(layer)
-        return SingleLayerEncoder(self, layer)
 
     def propagate_guide(
         self,
@@ -252,6 +280,27 @@ class MultiLayerEncoder(pystiche.Module):
                 raise error
 
         return tuple(guides[name] for name in layers)
+
+    def trim(self, layers: Optional[Iterable[str]] = None) -> None:
+        if layers is None:
+            layers = self.registered_layers
+        else:
+            for name in layers:
+                self._verify(name)
+
+        for name in self._layers.range(
+            self._layers.deepest(layers), include_start=False
+        ):
+            del self._modules[name]
+
+    def extract_encoder(self, layer: str) -> "SingleLayerEncoder":
+        r"""Extract a :class:`SingleLayerEncoder` for the layer and register it.
+
+        Args:
+            layer: Layer.
+        """
+        self.register_layer(layer)
+        return SingleLayerEncoder(self, layer)
 
 
 class SingleLayerEncoder(Encoder):

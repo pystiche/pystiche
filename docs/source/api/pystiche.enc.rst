@@ -12,12 +12,15 @@
 .. autoclass:: MultiLayerEncoder
   :members:
     __contains__,
+    register_layer,
+    __call__,
     forward,
-    extract_encoder,
+    clear_cache,
     encode,
-    empty_storage,
+    propagate_guide,
     trim,
-    propagate_guide
+    extract_encoder
+
 .. autoclass:: SingleLayerEncoder
   :members:
     forward,
