@@ -148,9 +148,9 @@ class MultiLayerEncoder(pystiche.Module):
         super().__init__(named_children=modules)
         self._layers: _Layers = _Layers(self._modules)
         self.registered_layers: Set[str] = set()
-        self._cache: DefaultDict[
-            pystiche.TensorKey, Dict[str, torch.Tensor]
-        ] = defaultdict(lambda: {})
+        self._cache: DefaultDict[torch.Tensor, Dict[str, torch.Tensor]] = defaultdict(
+            lambda: {}
+        )
 
     def __contains__(self, layer: str) -> bool:
         r"""Is the layer part of the multi-layer encoder?
@@ -208,7 +208,7 @@ class MultiLayerEncoder(pystiche.Module):
             self._verify(layer)
 
         if cache is None:
-            cache = self._cache[pystiche.TensorKey(input)]
+            cache = self._cache[input]
         if layer in cache:
             return cache[layer]
 
