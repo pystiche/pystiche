@@ -145,6 +145,24 @@ def test_MultiLayerEncoder_empty_storage(mocker, mle):
     mock.assert_called()
 
 
+def test_MultiLayerEncoder_backward_clear_cache(mle_and_modules, input):
+    mle, modules = mle_and_modules
+    layer = "shallow"
+    module = modules[layer]
+    mle.register_layer(layer)
+
+    input.requires_grad_(True)
+    output = mle(input, layer)
+    module.assert_called_once_with(input)
+
+    loss = torch.sum(output)
+    loss.backward()
+
+    mle(input, layer)
+    module.assert_called(2)
+    module.assert_called_with(input)
+
+
 def test_MultiLayerEncoder_encode(input):
     conv = nn.Conv2d(3, 1, 1)
     relu = nn.ReLU(inplace=False)
