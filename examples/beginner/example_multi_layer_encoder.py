@@ -237,10 +237,22 @@ for permutation in itertools.permutations(("conv", "relu", "pool")):
 #
 # .. note::
 #
-#   The :func:`~torchvision.models.vgg19` from ``torchvision`` is loaded with
-#   ``pretrained=True`` to enable an output comparison. The same parameter is also
-#   present in :func:`~pystiche.env.vgg19_multi_layer_encoder`, but is ``True`` by
-#   default.
+#   By default, :func:`~pystiche.enc.vgg19_multi_layer_encoder` loads weights provided
+#   by ``torchvision``. We disable this here since we load the randomly initilaized
+#   weights of the ``torchvision`` model to enable a comparison.
+#
+# .. note::
+#
+#   By default, :func:`~pystiche.enc.vgg19_multi_layer_encoder` adds an
+#   ``internal_preprocessing`` so that the user can simply pass the image as is,
+#   without worrying about it. We disable this here to enable a comparison.
+#
+# .. note::
+#
+#   By default, :func:`~pystiche.enc.vgg19_multi_layer_encoder` disallows in-place
+#   operations since after they are carried out, the previous encoding is no longer
+#   accessible. In order to enable a fair performance comparison, we allow them here,
+#   since they are also used in :func:`~torchvision.models.vgg19`.
 #
 # .. note::
 #
@@ -249,26 +261,14 @@ for permutation in itertools.permutations(("conv", "relu", "pool")):
 #   usually not be met in an NST, the builtin multi-layer encoder only comprises the
 #   size invariant convolutional stage. Thus, we only use ``vgg19().features`` to
 #   enable a comparison.
-#
-# .. note::
-#
-#   By default, :func:`~pystiche.env.vgg19_multi_layer_encoder` adds an
-#   ``internal_preprocessing`` so that the user can simply pass the image as is,
-#   without worrying about it. We disable this here to enable a comparison.
-#
-# .. note::
-#
-#   By default, :func:`~pystiche.env.vgg19_multi_layer_encoder` disallows in-place
-#   operations since after they are carried out, the previous encoding is no longer
-#   accessible. In order to enable a fair performance comparison, we allow them here,
-#   since they are also used in :func:`~torchvision.models.vgg19`.
 
-seq = models.vgg19(pretrained=True).features.to(device)
+seq = models.vgg19()
 mle = enc.vgg19_multi_layer_encoder(
-    internal_preprocessing=False, allow_inplace=True
-).to(device)
+    pretrained=False, internal_preprocessing=False, allow_inplace=True
+)
+mle.load_state_dict(seq.state_dict())
 
 input = torch.rand((4, 3, 256, 256), device=device)
 
-assert torch.allclose(mle(input), seq(input))
-print(fdifftimeit(lambda: seq(input), lambda: mle(input)))
+assert torch.allclose(mle(input), seq.features(input))
+print(fdifftimeit(lambda: seq.features(input), lambda: mle(input)))
