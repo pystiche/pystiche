@@ -1,10 +1,6 @@
 Installation
 ============
 
-``pystiche`` is a proper Python package and can be installed with ``pip``. It is not
-yet listed on `PyPI <https://pypi.org/>`_, since it will be reviewed at
-`pyOpenSci <https://github.com/pmeier/pystiche/issues/93>`_.
-
 The latest **stable** version can be installed with
 
 .. code-block:: sh
