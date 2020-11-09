@@ -80,13 +80,15 @@ def fdifftimeit(seq_fn, mle_fn, **kwargs):
         )
     else:
         return "\n".join(
-            "Due to the very rough timing method used here, "
-            "we detected a case where the encoding with the enc.MultiLayerEncoder "
-            "was actually faster than the boiler-plate nn.Sequential. "
-            "Since the enc.MultiLayerEncoder has some overhead, "
-            "this is a measuring error. "
-            "Still, this serves as indicator that the overhead is small enough, "
-            "to be well in the measuring tolerance."
+            (
+                "Due to the very rough timing method used here, ",
+                "we detected a case where the encoding with the enc.MultiLayerEncoder ",
+                "was actually faster than the boiler-plate nn.Sequential. ",
+                "Since the enc.MultiLayerEncoder has some overhead, ",
+                "this is a measuring error. ",
+                "Still, this serves as indicator that the overhead is small enough, ",
+                "to be well in the measuring tolerance.",
+            )
         )
 
 
