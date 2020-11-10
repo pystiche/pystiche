@@ -248,8 +248,7 @@ class MultiLayerEncoder(pystiche.Module):
         grad_input: Union[Tuple[torch.Tensor, ...], torch.Tensor],
         grad_output: Union[Tuple[torch.Tensor, ...], torch.Tensor],
     ) -> None:
-        if self._cache:
-            self.clear_cache()
+        self.clear_cache()
 
     def encode(
         self, input: torch.Tensor, layers: Sequence[str],
