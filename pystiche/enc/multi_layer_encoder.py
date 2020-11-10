@@ -12,6 +12,7 @@ from typing import (
     Sequence,
     Set,
     Tuple,
+    Union,
     cast,
 )
 
@@ -151,6 +152,9 @@ class MultiLayerEncoder(pystiche.Module):
         self._cache: DefaultDict[torch.Tensor, Dict[str, torch.Tensor]] = defaultdict(
             lambda: {}
         )
+        self.register_backward_hook(
+            MultiLayerEncoder.__backward_hook__  # type:ignore[arg-type]
+        )
 
     def __contains__(self, layer: str) -> bool:
         r"""Is the layer part of the multi-layer encoder?
@@ -230,13 +234,20 @@ class MultiLayerEncoder(pystiche.Module):
 
     def clear_cache(self) -> None:
         r"""Clear the internal cache."""
-        self._cache = defaultdict(lambda: {})
+        self._cache.clear()
 
     def empty_storage(self) -> None:
         msg = build_deprecation_message(
             "The method 'empty_storage'", "1.0", info="It was renamed to 'clear_cache'."
         )
         warnings.warn(msg)
+        self.clear_cache()
+
+    def __backward_hook__(
+        self,
+        grad_input: Union[Tuple[torch.Tensor, ...], torch.Tensor],
+        grad_output: Union[Tuple[torch.Tensor, ...], torch.Tensor],
+    ) -> None:
         self.clear_cache()
 
     def encode(
