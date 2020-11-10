@@ -6,7 +6,7 @@ from distutils import dir_util
 
 import pytorch_testing_utils as ptu
 
-from torch import nn
+from torch import autograd, nn
 
 import pystiche
 
@@ -117,6 +117,19 @@ def patch_home(home, copy=True, mocker=DEFAULT_MOCKER):
     return mocker.patch.dict(os.environ, values={"PYSTICHE_HOME": home})
 
 
+class NoOpFunction(autograd.Function):
+    @staticmethod
+    def forward(ctx, *args, **kwargs):
+        input, *args = args
+        return input
+
+    @staticmethod
+    def backward(ctx, *grad_outputs):
+        grad_output, *grad_outputs = grad_outputs
+        grad_input = (grad_output, *[None] * len(grad_outputs))
+        return grad_input
+
+
 class ModuleMock(nn.Module):
     def __init__(self, *methods):
         super().__init__()
@@ -128,9 +141,9 @@ class ModuleMock(nn.Module):
                 unittest.mock.MagicMock(name=f"{type(self).__name__}.{method}"),
             )
 
-    def forward(self, input, *args, **kwargs):
-        self._call_args_list.insert(0, ((input, *args), kwargs))
-        return input
+    def forward(self, *args, **kwargs):
+        self._call_args_list.insert(0, (args, kwargs))
+        return NoOpFunction.apply(*args, **kwargs)
 
     @property
     def call_args_list(self):
