@@ -3,14 +3,6 @@
 
 .. automodule:: pystiche.image
 
-Sub-packages
-------------
-
-.. toctree::
-  :maxdepth: 1
-
-  pystiche.image.transforms
-
 
 Utilities
 ---------

@@ -1,5 +1,3 @@
-import itertools
-
 import pytorch_testing_utils as ptu
 
 import torch
@@ -42,33 +40,17 @@ def test_GramOperator_call():
     ptu.assert_allclose(actual, desired)
 
 
-def test_MRFOperator_scale_and_rotate_transforms():
-    num_scale_steps = 1
-    scale_step_width = 10e-2
-    num_rotate_steps = 1
-    rotate_step_width = 30.0
+def test_MRFOperator_scale_and_rotate_transforms_smoke():
+    num_scale_steps = 2
+    num_rotate_steps = 3
 
     target_transforms = ops.MRFOperator.scale_and_rotate_transforms(
-        num_scale_steps=num_scale_steps,
-        scale_step_width=scale_step_width,
-        num_rotate_steps=num_rotate_steps,
-        rotate_step_width=rotate_step_width,
-    )
-    assert len(target_transforms) == (num_scale_steps * 2 + 1) * (
-        num_rotate_steps * 2 + 1
+        num_scale_steps=num_scale_steps, num_rotate_steps=num_rotate_steps,
     )
 
-    actual = {
-        (transform.scaling_factor, transform.rotation_angle)
-        for transform in target_transforms
-    }
-    desired = set(
-        itertools.product(
-            (1.0 - scale_step_width, 1.0, 1.0 + scale_step_width),
-            (-rotate_step_width, 0.0, rotate_step_width),
-        )
-    )
-    assert actual == desired
+    actual = len(target_transforms)
+    expected = (num_scale_steps * 2 + 1) * (num_rotate_steps * 2 + 1)
+    assert actual == expected
 
 
 def test_MRFOperator_enc_to_repr_guided(subtests):

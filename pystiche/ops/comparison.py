@@ -1,13 +1,12 @@
 import itertools
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
-import numpy as np
-
 import torch
+from torch import nn
 
 import pystiche
 from pystiche.enc import Encoder
-from pystiche.image.transforms import Transform, TransformMotifAffinely
+from pystiche.image._transforms import Affine
 from pystiche.misc import suppress_warnings, to_2d_arg
 
 from . import functional as F
@@ -204,7 +203,7 @@ class MRFOperator(EncodingComparisonOperator):
         encoder: Encoder,
         patch_size: Union[int, Sequence[int]],
         stride: Union[int, Sequence[int]] = 1,
-        target_transforms: Optional[Iterable[Transform]] = None,
+        target_transforms: Optional[Iterable[nn.Module]] = None,
         score_weight: float = 1.0,
     ):
         super().__init__(encoder, score_weight=score_weight)
@@ -218,7 +217,7 @@ class MRFOperator(EncodingComparisonOperator):
         scale_step_width: float = 5e-2,
         num_rotate_steps: int = 1,
         rotate_step_width: float = 10.0,
-    ) -> List[TransformMotifAffinely]:
+    ) -> List[Affine]:
         """Generate a list of scaling and rotations transformations.
 
         .. seealso::
@@ -248,29 +247,19 @@ class MRFOperator(EncodingComparisonOperator):
            ``(num_scale_steps * 2 + 1) * (num_rotate_steps * 2 + 1)`` transformations
            in total comprising every combination given by the input parameters.
         """
-        scaling_factors = np.arange(
-            -num_scale_steps, num_scale_steps + 1, dtype=np.float
-        )
-        scaling_factors = 1.0 + (scaling_factors * scale_step_width)
 
-        rotation_angles = np.arange(
-            -num_rotate_steps, num_rotate_steps + 1, dtype=np.float
-        )
-        rotation_angles *= rotate_step_width
-
-        transforms = []
-        for scaling_factor, rotation_angle in itertools.product(
-            scaling_factors, rotation_angles
-        ):
-            with suppress_warnings():
-                transform = TransformMotifAffinely(
-                    scaling_factor=scaling_factor,
-                    rotation_angle=rotation_angle,
-                    canvas="same",  # FIXME: this should be valid after it is implemented
-                )
-            transforms.append(transform)
-
-        return transforms
+        angles = [
+            base * rotate_step_width
+            for base in range(-num_rotate_steps, num_rotate_steps + 1)
+        ]
+        scale_factors = [
+            1.0 + (base * scale_step_width)
+            for base in range(-num_scale_steps, num_scale_steps + 1)
+        ]
+        return [
+            Affine(angle=angle, scale_factor=scale_factor)
+            for angle, scale_factor in itertools.product(angles, scale_factors)
+        ]
 
     @staticmethod
     def _match_batch_sizes(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:

@@ -6,7 +6,7 @@ from torch import hub, nn
 from torch.nn.modules.module import _IncompatibleKeys
 
 from ..multi_layer_encoder import MultiLayerEncoder
-from ..preprocessing import get_preprocessor
+from ..prepostprocessing import preprocessing
 
 __all__ = ["ModelMultiLayerEncoder", "select_url"]
 
@@ -57,7 +57,7 @@ class ModelMultiLayerEncoder(MultiLayerEncoder):
 
         modules, self._state_dict_key_map = self.collect_modules(allow_inplace)
         if internal_preprocessing:
-            modules.insert(0, ("preprocessing", get_preprocessor(framework)))
+            modules.insert(0, ("preprocessing", preprocessing(framework)))
 
         super().__init__(modules)
 

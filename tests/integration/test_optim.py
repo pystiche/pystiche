@@ -61,6 +61,10 @@ def test_default_image_optim_loop(optim_asset_loader):
 
 
 @skip_if_py38
+@pytest.mark.skip(
+    "'pystiche.image.transforms' is needed to load the asset, "
+    "but is no longer accessible."
+)
 def test_default_image_optim_loop_processing(optim_asset_loader):
     asset = optim_asset_loader("default_image_optim_loop_processing")
 

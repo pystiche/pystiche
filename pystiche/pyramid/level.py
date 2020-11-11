@@ -3,10 +3,9 @@ from typing import Any, Dict, Iterator, Optional
 import torch
 
 from pystiche import ComplexObject
-from pystiche.misc import suppress_warnings, verify_str_arg
-
-with suppress_warnings():
-    from pystiche.image.transforms.functional import resize
+from pystiche.image import edge_to_image_size, extract_aspect_ratio
+from pystiche.image._transforms import resize
+from pystiche.misc import verify_str_arg
 
 __all__ = ["PyramidLevel"]
 
@@ -33,15 +32,12 @@ class PyramidLevel(ComplexObject):
         aspect_ratio: Optional[float],
         interpolation_mode: str,
     ) -> torch.Tensor:
+        if aspect_ratio is None:
+            aspect_ratio = extract_aspect_ratio(image)
+        image_size = edge_to_image_size(self.edge_size, aspect_ratio, edge=self.edge)
 
         with torch.no_grad():
-            image = resize(
-                image,
-                self.edge_size,
-                edge=self.edge,
-                aspect_ratio=aspect_ratio,
-                interpolation_mode=interpolation_mode,
-            )
+            image = resize(image, image_size, interpolation=interpolation_mode)
         return image.detach()
 
     def resize_image(
