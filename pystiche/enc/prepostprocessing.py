@@ -1,5 +1,5 @@
 import warnings
-from typing import Dict, Type
+from typing import Mapping, Type
 
 import torch
 from torch import nn
@@ -78,7 +78,7 @@ _PREPROCESSING = {"torch": TorchPreprocessing, "caffe": CaffePreprocessing}
 _POSTPROCESSING = {"torch": TorchPostprocessing, "caffe": CaffePostprocessing}
 
 
-def _processing(framework: str, dct: Dict[str, Type[nn.Module]]) -> nn.Module:
+def _processing(framework: str, dct: Mapping[str, Type[nn.Module]]) -> nn.Module:
     try:
         return dct[framework]()
     except KeyError as error:
