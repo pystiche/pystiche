@@ -1,3 +1,17 @@
+"""kornia compatibility layer
+
+This module exists only to provide compatibility to improve kornia functionality until
+it is fixed upstream. The following improvements are included:
+
+- The default value of 'align_corners' (resize, Affine) now works by default with every
+  interpolation mode
+- Tensor attributes of Transformations (Affine, Normalize, Denormalize) are now
+  registered as non-persistent buffers by default.
+- Parameters that should be passed as tensors (Affine, Normalize, Denormalize) are now
+  allowed as float or tuple of floats for convenience
+- The Affine transformation now is independent of the batch_size
+"""
+
 from typing import Any, Optional, Sequence, Tuple, Union
 
 import kornia
