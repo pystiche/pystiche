@@ -16,7 +16,6 @@
 
 .. end-badges
 
-
 ``pystiche``
 ============
 
