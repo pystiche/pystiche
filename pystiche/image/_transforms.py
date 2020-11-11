@@ -104,11 +104,7 @@ class Affine(_TensorToBufferMixin, _AlignCornersMixin, kornia.Affine):
 
 class _NormalizeMixin(nn.Module):
     def __init__(self, mean: Sequence[float], std: Sequence[float]) -> None:
-        super().__init__(self._to_tensor(mean), self._to_tensor(std))
-
-    @staticmethod
-    def _to_tensor(seq: Sequence[float]):
-        return torch.tensor(seq).view(1, -1, 1, 1)
+        super().__init__(torch.tensor(mean), torch.tensor(std))
 
 
 class Normalize(_TensorToBufferMixin, _NormalizeMixin, kornia.enhance.Normalize):
