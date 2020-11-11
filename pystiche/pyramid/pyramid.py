@@ -1,3 +1,4 @@
+from math import floor, log2
 from typing import (
     Any,
     Collection,
@@ -9,8 +10,6 @@ from typing import (
     Tuple,
     Union,
 )
-
-import numpy as np
 
 from pystiche import ComplexObject
 from pystiche.loss import MultiOperatorLoss
@@ -160,7 +159,7 @@ class OctaveImagePyramid(ImagePyramid):
         **image_pyramid_kwargs: Any,
     ) -> None:
         if num_levels is None:
-            num_levels = int(np.floor(np.log2(max_edge_size / min_edge_size))) + 1
+            num_levels = int(floor(log2(max_edge_size / min_edge_size))) + 1
 
         edge_sizes = [
             round(max_edge_size / (2.0 ** ((num_levels - 1) - level)))
