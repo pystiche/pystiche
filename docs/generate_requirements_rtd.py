@@ -1,4 +1,5 @@
 import configparser
+import re
 from os import path
 
 try:
@@ -9,6 +10,9 @@ try:
 except (ImportError, AssertionError):
     msg = "Please install pyyaml and light-the-torch>=0.2 prior to running this."
     raise RuntimeError(msg)
+
+
+DEPS_SUBSTITUTION_PATTERN = re.compile(r"\{\[(?P<section>[a-zA-Z\-]+)\]deps\}")
 
 
 def main(
@@ -33,7 +37,17 @@ def extract_python_version_from_rtd_config(root, file=".readthedocs.yml"):
 def extract_docs_deps_from_tox_config(root, file="tox.ini", section="docs-common"):
     config = configparser.ConfigParser()
     config.read(path.join(root, file))
-    return config[section]["deps"].strip().split("\n")
+
+    deps = []
+    sections = [section]
+    for section in sections:
+        for dep in config[section]["deps"].strip().split("\n"):
+            match = DEPS_SUBSTITUTION_PATTERN.match(dep)
+            if match is None:
+                deps.append(dep)
+            else:
+                sections.append(match.group("section"))
+    return deps
 
 
 def find_pytorch_wheel_links(
