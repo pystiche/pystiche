@@ -1,5 +1,6 @@
 import itertools
 
+import pytest
 import pytorch_testing_utils as ptu
 
 import torch
@@ -58,17 +59,22 @@ def test_MRFOperator_scale_and_rotate_transforms():
         num_rotate_steps * 2 + 1
     )
 
-    actual = {
-        (transform.scaling_factor, transform.rotation_angle)
+    actuals = {
+        (transform.scale_factor.item(), transform.angle.item())
         for transform in target_transforms
     }
-    desired = set(
+    expecteds = set(
         itertools.product(
             (1.0 - scale_step_width, 1.0, 1.0 + scale_step_width),
             (-rotate_step_width, 0.0, rotate_step_width),
         )
     )
-    assert actual == desired
+    for actual, expected in zip(actuals, expecteds):
+        actual_scale_factor, actual_angle = actual
+        expected_scale_factor, expected_angle = expected
+
+        assert actual_scale_factor == pytest.approx(expected_scale_factor)
+        assert actual_angle == pytest.approx(expected_angle)
 
 
 def test_MRFOperator_enc_to_repr_guided(subtests):
