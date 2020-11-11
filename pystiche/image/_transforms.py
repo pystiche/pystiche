@@ -46,7 +46,7 @@ class _TensorToBufferMixin(nn.Module):
                 continue
 
             delattr(self, name)
-            self.register_buffer(name, attr)
+            self.register_buffer(name, attr, persistent=False)
 
 
 class _AlignCornersMixin(nn.Module):
