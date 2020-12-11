@@ -48,7 +48,7 @@ class ModelMultiLayerEncoder(MultiLayerEncoder):
         pretrained: bool = True,
         framework: str = "torch",
         internal_preprocessing: bool = True,
-        allow_inplace: bool = True,
+        allow_inplace: bool = False,
     ) -> None:
         self.pretrained = pretrained
         self.framework = framework
