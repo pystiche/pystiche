@@ -106,7 +106,7 @@ def latex():
 def bibtex():
     extension = "sphinxcontrib.bibtex"
 
-    config = None
+    config = dict(bibtex_bibfiles=["references.bib"])
 
     return extension, config
 
