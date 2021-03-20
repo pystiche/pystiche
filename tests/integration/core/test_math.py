@@ -14,7 +14,7 @@ def test_nonnegsqrt():
     desireds = (0.0, 0.0, 1.0, sqrt(2.0))
 
     for val, desired in zip(vals, desireds):
-        x = torch.tensor(val, requires_grad=True)
+        x = torch.tensor(val)
         y = pystiche.nonnegsqrt(x)
 
         assert y == ptu.approx(desired)
