@@ -47,6 +47,7 @@ def test_image_optimization_optimizer_preprocessor():
 
 
 @skip_if_py38
+@pytest.mark.flaky
 def test_default_image_optim_loop(optim_asset_loader):
     asset = optim_asset_loader("default_image_optim_loop")
 
@@ -62,6 +63,7 @@ def test_default_image_optim_loop(optim_asset_loader):
 
 
 @skip_if_py38
+@pytest.mark.flaky
 def test_default_image_optim_loop_processing(optim_asset_loader):
     asset = optim_asset_loader("default_image_optim_loop_processing")
 
@@ -79,6 +81,7 @@ def test_default_image_optim_loop_processing(optim_asset_loader):
 
 
 @skip_if_py38
+@pytest.mark.flaky
 def test_default_image_optim_loop_logging_smoke(caplog, optim_asset_loader):
     asset = optim_asset_loader("default_image_optim_loop")
 
@@ -95,6 +98,7 @@ def test_default_image_optim_loop_logging_smoke(caplog, optim_asset_loader):
 
 
 @skip_if_py38
+@pytest.mark.flaky
 def test_default_image_pyramid_optim_loop(optim_asset_loader):
     asset = optim_asset_loader("default_image_pyramid_optim_loop")
 
@@ -110,6 +114,7 @@ def test_default_image_pyramid_optim_loop(optim_asset_loader):
 
 
 @skip_if_py38
+@pytest.mark.flaky
 def test_default_image_pyramid_optim_loop_processing(optim_asset_loader):
     asset = optim_asset_loader("default_image_pyramid_optim_loop")
 
@@ -127,6 +132,7 @@ def test_default_image_pyramid_optim_loop_processing(optim_asset_loader):
 
 
 @skip_if_py38
+@pytest.mark.flaky
 def test_default_image_pyramid_optim_loop_logging_smoke(caplog, optim_asset_loader):
     asset = optim_asset_loader("default_image_pyramid_optim_loop")
 
@@ -166,6 +172,7 @@ def make_torch_ge_1_6_compatible(image_loader, criterion):
 
 
 @skip_if_py38
+@pytest.mark.flaky
 def test_default_transformer_optim_loop(optim_asset_loader):
     asset = optim_asset_loader("default_transformer_optim_loop")
 
@@ -190,6 +197,7 @@ def test_default_transformer_optim_loop(optim_asset_loader):
 
 
 @skip_if_py38
+@pytest.mark.flaky
 def test_default_transformer_optim_loop_logging_smoke(caplog, optim_asset_loader):
     asset = optim_asset_loader("default_transformer_optim_loop")
 
@@ -214,6 +222,7 @@ def test_default_transformer_optim_loop_logging_smoke(caplog, optim_asset_loader
 
 
 @skip_if_py38
+@pytest.mark.flaky
 def test_default_transformer_epoch_optim_loop(optim_asset_loader):
     asset = optim_asset_loader("default_transformer_epoch_optim_loop")
 
@@ -241,6 +250,7 @@ def test_default_transformer_epoch_optim_loop(optim_asset_loader):
 
 
 @skip_if_py38
+@pytest.mark.flaky
 def test_default_transformer_epoch_optim_loop_logging_smoke(caplog, optim_asset_loader):
     asset = optim_asset_loader("default_transformer_epoch_optim_loop")
 
