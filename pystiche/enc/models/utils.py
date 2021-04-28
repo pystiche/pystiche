@@ -140,7 +140,8 @@ class ModelMultiLayerEncoder(MultiLayerEncoder):
             unexpected_keys = []
 
         keys = cast(
-            _IncompatibleKeys, super().load_state_dict(state_dict, strict=strict)
+            _IncompatibleKeys,
+            super().load_state_dict(state_dict, strict=strict),  # type: ignore[arg-type]
         )
         keys.unexpected_keys.extend(unexpected_keys)
 
