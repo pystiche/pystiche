@@ -3,6 +3,7 @@ from collections import OrderedDict
 from copy import copy
 from typing import (
     Any,
+    Callable,
     Dict,
     Hashable,
     Iterable,
@@ -234,8 +235,12 @@ class TensorKey:
 
     @staticmethod
     def _calculate_stats(x: torch.Tensor, precision: int) -> List[str]:
-        stat_fns = (torch.min, torch.max, torch.norm)
-        return [f"{stat_fn(x):.{precision}e}" for stat_fn in stat_fns]
+        stat_fns: Tuple[Callable[[torch.Tensor], torch.Tensor], ...] = (
+            torch.min,
+            torch.max,
+            torch.norm,
+        )
+        return [f"{stat_fn(x).item():.{precision}e}" for stat_fn in stat_fns]
 
     @property
     def key(self) -> Tuple[Hashable, ...]:
