@@ -2,6 +2,11 @@ import logging
 import sys
 import warnings
 from datetime import datetime
+from typing import cast
+
+import torch
+from torch import nn
+from torch.nn.functional import interpolate
 
 from pystiche.data import (
     DownloadableImage,
@@ -14,7 +19,7 @@ from pystiche.optim import OptimLogger
 
 from .misc import build_deprecation_message, suppress_warnings
 
-__all__ = ["images", "logger"]
+__all__ = ["images", "logger", "transformer"]
 
 
 def images() -> DownloadableImageCollection:
@@ -211,3 +216,116 @@ def demo_logger() -> OptimLogger:
         )
     )
     return logger()
+
+
+class Interpolate(nn.Module):
+    def __init__(self, scale_factor: float = 1.0, mode: str = "nearest") -> None:
+        super().__init__()
+        self.scale_factor = scale_factor
+        self.mode = mode
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        return cast(
+            torch.Tensor,
+            interpolate(input, scale_factor=self.scale_factor, mode=self.mode),
+        )
+
+    def extra_repr(self) -> str:
+        extras = [f"scale_factor={self.scale_factor}"]
+        if self.mode != "nearest":
+            extras.append(f"mode={self.mode}")
+        return ", ".join(extras)
+
+
+class Conv(nn.Module):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        *,
+        stride: int = 1,
+        upsample: bool = False,
+        norm: bool = True,
+        activation: bool = True,
+    ):
+        super().__init__()
+        self.upsample = Interpolate(scale_factor=stride) if upsample else None
+        self.pad = nn.ReflectionPad2d(kernel_size // 2)
+        self.conv = nn.Conv2d(
+            in_channels, out_channels, kernel_size, stride=1 if upsample else stride
+        )
+        self.norm = nn.InstanceNorm2d(out_channels, affine=True) if norm else None
+        self.activation = nn.ReLU() if activation else None
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        if self.upsample:
+            input = self.upsample(input)
+
+        output = self.conv(self.pad(input))
+
+        if self.norm:
+            output = self.norm(output)
+        if self.activation:
+            output = self.activation(output)
+
+        return cast(torch.Tensor, output)
+
+
+class Residual(nn.Module):
+    def __init__(self, channels: int) -> None:
+        super().__init__()
+        self.conv1 = Conv(channels, channels, kernel_size=3)
+        self.conv2 = Conv(channels, channels, kernel_size=3, activation=False)
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        output = cast(torch.Tensor, self.conv2(self.conv1(input)))
+        return output + input
+
+
+class FloatToUint8Range(nn.Module):
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        return input * 255.0
+
+
+class Uint8ToFloatRange(nn.Module):
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        return input / 255.0
+
+
+class Transformer(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.encoder = nn.Sequential(
+            Conv(3, 32, kernel_size=9),
+            Conv(32, 64, kernel_size=3, stride=2),
+            Conv(64, 128, kernel_size=3, stride=2),
+            Residual(128),
+            Residual(128),
+            Residual(128),
+            Residual(128),
+            Residual(128),
+        )
+        self.decoder = nn.Sequential(
+            Conv(128, 64, kernel_size=3, stride=2, upsample=True),
+            Conv(64, 32, kernel_size=3, stride=2, upsample=True),
+            Conv(32, 3, kernel_size=9, norm=False, activation=False),
+        )
+
+        self.preprocessor = FloatToUint8Range()
+        self.postprocessor = Uint8ToFloatRange()
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        input = self.preprocessor(input)
+        output = self.decoder(self.encoder(input))
+        return cast(torch.Tensor, self.postprocessor(output))
+
+
+def transformer() -> nn.Module:
+    """Basic transformer for model-based optimization.
+
+    The transformer is compatible with the
+    `official PyTorch example <https://github.com/pytorch/examples/tree/master/fast_neural_style>`_
+    which in turn is based on :cite:`JAL2016`
+    """
+    return Transformer()

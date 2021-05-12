@@ -1,5 +1,7 @@
 import pytest
 
+import torch
+
 from pystiche import data, demo
 
 from tests import asserts
@@ -43,3 +45,13 @@ def test_demo_logger_smoke(caplog):
 
     with asserts.assert_logs(caplog, logger=optim_logger):
         optim_logger.message("test message")
+
+
+def test_transformer():
+    torch.manual_seed(0)
+    input_image = torch.rand(1, 3, 256, 256)
+    transformer = demo.transformer()
+
+    output_image = transformer(input_image)
+
+    assert output_image.shape == input_image.shape

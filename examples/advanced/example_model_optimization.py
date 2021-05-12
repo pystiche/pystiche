@@ -153,6 +153,10 @@ class Uint8ToFloatRange(nn.Module):
 
 ########################################################################################
 # Finally, we can put all pieces together.
+#
+# .. note::
+#
+#  You can access this transformer through :func:`pystiche.demo.transformer`.
 
 
 class Transformer(nn.Module):
