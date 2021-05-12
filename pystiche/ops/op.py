@@ -40,7 +40,7 @@ class Operator(pystiche.Module):
         Args:
             guide: Input guide of shape :math:`1 \times 1 \times H \times W`.
         """
-        self.register_buffer("input_guide", guide)
+        self.register_buffer("input_guide", guide, persistent=False)
 
     @property
     def has_input_guide(self) -> bool:
@@ -258,7 +258,7 @@ class EncodingRegularizationOperator(EncodingOperator, RegularizationOperator):
         super().set_input_guide(guide)
         with torch.no_grad():
             enc_guide = self.encoder.propagate_guide(guide)
-        self.register_buffer("input_enc_guide", enc_guide)
+        self.register_buffer("input_enc_guide", enc_guide, persistent=False)
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         input_repr = self.input_image_to_repr(image)
@@ -311,19 +311,19 @@ class PixelComparisonOperator(PixelOperator, ComparisonOperator):
         super().__init__(score_weight=score_weight)
 
     def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
-        self.register_buffer("target_guide", guide)
+        self.register_buffer("target_guide", guide, persistent=False)
         if recalc_repr and self.has_target_image:
             self.set_target_image(self.target_image)
 
     def set_target_image(self, image: torch.Tensor) -> None:
-        self.register_buffer("target_image", image)
+        self.register_buffer("target_image", image, persistent=False)
         with torch.no_grad():
             if self.has_target_guide:
                 image = self.apply_guide(image, self.target_guide)
             repr, ctx = self.target_image_to_repr(image)
-        self.register_buffer("target_repr", repr)
+        self.register_buffer("target_repr", repr, persistent=False)
         if ctx is not None:
-            self.register_buffer("ctx", ctx)
+            self.register_buffer("ctx", ctx, persistent=False)
         else:
             self.ctx = None
 
@@ -418,8 +418,8 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
 
         with torch.no_grad():
             enc_guide = self.encoder.propagate_guide(guide)
-        self.register_buffer("target_guide", guide)
-        self.register_buffer("target_enc_guide", enc_guide)
+        self.register_buffer("target_guide", guide, persistent=False)
+        self.register_buffer("target_enc_guide", enc_guide, persistent=False)
         if recalc_repr and self.has_target_image:
             self.set_target_image(self.target_image)
 
@@ -427,10 +427,10 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
 
         with torch.no_grad():
             repr, ctx = self.target_image_to_repr(image)
-        self.register_buffer("target_image", image)
-        self.register_buffer("target_repr", repr)
+        self.register_buffer("target_image", image, persistent=False)
+        self.register_buffer("target_repr", repr, persistent=False)
         if ctx is not None:
-            self.register_buffer("ctx", ctx)
+            self.register_buffer("ctx", ctx, persistent=False)
         else:
             self.ctx = None
 
@@ -464,8 +464,8 @@ class EncodingComparisonOperator(EncodingOperator, ComparisonOperator):
     def set_input_guide(self, guide: torch.Tensor) -> None:
         with torch.no_grad():
             enc_guide = self.encoder.propagate_guide(guide)
-        self.register_buffer("input_guide", guide)
-        self.register_buffer("input_enc_guide", enc_guide)
+        self.register_buffer("input_guide", guide, persistent=False)
+        self.register_buffer("input_enc_guide", enc_guide, persistent=False)
 
     def process_input_image(self, image: torch.Tensor) -> torch.Tensor:
         if not self.has_target_image:
