@@ -595,3 +595,31 @@ def test_EncodingComparisonOperator_call_guided():
         TestOperator.apply_guide(encoder(target_image), target_enc_guide) + 1.0
     ) * (TestOperator.apply_guide(encoder(input_image), input_enc_guide) + 2.0)
     ptu.assert_allclose(actual, desired)
+
+
+def test_EncodingComparisonOperator_non_persistent_images():
+    class TestOperator(ops.EncodingComparisonOperator):
+        def target_enc_to_repr(self, enc):
+            return enc, None
+
+        def input_enc_to_repr(self, enc, ctx):
+            pass
+
+        def calculate_score(self, input_repr, target_repr, ctx):
+            pass
+
+    torch.manual_seed(0)
+    target_image = torch.rand(1, 3, 32, 32)
+    target_guide = torch.rand(1, 1, 32, 32)
+    input_guide = torch.rand(1, 1, 32, 32)
+
+    encoder = enc.SequentialEncoder((nn.Conv2d(3, 3, 1),))
+
+    test_op = TestOperator(encoder)
+    test_op.set_target_guide(target_guide)
+    test_op.set_target_image(target_image)
+    test_op.set_input_guide(input_guide)
+    state_dict = test_op.state_dict()
+
+    new_test_op = TestOperator(encoder)
+    new_test_op.load_state_dict(state_dict, strict=True)
