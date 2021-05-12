@@ -1,5 +1,7 @@
 import pytest
 
+import torch
+
 from pystiche import data, demo
 
 
@@ -34,3 +36,13 @@ def test_demo_images_guides_smoke(name, regions):
 
     names, _ = zip(*iter(image.guides))
     assert set(names).issuperset(set(regions))
+
+
+def test_transformer():
+    torch.manual_seed(0)
+    input_image = torch.rand(1, 3, 256, 256)
+    transformer = demo.transformer()
+
+    output_image = transformer(input_image)
+
+    assert output_image.shape == input_image.shape

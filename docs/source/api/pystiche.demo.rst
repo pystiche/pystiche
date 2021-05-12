@@ -4,3 +4,4 @@
 .. automodule:: pystiche.demo
   :members:
     images
+    transformer
