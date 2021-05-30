@@ -29,24 +29,40 @@ jobs:
   integration:
     strategy:
       matrix:
-        os: ["ubuntu-latest"]
-        python: ["3.6", "3.7", "3.8", "3.9"]
+        python:
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
+        os:
+          - "ubuntu-latest"
+        torch:
+          - "1.8.1"
         include:
-          - os: windows-latest
-            python: "3.6"
-          - os: macos-latest
-            python: "3.6"
+          - python: "3.6"
+            os: "windows-latest"
+            torch: "1.8.1"
+          - python: "3.6"
+            os: "macos-latest"
+            torch:  "1.8.1"
+          - python: "3.6"
+            os: "ubuntu-latest"
+            torch: "1.6.0"
+          - python: "3.6"
+            os: "ubuntu-latest"
+            torch: "1.7.1"
 
     runs-on: ${{ matrix.os }}
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
+      TORCH: ${{ matrix.torch }}
 
     steps:
       - name: Set up python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python }}
+          python-version: $PYTHON
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
@@ -63,7 +79,7 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Create environment
-        run: tox -e tests-integration --notest
+        run: tox -e tests-integration --force-dep torch==$TORCH --notest
 
       - name: Run tests
         run: tox -e tests-integration -- --skip-large-download
@@ -71,7 +87,7 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v1.5.0
         with:
-          env_vars: OS,PYTHON
+          env_vars: OS,PYTHON,TORCH
 
   galleries:
     runs-on: ubuntu-latest
