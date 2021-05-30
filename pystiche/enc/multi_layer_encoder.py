@@ -152,7 +152,13 @@ class MultiLayerEncoder(pystiche.Module):
         self._cache: DefaultDict[torch.Tensor, Dict[str, torch.Tensor]] = defaultdict(
             lambda: {}
         )
-        self.register_full_backward_hook(
+
+        register = (
+            self.register_backward_hook
+            if torch.__version__ < "1.8"
+            else self.register_full_backward_hook
+        )
+        register(
             MultiLayerEncoder.__backward_hook__  # type:ignore[arg-type]
         )
 
