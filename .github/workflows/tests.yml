@@ -86,7 +86,7 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Create environment
-        run: |
+        run: >
           tox -e tests-integration
           --force-dep torch==$TORCH
           --force-dep torchvision==$TORCHVISION
