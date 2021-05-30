@@ -85,6 +85,11 @@ jobs:
       - name: Install dev requirements
         run: pip install -r requirements-dev.txt
 
+      - name: Debug
+        run: |
+          echo $TORCH
+          echo $TORCHVISION
+
       - name: Create environment
         run: >
           tox -e tests-integration
