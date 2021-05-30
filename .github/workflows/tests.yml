@@ -87,14 +87,14 @@ jobs:
 
       - name: Debug
         run: |
-          echo $TORCH
-          echo $TORCHVISION
+          echo ${{ matrix.torch }}
+          echo ${{ matrix.torchvision }}
 
       - name: Create environment
         run: >
           tox -e tests-integration
-          --force-dep torch==$TORCH
-          --force-dep torchvision==$TORCHVISION
+          --force-dep torch==${{ matrix.torch }}
+          --force-dep torchvision==${{ matrix.torchvision }}
           --notest
 
       - name: Run tests
