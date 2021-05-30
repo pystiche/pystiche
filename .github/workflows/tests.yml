@@ -93,7 +93,11 @@ jobs:
           --notest
 
       - name: Run tests
-        run: tox -e tests-integration -- --skip-large-download
+        run: >
+          tox -e tests-integration
+          --force-dep torch==${{ matrix.torch }}
+          --force-dep torchvision==${{ matrix.torchvision }}
+          -- --skip-large-download
 
       - name: Upload coverage
         uses: codecov/codecov-action@v1.5.0
