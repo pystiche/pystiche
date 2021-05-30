@@ -38,25 +38,32 @@ jobs:
           - "ubuntu-latest"
         torch:
           - "1.8.1"
+        torchvision:
+          - "0.9.1"
         include:
           - python: "3.6"
             os: "windows-latest"
             torch: "1.8.1"
+            torchvision: "0.9.1"
           - python: "3.6"
             os: "macos-latest"
             torch:  "1.8.1"
+            torchvision: "0.9.1"
           - python: "3.6"
             os: "ubuntu-latest"
             torch: "1.6.0"
+            torchvision: "0.7.0"
           - python: "3.6"
             os: "ubuntu-latest"
             torch: "1.7.1"
+            torchvision: "0.8.2"
 
     runs-on: ${{ matrix.os }}
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
       TORCH: ${{ matrix.torch }}
+      TORCHVISION: ${{ matrix.torchvision }}
 
     steps:
       - name: Set up python
@@ -79,7 +86,11 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Create environment
-        run: tox -e tests-integration --force-dep torch==$TORCH --notest
+        run: |
+          tox -e tests-integration
+          --force-dep torch==$TORCH
+          --force-dep torchvision==$TORCHVISION
+          --notest
 
       - name: Run tests
         run: tox -e tests-integration -- --skip-large-download
