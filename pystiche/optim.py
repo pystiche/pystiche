@@ -113,7 +113,7 @@ def image_optimization(
     if not isinstance(optimizer, Optimizer):
         optimizer = optimizer(input_image)
 
-    mle_handler = loss_.MLEHandler(criterion)
+    mle_handler = loss_.MLEHandler(criterion)  # type: ignore[attr-defined]
 
     def closure(input_image: torch.Tensor) -> float:
         # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
@@ -231,11 +231,10 @@ def model_optimization(
             optimization. Defaults to ``False``.
     """
     if criterion_update_fn is None:
-        if isinstance(criterion, (loss_.PerceptualLoss, loss_.GuidedPerceptualLoss)):
+        if isinstance(criterion, loss_.PerceptualLoss):
 
             def criterion_update_fn(  # type: ignore[misc]
-                input_image: torch.Tensor,
-                criterion: Union[loss_.PerceptualLoss, loss_.GuidedPerceptualLoss],
+                input_image: torch.Tensor, criterion: loss_.PerceptualLoss,
             ) -> None:
                 criterion.set_content_image(input_image)
 
@@ -250,7 +249,7 @@ def model_optimization(
         optimizer = default_model_optimizer(transformer)
 
     device = next(transformer.parameters()).device
-    mle_handler = loss_.MLEHandler(criterion)
+    mle_handler = loss_.MLEHandler(criterion)  # type: ignore[attr-defined]
 
     def closure(input_image: torch.Tensor) -> float:
         # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
@@ -307,7 +306,7 @@ def multi_epoch_model_optimization(
             every epoch.
         quiet: If ``True``, no information is printed to STDOUT during the
             optimization. Defaults to ``False``.
-        """
+    """
     if optimizer is None:
         if lr_scheduler is None:
             optimizer = default_model_optimizer(transformer)

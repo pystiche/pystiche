@@ -90,21 +90,22 @@ class ImagePyramid(ComplexObject):
                 image_storage.restore()
 
     def _resize(self, level: PyramidLevel) -> None:
-        for op in self._resize_losses():
-            if isinstance(op, loss.ComparisonLoss):
-                if op.has_target_guide:
-                    resized_guide = level.resize_guide(op.target_guide)
-                    op.set_target_guide(resized_guide, recalc_repr=False)
-
-                if op.has_target_image:
+        for loss_ in self._resize_losses():
+            if isinstance(loss_, loss.ComparisonLoss):
+                if loss_.target_image is not None:
                     resized_image = level.resize_image(
-                        op.target_image, interpolation_mode=self.interpolation_mode
+                        loss_.target_image, interpolation_mode=self.interpolation_mode
                     )
-                    op.set_target_image(resized_image)
+                    resized_guide = (
+                        level.resize_guide(loss_.target_guide)
+                        if loss_.target_guide is not None
+                        else None
+                    )
+                    loss_.set_target_image(resized_image, guide=resized_guide)
 
-            if op.has_input_guide:
-                resized_guide = level.resize_guide(op.input_guide)
-                op.set_input_guide(resized_guide)
+            if loss_.input_guide is not None:
+                resized_guide = level.resize_guide(loss_.input_guide)
+                loss_.set_input_guide(resized_guide)
 
     def _resize_losses(self) -> Set[loss.Loss]:
         resize_losses = set()

@@ -2,7 +2,7 @@ from typing import Dict, Iterable
 
 import torch
 
-from pystiche.ops import ComparisonOperator, Operator
+from pystiche.ops import ComparisonOperator, Operator  # type: ignore[attr-defined]
 
 __all__ = ["ImageStorage"]
 

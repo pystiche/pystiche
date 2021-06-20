@@ -1,3 +1,5 @@
+# type: ignore
+
 import functools
 import warnings
 from abc import abstractmethod
@@ -132,9 +134,7 @@ def _add_pixel_regularization_operator_methods(pixel_regularization_op_cls):
 
 
 def _comparison_input_image_to_repr(
-    self: loss.RegularizationLoss,
-    image: torch.Tensor,
-    ctx: Optional[torch.Tensor],
+    self: loss.RegularizationLoss, image: torch.Tensor, ctx: Optional[torch.Tensor],
 ) -> torch.Tensor:
     pass
 

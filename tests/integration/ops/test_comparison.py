@@ -45,8 +45,7 @@ def test_MRFOperator_scale_and_rotate_transforms_smoke():
     num_rotate_steps = 3
 
     target_transforms = ops.MRFOperator.scale_and_rotate_transforms(
-        num_scale_steps=num_scale_steps,
-        num_rotate_steps=num_rotate_steps,
+        num_scale_steps=num_scale_steps, num_rotate_steps=num_rotate_steps,
     )
 
     actual = len(target_transforms)

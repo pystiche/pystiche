@@ -1,5 +1,5 @@
 import itertools
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 import torch
 from torch import nn
@@ -340,20 +340,22 @@ class MRFLoss(ComparisonLoss):
     def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
         return self.enc_to_repr(enc, is_guided=self._target_guide is not None), None
 
-    def _target_image_to_repr(self, image, guide):
+    def _target_image_to_repr(
+        self, image: torch.Tensor, guide: Optional[torch.Tensor]
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         if guide is not None:
             # Due to the possible scaling and rotation, we only apply the guide to
             # the target image and not its encodings
             image = apply_guide(image, guide)
 
         if self.target_transforms is None:
-            return self.target_enc_to_repr(self.encoder(image))
+            return self.target_enc_to_repr(self.encoder(image))  # type: ignore[misc]
 
         device = image.device
         reprs = []
         for transform in self.target_transforms:
             transform = transform.to(device)
-            enc = self.encoder(transform(image))
+            enc = self.encoder(transform(image))  # type: ignore[misc]
             repr, _ = self.target_enc_to_repr(enc)
             reprs.append(repr)
 

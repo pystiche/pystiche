@@ -34,9 +34,7 @@ class Loss(nn.Module, ABC):
         else:
             for name in ("_input_guide", "_input_enc_guide"):
                 self.register_buffer(
-                    name,
-                    None,  # type: ignore[arg-type]
-                    persistent=False,
+                    name, None, persistent=False,
                 )
 
         self.score_weight = score_weight
@@ -128,9 +126,7 @@ class ComparisonLoss(Loss):
         else:
             for name in ("_target_image", "_target_repr", "_target_guide", "_ctx"):
                 self.register_buffer(
-                    name,
-                    None,  # type: ignore[arg-type]
-                    persistent=False,
+                    name, None, persistent=False,
                 )
 
     def forward(self, input_image: torch.Tensor) -> Union[torch.Tensor, LossDict]:

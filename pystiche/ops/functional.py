@@ -1,3 +1,5 @@
+# type: ignore
+
 import functools
 import warnings
 from typing import Callable

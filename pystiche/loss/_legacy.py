@@ -1,16 +1,15 @@
-import torch
-
-from pystiche.misc import build_deprecation_message
-
-import pystiche
-from torch import nn
-
-from pystiche import enc
+# type: ignore
 
 import warnings
-
-from typing import Type, Iterator, Tuple
 from types import TracebackType
+from typing import Iterator, Optional, Sequence, Tuple, Type
+
+import torch
+from torch import nn
+
+import pystiche
+from pystiche import enc
+from pystiche.misc import build_deprecation_message
 
 from ._container import PerceptualLoss
 from ._loss import Loss
@@ -71,9 +70,6 @@ class MLEHandler(pystiche.ComplexObject):
         return ((str(idx), mle) for idx, mle in enumerate(self.multi_layer_encoders))
 
 
-from typing import Sequence
-
-
 class MultiOperatorLoss(pystiche.Module):
     r"""Generic loss for multiple :class:`~pystiche.Loss` s. If called with an
     image it is passed to all immediate children operators and the
@@ -112,9 +108,6 @@ class MultiOperatorLoss(pystiche.Module):
             return pystiche.LossDict(
                 [(name, op(input_image)) for name, op in self.named_children()]
             )
-
-
-from typing import Optional
 
 
 class GuidedPerceptualLoss(PerceptualLoss):
