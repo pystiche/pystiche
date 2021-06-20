@@ -21,7 +21,7 @@ optimization, could be performed with ``pystiche``.
 # be working on.
 
 import pystiche
-from pystiche import demo, enc, loss, ops, optim
+from pystiche import demo, enc, loss, optim
 from pystiche.image import show_image
 from pystiche.misc import get_device, get_input_image
 
@@ -62,7 +62,7 @@ print(multi_layer_encoder)
 content_layer = "relu4_2"
 content_encoder = multi_layer_encoder.extract_encoder(content_layer)
 content_weight = 1e0
-content_loss = ops.FeatureReconstructionOperator(
+content_loss = loss.FeatureReconstructionLoss(
     content_encoder, score_weight=content_weight
 )
 print(content_loss)
@@ -79,10 +79,10 @@ style_weight = 1e3
 
 
 def get_style_op(encoder, layer_weight):
-    return ops.GramOperator(encoder, score_weight=layer_weight)
+    return loss.GramLoss(encoder, score_weight=layer_weight)
 
 
-style_loss = ops.MultiLayerEncodingOperator(
+style_loss = loss.MultiLayerEncodingLoss(
     multi_layer_encoder, style_layers, get_style_op, score_weight=style_weight,
 )
 print(style_loss)
@@ -90,11 +90,10 @@ print(style_loss)
 
 ########################################################################################
 # We combine the ``content_loss`` and ``style_loss`` into a joined
-# :class:`~pystiche.loss.perceptual.PerceptualLoss`, which will serve as ``criterion``
-# for the optimization.
+# :class:`~pystiche.loss.PerceptualLoss`, which will serve as optimization criterion.
 
-criterion = loss.PerceptualLoss(content_loss, style_loss).to(device)
-print(criterion)
+perceptual_loss = loss.PerceptualLoss(content_loss, style_loss).to(device)
+print(perceptual_loss)
 
 
 ########################################################################################
@@ -147,8 +146,8 @@ show_image(style_image, title="Style image")
 # After loading the images they need to be set as targets for the optimization
 # ``criterion``.
 
-criterion.set_content_image(content_image)
-criterion.set_style_image(style_image)
+perceptual_loss.set_content_image(content_image)
+perceptual_loss.set_style_image(style_image)
 
 
 ###############################################################################
@@ -174,13 +173,12 @@ show_image(input_image, title="Input image")
 # Finally we run the NST with the :func:`~pystiche.optim.optim.image_optimization` for
 # ``num_steps=500`` steps.
 #
-# In every step perceptual loss is calculated
-# with the ``criterion`` and propagated backward to the ``input_image``. If
-# ``get_optimizer`` is not specified, as is the case here, the
-# :func:`~pystiche.optim.optim.default_image_optimizer`, i.e.
+# In every step the ``perceptual_loss`` is calculated nd propagated backward to the
+# pixels of the ``input_image``. If ``get_optimizer`` is not specified, as is the case
+# here, the :func:`~pystiche.optim.optim.default_image_optimizer`, i.e.
 # :class:`~torch.optim.lbfgs.LBFGS` is used.
 
-output_image = optim.image_optimization(input_image, criterion, num_steps=500)
+output_image = optim.image_optimization(input_image, perceptual_loss, num_steps=500)
 
 
 ########################################################################################

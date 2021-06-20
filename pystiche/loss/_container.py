@@ -266,7 +266,7 @@ class PerceptualLoss(LossContainer):
             self.set_content_guide(content_guide)
 
         if style_image is not None:
-            self.set_style_image(style_image, style_guide)
+            self.set_style_image(style_image, guide=style_guide)
 
     @property
     def content_image(self) -> Optional[torch.Tensor]:
@@ -317,8 +317,8 @@ class PerceptualLoss(LossContainer):
     def set_style_image(
         self,
         image: torch.Tensor,
-        guide: Optional[torch.Tensor] = None,
         *,
+        guide: Optional[torch.Tensor] = None,
         region: Optional[str] = None,
     ) -> None:
         a = cast(

@@ -24,7 +24,7 @@ from torch import hub, nn
 from torch.nn.functional import interpolate
 
 import pystiche
-from pystiche import demo, enc, loss, ops, optim
+from pystiche import demo, enc, loss, optim
 from pystiche.image import show_image
 from pystiche.misc import get_device
 
@@ -195,15 +195,15 @@ print(transformer)
 # Perceptual loss
 # ---------------
 #
-# Although model optimization is a different paradigm, the perceptual loss is the same
-# as for image optimization.
+# Although model optimization is a different paradigm, the ``perceptual_loss`` is the
+# same as for image optimization.
 #
 # .. note::
 #
 #  In some implementations, such as the PyTorch example and :cite:`JAL2016`, one can
 #  observe that the :func:`~pystiche.gram_matrix`, used as style representation, is not
 #  only normalized by the height and width of the feature map, but also by the number
-#  of channels. If used togehter with a :func:`~torch.nn.functional.mse_loss`, the
+#  of channels. If used together with a :func:`~torch.nn.functional.mse_loss`, the
 #  normalization is performed twice. While this is unintended, it affects the training.
 #  In order to keep the other hyper parameters on par with the PyTorch example, we also
 #  adopt this change here.
@@ -213,12 +213,12 @@ multi_layer_encoder = enc.vgg16_multi_layer_encoder()
 content_layer = "relu2_2"
 content_encoder = multi_layer_encoder.extract_encoder(content_layer)
 content_weight = 1e5
-content_loss = ops.FeatureReconstructionOperator(
+content_loss = loss.FeatureReconstructionLoss(
     content_encoder, score_weight=content_weight
 )
 
 
-class GramOperator(ops.GramOperator):
+class GramOperator(loss.GramLoss):
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         repr = super().enc_to_repr(enc)
         num_channels = repr.size()[1]
@@ -227,7 +227,7 @@ class GramOperator(ops.GramOperator):
 
 style_layers = ("relu1_2", "relu2_2", "relu3_3", "relu4_3")
 style_weight = 1e10
-style_loss = ops.MultiLayerEncodingOperator(
+style_loss = loss.MultiLayerEncodingLoss(
     multi_layer_encoder,
     style_layers,
     lambda encoder, layer_weight: GramOperator(encoder, score_weight=layer_weight),
@@ -235,9 +235,9 @@ style_loss = ops.MultiLayerEncodingOperator(
     score_weight=style_weight,
 )
 
-criterion = loss.PerceptualLoss(content_loss, style_loss)
-criterion = criterion.to(device)
-print(criterion)
+perceptual_loss = loss.PerceptualLoss(content_loss, style_loss)
+perceptual_loss = perceptual_loss.to(device)
+print(perceptual_loss)
 
 
 ########################################################################################
@@ -258,7 +258,7 @@ show_image(style_image)
 # The training of the ``transformer`` is performed similar to other models in PyTorch.
 # In every optimization step a batch of content images is drawn from a dataset, which
 # serve as input for the transformer as well as ``content_image`` for the
-# ``criterion``. While the ``style_image`` only has to be set once, the
+# ``perceptual_loss``. While the ``style_image`` only has to be set once, the
 # ``content_image`` has to be reset in every iteration step.
 #
 # While this can be done with a boilerplate optimization loop, ``pystiche`` provides
@@ -266,16 +266,16 @@ show_image(style_image)
 #
 # .. note::
 #
-#   If the ``criterion`` is a :class:`~pystiche.loss.PerceptualLoss`, as is the case
-#   here, the update of the ``content_image`` is performed automatically. If that is
-#   not the case or you need more complex update behavior, you need to specify a
+#   If the ``perceptual_loss`` is a :class:`~pystiche.loss.PerceptualLoss`, as is the
+#   case here, the update of the ``content_image`` is performed automatically. If that
+#   is not the case or you need more complex update behavior, you need to specify a
 #   ``criterion_update_fn``.
 #
 # .. note::
 #
 #   If you do not specify an ``optimizer``, the
-#   :func:`~pystiche.optim.default_model_optimizer`, i.e.
-#   :class:`~torch.optim.Adam` is used.
+#   :func:`~pystiche.optim.default_model_optimizer`, i.e. :class:`~torch.optim.Adam` is
+#   used.
 
 
 def train(
@@ -291,10 +291,10 @@ def train(
 
     image_loader = DataLoader(dataset, batch_size=batch_size)
 
-    criterion.set_style_image(style_image)
+    perceptual_loss.set_style_image(style_image)
 
     return optim.multi_epoch_model_optimization(
-        image_loader, transformer.train(), criterion, epochs=epochs,
+        image_loader, transformer.train(), perceptual_loss, epochs=epochs,
     )
 
 

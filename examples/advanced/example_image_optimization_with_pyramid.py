@@ -23,7 +23,7 @@ the overall result :cite:`LW2016,GEB+2017`.
 import time
 
 import pystiche
-from pystiche import demo, enc, loss, ops, optim, pyramid
+from pystiche import demo, enc, loss, optim, pyramid
 from pystiche.image import show_image
 from pystiche.misc import get_device, get_input_image
 
@@ -35,7 +35,7 @@ print(f"I'm working with {device}")
 
 ########################################################################################
 # At first we define a :class:`~pystiche.loss.PerceptualLoss` that is used as
-# optimization ``criterion``.
+# optimization criterion.
 
 multi_layer_encoder = enc.vgg19_multi_layer_encoder()
 
@@ -43,7 +43,7 @@ multi_layer_encoder = enc.vgg19_multi_layer_encoder()
 content_layer = "relu4_2"
 content_encoder = multi_layer_encoder.extract_encoder(content_layer)
 content_weight = 1e0
-content_loss = ops.FeatureReconstructionOperator(
+content_loss = loss.FeatureReconstructionLoss(
     content_encoder, score_weight=content_weight
 )
 
@@ -53,15 +53,15 @@ style_weight = 2e0
 
 
 def get_style_op(encoder, layer_weight):
-    return ops.MRFOperator(encoder, patch_size=3, stride=2, score_weight=layer_weight)
+    return loss.MRFLoss(encoder, patch_size=3, stride=2, score_weight=layer_weight)
 
 
-style_loss = ops.MultiLayerEncodingOperator(
+style_loss = loss.MultiLayerEncodingLoss(
     multi_layer_encoder, style_layers, get_style_op, score_weight=style_weight,
 )
 
-criterion = loss.PerceptualLoss(content_loss, style_loss).to(device)
-print(criterion)
+perceptual_loss = loss.PerceptualLoss(content_loss, style_loss).to(device)
+print(perceptual_loss)
 
 
 ########################################################################################
@@ -76,14 +76,14 @@ size = 500
 
 content_image = images["bird2"].read(size=size, device=device)
 show_image(content_image, title="Content image")
-criterion.set_content_image(content_image)
+perceptual_loss.set_content_image(content_image)
 
 
 ########################################################################################
 
 style_image = images["mosaic"].read(size=size, device=device)
 show_image(style_image, title="Style image")
-criterion.set_style_image(style_image)
+perceptual_loss.set_style_image(style_image)
 
 
 ########################################################################################
@@ -102,7 +102,7 @@ show_image(input_image, title="Input image")
 # result.
 
 start_without_pyramid = time.time()
-output_image = optim.image_optimization(input_image, criterion, num_steps=400)
+output_image = optim.image_optimization(input_image, perceptual_loss, num_steps=400)
 stop_without_pyramid = time.time()
 
 show_image(output_image, title="Output image without pyramid")
@@ -149,7 +149,9 @@ print(
 
 edge_sizes = (250, 500)
 num_steps = 200
-image_pyramid = pyramid.ImagePyramid(edge_sizes, num_steps, resize_targets=(criterion,))
+image_pyramid = pyramid.ImagePyramid(
+    edge_sizes, num_steps, resize_targets=(perceptual_loss,)
+)
 print(image_pyramid)
 
 
@@ -166,7 +168,9 @@ print(image_pyramid)
 input_image = get_input_image(starting_point, content_image=content_image)
 
 start_with_pyramid = time.time()
-output_image = optim.pyramid_image_optimization(input_image, criterion, image_pyramid)
+output_image = optim.pyramid_image_optimization(
+    input_image, perceptual_loss, image_pyramid
+)
 stop_with_pyramid = time.time()
 
 # sphinx_gallery_thumbnail_number = 5

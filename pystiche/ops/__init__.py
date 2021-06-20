@@ -23,7 +23,7 @@ def __op_init__(
         "1.0",
         info=f"It was renamed and moved to pystiche.loss.{__new_name__}.",
     )
-    # warnings.warn(msg)
+    warnings.warn(msg)
     for super_cls in type(self).__mro__:
         if PATTERN.match(str(super_cls)):
             break
