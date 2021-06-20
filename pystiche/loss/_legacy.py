@@ -11,7 +11,7 @@ import pystiche
 from pystiche import enc
 from pystiche.misc import build_deprecation_message
 
-from ._container import PerceptualLoss
+from ._container import LossContainer, PerceptualLoss
 from ._loss import Loss
 
 __all__ = ["MLEHandler", "MultiOperatorLoss", "GuidedPerceptualLoss"]
@@ -25,6 +25,7 @@ class MLEHandler(pystiche.ComplexObject):
             loss.encoder.multi_layer_encoder
             for loss in criterion.modules()
             if isinstance(loss, Loss)
+            and not isinstance(loss, LossContainer)
             and isinstance(loss.encoder, enc.SingleLayerEncoder)
         }
 
@@ -152,7 +153,8 @@ class GuidedPerceptualLoss(PerceptualLoss):
                 pass
                 # self.register_buffer("_target_guide", guide, persistent=False)
         elif guide is None:
-            super().set_style_image(image, region=region, guide=self.style_guide)
+            guide = self.regional_style_guide(region)
+            super().set_style_image(image, region=region, guide=guide)
 
     def set_content_guide(self, region: str, guide: torch.Tensor) -> None:
         r"""Set the content guide for the specified region.

@@ -21,7 +21,7 @@ def _deprecate(fn: Callable) -> Callable:
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
-        warnings.warn(msg)
+        # warnings.warn(msg)
         return fn(*args, **kwargs)
 
     return wrapper

@@ -1,6 +1,7 @@
 # type: ignore
 
 import functools
+import re
 import warnings
 from abc import abstractmethod
 from typing import Any, List, Optional, Sequence, Tuple, Union
@@ -11,6 +12,8 @@ import pystiche
 from pystiche import enc, loss
 from pystiche.misc import build_deprecation_message
 
+PATTERN = re.compile(re.escape("<class 'pystiche.loss."))
+
 
 def __op_init__(
     self, *args: Any, __old_name__: str, __new_name__: str, **kwargs: Any
@@ -20,8 +23,13 @@ def __op_init__(
         "1.0",
         info=f"It was renamed and moved to pystiche.loss.{__new_name__}.",
     )
-    warnings.warn(msg)
-    super(type(self), self).__init__(*args, **kwargs)
+    # warnings.warn(msg)
+    for super_cls in type(self).__mro__:
+        if PATTERN.match(str(super_cls)):
+            break
+    else:
+        raise RuntimeError
+    super_cls.__init__(self, *args, **kwargs)
 
 
 def _input_guide(self: loss.Loss) -> torch.Tensor:
@@ -71,12 +79,12 @@ def _set_target_image(
 
     if guide is not None and image is not None:
         set_target_image(image, guide=guide)
-    elif guide is not None:
+    elif image is None:
         if _recalc_repr and self._target_image is not None:
             set_target_image(self._target_image, guide=guide)
         else:
             self.register_buffer("_target_guide", guide, persistent=False)
-    elif image is not None:
+    elif guide is None:
         set_target_image(image, guide=self._target_guide)
 
 
@@ -291,7 +299,11 @@ def _container_set_target_guide(
     )
 
 
-def _container_set_target_image(self, image: torch.Tensor) -> None:
+def _container_set_target_image(
+    self, image: torch.Tensor, guide: Optional[torch.Tensor] = None,
+) -> None:
+    if guide is not None:
+        self.set_target_guide(guide, recalc_repr=False)
     self._set_image_or_guide(image, "target_image", comparison_only=True)
 
 

@@ -303,7 +303,7 @@ class MRFLoss(ComparisonLoss):
         ]
 
     @staticmethod
-    def _match_batch_sizes(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
+    def _match_batch_size(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
         # FIXME
         return target
 

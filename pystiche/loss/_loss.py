@@ -143,11 +143,12 @@ class ComparisonLoss(Loss):
             )
 
         input_repr = self.input_enc_to_repr(input_enc, self._ctx)
-        target_repr = match_batch_size(
+        target_repr = self._match_batch_size(
             cast(torch.Tensor, self._target_repr), input_repr
         )
         return (
-            self.calculate_score(input_repr, target_repr, self._ctx) * self.score_weight
+            self.calculate_score(input_repr, target_repr, ctx=self._ctx)
+            * self.score_weight
         )
 
     @staticmethod
@@ -172,6 +173,7 @@ class ComparisonLoss(Loss):
         self,
         input_repr: torch.Tensor,
         target_repr: torch.Tensor,
+        *,
         ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
         pass
@@ -185,7 +187,7 @@ class ComparisonLoss(Loss):
         return self._target_guide
 
     def set_target_image(
-        self, image: torch.Tensor, guide: Optional[torch.Tensor] = None
+        self, image: torch.Tensor, *, guide: Optional[torch.Tensor] = None
     ) -> None:
         self.register_buffer("_target_image", image, persistent=False)
         self.register_buffer("_target_guide", guide, persistent=False)

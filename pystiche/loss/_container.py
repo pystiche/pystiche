@@ -45,7 +45,7 @@ class LossContainer(Loss):
             self.set_input_guide(input_guide)
 
         if target_image is not None:
-            self.set_target_image(target_image, target_guide)
+            self.set_target_image(target_image, guide=target_guide)
 
     def forward(self, input_image: torch.Tensor) -> LossDict:
         return (
@@ -103,7 +103,7 @@ class LossContainer(Loss):
             loss.set_input_guide(guide)
 
     def set_target_image(
-        self, image: torch.Tensor, guide: Optional[torch.Tensor] = None
+        self, image: torch.Tensor, *, guide: Optional[torch.Tensor] = None
     ) -> None:
         at_least_one = False
         for loss in self._losses():
@@ -111,7 +111,7 @@ class LossContainer(Loss):
                 continue
 
             at_least_one = True
-            loss.set_target_image(image, guide)
+            loss.set_target_image(image, guide=guide)
 
         if not at_least_one:
             raise RuntimeError
@@ -321,6 +321,8 @@ class PerceptualLoss(LossContainer):
         *,
         region: Optional[str] = None,
     ) -> None:
-        return cast(
+        a = cast(
             Union[ComparisonLoss, LossContainer], self._regional_style_loss(region)
-        ).set_target_image(image, guide)
+        )
+        a.set_target_image(image, guide=guide)
+        return None
