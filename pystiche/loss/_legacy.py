@@ -1,24 +1,32 @@
-import warnings
-from types import TracebackType
-from typing import Iterator, Sequence, Tuple, Type
-
 import torch
-from torch import nn
 
-import pystiche
-from pystiche import enc, ops
 from pystiche.misc import build_deprecation_message
 
-__all__ = ["MLEHandler", "MultiOperatorLoss"]
+import pystiche
+from torch import nn
+
+from pystiche import enc
+
+import warnings
+
+from typing import Type, Iterator, Tuple
+from types import TracebackType
+
+from ._container import PerceptualLoss
+from ._loss import Loss
+
+__all__ = ["MLEHandler", "MultiOperatorLoss", "GuidedPerceptualLoss"]
 
 
 class MLEHandler(pystiche.ComplexObject):
+    # TODO: deprecate
+
     def __init__(self, criterion: nn.Module) -> None:
         self.multi_layer_encoders = {
-            encoding_op.encoder.multi_layer_encoder
-            for encoding_op in criterion.modules()
-            if isinstance(encoding_op, ops.EncodingOperator)
-            and isinstance(encoding_op.encoder, enc.SingleLayerEncoder)
+            loss.encoder.multi_layer_encoder
+            for loss in criterion.modules()
+            if isinstance(loss, Loss)
+            and isinstance(loss.encoder, enc.SingleLayerEncoder)
         }
 
     def encode(self, input_image: torch.Tensor) -> None:
@@ -63,8 +71,11 @@ class MLEHandler(pystiche.ComplexObject):
         return ((str(idx), mle) for idx, mle in enumerate(self.multi_layer_encoders))
 
 
+from typing import Sequence
+
+
 class MultiOperatorLoss(pystiche.Module):
-    r"""Generic loss for multiple :class:`~pystiche.ops.Operator` s. If called with an
+    r"""Generic loss for multiple :class:`~pystiche.Loss` s. If called with an
     image it is passed to all immediate children operators and the
     results are returned as a :class:`pystiche.LossDict`. For that each
     :class:`pystiche.enc.MultiLayerEncoder` is only hit once, even if it is associated
@@ -78,7 +89,7 @@ class MultiOperatorLoss(pystiche.Module):
     """
 
     def __init__(
-        self, named_ops: Sequence[Tuple[str, ops.Operator]], trim: bool = True
+        self, named_ops: Sequence[Tuple[str, Loss]], trim: bool = True
     ) -> None:
         super().__init__(named_children=named_ops)
         self._mle_handler = MLEHandler(self)
@@ -86,15 +97,13 @@ class MultiOperatorLoss(pystiche.Module):
         if trim:
             self._mle_handler.trim()
 
-    def named_operators(
-        self, recurse: bool = False
-    ) -> Iterator[Tuple[str, ops.Operator]]:
+    def named_operators(self, recurse: bool = False) -> Iterator[Tuple[str, Loss]]:
         iterator = self.named_modules() if recurse else self.named_children()
         for name, child in iterator:
-            if isinstance(child, ops.Operator):
+            if isinstance(child, Loss):
                 yield name, child
 
-    def operators(self, recurse: bool = False) -> Iterator[ops.Operator]:
+    def operators(self, recurse: bool = False) -> Iterator[Loss]:
         for _, op in self.named_operators(recurse=recurse):
             yield op
 
@@ -103,3 +112,59 @@ class MultiOperatorLoss(pystiche.Module):
             return pystiche.LossDict(
                 [(name, op(input_image)) for name, op in self.named_children()]
             )
+
+
+from typing import Optional
+
+
+class GuidedPerceptualLoss(PerceptualLoss):
+    # TODO: deprecate
+
+    def set_style_guide(
+        self, region: str, guide: torch.Tensor, recalc_repr: bool = True
+    ) -> None:
+        r"""Set the style guide for the specified region.
+        Args:
+            region: Region.
+            guide: Style guide.
+            recalc_repr: If ``True``, recalculates the style representation. See
+                :meth:`pystiche.ops.ComparisonOperator.set_target_guide` for details.
+                Defaults to ``True``.
+        """
+
+        getattr(self.style_loss, region).set_target_guide(
+            guide, recalc_repr=recalc_repr
+        )
+
+    def set_style_image(
+        self,
+        region: str,
+        image: torch.Tensor,
+        *,
+        guide: Optional[torch.Tensor] = None,
+        _recalc_repr: bool = True,
+    ) -> None:
+        r"""Set the style image for the specified region.
+        Args:
+            region: Region.
+            image: Style image.
+        """
+        if guide is not None and image is not None:
+            super().set_style_image(image, region=region, guide=guide)
+        elif image is None:
+            if _recalc_repr and self.style_image is not None:
+                super().set_style_image(self.style_image, guide=guide, region=region)
+            else:
+                # TODO
+                pass
+                # self.register_buffer("_target_guide", guide, persistent=False)
+        elif guide is None:
+            super().set_style_image(image, region=region, guide=self.style_guide)
+
+    def set_content_guide(self, region: str, guide: torch.Tensor) -> None:
+        r"""Set the content guide for the specified region.
+        Args:
+            region: Region.
+            guide: Content guide.
+        """
+        super().set_content_guide(guide, region=region)

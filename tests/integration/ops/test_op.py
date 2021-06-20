@@ -182,15 +182,16 @@ def test_PixelComparisonOperator_set_target_guide_without_recalc():
             pass
 
     torch.manual_seed(0)
-    repr = torch.rand(1, 3, 32, 32)
+    image = torch.rand(1, 3, 32, 32)
     guide = torch.rand(1, 1, 32, 32)
 
     test_op = TestOperator()
-    test_op.register_buffer("target_repr", repr)
-    test_op.set_target_guide(guide, recalc_repr=False)
+    test_op.set_target_image(image)
+    desired = test_op.target_repr.clone()
 
+    test_op.set_target_guide(guide, recalc_repr=False)
     actual = test_op.target_repr
-    desired = repr
+
     ptu.assert_allclose(actual, desired)
 
 
@@ -411,16 +412,17 @@ def test_EncodingComparisonOperator_set_target_guide_without_recalc():
             pass
 
     torch.manual_seed(0)
-    repr = torch.rand(1, 3, 32, 32)
+    image = torch.rand(1, 3, 32, 32)
     guide = torch.rand(1, 1, 32, 32)
     encoder = enc.SequentialEncoder((nn.Conv2d(3, 3, 1),))
 
     test_op = TestOperator(encoder)
-    test_op.register_buffer("target_repr", repr)
-    test_op.set_target_guide(guide, recalc_repr=False)
+    test_op.set_target_image(image)
+    desired = test_op.target_repr.clone()
 
+    test_op.set_target_guide(guide, recalc_repr=False)
     actual = test_op.target_repr
-    desired = repr
+
     ptu.assert_allclose(actual, desired)
 
 
