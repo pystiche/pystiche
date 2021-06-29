@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from typing import (
     Any,
     Callable,
@@ -170,7 +171,7 @@ class MultiLayerEncodingLoss(SameTypeLossContainer):
         layers: Sequence[str],
         encoding_loss_fn: Callable[[enc.Encoder, float], Loss],
         *,
-        layer_weights: Union[str, Sequence[float]] = "sum",
+        layer_weights: Union[str, Sequence[float]] = "mean",
         input_guide: Optional[torch.Tensor] = None,
         target_image: Optional[torch.Tensor] = None,
         target_guide: Optional[torch.Tensor] = None,
@@ -189,6 +190,31 @@ class MultiLayerEncodingLoss(SameTypeLossContainer):
             target_guide=target_guide,
             score_weight=score_weight,
         )
+
+    def __repr__(self) -> str:
+        def build_encoder_repr() -> str:
+            layer_loss = next(self._losses())
+            mle = cast(enc.SingleLayerEncoder, layer_loss.encoder).multi_layer_encoder
+            name = mle.__class__.__name__
+            properties = mle.properties()
+            named_children = ()
+            return self._build_repr(
+                name=name, properties=properties, named_children=named_children
+            )
+
+        def build_layer_repr(loss: Loss) -> str:
+            properties = loss.properties()
+            return loss._build_repr(properties=properties, named_children=())
+
+        properties = OrderedDict()
+        properties["encoder"] = build_encoder_repr()
+        properties.update(self.properties())
+
+        named_children = [
+            (name, build_layer_repr(loss)) for name, loss in self._named_losses()
+        ]
+
+        return self._build_repr(properties=properties, named_children=named_children)
 
 
 class MultiRegionLoss(SameTypeLossContainer):

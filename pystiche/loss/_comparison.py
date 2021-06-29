@@ -1,5 +1,5 @@
 import itertools
-from typing import Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import torch
 from torch import nn
@@ -175,11 +175,11 @@ class GramLoss(ComparisonLoss):
     ) -> torch.Tensor:
         return F.mse_loss(input_repr, target_repr)
 
-    # def _properties(self) -> Dict[str, Any]:
-    #     dct = super()._properties()
-    #     if not self.normalize:
-    #         dct["normalize"] = self.normalize
-    #     return dct
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
+        if not self.normalize:
+            dct["normalize"] = self.normalize
+        return dct
 
 
 class MRFLoss(ComparisonLoss):
@@ -384,10 +384,8 @@ class MRFLoss(ComparisonLoss):
     ) -> torch.Tensor:
         return F.mrf_loss(input_repr, target_repr, batched_input=False)
 
-
-#
-#     def _properties(self) -> Dict[str, Any]:
-#         dct = super()._properties()
-#         dct["patch_size"] = self.patch_size
-#         dct["stride"] = self.stride
-#         return dct
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
+        dct["patch_size"] = self.patch_size
+        dct["stride"] = self.stride
+        return dct

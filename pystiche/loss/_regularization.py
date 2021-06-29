@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import torch
 
@@ -57,10 +57,10 @@ class TotalVariationLoss(RegularizationLoss):
     def calculate_score(self, input_repr: torch.Tensor) -> torch.Tensor:
         return F.total_variation_loss(input_repr, exponent=self.exponent)
 
-    # def _properties(self) -> Dict[str, Any]:
-    #     dct = super()._properties()
-    #     dct["exponent"] = f"{self.exponent:g}"
-    #     return dct
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
+        dct["exponent"] = f"{self.exponent:g}"
+        return dct
 
 
 class ValueRangeLoss(RegularizationLoss):

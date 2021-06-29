@@ -2,7 +2,7 @@ import pytorch_testing_utils as ptu
 
 import torch
 
-import pystiche.ops.functional as F
+import pystiche.loss.functional as F
 from pystiche import loss
 
 
@@ -18,6 +18,9 @@ class TestTotalVariationLoss:
         desired = F.total_variation_loss(image, exponent=exponent)
         ptu.assert_allclose(actual, desired)
 
+    def test_repr_smoke(self, encoder):
+        assert isinstance(repr(loss.TotalVariationLoss()), str)
+
 
 class TestValueRangeLoss:
     def test_call(self):
@@ -29,3 +32,6 @@ class TestValueRangeLoss:
         actual = op(image)
         desired = F.value_range_loss(image)
         ptu.assert_allclose(actual, desired)
+
+    def test_repr_smoke(self, encoder):
+        assert isinstance(repr(loss.ValueRangeLoss()), str)

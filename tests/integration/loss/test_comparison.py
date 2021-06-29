@@ -20,6 +20,9 @@ class TestFeatureReconstructionLoss:
         desired = F.mse_loss(encoder(input_image), encoder(target_image))
         ptu.assert_allclose(actual, desired)
 
+    def test_repr_smoke(self, encoder):
+        assert isinstance(repr(loss_.FeatureReconstructionLoss(encoder)), str)
+
 
 class TestGramLoss:
     def test_call(self, encoder):
@@ -36,6 +39,9 @@ class TestGramLoss:
             pystiche.gram_matrix(encoder(target_image), normalize=loss.normalize),
         )
         ptu.assert_allclose(actual, desired)
+
+    def test_repr_smoke(self, encoder):
+        assert isinstance(repr(loss_.GramLoss(encoder)), str)
 
 
 class TestMRFLoss:
@@ -84,3 +90,6 @@ class TestMRFLoss:
             pystiche.extract_patches2d(target_enc, patch_size, stride=stride),
         )
         ptu.assert_allclose(actual, desired)
+
+    def test_repr_smoke(self, encoder):
+        assert isinstance(repr(loss_.MRFLoss(encoder, 2, stride=1)), str)

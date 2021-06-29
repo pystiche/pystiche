@@ -1,9 +1,10 @@
+import math
 from abc import ABC, abstractmethod
-from typing import Iterator, Optional, Tuple, Union, cast
+from typing import Any, Dict, Iterator, Optional, Sequence, Tuple, Union, cast
 
 import torch
-from torch import nn
 
+import pystiche
 from pystiche import LossDict, enc
 
 from .utils import apply_guide, match_batch_size
@@ -15,7 +16,7 @@ __all__ = [
 ]
 
 
-class Loss(nn.Module, ABC):
+class Loss(pystiche.Module, ABC):
     def __init__(
         self,
         *,
@@ -67,6 +68,27 @@ class Loss(nn.Module, ABC):
     def _losses(self) -> Iterator["Loss"]:
         for _, loss in self._named_losses():
             yield loss
+
+    def _build_repr(
+        self,
+        name: Optional[str] = None,
+        properties: Optional[Dict[str, str]] = None,
+        named_children: Optional[Sequence[Tuple[str, Any]]] = None,
+    ) -> str:
+        if named_children is None:
+            named_children = [
+                (name if name != "_encoder" else "encoder", child)
+                for name, child in self.named_children()
+            ]
+        return super()._build_repr(
+            name=name, properties=properties, named_children=named_children
+        )
+
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
+        if not math.isclose(self.score_weight, 1.0):
+            dct["score_weight"] = f"{self.score_weight:g}"
+        return dct
 
 
 class RegularizationLoss(Loss):
