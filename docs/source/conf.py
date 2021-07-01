@@ -2,6 +2,7 @@ import contextlib
 import os
 import re
 import shutil
+import warnings
 from datetime import datetime
 from distutils.util import strtobool
 from importlib_metadata import metadata as extract_metadata
@@ -220,6 +221,21 @@ def sphinx_gallery():
             else:
                 return super().__call__(filename)
 
+    def filter_warnings():
+        # See #https://github.com/pytorch/pytorch/issues/60053
+        warnings.filterwarnings(
+            "ignore",
+            category=UserWarning,
+            message=(
+                re.escape(
+                    "Named tensors and all their associated APIs are an experimental "
+                    "feature and subject to change. Please do not use them for "
+                    "anything important until they are released as stable. (Triggered "
+                    "internally at  /pytorch/c10/core/TensorImpl.h:1156.)"
+                )
+            ),
+        )
+
     if download_gallery:
         download()
 
@@ -249,6 +265,7 @@ def sphinx_gallery():
     }
 
     config = dict(sphinx_gallery_conf=sphinx_gallery_conf)
+    filter_warnings()
 
     patch_tqdm()
 
