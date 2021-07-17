@@ -15,7 +15,7 @@ def _deprecate(fn: Callable) -> Callable:
         "1.0",
         info=(
             f"It was moved to loss.functional.{name}. "
-            f"See XXXXXXXXXXXXXXXXXXXXXXX for details"
+            f"See https://github.com/pystiche/pystiche/issues/436 for details"
         ),
     )
 
@@ -38,5 +38,3 @@ for name in dir(F):
 
     __all__.append(name)
     globals()[name] = _deprecate(fn)
-
-print()

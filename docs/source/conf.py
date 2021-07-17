@@ -119,8 +119,7 @@ def doctest():
 import torch
 from torch import nn
 
-from pystiche import enc, ops, loss
-import pystiche.ops.functional as F
+import pystiche
 
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)

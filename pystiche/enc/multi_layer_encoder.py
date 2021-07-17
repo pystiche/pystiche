@@ -198,7 +198,7 @@ class MultiLayerEncoder(pystiche.Module):
         Examples:
 
             >>> modules = [("conv", nn.Conv2d(3, 3, 3)), ("pool", nn.MaxPool2d(2))]
-            >>> mle = enc.MultiLayerEncoder(modules)
+            >>> mle = pystiche.enc.MultiLayerEncoder(modules)
             >>> input = torch.rand(1, 3, 128, 128)
             >>> output = mle(input, "conv")
         """

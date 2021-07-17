@@ -5,6 +5,8 @@ except ImportError:
 
 from .core import *
 
+from . import loss, enc, demo, data, image, pyramid, optim
+
 import os
 
 os.makedirs(home(), exist_ok=True)

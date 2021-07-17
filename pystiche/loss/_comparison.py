@@ -43,13 +43,13 @@ class FeatureReconstructionLoss(ComparisonLoss):
 
     Examples:
 
-        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
-        >>> encoder = multi_layer_encoder.extract_encoder("relu4_2")
-        >>> op = ops.FeatureReconstructionOperator(encoder)
+        >>> mle = pystiche.enc.vgg19_multi_layer_encoder()
+        >>> encoder = mle.extract_encoder("relu4_2")
+        >>> loss = pystiche.loss.FeatureReconstructionLoss(encoder)
         >>> input = torch.rand(2, 3, 256, 256)
         >>> target = torch.rand(2, 3, 256, 256)
-        >>> op.set_target_image(target)
-        >>> score = op(input)
+        >>> loss.set_target_image(target)
+        >>> score = loss(input)
 
     .. seealso::
 
@@ -123,13 +123,13 @@ class GramLoss(ComparisonLoss):
 
     Examples:
 
-        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
-        >>> encoder = multi_layer_encoder.extract_encoder("relu4_2")
-        >>> op = ops.GramOperator(encoder)
+        >>> mle = pystiche.enc.vgg19_multi_layer_encoder()
+        >>> encoder = mle.extract_encoder("relu4_2")
+        >>> loss = pystiche.loss.GramLoss(encoder)
         >>> input = torch.rand(2, 3, 256, 256)
         >>> target = torch.rand(2, 3, 256, 256)
-        >>> op.set_target_image(target)
-        >>> score = op(input)
+        >>> loss.set_target_image(target)
+        >>> score = loss(input)
 
     .. seealso::
 
@@ -215,14 +215,14 @@ class MRFLoss(ComparisonLoss):
 
     Examples:
 
-        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
-        >>> encoder = multi_layer_encoder.extract_encoder("relu4_2")
+        >>> mle = pystiche.enc.vgg19_multi_layer_encoder()
+        >>> encoder = mle.extract_encoder("relu4_2")
         >>> patch_size = 3
-        >>> op = ops.MRFOperator(encoder, patch_size)
+        >>> loss = pystiche.loss.MRFLoss(encoder, patch_size)
         >>> input = torch.rand(2, 3, 256, 256)
         >>> target = torch.rand(2, 3, 256, 256)
-        >>> op.set_target_image(target)
-        >>> score = op(input)
+        >>> loss.set_target_image(target)
+        >>> score = loss(input)
 
     .. seealso::
 

@@ -12,7 +12,7 @@ import pystiche
 from pystiche import enc, loss
 from pystiche.misc import build_deprecation_message
 
-PATTERN = re.compile(re.escape("<class 'pystiche.loss."))
+_PATTERN = re.compile(re.escape("<class 'pystiche.loss."))
 
 
 def __op_init__(
@@ -21,11 +21,14 @@ def __op_init__(
     msg = build_deprecation_message(
         f"The class pystiche.ops.{__old_name__}",
         "1.0",
-        info=f"It was renamed and moved to pystiche.loss.{__new_name__}.",
+        info=(
+            f"It was renamed and moved to pystiche.loss.{__new_name__}. "
+            f"See https://github.com/pystiche/pystiche/issues/436 for details"
+        ),
     )
     warnings.warn(msg)
     for super_cls in type(self).__mro__:
-        if PATTERN.match(str(super_cls)):
+        if _PATTERN.match(str(super_cls)):
             break
     else:
         raise RuntimeError

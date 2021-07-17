@@ -31,7 +31,7 @@ class TotalVariationLoss(RegularizationLoss):
 
     Examples:
 
-        >>> loss = loss.TotalVariationOperator()
+        >>> loss = pystiche.loss.TotalVariationLoss()
         >>> input = torch.rand(2, 3, 256, 256)
         >>> score = loss(input)
 

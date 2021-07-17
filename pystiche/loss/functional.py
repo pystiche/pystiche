@@ -14,7 +14,7 @@ def mrf_loss(
     reduction: str = "mean",
     batched_input: Optional[bool] = None,
 ) -> torch.Tensor:
-    r"""Calculates the MRF loss. See :class:`pystiche.ops.MRFOperator` for details.
+    r"""Calculates the MRF loss. See :class:`pystiche.loss.MRFLoss` for details.
 
     Args:
         input: Input of shape :math:`S_1 \times N_1 \times \dots \times N_D`.
@@ -32,6 +32,7 @@ def mrf_loss(
 
     Examples:
 
+        >>> import pystiche.loss.functional as F
         >>> input = torch.rand(256, 64, 3, 3)
         >>> target = torch.rand(256, 64, 3, 3)
         >>> score = F.mrf_loss(input, target)
@@ -69,6 +70,7 @@ def total_variation_loss(
 
     Examples:
 
+        >>> import pystiche.loss.functional as F
         >>> input = torch.rand(2, 3, 256, 256)
         >>> score = F.total_variation_loss(input)
     """
