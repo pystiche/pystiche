@@ -1,34 +1,32 @@
-from typing import Dict, Iterable
+from typing import Dict, Iterable, Optional, Tuple
 
 import torch
 
-from pystiche.ops import ComparisonOperator, Operator  # type: ignore[attr-defined]
+from pystiche.loss import ComparisonLoss, Loss
 
 __all__ = ["ImageStorage"]
 
 
 class ImageStorage:
-    def __init__(self, ops: Iterable[Operator]) -> None:
-        self.target_guides: Dict[ComparisonOperator, torch.Tensor] = {}
-        self.target_images: Dict[ComparisonOperator, torch.Tensor] = {}
-        self.input_guides: Dict[Operator, torch.Tensor] = {}
-        for op in ops:
-            if isinstance(op, ComparisonOperator):
-                if op.has_target_guide:
-                    self.target_guides[op] = op.target_guide
+    def __init__(self, losses: Iterable[Loss]) -> None:
+        self.target_images_and_guides: Dict[
+            ComparisonLoss, Tuple[torch.Tensor, Optional[torch.Tensor]]
+        ] = {}
+        self.input_guides: Dict[Loss, torch.Tensor] = {}
+        for loss in losses:
+            if isinstance(loss, ComparisonLoss):
+                if loss.target_image is not None:
+                    self.target_images_and_guides[loss] = (
+                        loss.target_image,
+                        loss.target_guide,
+                    )
 
-                if op.has_target_image:
-                    self.target_images[op] = op.target_image
-
-            if op.has_input_guide:
-                self.input_guides[op] = op.input_guide
+            if loss.input_guide is not None:
+                self.input_guides[loss] = loss.input_guide
 
     def restore(self) -> None:
-        for op, target_guide in self.target_guides.items():
-            op.set_target_guide(target_guide, recalc_repr=False)
+        for loss, (target_image, target_guide) in self.target_images_and_guides.items():
+            loss.set_target_image(target_image, guide=target_guide)
 
-        for op, target_image in self.target_images.items():
-            op.set_target_image(target_image)
-
-        for op, input_guide in self.input_guides.items():
-            op.set_input_guide(input_guide)
+        for loss, input_guide in self.input_guides.items():
+            loss.set_input_guide(input_guide)
