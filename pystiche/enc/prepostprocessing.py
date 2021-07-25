@@ -65,8 +65,8 @@ class Denormalize(_Normalization):
         return image.mul(std).add(mean)
 
 
-TORCH_MEAN = [0.485, 0.456, 0.406]
-TORCH_STD = [0.229, 0.224, 0.225]
+TORCH_MEAN = (0.485, 0.456, 0.406)
+TORCH_STD = (0.229, 0.224, 0.225)
 
 
 class TorchPreprocessing(pystiche.SequentialModule):
@@ -81,8 +81,8 @@ class TorchPostprocessing(pystiche.SequentialModule):
         super().__init__(*transforms)
 
 
-CAFFE_MEAN = [0.485, 0.458, 0.408]
-CAFFE_STD = [1.0, 1.0, 1.0]
+CAFFE_MEAN = (0.485, 0.458, 0.408)
+CAFFE_STD = (1.0, 1.0, 1.0)
 
 
 class FloatToUint8Range(pystiche.Module):
