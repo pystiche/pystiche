@@ -16,6 +16,8 @@
 
 .. end-badges
 
+|logo|
+
 ``pystiche``
 ============
 
@@ -112,6 +114,11 @@ If you use this software, please cite it as
     year    = {2020},
     doi     = {10.21105/joss.02761},
   }
+
+.. |logo|
+  image:: logo.svg
+    :target: https://pystiche.org
+    :alt: pystiche logo
 
 .. |license|
   image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg

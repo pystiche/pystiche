@@ -1,3 +1,6 @@
+.. image:: ../../logo.svg
+    :alt: pystiche logo
+
 Welcome to ``pystiche`` 's documentation!
 =========================================
 
