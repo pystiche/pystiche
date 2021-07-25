@@ -2,7 +2,7 @@
 
 import warnings
 from types import TracebackType
-from typing import Iterator, Optional, Sequence, Tuple, Type
+from typing import Any, Iterator, Optional, Sequence, Tuple, Type
 
 import torch
 from torch import nn
@@ -18,9 +18,9 @@ __all__ = ["MLEHandler", "MultiOperatorLoss", "GuidedPerceptualLoss"]
 
 
 class MLEHandler(pystiche.ComplexObject):
-    # TODO: deprecate
-
     def __init__(self, criterion: nn.Module) -> None:
+        msg = build_deprecation_message("The class MLEHandler", "1.0")
+        warnings.warn(msg)
         self.multi_layer_encoders = {
             loss.encoder.multi_layer_encoder
             for loss in criterion.modules()
@@ -88,6 +88,8 @@ class MultiOperatorLoss(pystiche.Module):
     def __init__(
         self, named_ops: Sequence[Tuple[str, Loss]], trim: bool = True
     ) -> None:
+        msg = build_deprecation_message("The class MultiOperatorLoss", "1.0")
+        warnings.warn(msg)
         super().__init__(named_children=named_ops)
         self._mle_handler = MLEHandler(self)
 
@@ -112,7 +114,14 @@ class MultiOperatorLoss(pystiche.Module):
 
 
 class GuidedPerceptualLoss(PerceptualLoss):
-    # TODO: deprecate
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        msg = build_deprecation_message(
+            "The class GuidedPerceptualLoss",
+            "1.0",
+            info="pystiche.loss.PerceptualLoss now also handles guided inputs and targets",
+        )
+        warnings.warn(msg)
+        super().__init__(*args, **kwargs)
 
     def set_style_guide(
         self, region: str, guide: torch.Tensor, recalc_repr: bool = True
@@ -149,9 +158,7 @@ class GuidedPerceptualLoss(PerceptualLoss):
             if _recalc_repr and self.style_image is not None:
                 super().set_style_image(self.style_image, guide=guide, region=region)
             else:
-                # TODO
-                pass
-                # self.register_buffer("_target_guide", guide, persistent=False)
+                self.register_buffer("_target_guide", guide, persistent=False)
         elif guide is None:
             guide = self.regional_style_guide(region)
             super().set_style_image(image, region=region, guide=guide)
