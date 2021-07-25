@@ -1,11 +1,8 @@
 import re
-import warnings
-from typing import Any, Callable, Dict, List, Optional, Tuple, cast
+from typing import Any, Callable, Dict, List, Tuple, cast
 
 import torchvision
 from torch import hub, nn
-
-from pystiche.misc import build_deprecation_message
 
 from .utils import ModelMultiLayerEncoder
 from .utils import select_url as _select_url
@@ -156,14 +153,7 @@ class VGGMultiLayerEncoder(ModelMultiLayerEncoder):
             combination of ``arch`` and ``framework``.
     """
 
-    def __init__(self, arch: str, weights: Optional[str] = None, **kwargs: Any) -> None:
-        if weights is not None:
-            msg = build_deprecation_message(
-                "The parameter weights", "0.6.0", info="It was renamed to framework"
-            )
-            warnings.warn(msg, UserWarning)
-            kwargs["framework"] = weights
-
+    def __init__(self, arch: str, **kwargs: Any) -> None:
         _parse_arch(arch)
         self.arch = arch
         super().__init__(**kwargs)
