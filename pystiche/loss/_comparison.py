@@ -3,10 +3,11 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, 
 
 import torch
 from torch import nn
-from torchvision.transforms.functional import InterpolationMode, affine
+from torchvision.transforms.functional import affine
 
 import pystiche
 from pystiche import enc
+from pystiche._compat import InterpolationMode
 from pystiche.misc import suppress_warnings, to_2d_arg
 
 from . import functional as F

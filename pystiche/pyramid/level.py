@@ -1,21 +1,12 @@
-from typing import Any, Dict, Iterator, Optional, cast
-
-import PIL.Image
+from typing import Any, Dict, Iterator, Optional
 
 import torch
 from torchvision.transforms.functional import resize
 
 from pystiche import ComplexObject
+from pystiche._compat import InterpolationMode
 from pystiche.image import edge_to_image_size, extract_aspect_ratio
 from pystiche.misc import verify_str_arg
-
-try:
-    from torchvision.transforms.functional import InterpolationMode
-except ImportError:
-
-    def InterpolationMode(interpolation_mode: str) -> int:
-        return cast(int, getattr(PIL.Image, interpolation_mode.upper()))
-
 
 __all__ = ["PyramidLevel"]
 
