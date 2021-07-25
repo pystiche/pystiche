@@ -1,12 +1,13 @@
 import itertools
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, cast
 
 import torch
 from torch import nn
+from torchvision.transforms.functional import affine
 
 import pystiche
 from pystiche import enc
-from pystiche.image._transforms import Affine
+from pystiche._compat import InterpolationMode
 from pystiche.misc import suppress_warnings, to_2d_arg
 
 from . import functional as F
@@ -182,6 +183,32 @@ class GramLoss(ComparisonLoss):
         return dct
 
 
+class ScaleAndRotate(pystiche.Module):
+    def __init__(self, scale_factor: float, rotation_angle: float) -> None:
+        super().__init__()
+        self.scale_factor = scale_factor
+        self.rotation_angle = rotation_angle
+
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
+        return cast(
+            torch.Tensor,
+            affine(
+                image,
+                angle=self.rotation_angle,
+                translate=[0, 0],
+                scale=self.scale_factor,
+                shear=[0.0, 0.0],
+                interpolation=InterpolationMode.BILINEAR,
+            ),
+        )
+
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
+        dct["scale_factor"] = self.scale_factor
+        dct["rotation_angle"] = self.rotation_angle
+        return dct
+
+
 class MRFLoss(ComparisonLoss):
     r"""The MRF loss is a style loss based on
     `Markov Random Fields (MRFs) <https://en.wikipedia.org/wiki/Markov_random_field>`_.
@@ -258,7 +285,7 @@ class MRFLoss(ComparisonLoss):
         scale_step_width: float = 5e-2,
         num_rotate_steps: int = 1,
         rotate_step_width: float = 10.0,
-    ) -> List[Affine]:
+    ) -> List[ScaleAndRotate]:
         """Generate a list of scaling and rotations transformations.
 
         .. seealso::
@@ -295,7 +322,7 @@ class MRFLoss(ComparisonLoss):
             for base in range(-num_scale_steps, num_scale_steps + 1)
         ]
         return [
-            Affine(angle=angle, scale_factor=scale_factor)
+            ScaleAndRotate(scale_factor=scale_factor, rotation_angle=angle,)
             for angle, scale_factor in itertools.product(angles, scale_factors)
         ]
 
