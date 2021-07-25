@@ -1,11 +1,11 @@
 import warnings
-from typing import List, Mapping, Type
+from typing import Any, Dict, Mapping, Sequence, Tuple, Type
 
 import torch
 from torch import nn
 
 import pystiche
-from pystiche._compat import Normalize
+from pystiche.image.utils import extract_num_channels
 from pystiche.misc import build_deprecation_message
 
 __all__ = [
@@ -19,23 +19,50 @@ __all__ = [
 ]
 
 
-class Denormalize(nn.Module):
-    def __init__(self, mean: List[float], std: List[float]) -> None:
+class _Normalization(pystiche.Module):
+    def __init__(self, mean: Sequence[float], std: Sequence[float],) -> None:
         super().__init__()
         self.mean = mean
         self.std = std
 
-    def forward(self, image: torch.Tensor) -> torch.Tensor:
-        mean = torch.as_tensor(self.mean, dtype=image.dtype, device=image.device).view(
-            -1, 1, 1
-        )
-        std = torch.as_tensor(self.std, dtype=image.dtype, device=image.device).view(
-            -1, 1, 1
-        )
-        return image.mul(std).add(mean)
+    @staticmethod
+    def _channel_stats_to_tensor(
+        image: torch.Tensor, mean: Sequence[float], std: Sequence[float]
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        num_channels = extract_num_channels(image)
 
-    def extra_repr(self) -> str:
-        return f"mean={self.mean}, std={self.std}"
+        def to_tensor(seq: Sequence[float]) -> torch.Tensor:
+            if len(seq) != num_channels:
+                msg = (
+                    f"The length of the channel statistics and the number of image "
+                    f"channels do not match: {len(seq)} != {num_channels}"
+                )
+                raise RuntimeError(msg)
+            return torch.tensor(seq, device=image.device).view(1, -1, 1, 1)
+
+        return to_tensor(mean), to_tensor(std)
+
+    @staticmethod
+    def _format_stats(stats: Sequence[float], fmt: str = "{:g}") -> str:
+        return str(tuple(fmt.format(stat) for stat in stats))
+
+    def _properties(self) -> Dict[str, Any]:
+        dct = super()._properties()
+        dct["mean"] = self._format_stats(self.mean)
+        dct["std"] = self._format_stats(self.std)
+        return dct
+
+
+class Normalize(_Normalization):
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
+        mean, std = self._channel_stats_to_tensor(image, self.mean, self.std)
+        return image.sub(mean).div(std)
+
+
+class Denormalize(_Normalization):
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
+        mean, std = self._channel_stats_to_tensor(image, self.mean, self.std)
+        return image.mul(std).add(mean)
 
 
 TORCH_MEAN = [0.485, 0.456, 0.406]
