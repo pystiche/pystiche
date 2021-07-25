@@ -1,11 +1,11 @@
 import warnings
-from typing import Mapping, Type
+from typing import List, Mapping, Type
 
 import torch
 from torch import nn
+from torchvision.transforms import Normalize
 
 import pystiche
-from pystiche.image._transforms import Denormalize, Normalize
 from pystiche.misc import build_deprecation_message
 
 __all__ = [
@@ -19,8 +19,27 @@ __all__ = [
 ]
 
 
-TORCH_MEAN = (0.485, 0.456, 0.406)
-TORCH_STD = (0.229, 0.224, 0.225)
+class Denormalize(nn.Module):
+    def __init__(self, mean: List[float], std: List[float]) -> None:
+        super().__init__()
+        self.mean = mean
+        self.std = std
+
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
+        mean = torch.as_tensor(self.mean, dtype=image.dtype, device=image.device).view(
+            -1, 1, 1
+        )
+        std = torch.as_tensor(self.std, dtype=image.dtype, device=image.device).view(
+            -1, 1, 1
+        )
+        return image.mul(std).add(mean)
+
+    def extra_repr(self) -> str:
+        return f"mean={self.mean}, std={self.std}"
+
+
+TORCH_MEAN = [0.485, 0.456, 0.406]
+TORCH_STD = [0.229, 0.224, 0.225]
 
 
 class TorchPreprocessing(pystiche.SequentialModule):
@@ -35,8 +54,8 @@ class TorchPostprocessing(pystiche.SequentialModule):
         super().__init__(*transforms)
 
 
-CAFFE_MEAN = (0.485, 0.458, 0.408)
-CAFFE_STD = (1.0, 1.0, 1.0)
+CAFFE_MEAN = [0.485, 0.458, 0.408]
+CAFFE_STD = [1.0, 1.0, 1.0]
 
 
 class FloatToUint8Range(pystiche.Module):
