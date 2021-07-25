@@ -11,10 +11,8 @@ from typing import (
     Union,
 )
 
-from pystiche import ComplexObject
-from pystiche.loss import MultiOperatorLoss
+from pystiche import ComplexObject, loss
 from pystiche.misc import zip_equal
-from pystiche.ops import ComparisonOperator, Operator, OperatorContainer
 
 from .level import PyramidLevel
 from .storage import ImageStorage
@@ -49,7 +47,7 @@ class ImagePyramid(ComplexObject):
         num_steps: Union[Sequence[int], int],
         edge: Union[Sequence[str], str] = "short",
         interpolation_mode: str = "bilinear",
-        resize_targets: Collection[Union[Operator, MultiOperatorLoss]] = (),
+        resize_targets: Collection[loss.Loss] = (),
     ):
         self._levels = self.build_levels(edge_sizes, num_steps, edge)
         self.interpolation_mode = interpolation_mode
@@ -73,8 +71,8 @@ class ImagePyramid(ComplexObject):
         )
 
     # TODO: can this be removed?
-    def add_resize_target(self, op: Operator) -> None:
-        self._resize_targets.add(op)
+    def add_resize_target(self, loss: loss.Loss) -> None:
+        self._resize_targets.add(loss)
 
     def __len__(self) -> int:
         return len(self._levels)
@@ -83,7 +81,7 @@ class ImagePyramid(ComplexObject):
         return self._levels[idx]
 
     def __iter__(self) -> Iterator[PyramidLevel]:
-        image_storage = ImageStorage(self._resize_ops())
+        image_storage = ImageStorage(self._resize_losses())
         for level in self._levels:
             try:
                 self._resize(level)
@@ -92,32 +90,33 @@ class ImagePyramid(ComplexObject):
                 image_storage.restore()
 
     def _resize(self, level: PyramidLevel) -> None:
-        for op in self._resize_ops():
-            if isinstance(op, ComparisonOperator):
-                if op.has_target_guide:
-                    resized_guide = level.resize_guide(op.target_guide)
-                    op.set_target_guide(resized_guide, recalc_repr=False)
-
-                if op.has_target_image:
+        for loss_ in self._resize_losses():
+            if isinstance(loss_, loss.ComparisonLoss):
+                if loss_.target_image is not None:
                     resized_image = level.resize_image(
-                        op.target_image, interpolation_mode=self.interpolation_mode
+                        loss_.target_image, interpolation_mode=self.interpolation_mode
                     )
-                    op.set_target_image(resized_image)
+                    resized_guide = (
+                        level.resize_guide(loss_.target_guide)
+                        if loss_.target_guide is not None
+                        else None
+                    )
+                    loss_.set_target_image(resized_image, guide=resized_guide)
 
-            if op.has_input_guide:
-                resized_guide = level.resize_guide(op.input_guide)
-                op.set_input_guide(resized_guide)
+            if loss_.input_guide is not None:
+                resized_guide = level.resize_guide(loss_.input_guide)
+                loss_.set_input_guide(resized_guide)
 
-    def _resize_ops(self) -> Set[Operator]:
-        resize_ops = set()
+    def _resize_losses(self) -> Set[loss.Loss]:
+        resize_losses = set()
         for target in self._resize_targets:
-            if isinstance(target, Operator):
-                resize_ops.add(target)
+            if isinstance(target, loss.Loss):
+                resize_losses.add(target)
 
-            for op in target.operators(recurse=True):
-                if not isinstance(op, OperatorContainer):
-                    resize_ops.add(op)
-        return resize_ops
+            for loss_ in target._losses():
+                if not isinstance(loss_, loss.LossContainer):
+                    resize_losses.add(loss_)
+        return resize_losses
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()

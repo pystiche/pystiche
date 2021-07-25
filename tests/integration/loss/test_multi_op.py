@@ -32,7 +32,7 @@ def test_MultiOperatorLoss_trim():
         def encoder(self):
             return self._encoder
 
-        def process_input_image(self, image):
+        def forward(self, image):
             pass
 
     layers = [str(idx) for idx in range(3)]
@@ -75,7 +75,7 @@ def test_MultiOperatorLoss_call_encode(forward_pass_counter):
         def encoder(self):
             return self._encoder
 
-        def process_input_image(self, image):
+        def forward(self, image):
             return torch.sum(self.encoder(image))
 
     modules = (("count", forward_pass_counter),)

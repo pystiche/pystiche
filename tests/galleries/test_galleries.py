@@ -150,7 +150,6 @@ def would_be_filtered(warning):
     # taken from warnings.warn_explicit
     for item in FILTERS:
         action, msg, cat, mod, ln = item
-        print()
         if (
             (msg is None or msg.match(text))
             and issubclass(category, cat)

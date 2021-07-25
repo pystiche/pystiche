@@ -52,7 +52,7 @@ def test_default_image_optim_loop(optim_asset_loader):
 
     actual = optim.image_optimization(
         asset.input.image,
-        asset.input.criterion,
+        asset.input.perceptual_loss,
         optimizer=asset.params.get_optimizer,
         num_steps=asset.params.num_steps,
         quiet=True,
@@ -72,7 +72,7 @@ def test_default_image_optim_loop_processing(optim_asset_loader):
 
     actual = optim.image_optimization(
         asset.input.image,
-        asset.input.criterion,
+        asset.input.perceptual_loss,
         optimizer=asset.params.get_optimizer,
         num_steps=asset.params.num_steps,
         preprocessor=asset.params.preprocessor,
@@ -90,7 +90,7 @@ def test_default_image_pyramid_optim_loop(optim_asset_loader):
 
     actual = optim.pyramid_image_optimization(
         asset.input.image,
-        asset.input.criterion,
+        asset.input.perceptual_loss,
         asset.input.pyramid,
         get_optimizer=asset.params.get_optimizer,
         quiet=True,
@@ -106,7 +106,7 @@ def test_default_image_pyramid_optim_loop_processing(optim_asset_loader):
 
     actual = optim.pyramid_image_optimization(
         asset.input.image,
-        asset.input.criterion,
+        asset.input.perceptual_loss,
         asset.input.pyramid,
         get_optimizer=asset.params.get_optimizer,
         preprocessor=asset.params.preprocessor,
@@ -144,7 +144,7 @@ def test_default_transformer_optim_loop(optim_asset_loader):
     asset = optim_asset_loader("default_transformer_optim_loop")
 
     image_loader = asset.input.image_loader
-    criterion = asset.input.criterion
+    criterion = asset.input.perceptual_loss
     make_torch_ge_1_6_compatible(image_loader, criterion)
 
     transformer = asset.input.transformer
@@ -169,7 +169,7 @@ def test_default_transformer_epoch_optim_loop(optim_asset_loader):
     asset = optim_asset_loader("default_transformer_epoch_optim_loop")
 
     image_loader = asset.input.image_loader
-    criterion = asset.input.criterion
+    criterion = asset.input.perceptual_loss
     make_torch_ge_1_6_compatible(image_loader, criterion)
 
     transformer = asset.input.transformer

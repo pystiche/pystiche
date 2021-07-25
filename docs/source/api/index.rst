@@ -10,9 +10,8 @@ Package reference
   pystiche.enc
   pystiche.image
   pystiche.loss
+  pystiche.loss.functional
   pystiche.meta
   pystiche.misc
-  pystiche.ops
-  pystiche.ops.functional
   pystiche.optim
   pystiche.pyramid

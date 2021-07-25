@@ -128,16 +128,17 @@ def test_MRFOperator_set_target_guide_without_recalc():
     stride = 2
 
     torch.manual_seed(0)
-    repr = torch.rand(1, 3, 32, 32)
+    image = torch.rand(1, 3, 32, 32)
     guide = torch.rand(1, 1, 32, 32)
     encoder = enc.SequentialEncoder((nn.Conv2d(3, 3, 1),))
 
     op = ops.MRFOperator(encoder, patch_size, stride=stride)
-    op.register_buffer("target_repr", repr)
-    op.set_target_guide(guide, recalc_repr=False)
+    op.set_target_image(image)
+    desired = op.target_repr.clone()
 
+    op.set_target_guide(guide, recalc_repr=False)
     actual = op.target_repr
-    desired = repr
+
     ptu.assert_allclose(actual, desired)
 
 

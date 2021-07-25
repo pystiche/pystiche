@@ -5,21 +5,22 @@ import torch
 from torch import nn
 
 import pystiche
-from pystiche.enc import Encoder
+from pystiche import enc
 from pystiche.image._transforms import Affine
 from pystiche.misc import suppress_warnings, to_2d_arg
 
 from . import functional as F
-from .op import EncodingComparisonOperator
+from ._loss import ComparisonLoss
+from .utils import apply_guide
 
 __all__ = [
-    "FeatureReconstructionOperator",
-    "GramOperator",
-    "MRFOperator",
+    "FeatureReconstructionLoss",
+    "GramLoss",
+    "MRFLoss",
 ]
 
 
-class FeatureReconstructionOperator(EncodingComparisonOperator):
+class FeatureReconstructionLoss(ComparisonLoss):
     r"""The feature reconstruction loss is the de facto standard content loss. It
     measures the mean squared error (MSE) between the encodings of an ``input_image``
     :math:`\hat{I}` and a ``target_image`` :math:`I` :
@@ -42,13 +43,13 @@ class FeatureReconstructionOperator(EncodingComparisonOperator):
 
     Examples:
 
-        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
-        >>> encoder = multi_layer_encoder.extract_encoder("relu4_2")
-        >>> op = ops.FeatureReconstructionOperator(encoder)
+        >>> mle = pystiche.enc.vgg19_multi_layer_encoder()
+        >>> encoder = mle.extract_encoder("relu4_2")
+        >>> loss = pystiche.loss.FeatureReconstructionLoss(encoder)
         >>> input = torch.rand(2, 3, 256, 256)
         >>> target = torch.rand(2, 3, 256, 256)
-        >>> op.set_target_image(target)
-        >>> score = op(input)
+        >>> loss.set_target_image(target)
+        >>> score = loss(input)
 
     .. seealso::
 
@@ -56,6 +57,23 @@ class FeatureReconstructionOperator(EncodingComparisonOperator):
         :cite:`MV2015` , but its name was coined by Johnson, Alahi, and Fei-Fei in
         :cite:`JAFF2016` .
     """
+
+    def __init__(
+        self,
+        encoder: enc.Encoder,
+        *,
+        input_guide: Optional[torch.Tensor] = None,
+        target_image: Optional[torch.Tensor] = None,
+        target_guide: Optional[torch.Tensor] = None,
+        score_weight: float = 1e0,
+    ):
+        super().__init__(
+            encoder=encoder,
+            input_guide=input_guide,
+            target_image=target_image,
+            target_guide=target_guide,
+            score_weight=score_weight,
+        )
 
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
         return enc
@@ -77,7 +95,7 @@ class FeatureReconstructionOperator(EncodingComparisonOperator):
         return F.mse_loss(input_repr, target_repr)
 
 
-class GramOperator(EncodingComparisonOperator):
+class GramLoss(ComparisonLoss):
     r"""The gram loss is a style loss based on the correlation of feature map channels.
     It measures the mean squared error (MSE) between the channel-wise Gram matrices of
     the encodings of an ``input_image`` :math:`\hat{I}` and a ``target_image``
@@ -105,13 +123,13 @@ class GramOperator(EncodingComparisonOperator):
 
     Examples:
 
-        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
-        >>> encoder = multi_layer_encoder.extract_encoder("relu4_2")
-        >>> op = ops.GramOperator(encoder)
+        >>> mle = pystiche.enc.vgg19_multi_layer_encoder()
+        >>> encoder = mle.extract_encoder("relu4_2")
+        >>> loss = pystiche.loss.GramLoss(encoder)
         >>> input = torch.rand(2, 3, 256, 256)
         >>> target = torch.rand(2, 3, 256, 256)
-        >>> op.set_target_image(target)
-        >>> score = op(input)
+        >>> loss.set_target_image(target)
+        >>> score = loss(input)
 
     .. seealso::
 
@@ -120,9 +138,22 @@ class GramOperator(EncodingComparisonOperator):
     """
 
     def __init__(
-        self, encoder: Encoder, normalize: bool = True, score_weight: float = 1.0
+        self,
+        encoder: enc.Encoder,
+        *,
+        normalize: bool = True,
+        input_guide: Optional[torch.Tensor] = None,
+        target_image: Optional[torch.Tensor] = None,
+        target_guide: Optional[torch.Tensor] = None,
+        score_weight: float = 1.0,
     ) -> None:
-        super().__init__(encoder, score_weight=score_weight)
+        super().__init__(
+            encoder=encoder,
+            input_guide=input_guide,
+            target_image=target_image,
+            target_guide=target_guide,
+            score_weight=score_weight,
+        )
         self.normalize = normalize
 
     def enc_to_repr(self, enc: torch.Tensor) -> torch.Tensor:
@@ -151,7 +182,7 @@ class GramOperator(EncodingComparisonOperator):
         return dct
 
 
-class MRFOperator(EncodingComparisonOperator):
+class MRFLoss(ComparisonLoss):
     r"""The MRF loss is a style loss based on
     `Markov Random Fields (MRFs) <https://en.wikipedia.org/wiki/Markov_random_field>`_.
     It measures the mean squared error (MSE) between *neural patches* extracted from
@@ -184,14 +215,14 @@ class MRFOperator(EncodingComparisonOperator):
 
     Examples:
 
-        >>> multi_layer_encoder = enc.vgg19_multi_layer_encoder()
-        >>> encoder = multi_layer_encoder.extract_encoder("relu4_2")
+        >>> mle = pystiche.enc.vgg19_multi_layer_encoder()
+        >>> encoder = mle.extract_encoder("relu4_2")
         >>> patch_size = 3
-        >>> op = ops.MRFOperator(encoder, patch_size)
+        >>> loss = pystiche.loss.MRFLoss(encoder, patch_size)
         >>> input = torch.rand(2, 3, 256, 256)
         >>> target = torch.rand(2, 3, 256, 256)
-        >>> op.set_target_image(target)
-        >>> score = op(input)
+        >>> loss.set_target_image(target)
+        >>> score = loss(input)
 
     .. seealso::
 
@@ -200,13 +231,23 @@ class MRFOperator(EncodingComparisonOperator):
 
     def __init__(
         self,
-        encoder: Encoder,
+        encoder: enc.Encoder,
         patch_size: Union[int, Sequence[int]],
+        *,
         stride: Union[int, Sequence[int]] = 1,
         target_transforms: Optional[Iterable[nn.Module]] = None,
+        input_guide: Optional[torch.Tensor] = None,
+        target_image: Optional[torch.Tensor] = None,
+        target_guide: Optional[torch.Tensor] = None,
         score_weight: float = 1.0,
     ):
-        super().__init__(encoder, score_weight=score_weight)
+        super().__init__(
+            encoder=encoder,
+            input_guide=input_guide,
+            target_image=target_image,
+            target_guide=target_guide,
+            score_weight=score_weight,
+        )
         self.patch_size = to_2d_arg(patch_size)
         self.stride = to_2d_arg(stride)
         self.target_transforms = target_transforms
@@ -223,16 +264,13 @@ class MRFOperator(EncodingComparisonOperator):
         .. seealso::
 
             The output of this method can be used as parameter ``target_transforms`` of
-            :class:`~pystiche.ops.MRFOperator` to enrich the space of target neural
+            :class:`~pystiche.loss.MRFLoss` to enrich the space of target neural
             patches:
 
             .. code-block:: python
 
-                from pystiche.ops import MRFOperator
-
-
                 target_transforms = MRFOperator.scale_and_rotate_transforms()
-                op = MRFOperator(..., target_transforms=target_transforms)
+                loss = pystiche.loss.MRFLoss(..., target_transforms=target_transforms)
 
         Args:
             num_scale_steps: Number of scale steps. Each scale is performed in both
@@ -262,17 +300,9 @@ class MRFOperator(EncodingComparisonOperator):
         ]
 
     @staticmethod
-    def _match_batch_sizes(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
+    def _match_batch_size(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
         # FIXME
         return target
-
-    def set_target_guide(self, guide: torch.Tensor, recalc_repr: bool = True) -> None:
-        # Since the target representation of the MRFOperator possibly comprises
-        # scaled or rotated patches, it is not useful to store the target encoding
-        # guides
-        self.register_buffer("target_guide", guide)
-        if recalc_repr and self.has_target_image:
-            self.set_target_image(self.target_image)
 
     def _guide_repr(self, repr: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
         # Due to the guiding large areas of the images might be zero and thus many
@@ -291,7 +321,7 @@ class MRFOperator(EncodingComparisonOperator):
 
         return repr[mask]
 
-    def enc_to_repr(self, enc: torch.Tensor, is_guided: bool) -> torch.Tensor:
+    def enc_to_repr(self, enc: torch.Tensor, *, is_guided: bool) -> torch.Tensor:
         with suppress_warnings(FutureWarning):
             repr = pystiche.extract_patches2d(enc, self.patch_size, self.stride)
         if not is_guided:
@@ -302,31 +332,46 @@ class MRFOperator(EncodingComparisonOperator):
     def input_enc_to_repr(
         self, enc: torch.Tensor, ctx: Optional[torch.Tensor]
     ) -> torch.Tensor:
-        return self.enc_to_repr(enc, self.has_input_guide)
+        return self.enc_to_repr(enc, is_guided=self._input_guide is not None)
 
     def target_enc_to_repr(self, enc: torch.Tensor) -> Tuple[torch.Tensor, None]:
-        return self.enc_to_repr(enc, self.has_target_guide), None
+        return self.enc_to_repr(enc, is_guided=self._target_guide is not None), None
 
-    def target_image_to_repr(self, image: torch.Tensor) -> Tuple[torch.Tensor, None]:
-        # Due to the possible scaling and rotation, we only apply the guide to the
-        # target image and not the encodings
-        if self.has_target_guide:
-            image = self.apply_guide(image, self.target_guide)
+    def _target_image_to_repr(
+        self, image: torch.Tensor, guide: Optional[torch.Tensor]
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        if guide is not None:
+            # Due to the possible scaling and rotation, we only apply the guide to
+            # the target image and not its encodings
+            image = apply_guide(image, guide)
 
         if self.target_transforms is None:
-            return self.target_enc_to_repr(self.encoder(image))
+            return self.target_enc_to_repr(self.encoder(image))  # type: ignore[misc]
 
         device = image.device
         reprs = []
         for transform in self.target_transforms:
             transform = transform.to(device)
-            enc = self.encoder(transform(image))
+            enc = self.encoder(transform(image))  # type: ignore[misc]
             repr, _ = self.target_enc_to_repr(enc)
             reprs.append(repr)
 
         repr = torch.cat(reprs)
         ctx = None
         return repr, ctx
+
+    def set_target_image(
+        self, image: torch.Tensor, guide: Optional[torch.Tensor] = None
+    ) -> None:
+
+        self.register_buffer("_target_image", image, persistent=True)
+        self.register_buffer("_target_guide", guide, persistent=True)
+
+        with torch.no_grad():
+            repr, ctx = self._target_image_to_repr(image, guide)
+
+        self.register_buffer("_target_repr", repr, persistent=True)
+        self.register_buffer("_ctx", repr, persistent=True)
 
     def calculate_score(
         self,
