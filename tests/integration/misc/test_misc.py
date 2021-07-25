@@ -225,12 +225,6 @@ def test_download_file_md5_mismatch(tmpdir, test_image_url):
         )
 
 
-def test_download_file_user_agent(tmpdir, test_image_url, test_image):
-    file = path.join(tmpdir, path.basename(test_image_url))
-    with pytest.warns(UserWarning):
-        misc.download_file(test_image_url, file, user_agent="user_agent")
-
-
 def test_reduce():
     torch.manual_seed(0)
     x = torch.rand(1, 3, 128, 128)

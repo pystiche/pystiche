@@ -5,8 +5,8 @@ import torch
 from pystiche import data, demo
 
 
-def test_demo_images_smoke():
-    images = demo.demo_images()
+def test_images_smoke():
+    images = demo.images()
     assert isinstance(images, data.DownloadableImageCollection)
 
     names, _ = zip(*iter(images))
@@ -29,8 +29,8 @@ def test_demo_images_smoke():
         ("cliff", ("water",)),
     ],
 )
-def test_demo_images_guides_smoke(name, regions):
-    image = demo.demo_images()[name]
+def test_images_guides_smoke(name, regions):
+    image = demo.images()[name]
 
     assert isinstance(image.guides, data.DownloadableImageCollection)
 

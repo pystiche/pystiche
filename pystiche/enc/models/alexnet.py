@@ -1,11 +1,8 @@
-import warnings
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from torch import nn
 from torchvision.models import alexnet
 from torchvision.models.alexnet import model_urls as TORCH_MODEL_URLS
-
-from pystiche.misc import build_deprecation_message
 
 from .utils import ModelMultiLayerEncoder, select_url
 
@@ -40,16 +37,6 @@ class AlexNetMultiLayerEncoder(ModelMultiLayerEncoder):
         ``framework``.
         """
     )
-
-    def __init__(self, weights: Optional[str] = None, **kwargs: Any) -> None:
-        if weights is not None:
-            msg = build_deprecation_message(
-                "The parameter weights", "0.6.0", info="It was renamed to framework"
-            )
-            warnings.warn(msg, UserWarning)
-            kwargs["framework"] = weights
-
-        super().__init__(**kwargs)
 
     def state_dict_url(self, framework: str) -> str:
         return select_url(MODEL_URLS, framework)

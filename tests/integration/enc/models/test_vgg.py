@@ -103,18 +103,6 @@ def test_vgg_multi_layer_encoder(
 
 
 @pytest.mark.slow
-def test_vgg_multi_layer_encoder_weights():
-    weights = "weights"
-
-    with pytest.warns(UserWarning):
-        multi_layer_encoder = vgg_multi_layer_encoder(
-            pretrained=False, weights=weights, internal_preprocessing=False
-        )
-
-    assert multi_layer_encoder.framework == weights
-
-
-@pytest.mark.slow
 def test_vgg_multi_layer_encoder_state_dict_url(subtests, vgg_archs, frameworks):
     def should_be_available(arch, framework):
         if framework == "caffe" and arch in ("vgg16", "vgg19"):

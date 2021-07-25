@@ -23,6 +23,8 @@ from urllib.request import Request, urlopen
 import torch
 from torchvision.datasets.utils import check_md5
 
+import pystiche
+
 __all__ = [
     "prod",
     "to_1d_arg",
@@ -239,19 +241,12 @@ def get_device(device: Optional[str] = None) -> torch.device:
 
 
 def download_file(
-    url: str,
-    file: Optional[str] = None,
-    user_agent: Optional[str] = None,
-    md5: Optional[str] = None,
+    url: str, file: Optional[str] = None, md5: Optional[str] = None,
 ) -> str:
     if file is None:
         file = path.basename(url)
-    if user_agent is None:
-        user_agent = "pystiche"
-    else:
-        warnings.warn(build_deprecation_message("The parameter user_agent", "0.6.0"))
 
-    request = Request(url, headers={"User-Agent": user_agent})
+    request = Request(url, headers={"User-Agent": f"pystiche/{pystiche.__version__}"})
 
     try:
         with urlopen(request) as response, open(file, "wb") as fh:

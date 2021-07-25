@@ -1,4 +1,3 @@
-import warnings
 from typing import cast
 
 import torch
@@ -12,8 +11,6 @@ from pystiche.data import (
     PixabayLicense,
     PublicDomainLicense,
 )
-
-from .misc import build_deprecation_message
 
 __all__ = ["images", "transformer"]
 
@@ -172,15 +169,6 @@ def images() -> DownloadableImageCollection:
             ),
         }
     )
-
-
-def demo_images() -> DownloadableImageCollection:
-    warnings.warn(
-        build_deprecation_message(
-            "The function demo_images", "0.6.0", info="It was renamed to images."
-        )
-    )
-    return images()
 
 
 class Interpolate(nn.Module):

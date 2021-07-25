@@ -1,40 +1,16 @@
 import os
-import warnings
 from typing import Any, Callable, Iterator, List, Optional, Tuple, cast
 
 import torch
 from torch import nn
 from torch.utils.data import Dataset
-from torchvision.datasets import VisionDataset
 from torchvision.datasets.folder import is_image_file
 
 from pystiche.image import read_image
-from pystiche.misc import build_deprecation_message
 
 __all__ = [
-    "Unsupervised",
     "ImageFolderDataset",
 ]
-
-
-class Unsupervised:
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        msg = build_deprecation_message(
-            "The class 'Unsupervised'",
-            "0.7",
-            info="See https://github.com/pmeier/pystiche/issues/458 for details",
-        )
-        warnings.warn(msg)
-        if not isinstance(self, VisionDataset):
-            raise RuntimeError
-        # This should be used with double inheritance with a
-        # torchvision.datasets.VisionDataset
-        super().__init__(*args, **kwargs)  # type: ignore[call-arg]
-
-    def __getitem__(self, index: int) -> Any:
-        # This should be used with double inheritance with a
-        # torchvision.datasets.VisionDataset
-        return super().__getitem__(index)[0]  # type: ignore[misc]
 
 
 def walkupto(

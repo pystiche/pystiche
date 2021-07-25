@@ -38,17 +38,6 @@ def test_alexnet_multi_layer_encoder(enc_asset_loader):
     assert actual == desired
 
 
-def test_alexnet_multi_layer_encoder_weights():
-    weights = "weights"
-
-    with pytest.warns(UserWarning):
-        multi_layer_encoder = enc.alexnet_multi_layer_encoder(
-            pretrained=False, weights=weights, internal_preprocessing=False
-        )
-
-    assert multi_layer_encoder.framework == weights
-
-
 def test_alexnet_multi_layer_encoder_state_dict_url(subtests, frameworks):
     def should_be_available(framework):
         return framework == "torch"
