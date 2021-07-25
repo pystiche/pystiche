@@ -264,16 +264,13 @@ class MRFLoss(ComparisonLoss):
         .. seealso::
 
             The output of this method can be used as parameter ``target_transforms`` of
-            :class:`~pystiche.ops.MRFOperator` to enrich the space of target neural
+            :class:`~pystiche.loss.MRFLoss` to enrich the space of target neural
             patches:
 
             .. code-block:: python
 
-                from pystiche.ops import MRFOperator
-
-
                 target_transforms = MRFOperator.scale_and_rotate_transforms()
-                op = MRFOperator(..., target_transforms=target_transforms)
+                loss = pystiche.loss.MRFLoss(..., target_transforms=target_transforms)
 
         Args:
             num_scale_steps: Number of scale steps. Each scale is performed in both

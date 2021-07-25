@@ -17,6 +17,8 @@ __all__ = [
 
 
 class Loss(pystiche.Module, ABC):
+    r"""Abstract base class for all losses."""
+
     def __init__(
         self,
         *,
@@ -92,6 +94,8 @@ class Loss(pystiche.Module, ABC):
 
 
 class RegularizationLoss(Loss):
+    r"""Abstract base class for all regularization losses."""
+
     def __init__(
         self,
         *,
@@ -126,6 +130,8 @@ class RegularizationLoss(Loss):
 
 
 class ComparisonLoss(Loss):
+    r"""Abstract base class for all comparison losses."""
+
     def __init__(
         self,
         *,
@@ -153,7 +159,9 @@ class ComparisonLoss(Loss):
 
     def forward(self, input_image: torch.Tensor) -> Union[torch.Tensor, LossDict]:
         if self._target_image is None:
-            raise RuntimeError
+            raise RuntimeError(
+                "Cannot process an input image before a target image has been set."
+            )
 
         input_enc = self.encoder(input_image) if self.encoder else input_image
         if self._input_guide is not None:

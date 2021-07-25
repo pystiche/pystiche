@@ -35,8 +35,6 @@ Container
         set_input_guide,
         set_target_image,
 
-.. autoclass:: SameTypeLossContainer
-
 .. autoclass:: MultiLayerEncodingLoss
 
 .. autoclass:: MultiRegionLoss
