@@ -3,9 +3,9 @@ from typing import List, Mapping, Type
 
 import torch
 from torch import nn
-from torchvision.transforms import Normalize
 
 import pystiche
+from pystiche._compat import Normalize
 from pystiche.misc import build_deprecation_message
 
 __all__ = [
