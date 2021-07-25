@@ -1,6 +1,9 @@
 from typing import Any, Dict, Iterator, Optional
 
+import PIL.Image
+
 import torch
+import torchvision
 from torchvision.transforms.functional import InterpolationMode, resize
 
 from pystiche import ComplexObject
@@ -36,12 +39,14 @@ class PyramidLevel(ComplexObject):
             aspect_ratio = extract_aspect_ratio(image)
         image_size = edge_to_image_size(self.edge_size, aspect_ratio, edge=self.edge)
 
+        interpolation = (
+            InterpolationMode(interpolation_mode)
+            if torchvision.__version__ >= "0.9"
+            else getattr(PIL.Image, interpolation_mode.upper())
+        )
+
         with torch.no_grad():
-            image = resize(
-                image,
-                list(image_size),
-                interpolation=InterpolationMode(interpolation_mode),
-            )
+            image = resize(image, list(image_size), interpolation=interpolation,)
         return image.detach()
 
     def resize_image(
