@@ -272,6 +272,14 @@ def sphinx_gallery():
     return extension, config
 
 
+def logo():
+    extension = None
+
+    config = dict(html_logo="../../logo.svg")
+
+    return extension, config
+
+
 extensions = []
 for loader in (
     project,
@@ -282,6 +290,7 @@ for loader in (
     bibtex,
     doctest,
     sphinx_gallery,
+    logo,
 ):
     extension, config = loader()
 
