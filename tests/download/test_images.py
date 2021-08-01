@@ -3,7 +3,7 @@ from os import path
 
 import pytest
 
-from pystiche.demo import demo_images
+from pystiche import demo
 
 from .utils import (
     assert_downloads_correctly,
@@ -14,7 +14,7 @@ from .utils import (
 from tests.mocks import make_mock_target
 
 IMAGES_AND_IDS = [
-    (image, f"demo, {name}") for name, image in itertools.chain(demo_images(),)
+    (image, f"demo, {name}") for name, image in itertools.chain(demo.images(),)
 ]
 
 IMAGE_PARAMETRIZE_KWARGS = dict(zip(("argvalues", "ids"), zip(*IMAGES_AND_IDS)))
