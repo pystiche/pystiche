@@ -69,7 +69,7 @@ def test_MRFOperator_enc_to_repr_guided(subtests):
         enc_ = torch.ones(1, 4, 8, 8)
 
         actual = op.enc_to_repr(enc_, is_guided=True)
-        desired = torch.ones(0, 4, stride, stride)
+        desired = torch.ones(1, 0, 4, stride, stride)
         ptu.assert_allclose(actual, desired)
 
     with subtests.test(enc="spatial_mix"):

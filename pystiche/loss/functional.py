@@ -1,3 +1,4 @@
+import warnings
 from typing import Optional
 
 import torch
@@ -17,33 +18,43 @@ def mrf_loss(
     r"""Calculates the MRF loss. See :class:`pystiche.loss.MRFLoss` for details.
 
     Args:
-        input: Input of shape :math:`S_1 \times N_1 \times \dots \times N_D`.
-        target: Target of shape :math:`S_2 \times N_1 \times \dots \times N_D`.
+        input: Input of shape :math:`B \times S_1 \times N_1 \times \dots \times N_D`.
+        target: Target of shape :math:`B \times S_2 \times N_1 \times \dots \times N_D`.
         eps: Small value to avoid zero division. Defaults to ``1e-8``.
         reduction: Reduction method of the output passed to
             :func:`pystiche.misc.reduce`. Defaults to ``"mean"``.
-        batched_input: If ``True``, treat the first dimension of the inputs as batch
-            dimension, i.e. :math:`B \times S \times N_1 \times \dots \times N_D`.
-            Defaults to ``False``. See :func:`pystiche.cosine_similarity` for details.
-
-    Note:
-        The default value of ``batched_input`` will change from ``False`` to ``True``
-        in the future.
+        batched_input: If ``False``, treat the first dimension of the inputs as sample
+            dimension, i.e. :math:`S \times N_1 \times \dots \times N_D`. Defaults to
+            ``True``. See :func:`pystiche.cosine_similarity` for details.
 
     Examples:
 
         >>> import pystiche.loss.functional as F
-        >>> input = torch.rand(256, 64, 3, 3)
-        >>> target = torch.rand(256, 64, 3, 3)
+        >>> input = torch.rand(1, 256, 64, 3, 3)
+        >>> target = torch.rand(1, 128, 64, 3, 3)
         >>> score = F.mrf_loss(input, target)
 
     """
+    if batched_input is None:
+        msg = (
+            "The default value of batched_input has changed "
+            "from False to True in version 1.0.0. "
+            "To suppress this warning, pass the wanted behavior explicitly."
+        )
+        warnings.warn(msg, UserWarning)
+        batched_input = True
+
     with torch.no_grad():
         similarity = pystiche.cosine_similarity(
             input, target, eps=eps, batched_input=batched_input
         )
-        idcs = torch.argmax(similarity, dim=1)
-        target = torch.index_select(target, dim=0, index=idcs)
+
+        index = torch.argmax(similarity, dim=-1)
+        index = index.view(*index.shape, *[1] * (target.ndim - index.ndim)).expand(
+            *[-1] * index.ndim, *target.shape[index.ndim :]
+        )
+
+        target = torch.gather(target, 1 if batched_input else 0, index)
     return mse_loss(input, target, reduction=reduction)
 
 

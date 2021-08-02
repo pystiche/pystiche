@@ -3,7 +3,7 @@ from typing import Sequence, Union
 
 import torch
 
-from pystiche.misc import prod, to_1d_arg, to_2d_arg, to_3d_arg, zip_equal
+from pystiche.misc import to_1d_arg, to_2d_arg, to_3d_arg, zip_equal
 
 __all__ = [
     "extract_patches1d",
@@ -25,15 +25,14 @@ def _warn_output_shape(*dim_names: str) -> None:
 
 
 def _extract_patchesnd(
-    x: torch.Tensor, patch_sizes: Sequence[int], strides: Sequence[int]
+    input: torch.Tensor, window_sizes: Sequence[int], strides: Sequence[int]
 ) -> torch.Tensor:
-    num_channels = x.size()[1]
-    dims = range(2, x.dim())
-    for dim, patch_size, stride in zip_equal(dims, patch_sizes, strides):
-        x = x.unfold(dim, patch_size, stride)
-    x = x.permute(0, *dims, 1, *[dim + len(dims) for dim in dims]).contiguous()
-    num_patches = prod(x.size()[: len(dims) + 1])
-    return x.view(num_patches, num_channels, *patch_sizes)
+    batch_size, num_channels = input.size()[:2]
+    dims = range(2, input.dim())
+    for dim, patch_size, stride in zip_equal(dims, window_sizes, strides):
+        input = input.unfold(dim, patch_size, stride)
+    input = input.permute(0, *dims, 1, *[dim + len(dims) for dim in dims]).contiguous()
+    return input.view(batch_size, -1, num_channels, *window_sizes)
 
 
 def extract_patches1d(
@@ -42,7 +41,6 @@ def extract_patches1d(
     stride: Union[int, Sequence[int]] = 1,
 ) -> torch.Tensor:
     assert x.dim() == 3
-    _warn_output_shape("L")
     return _extract_patchesnd(x, to_1d_arg(patch_size), to_1d_arg(stride))
 
 
@@ -52,7 +50,6 @@ def extract_patches2d(
     stride: Union[int, Sequence[int]] = 1,
 ) -> torch.Tensor:
     assert x.dim() == 4
-    _warn_output_shape("H", "W")
     return _extract_patchesnd(x, to_2d_arg(patch_size), to_2d_arg(stride))
 
 
@@ -62,5 +59,4 @@ def extract_patches3d(
     stride: Union[int, Sequence[int]] = 1,
 ) -> torch.Tensor:
     assert x.dim() == 5
-    _warn_output_shape("D", "H", "W")
     return _extract_patchesnd(x, to_3d_arg(patch_size), to_3d_arg(stride))

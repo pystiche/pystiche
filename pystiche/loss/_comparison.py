@@ -8,7 +8,7 @@ from torchvision.transforms.functional import affine
 import pystiche
 from pystiche import enc
 from pystiche._compat import InterpolationMode
-from pystiche.misc import suppress_warnings, to_2d_arg
+from pystiche.misc import to_2d_arg
 
 from . import functional as F
 from ._loss import ComparisonLoss
@@ -326,11 +326,6 @@ class MRFLoss(ComparisonLoss):
             for angle, scale_factor in itertools.product(angles, scale_factors)
         ]
 
-    @staticmethod
-    def _match_batch_size(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
-        # FIXME
-        return target
-
     def _guide_repr(self, repr: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
         # Due to the guiding large areas of the images might be zero and thus many
         # patches might carry no information. These patches can be removed from the
@@ -338,19 +333,18 @@ class MRFLoss(ComparisonLoss):
         # the loss calculation.
 
         # Patches without information have constant values in the spatial dimensions.
-        repr_flat = torch.flatten(repr, 2)
-        constant = repr_flat[:, :, 0].unsqueeze(2)
+        repr_flat = torch.flatten(repr, 3)
+        constant = repr_flat[..., 0].unsqueeze(3)
 
         # By checking where the spatial values do not differ from this constant in any
         # channel, the patches with no information can be filtered out.
         abs_diff = torch.abs(repr_flat - constant)
-        mask = torch.any(torch.flatten(abs_diff > eps, 1), dim=1)
+        mask = torch.any(torch.flatten(abs_diff > eps, 2), dim=2)
 
-        return repr[mask]
+        return repr[mask].unsqueeze(0)
 
     def enc_to_repr(self, enc: torch.Tensor, *, is_guided: bool) -> torch.Tensor:
-        with suppress_warnings(FutureWarning):
-            repr = pystiche.extract_patches2d(enc, self.patch_size, self.stride)
+        repr = pystiche.extract_patches2d(enc, self.patch_size, self.stride)
         if not is_guided:
             return repr
 
@@ -406,7 +400,7 @@ class MRFLoss(ComparisonLoss):
         target_repr: torch.Tensor,
         ctx: Optional[torch.Tensor],
     ) -> torch.Tensor:
-        return F.mrf_loss(input_repr, target_repr, batched_input=False)
+        return F.mrf_loss(input_repr, target_repr, batched_input=True)
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()

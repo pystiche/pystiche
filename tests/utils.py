@@ -1,6 +1,7 @@
 import contextlib
 import itertools
 import os
+import re
 import shutil
 import stat
 import sys
@@ -172,3 +173,13 @@ def exec_file(rel_path, root=PROJECT_ROOT, globals=None, locals=None):
         exec(fh.read(), globals, locals)
 
     return globals, locals
+
+
+FUNCTION_NAME_PATTERN = re.compile(r"<function (?P<name>\w+) at 0x[0-9a-e]+")
+
+
+def extract_fn_name(fn):
+    match = FUNCTION_NAME_PATTERN.match(str(fn))
+    if not match:
+        raise RuntimeError
+    return match.group("name")

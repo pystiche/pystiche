@@ -1,4 +1,3 @@
-import pytest
 import pytorch_testing_utils as ptu
 
 import torch
@@ -9,23 +8,30 @@ import pystiche.ops.functional as F
 
 def test_mrf_loss():
     torch.manual_seed(0)
-    zero_patch = torch.zeros(3, 3, 3)
-    one_patch = torch.ones(3, 3, 3)
-    rand_patch = torch.randn(3, 3, 3)
+    zero_patch = torch.zeros(4, 5, 6)
+    one_patch = torch.ones(4, 5, 6)
+    rand_patch = torch.randn(4, 5, 6)
+
+    input = torch.stack((rand_patch + 0.1, rand_patch * 0.9)).unsqueeze(0)
+    target = torch.stack((zero_patch, one_patch, rand_patch)).unsqueeze(0)
+
+    actual = F.mrf_loss(input, target)
+    desired = mse_loss(input, torch.stack((rand_patch, rand_patch)).unsqueeze(0))
+    ptu.assert_allclose(actual, desired)
+
+
+def test_mrf_loss_non_batched():
+    torch.manual_seed(0)
+    zero_patch = torch.zeros(4, 5, 6)
+    one_patch = torch.ones(4, 5, 6)
+    rand_patch = torch.randn(4, 5, 6)
 
     input = torch.stack((rand_patch + 0.1, rand_patch * 0.9))
     target = torch.stack((zero_patch, one_patch, rand_patch))
 
-    actual = F.mrf_loss(input, target)
+    actual = F.mrf_loss(input, target, batched_input=False)
     desired = mse_loss(input, torch.stack((rand_patch, rand_patch)))
     ptu.assert_allclose(actual, desired)
-
-
-def test_mrf_loss_future_warning():
-    input = torch.empty(1, 2)
-    target = torch.empty(1, 2)
-    with pytest.warns(FutureWarning):
-        F.mrf_loss(input, target)
 
 
 def test_value_range_loss_zero():
