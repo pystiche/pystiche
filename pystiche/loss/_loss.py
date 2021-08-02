@@ -173,18 +173,13 @@ class ComparisonLoss(Loss):
             )
 
         input_repr = self.input_enc_to_repr(input_enc, self._ctx)
-        target_repr = self._match_batch_size(
+        target_repr = match_batch_size(
             cast(torch.Tensor, self._target_repr), input_repr
         )
         return (
             self.calculate_score(input_repr, target_repr, ctx=self._ctx)
             * self.score_weight
         )
-
-    @staticmethod
-    def _match_batch_size(target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
-        # TODO
-        return match_batch_size(target, input)
 
     @abstractmethod
     def input_enc_to_repr(

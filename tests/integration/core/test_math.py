@@ -1,6 +1,5 @@
 from math import sqrt
 
-import pytest
 import pytorch_testing_utils as ptu
 
 import torch
@@ -81,31 +80,12 @@ def test_gram_matrix_normalize2():
         ptu.assert_allclose(x, y, atol=2e-2)
 
 
-def test_cosine_similarity():
-    torch.manual_seed(0)
-    input = torch.rand(1, 256)
-    target = torch.rand(1, 256)
-    eps = 1e-6
-
-    actual = pystiche.cosine_similarity(input, target, eps=eps)
-    expected = F.cosine_similarity(input, target, dim=1, eps=eps).unsqueeze(1)
-    ptu.assert_allclose(actual, expected, rtol=1e-6)
-
-
 def test_cosine_similarity_shape():
     torch.manual_seed(0)
     input = torch.rand(2, 3, 4, 5)
     target = torch.rand(2, 3, 4, 5)
 
-    assert pystiche.cosine_similarity(input, target).size() == (2, 2)
-
-
-def test_cosine_similarity_future_warning():
-    x1 = torch.empty(1, 2)
-    x2 = torch.empty(1, 2)
-
-    with pytest.warns(FutureWarning):
-        pystiche.cosine_similarity(x1, x2)
+    assert pystiche.cosine_similarity(input, target).size() == (2, 3, 3)
 
 
 def test_cosine_similarity_batched_input():
@@ -116,4 +96,15 @@ def test_cosine_similarity_batched_input():
 
     actual = pystiche.cosine_similarity(x1, x2, eps=eps, batched_input=True)
     expected = F.cosine_similarity(x1, x2, dim=2, eps=eps).unsqueeze(2)
+    ptu.assert_allclose(actual, expected, rtol=1e-6)
+
+
+def test_cosine_similarity_non_batched():
+    torch.manual_seed(0)
+    input = torch.rand(1, 256)
+    target = torch.rand(1, 256)
+    eps = 1e-6
+
+    actual = pystiche.cosine_similarity(input, target, eps=eps, batched_input=False)
+    expected = F.cosine_similarity(input, target, dim=1, eps=eps).unsqueeze(1)
     ptu.assert_allclose(actual, expected, rtol=1e-6)

@@ -83,31 +83,30 @@ def cosine_similarity(
     r"""Calculates the cosine similarity between the samples of ``x1`` and ``x2``.
 
     Args:
-        x1: First input of shape :math:`S_1 \times N_1 \times \dots \times N_D`.
-        x2: Second input of shape :math:`S_2 \times N_1 \times \dots \times N_D`.
+        x1: First input of shape
+            :math:`B \times S_1 \times N_1 \times \dots \times N_D`.
+        x2: Second input of shape
+            :math:`B \times S_2 \times N_1 \times \dots \times N_D`.
         eps: Small value to avoid zero division. Defaults to ``1e-8``.
-        batched_input: If ``True``, treat the first dimension of the inputs as batch
-            dimension, i.e. :math:`B \times S \times N_1 \times \dots \times N_D`.
-            Defaults to ``False``.
+        batched_input: If ``False``, treat the first dimension of the inputs as sample
+            dimension, i.e. :math:`S \times N_1 \times \dots \times N_D`. Defaults to
+            ``True``.
 
     Returns:
-        Similarity matrix of shape :math:`S_1 \times S_2` in which every element
-        represents the cosine similarity between the corresponding samples :math:`S` of
-        ``x1`` and ``x2``. If ``batched_input is True``, the output shape is
-        :math:`B \times S_1 \times S_2`
-
-    Note:
-        The default value of ``batched_input`` will change from ``False`` to ``True``
-        in the future.
+        Similarity matrix of shape :math:`B \times S_1 \times S_2` in which every
+        element represents the cosine similarity between the corresponding samples
+        :math:`S` of ``x1`` and ``x2``. If ``batched_input is False``, the output shape
+        is :math:`S_1 \times S_2`
 
     """
     if batched_input is None:
         msg = (
-            "The default value of batched_input will change "
-            "from False to True in the future."
+            "The default value of batched_input has changed "
+            "from False to True in version 1.0.0. "
+            "To suppress this warning, pass the wanted behavior explicitly."
         )
-        warnings.warn(msg, FutureWarning)
-        batched_input = False
+        warnings.warn(msg, UserWarning)
+        batched_input = True
 
     mm, dim = (torch.bmm, 2) if batched_input else (torch.mm, 1)
 
