@@ -25,14 +25,14 @@ def _warn_output_shape(*dim_names: str) -> None:
 
 
 def _extract_patchesnd(
-    input: torch.Tensor, window_sizes: Sequence[int], strides: Sequence[int]
+    input: torch.Tensor, patch_sizes: Sequence[int], strides: Sequence[int]
 ) -> torch.Tensor:
     batch_size, num_channels = input.size()[:2]
     dims = range(2, input.dim())
-    for dim, patch_size, stride in zip_equal(dims, window_sizes, strides):
+    for dim, patch_size, stride in zip_equal(dims, patch_sizes, strides):
         input = input.unfold(dim, patch_size, stride)
     input = input.permute(0, *dims, 1, *[dim + len(dims) for dim in dims]).contiguous()
-    return input.view(batch_size, -1, num_channels, *window_sizes)
+    return input.view(batch_size, -1, num_channels, *patch_sizes)
 
 
 def extract_patches1d(
