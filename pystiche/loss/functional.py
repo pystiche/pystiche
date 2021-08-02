@@ -32,7 +32,7 @@ def mrf_loss(
         >>> import pystiche.loss.functional as F
         >>> input = torch.rand(1, 256, 64, 3, 3)
         >>> target = torch.rand(1, 128, 64, 3, 3)
-        >>> score = F.mrf_loss(input, target)
+        >>> score = F.mrf_loss(input, target, batched_input=True)
 
     """
     if batched_input is None:

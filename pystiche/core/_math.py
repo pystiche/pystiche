@@ -38,29 +38,29 @@ def gram_matrix(x: torch.Tensor, normalize: bool = False) -> torch.Tensor:
     r"""Calculates the channel-wise `Gram matrix
         <https://en.wikipedia.org/wiki/Gramian_matrix>`_ of a batched input tensor.
 
-    Given a tensor :math:`x` of shape
-    :math:`B \times C \times N_1 \times \dots \times N_D` each element of the
-    single-sample Gram matrix :math:`G_{b,c_1 c_2}` with :math:`b \in 1,\dots,B` and
-    :math:`c_1,\,c_2  \in 1,\dots,C` is calculated by
+        Given a tensor :math:`x` of shape
+        :math:`B \times C \times N_1 \times \dots \times N_D` each element of the
+        single-sample Gram matrix :math:`G_{b,c_1 c_2}` with :math:`b \in 1,\dots,B` and
+        :math:`c_1,\,c_2  \in 1,\dots,C` is calculated by
 
-    .. math::
+        .. math::
 
-        G_{b,c_1 c_2} = \dotproduct{\fun{vec}{x_{b, c_1}}}{\fun{vec}{x_{b, c_2}}}
+            G_{b,c_1 c_2} = \dotproduct{\fun{vec}{x_{b, c_1}}}{\fun{vec}{x_{b, c_2}}}
 
-    where :math:`\dotproduct{\cdot}{\cdot}` denotes the
-    `dot product <https://en.wikipedia.org/wiki/Dot_product>`_ and
-    :math:`\fun{vec}{\cdot}` denotes the
-    `vectorization function <https://en.wikipedia.org/wiki/Vectorization_(mathematics)>`_ .
+        where :math:`\dotproduct{\cdot}{\cdot}` denotes the
+        `dot product <https://en.wikipedia.org/wiki/Dot_product>`_ and
+        :math:`\fun{vec}{\cdot}` denotes the
+        `vectorization function <https://en.wikipedia.org/wiki/Vectorization_(mathematics)>`_ .
 
-    Args:
-        x: Input tensor of shape :math:`B \times C \times N_1 \times \dots \times N_D`
-        normalize: If True, normalizes the Gram matrix :math:`G` by
-            :math:`\prod\limits_{d=1}^{D} N_d` to keep the value range similar for
-            different sized inputs. Defaults to ``False``.
+        Args:
+            x: Input tensor of shape :math:`B \times C \times N_1 \times \dots \times N_D`
+            normalize: If True, normalizes the Gram matrix :math:`G` by
+                :math:`\prod\limits_{d=1}^{D} N_d` to keep the value range similar for
+                different sized inputs. Defaults to ``False``.
 
-    Returns:
-        Channel-wise Gram matrix G of shape :math:`B \times C \times C`.
-    """
+        Returns:
+            Channel-wise Gram matrix G of shape :math:`B \times C \times C`.
+        """
     x_flat = torch.flatten(x, 2)
     gram_matrix = torch.bmm(x_flat, x_flat.transpose(1, 2))
     if not normalize:
