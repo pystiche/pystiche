@@ -24,8 +24,9 @@ optimization, could be performed without ``pystiche``.
 # to show the images.
 
 import itertools
+import os.path
 from collections import OrderedDict
-from urllib.request import Request, urlopen
+from urllib.request import urlopen
 
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -326,12 +327,12 @@ export_to_pil = transforms.Compose(
 )
 
 
-def download_image(url, file):
-    with open(file, "wb") as fh:
-        # without User-Agent the access is denied
-        request = Request(url, headers={"User-Agent": "pystiche"})
-        with urlopen(request) as response:
-            fh.write(response.read())
+def download_image(url):
+    file = os.path.abspath(os.path.basename(url))
+    with open(file, "wb") as fh, urlopen(url) as response:
+        fh.write(response.read())
+
+    return file
 
 
 def read_image(file, size=500):
@@ -362,22 +363,16 @@ def show_image(image, title=None):
 
 ########################################################################################
 
-content_url = "https://cdn.pixabay.com/photo/2016/01/14/11/26/bird-1139734_960_720.jpg"
-content_file = "bird1.jpg"
-
-download_image(content_url, content_file)
+content_url = "https://download.pystiche.org/images/bird1.jpg"
+content_file = download_image(content_url)
 content_image = read_image(content_file)
 show_image(content_image, title="Content image")
 
 
 ########################################################################################
 
-style_url = (
-    "https://cdn.pixabay.com/photo/2017/07/03/20/17/abstract-2468874_960_720.jpg"
-)
-style_file = "paint.jpg"
-
-download_image(style_url, style_file)
+style_url = "https://download.pystiche.org/images/paint.jpg"
+style_file = download_image(style_url)
 style_image = read_image(style_file)
 show_image(style_image, title="Style image")
 
