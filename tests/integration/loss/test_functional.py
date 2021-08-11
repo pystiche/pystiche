@@ -5,6 +5,7 @@ from torch.nn.functional import mse_loss
 
 import pystiche.ops.functional as F
 
+
 class TestFunctionalLoss:
     def test_mrf_loss(self):
         torch.manual_seed(0)
@@ -19,7 +20,6 @@ class TestFunctionalLoss:
         desired = mse_loss(input, torch.stack((rand_patch, rand_patch)).unsqueeze(0))
         ptu.assert_allclose(actual, desired)
     
-
     def test_mrf_loss_non_batched(self):
         torch.manual_seed(0)
         zero_patch = torch.zeros(4, 5, 6)
@@ -33,7 +33,6 @@ class TestFunctionalLoss:
         desired = mse_loss(input, torch.stack((rand_patch, rand_patch)))
         ptu.assert_allclose(actual, desired)
 
-
     def test_value_range_loss_zero(self):
         torch.manual_seed(0)
         input = torch.rand(1, 3, 128, 128)
@@ -41,7 +40,6 @@ class TestFunctionalLoss:
         actual = F.value_range_loss(input)
         desired = 0.0
         assert desired == ptu.approx(actual)
-
 
     def test_total_variation_loss(self):
         def get_checkerboard(size):
