@@ -111,7 +111,9 @@ class TestLossDict:
         ptu.assert_allclose(actual, desired)
 
         actual = loss_dict.aggregate(2)
-        desired = pystiche.LossDict((("0.0", 2 * loss()), ("0.1", loss()), ("1", loss())))
+        desired = pystiche.LossDict(
+            (("0.0", 2 * loss()), ("0.1", loss()), ("1", loss()))
+        )
         ptu.assert_allclose(actual, desired)
 
         actual = loss_dict.aggregate(3)
@@ -145,7 +147,9 @@ class TestLossDict:
             return [loss.grad.clone() for loss in losses]
 
         zero_grad()
-        loss_dict = pystiche.LossDict([(str(idx), loss) for idx, loss in enumerate(losses)])
+        loss_dict = pystiche.LossDict(
+            [(str(idx), loss) for idx, loss in enumerate(losses)]
+        )
         loss_dict.backward()
         actuals = extract_grads()
 
@@ -169,7 +173,9 @@ class TestLossDict:
         assert actual == pytest.approx(desired)
 
     def test_float(self):
-        loss_dict = pystiche.LossDict((("a", torch.tensor(0.0)), ("b", torch.tensor(1.0))))
+        loss_dict = pystiche.LossDict(
+            (("a", torch.tensor(0.0)), ("b", torch.tensor(1.0)))
+        )
         assert float(loss_dict) == pytest.approx(loss_dict.item())
 
     def test_mul(self):
@@ -187,7 +193,9 @@ class TestLossDict:
             assert actual == ptu.approx(desired)
 
     def test_repr_smoke(self):
-        loss_dict = pystiche.LossDict((("a", torch.tensor(0.0)), ("b", torch.tensor(1.0))))
+        loss_dict = pystiche.LossDict(
+            (("a", torch.tensor(0.0)), ("b", torch.tensor(1.0)))
+        )
         assert isinstance(repr(loss_dict), str)
 
 

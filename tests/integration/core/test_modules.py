@@ -8,8 +8,8 @@ import pystiche
 
 
 class TestModule:
-    def test_module(self):
-        class ModuleTest(pystiche.Module):
+    def test_core(self):
+        class EmptyModule(pystiche.Module):
             def forward(self):
                 pass
 
@@ -17,40 +17,42 @@ class TestModule:
         named_children = [(f"child{idx}", child) for idx, child in enumerate(childs)]
         indexed_children = childs
 
-        test_module = ModuleTest(named_children=named_children)
+        test_module = EmptyModule(named_children=named_children)
         for idx, child in enumerate(childs):
             actual = getattr(test_module, f"child{idx}")
             desired = child
             assert actual is desired
 
-        test_module = ModuleTest(indexed_children=indexed_children)
+        test_module = EmptyModule(indexed_children=indexed_children)
         for idx, child in enumerate(childs):
             actual = getattr(test_module, str(idx))
             desired = child
             assert actual is desired
 
         with pytest.raises(RuntimeError):
-            ModuleTest(named_children=named_children, indexed_children=indexed_children)
+            EmptyModule(
+                named_children=named_children, indexed_children=indexed_children
+            )
 
     def test_repr_smoke(self):
-        class ModuleTest(pystiche.Module):
+        class EmptyModule(pystiche.Module):
             def forward(self):
                 pass
 
-        test_module = ModuleTest()
+        test_module = EmptyModule()
         assert isinstance(repr(test_module), str)
 
     def test_torch_repr_smoke(self):
-        class ModuleTest(pystiche.Module):
+        class EmptyModule(pystiche.Module):
             def forward(self):
                 pass
 
-        test_module = ModuleTest()
+        test_module = EmptyModule()
         assert isinstance(test_module.torch_repr(), str)
 
 
 class TestSequentialModule:
-    def test_sequential_module(self):
+    def test_core(self):
         modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
         model = pystiche.SequentialModule(*modules)
 

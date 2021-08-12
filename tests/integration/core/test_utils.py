@@ -8,7 +8,7 @@ import pystiche
 import tests.utils
 
 
-class TestUtils:
+class TestExtractPatches:
     @pytest.mark.parametrize(
         ("extract_fn", "dims"),
         [
@@ -23,7 +23,7 @@ class TestUtils:
             )
         ],
     )
-    def test_extract_patchesnd_num_patches(self, extract_fn, dims):
+    def test_patchesnd_num_patches(self, extract_fn, dims):
         batch_size = 2
         num_channels = 1
         size = 64
@@ -43,7 +43,7 @@ class TestUtils:
             *(patch_size,) * dims,
         )
 
-    def test_extract_patches1d(self):
+    def test_patches1d(self):
         batch_size = 2
         num_channels = 1
         length = 9

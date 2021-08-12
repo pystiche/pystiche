@@ -13,7 +13,7 @@ from pystiche import data
 from pystiche.image import read_image, write_image
 
 
-class DownloadableImage:
+class TestDownloadableImage:
     def test_generate_file(self, subtests, test_image_url):
         titles = (None, "girl with painted face")
         authors = (None, "Steve Kelly")
@@ -57,9 +57,7 @@ class DownloadableImage:
         desired = test_image
         ptu.assert_allclose(actual, desired)
 
-    def test_download_exist(
-        self, tmpdir, test_image_url, test_image_file, test_image
-    ):
+    def test_download_exist(self, tmpdir, test_image_url, test_image_file, test_image):
         image = data.DownloadableImage(test_image_url)
         file = path.join(tmpdir, image.file)
 
@@ -110,7 +108,7 @@ class DownloadableImage:
 
 
 class TestDownloadableImageCollection:
-    def test_downloadable_image_collection(tmpdir, test_image_url, test_image):
+    def test_core(self, tmpdir, test_image_url, test_image):
         images = {"test_image": data.DownloadableImage(test_image_url)}
         collection = data.DownloadableImageCollection(images,)
         collection.download(root=tmpdir)
@@ -155,7 +153,9 @@ class TestLocalImage:
         assert actual == desired
 
     def test_collect_guides_no_dir(self, tmpdir):
-        image = data.LocalImage(path.join(tmpdir, "image.jpg"), collect_local_guides=True)
+        image = data.LocalImage(
+            path.join(tmpdir, "image.jpg"), collect_local_guides=True
+        )
         assert image.guides is None
 
     def test_collect_guides_empty_dir(self, tmpdir):

@@ -8,8 +8,8 @@ import torch.nn.functional as F
 import pystiche
 
 
-class TestMath:
-    def test_nonnegsqrt(self):
+class TestNonNegSqrt:
+    def test_core(self):
         vals = (-1.0, 0.0, 1.0, 2.0)
         desireds = (0.0, 0.0, 1.0, sqrt(2.0))
 
@@ -19,7 +19,7 @@ class TestMath:
 
             assert y == ptu.approx(desired)
 
-    def test_nonnegsqrt_grad(self):
+    def test_grad(self):
         vals = (-1.0, 0.0, 1.0, 2.0)
         desireds = (0.0, 0.0, 1.0 / 2.0, 1.0 / (2.0 * sqrt(2.0)))
 
@@ -30,7 +30,9 @@ class TestMath:
 
             assert x.grad == ptu.approx(desired)
 
-    def test_gram_matrix(self):
+
+class TestGramMatrix:
+    def test_core(self):
         size = 100
 
         for dim in (1, 2, 3):
@@ -41,7 +43,7 @@ class TestMath:
             desired = float(size ** dim)
             assert actual == desired
 
-    def test_gram_matrix_size(self):
+    def test_size(self):
         batch_size = 1
         num_channels = 3
 
@@ -55,7 +57,7 @@ class TestMath:
             desired = (batch_size, num_channels, num_channels)
             assert actual == desired
 
-    def test_gram_matrix_normalize1(self):
+    def test_normalize1(self):
         num_channels = 3
 
         x = torch.ones((1, num_channels, 128, 128))
@@ -65,7 +67,7 @@ class TestMath:
         desired = torch.ones((num_channels ** 2,))
         ptu.assert_allclose(actual, desired)
 
-    def test_gram_matrix_normalize2(self):
+    def test_normalize2(self):
         torch.manual_seed(0)
         tensor_constructors = (torch.ones, torch.rand, torch.randn)
 
@@ -75,14 +77,16 @@ class TestMath:
 
             ptu.assert_allclose(x, y, atol=2e-2)
 
-    def test_cosine_similarity_shape(self):
+
+class TestCosineSimilarity:
+    def test_shape(self):
         torch.manual_seed(0)
         input = torch.rand(2, 3, 4, 5)
         target = torch.rand(2, 3, 4, 5)
 
         assert pystiche.cosine_similarity(input, target).size() == (2, 3, 3)
 
-    def test_cosine_similarity_batched_input(self):
+    def test_input(self):
         torch.manual_seed(0)
         x1 = torch.rand(2, 1, 256)
         x2 = torch.rand(2, 1, 256)
@@ -92,7 +96,7 @@ class TestMath:
         expected = F.cosine_similarity(x1, x2, dim=2, eps=eps).unsqueeze(2)
         ptu.assert_allclose(actual, expected, rtol=1e-6)
 
-    def test_cosine_similarity_non_batched(self):
+    def test_non_batched(self):
         torch.manual_seed(0)
         input = torch.rand(1, 256)
         target = torch.rand(1, 256)
