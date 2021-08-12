@@ -60,4 +60,3 @@ def test_total_variation_loss():
     actual = F.total_variation_loss(input)
     desired = 2.0
     assert desired == ptu.approx(actual)
-    
