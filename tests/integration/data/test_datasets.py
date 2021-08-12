@@ -47,48 +47,47 @@ def test_walkupto_depth(image_folder):
     assert actual == desired
 
 
-def test_ImageFolderDataset(image_folder):
-    dataset = data.ImageFolderDataset(image_folder)
+class TestImageFolderDataset:
+    def test_main(self, image_folder):
+        dataset = data.ImageFolderDataset(image_folder)
 
-    actual = len(dataset)
-    desired = 3
-    assert actual == desired
+        actual = len(dataset)
+        desired = 3
+        assert actual == desired
 
-    actual = dataset.image_files
-    desired = (
-        path.join(image_folder, "image0.jpg"),
-        path.join(image_folder, "dir1", "image1.jpg"),
-        path.join(image_folder, "dir1", "dir2", "image2.jpg"),
-    )
-    assert actual == desired
+        actual = dataset.image_files
+        desired = (
+            path.join(image_folder, "image0.jpg"),
+            path.join(image_folder, "dir1", "image1.jpg"),
+            path.join(image_folder, "dir1", "dir2", "image2.jpg"),
+        )
+        assert actual == desired
 
+    def test_depth(self, image_folder):
+        dataset = data.ImageFolderDataset(image_folder, depth=1)
 
-def test_ImageFolderDataset_depth(image_folder):
-    dataset = data.ImageFolderDataset(image_folder, depth=1)
+        actual = len(dataset)
+        desired = 2
+        assert actual == desired
 
-    actual = len(dataset)
-    desired = 2
-    assert actual == desired
+        actual = dataset.image_files
+        desired = (
+            path.join(image_folder, "image0.jpg"),
+            path.join(image_folder, "dir1", "image1.jpg"),
+        )
+        assert actual == desired
 
-    actual = dataset.image_files
-    desired = (
-        path.join(image_folder, "image0.jpg"),
-        path.join(image_folder, "dir1", "image1.jpg"),
-    )
-    assert actual == desired
+    def test_getitem(self, image_folder):
+        def transform(file):
+            return path.join(path.dirname(file), f"transformed_{path.basename(file)}")
 
+        def importer(file):
+            return path.join(path.dirname(file), f"imported_{path.basename(file)}")
 
-def test_ImageFolderDataset_getitem(image_folder):
-    def transform(file):
-        return path.join(path.dirname(file), f"transformed_{path.basename(file)}")
+        dataset = data.ImageFolderDataset(
+            image_folder, transform=transform, importer=importer
+        )
 
-    def importer(file):
-        return path.join(path.dirname(file), f"imported_{path.basename(file)}")
-
-    dataset = data.ImageFolderDataset(
-        image_folder, transform=transform, importer=importer
-    )
-
-    actual = dataset[0]
-    desired = path.join(image_folder, "transformed_imported_image0.jpg")
-    assert actual == desired
+        actual = dataset[0]
+        desired = path.join(image_folder, "transformed_imported_image0.jpg")
+        assert actual == desired
