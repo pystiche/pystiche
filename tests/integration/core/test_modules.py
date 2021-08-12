@@ -8,7 +8,7 @@ import pystiche
 
 
 class TestModule:
-    def test_core(self):
+    def test_main(self):
         class EmptyModule(pystiche.Module):
             def forward(self):
                 pass
@@ -52,7 +52,7 @@ class TestModule:
 
 
 class TestSequentialModule:
-    def test_core(self):
+    def test_main(self):
         modules = (nn.Conv2d(3, 3, 3), nn.ReLU())
         model = pystiche.SequentialModule(*modules)
 

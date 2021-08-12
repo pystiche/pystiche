@@ -108,7 +108,7 @@ class TestDownloadableImage:
 
 
 class TestDownloadableImageCollection:
-    def test_core(self, tmpdir, test_image_url, test_image):
+    def test_main(self, tmpdir, test_image_url, test_image):
         images = {"test_image": data.DownloadableImage(test_image_url)}
         collection = data.DownloadableImageCollection(images,)
         collection.download(root=tmpdir)

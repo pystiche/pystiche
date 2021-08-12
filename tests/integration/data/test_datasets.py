@@ -48,7 +48,7 @@ def test_walkupto_depth(image_folder):
 
 
 class TestImageFolderDataset:
-    def test_core(self, image_folder):
+    def test_main(self, image_folder):
         dataset = data.ImageFolderDataset(image_folder)
 
         actual = len(dataset)

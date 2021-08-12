@@ -9,7 +9,7 @@ import pystiche
 
 
 class TestNonNegSqrt:
-    def test_core(self):
+    def test_main(self):
         vals = (-1.0, 0.0, 1.0, 2.0)
         desireds = (0.0, 0.0, 1.0, sqrt(2.0))
 
@@ -32,7 +32,7 @@ class TestNonNegSqrt:
 
 
 class TestGramMatrix:
-    def test_core(self):
+    def test_main(self):
         size = 100
 
         for dim in (1, 2, 3):
