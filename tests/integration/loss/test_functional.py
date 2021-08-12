@@ -3,7 +3,7 @@ import pytorch_testing_utils as ptu
 import torch
 from torch.nn.functional import mse_loss
 
-import pystiche.ops.functional as F
+import pystiche.loss.functional as F
 
 
 def test_mrf_loss():
