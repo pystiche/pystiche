@@ -5,44 +5,45 @@ import torch
 from pystiche import data, demo
 
 
-def test_images_smoke():
-    images = demo.images()
-    assert isinstance(images, data.DownloadableImageCollection)
+class TestDemoImages:
+    def test_images_smoke(self):
+        images = demo.images()
+        assert isinstance(images, data.DownloadableImageCollection)
 
-    names, _ = zip(*iter(images))
-    assert set(names) == {
-        "bird1",
-        "paint",
-        "bird2",
-        "mosaic",
-        "castle",
-        "church",
-        "cliff",
-    }
+        names, _ = zip(*iter(images))
+        assert set(names) == {
+            "bird1",
+            "paint",
+            "bird2",
+            "mosaic",
+            "castle",
+            "church",
+            "cliff",
+        }
+
+    @pytest.mark.parametrize(
+        ("name", "regions"),
+        [
+            ("castle", ("building", "water", "sky")),
+            ("church", ("building", "sky")),
+            ("cliff", ("water",)),
+        ],
+    )
+    def test_images_guides_smoke(self, name, regions):
+        image = demo.images()[name]
+
+        assert isinstance(image.guides, data.DownloadableImageCollection)
+
+        names, _ = zip(*iter(image.guides))
+        assert set(names).issuperset(set(regions))
 
 
-@pytest.mark.parametrize(
-    ("name", "regions"),
-    [
-        ("castle", ("building", "water", "sky")),
-        ("church", ("building", "sky")),
-        ("cliff", ("water",)),
-    ],
-)
-def test_images_guides_smoke(name, regions):
-    image = demo.images()[name]
+class TestDemoTransformers:
+    def test_transformer(self):
+        torch.manual_seed(0)
+        input_image = torch.rand(1, 3, 256, 256)
+        transformer = demo.transformer()
 
-    assert isinstance(image.guides, data.DownloadableImageCollection)
+        output_image = transformer(input_image)
 
-    names, _ = zip(*iter(image.guides))
-    assert set(names).issuperset(set(regions))
-
-
-def test_transformer():
-    torch.manual_seed(0)
-    input_image = torch.rand(1, 3, 256, 256)
-    transformer = demo.transformer()
-
-    output_image = transformer(input_image)
-
-    assert output_image.shape == input_image.shape
+        assert output_image.shape == input_image.shape
