@@ -1,0 +1,44 @@
+name: docs
+
+on:
+  repository_dispatch:
+    types:
+      - full-docs-build
+
+jobs:
+  full:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Success
+        run: echo "I was successfully dispatched!"
+#      - name: Set up python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: ${{ matrix.python }}
+#
+#      - name: Upgrade pip
+#        run: python -m pip install --upgrade pip
+#
+#      - name: Upgrade or install additional system packages
+#        run: pip install --upgrade pip setuptools virtualenv wheel
+#
+#      - name: Checkout repository
+#        uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Install dev requirements
+#        run: pip install -r requirements-dev.txt
+#
+#      - name: Create environment
+#        run: tox -e docs-html --no-test
+#
+#      - name: Build docs
+#        run: tox -e docs-html
+#
+#      - name: Upload galleries
+#        working-directory: docs/source
+#        run: |
+#          zip main.zip galleries
+#          # TODO
