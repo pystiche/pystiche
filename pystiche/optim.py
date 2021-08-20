@@ -113,14 +113,11 @@ def image_optimization(
     if not isinstance(optimizer, Optimizer):
         optimizer = optimizer(input_image)
 
-    mle_handler = loss_.MLEHandler(criterion)  # type: ignore[attr-defined]
-
     def closure(input_image: torch.Tensor) -> float:
         # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
         optimizer.zero_grad()  # type: ignore[union-attr]
 
-        with mle_handler(input_image):
-            loss = criterion(input_image)
+        loss = criterion(input_image)
         loss.backward()
 
         return float(loss)
@@ -249,7 +246,6 @@ def model_optimization(
         optimizer = default_model_optimizer(transformer)
 
     device = next(transformer.parameters()).device
-    mle_handler = loss_.MLEHandler(criterion)  # type: ignore[attr-defined]
 
     def closure(input_image: torch.Tensor) -> float:
         # See https://github.com/pmeier/pystiche/pull/264#discussion_r430205029
@@ -257,8 +253,7 @@ def model_optimization(
 
         output_image = transformer(input_image)
 
-        with mle_handler(output_image):
-            loss = criterion(output_image)
+        loss = criterion(output_image)
         loss.backward()
 
         return float(loss)
