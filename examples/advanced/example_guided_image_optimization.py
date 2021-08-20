@@ -238,15 +238,6 @@ show_image(guides_to_segmentation(second_style_guides), "Second style segmentati
 ########################################################################################
 # We can reuse the previously defined criterion and only change the ``style_image`` and
 # ``style_guides`` in the ``"water"`` region.
-#
-# .. note::
-#
-#   We need to call :meth:`~pystiche.loss.GuidedPerceptualLoss.set_style_guide` with
-#   ``recalc_repr=False`` since the old ``style_image`` is still stored. By default
-#   the new target representation would be calculated with the new guide. If the image
-#   sizes do not match, as it is the case here, this results in an error. With
-#   ``recalc_repr=False`` the new target representation is only calculated when the
-#   ``second_style_image`` is set.
 
 region = "water"
 perceptual_loss.set_style_image(
