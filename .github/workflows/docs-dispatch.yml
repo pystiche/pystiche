@@ -1,11 +1,8 @@
 name: docs
 
 on:
-  push:
-    branches:
-      - gpu-docs-ci
-#  schedule:
-#    - cron: "0 4 * * *"
+  schedule:
+    - cron: "0 4 * * *"
 
 jobs:
   dispatch:
@@ -19,19 +16,18 @@ jobs:
         id: current
         run: echo "::set-output name=commit::$(git rev-parse HEAD)"
 
-#      - name: Download pre-built galleries
-#        run: |
-#          wget https://download.pystiche.org/galleries/main.zip
-#          unzip main.zip
-#
+      - name: Download pre-built galleries
+        run: |
+          wget https://download.pystiche.org/galleries/main.zip
+          unzip main.zip
+
       - name: Get pre-built commit
         id: pre-built
-        run: echo "::set-output name=commit::fake-commit"
-#        run: echo "::set-output name=commit::$(cat galleries/commit)"
+        run: echo "::set-output name=commit::$(cat galleries/commit)"
 
       - name: Dispatch full documentation build
         if: ${{ steps.current.outputs.commit != steps.pre-built.outputs.commit }}
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          event-type: full-docs-build
+          event-type: docs-build
