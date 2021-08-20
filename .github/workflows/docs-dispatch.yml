@@ -25,7 +25,7 @@ jobs:
         id: pre-built
         run: echo "::set-output name=commit::$(cat galleries/commit)"
 
-      - name: Dispatch full documentation build
+      - name: Dispatch documentation build
         if: ${{ steps.current.outputs.commit != steps.pre-built.outputs.commit }}
         uses: peter-evans/repository-dispatch@v1
         with:
