@@ -30,9 +30,9 @@ vgg_multi_layer_encoder = enc.vgg11_bn_multi_layer_encoder
 vgg = MODELS["vgg11_bn"]
 
 
-class TestVGGPretrained:
+class TestVGG:
     @pytest.mark.slow
-    def test_main(self, mocker):
+    def test_pretrained(self, mocker):
         state_dict = vgg(pretrained=False).state_dict()
         mocker.patch(
             mocks.make_mock_target(
@@ -44,7 +44,7 @@ class TestVGGPretrained:
         model = vgg(pretrained=True)
         ptu.assert_allclose(model.state_dict(), state_dict)
 
-    def test_num_classes_mismatch(self):
+    def test_pretrained_num_classes_mismatch(self):
         with pytest.raises(RuntimeError):
             vgg(pretrained=True, num_classes=1001)
 

@@ -145,7 +145,7 @@ class TestModelMultiLayerEncoder:
 
         load_state_dict_from_url.assert_called_once_with(framework)
 
-    def tets_load_state_dict(
+    def test_load_state_dict(
         self, multi_layer_encoder_cls, other_multi_layer_encoder_state_dict,
     ):
         multi_layer_encoder = multi_layer_encoder_cls(pretrained=False)
