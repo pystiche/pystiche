@@ -41,8 +41,7 @@ def project():
     author = metadata["author"]
     copyright = f"{datetime.now().year}, {author}"
     release = metadata["version"]
-    canonical_version = release.split("+")[0]
-    version = ".".join(canonical_version.split(".")[:3])
+    version = release.split(".dev")[0]
     config = dict(
         project=project,
         author=author,
