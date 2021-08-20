@@ -3,13 +3,6 @@ Multi-layer Encoder
 ===================
 
 This example showcases the :class:`pystiche.enc.MultiLayerEncoder`.
-
-.. warning::
-
-  This example uses features that are only availble for ``pystiche>0.7``, which is not
-  released yet. If you want to use these features, head over to the
-  :ref:`installation instructions <installation>` and install the
-  *potentially unstable* version.
 """
 
 
