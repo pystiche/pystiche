@@ -30,7 +30,7 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Create environment
-        run: tox -e docs-html --no-test
+        run: tox -e docs-html --notest
 
       - name: Build documentation
 
