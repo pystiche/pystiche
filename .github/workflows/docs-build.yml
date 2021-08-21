@@ -30,13 +30,13 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Create environment
-        run: tox -e docs-html --no-test
+        run: tox -e docs-html --notest
 
       - name: Build documentation
 
         env:
           PYSTICHE_DOWNLOAD_GALLERY: False
-          # TODO: remove this when this workflow has access to a GPU
+          # TODO: change this to 'True' when this workflow has access to a GPU
           PYSTICHE_PLOT_GALLERY: False
         run: tox -e docs-html
 
