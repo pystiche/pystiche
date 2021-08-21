@@ -36,7 +36,7 @@ jobs:
 
         env:
           PYSTICHE_DOWNLOAD_GALLERY: False
-          # TODO: remove this when this workflow has access to a GPU
+          # TODO: change this to 'True' when this workflow has access to a GPU
           PYSTICHE_PLOT_GALLERY: False
         run: tox -e docs-html
 
