@@ -52,5 +52,5 @@ jobs:
           host: pystiche.org
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          source: main.zip
+          source: docs/source/main.zip
           target: ${{ secrets.SERVER_TARGET }}/galleries
