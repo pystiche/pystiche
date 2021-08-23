@@ -25,7 +25,7 @@ jobs:
 
       - name: Upgrade or install additional system packages
         run: |
-          sudo apt install zip
+          sudo apt update && sudo apt install zip
           pip install --upgrade pip setuptools virtualenv wheel
 
       - name: Checkout repository
