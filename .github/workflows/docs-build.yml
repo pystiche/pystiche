@@ -1,13 +1,14 @@
 name: docs
 
 on:
+  pull_request:
+    paths:
+      - ".cirun.yml"
+      - ".github/workflows/docs-build.yml"
+
   repository_dispatch:
     types:
       - docs-build
-
-  push:
-    branches:
-      - trigger-ci
 
 jobs:
   build:
