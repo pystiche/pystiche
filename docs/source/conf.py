@@ -158,7 +158,7 @@ def sphinx_gallery():
 
         base = "https://download.pystiche.org/galleries/"
         is_dev = version != release
-        file = "master.zip" if is_dev else f"v{version}.zip"
+        file = "main.zip" if is_dev else f"v{version}.zip"
 
         url = urljoin(base, file)
         print(f"Downloading pre-built galleries from {url}")
