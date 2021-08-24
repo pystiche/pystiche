@@ -157,122 +157,118 @@ def test_edge_to_image_size_vert_horz():
     assert actual == desired
 
 
-def test_extract_batch_size():
-    batch_size = 3
+class TestExtract:
+    def test_batch_size(self):
+        batch_size = 3
 
-    batched_image = torch.zeros(batch_size, 1, 1, 1)
-    actual = image_.extract_batch_size(batched_image)
-    desired = batch_size
-    assert actual == desired
+        batched_image = torch.zeros(batch_size, 1, 1, 1)
+        actual = image_.extract_batch_size(batched_image)
+        desired = batch_size
+        assert actual == desired
 
-    single_image = torch.zeros(1, 1, 1)
-    with pytest.raises(TypeError):
-        image_.extract_batch_size(single_image)
+        single_image = torch.zeros(1, 1, 1)
+        with pytest.raises(TypeError):
+            image_.extract_batch_size(single_image)
 
+    def test_num_channels(self):
+        num_channels = 3
 
-def test_extract_num_channels():
-    num_channels = 3
+        single_image = torch.zeros(num_channels, 1, 1)
+        actual = image_.extract_num_channels(single_image)
+        desired = num_channels
+        assert actual == desired
 
-    single_image = torch.zeros(num_channels, 1, 1)
-    actual = image_.extract_num_channels(single_image)
-    desired = num_channels
-    assert actual == desired
+        batched_image = single_image.unsqueeze(0)
+        actual = image_.extract_num_channels(batched_image)
+        desired = num_channels
+        assert actual == desired
 
-    batched_image = single_image.unsqueeze(0)
-    actual = image_.extract_num_channels(batched_image)
-    desired = num_channels
-    assert actual == desired
+    def test_image_size(self):
+        height = 2
+        width = 3
+        image = torch.empty(1, 1, height, width)
 
+        actual = image_.extract_image_size(image)
+        desired = (height, width)
+        assert actual == desired
 
-def test_extract_image_size():
-    height = 2
-    width = 3
-    image = torch.empty(1, 1, height, width)
+    def test_edge_size(self):
+        height = 2
+        width = 3
+        image = torch.empty(1, 1, height, width)
 
-    actual = image_.extract_image_size(image)
-    desired = (height, width)
-    assert actual == desired
+        edges = ("short", "long", "vert", "horz")
+        actual = tuple(image_.extract_edge_size(image, edge=edge) for edge in edges)
+        desired = (height, width, height, width)
+        assert actual == desired
 
+    def test_aspect_ratio(self):
+        height = 2
+        width = 3
+        image = torch.empty(1, 1, height, width)
 
-def test_extract_edge_size():
-    height = 2
-    width = 3
-    image = torch.empty(1, 1, height, width)
-
-    edges = ("short", "long", "vert", "horz")
-    actual = tuple(image_.extract_edge_size(image, edge=edge) for edge in edges)
-    desired = (height, width, height, width)
-    assert actual == desired
-
-
-def test_extract_aspect_ratio():
-    height = 2
-    width = 3
-    image = torch.empty(1, 1, height, width)
-
-    actual = image_.extract_aspect_ratio(image)
-    desired = width / height
-    assert actual == pytest.approx(desired)
+        actual = image_.extract_aspect_ratio(image)
+        desired = width / height
+        assert actual == pytest.approx(desired)
 
 
-def test_make_batched_image():
-    single_image = torch.empty(1, 1, 1)
-    batched_image = image_.make_batched_image(single_image)
-    assert image_.is_batched_image(batched_image)
-
-
-def test_make_single_image():
-    batched_image = torch.empty(1, 1, 1, 1)
-    single_image = image_.make_single_image(batched_image)
-    assert image_.is_single_image(single_image)
-
-    batched_image = torch.empty(2, 1, 1, 1)
-    with pytest.raises(RuntimeError):
-        image_.make_single_image(batched_image)
-
-
-def test_force_image():
-    @image_.force_image
-    def identity(image):
-        return image
-
-    single_image = torch.empty(1, 1, 1)
-    batched_image = torch.empty(1, 1, 1, 1)
-
-    assert identity(single_image) is single_image
-    assert identity(batched_image) is batched_image
-
-    with pytest.raises(TypeError):
-        identity(None)
-
-
-def test_force_single_image():
-    @image_.force_single_image
-    def identity(single_image):
-        assert image_.is_single_image(single_image)
-        return single_image
-
-    single_image = torch.empty(1, 1, 1)
-    batched_image = torch.empty(1, 1, 1, 1)
-
-    assert identity(single_image) is single_image
-    ptu.assert_allclose(identity(batched_image), batched_image)
-
-    with pytest.raises(TypeError):
-        identity(None)
-
-
-def test_force_batched_image():
-    @image_.force_batched_image
-    def identity(batched_image):
+class TestMakeImage:
+    def test_batched_image(self):
+        single_image = torch.empty(1, 1, 1)
+        batched_image = image_.make_batched_image(single_image)
         assert image_.is_batched_image(batched_image)
-        return batched_image
 
-    single_image = torch.empty(1, 1, 1)
-    batched_image = torch.empty(1, 1, 1, 1)
+    def test_single_image(self):
+        batched_image = torch.empty(1, 1, 1, 1)
+        single_image = image_.make_single_image(batched_image)
+        assert image_.is_single_image(single_image)
 
-    ptu.assert_allclose(identity(single_image), single_image)
-    assert identity(batched_image) is batched_image
+        batched_image = torch.empty(2, 1, 1, 1)
+        with pytest.raises(RuntimeError):
+            image_.make_single_image(batched_image)
 
-    with pytest.raises(TypeError):
-        identity(None)
+
+class TestForceImage:
+    def test_image(self):
+        @image_.force_image
+        def identity(image):
+            return image
+
+        single_image = torch.empty(1, 1, 1)
+        batched_image = torch.empty(1, 1, 1, 1)
+
+        assert identity(single_image) is single_image
+        assert identity(batched_image) is batched_image
+
+        with pytest.raises(TypeError):
+            identity(None)
+
+    def test_single_image(self):
+        @image_.force_single_image
+        def identity(single_image):
+            assert image_.is_single_image(single_image)
+            return single_image
+
+        single_image = torch.empty(1, 1, 1)
+        batched_image = torch.empty(1, 1, 1, 1)
+
+        assert identity(single_image) is single_image
+        ptu.assert_allclose(identity(batched_image), batched_image)
+
+        with pytest.raises(TypeError):
+            identity(None)
+
+    def test_batched_image(self):
+        @image_.force_batched_image
+        def identity(batched_image):
+            assert image_.is_batched_image(batched_image)
+            return batched_image
+
+        single_image = torch.empty(1, 1, 1)
+        batched_image = torch.empty(1, 1, 1, 1)
+
+        ptu.assert_allclose(identity(single_image), single_image)
+        assert identity(batched_image) is batched_image
+
+        with pytest.raises(TypeError):
+            identity(None)

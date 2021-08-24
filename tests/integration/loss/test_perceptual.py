@@ -6,40 +6,40 @@ from torch import nn
 from pystiche import enc, loss, ops
 
 
-def test_PerceptualLoss_set_content_image():
-    torch.manual_seed(0)
-    image = torch.rand(1, 1, 100, 100)
-    content_loss = ops.FeatureReconstructionOperator(
-        enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
-    )
-    style_loss = ops.FeatureReconstructionOperator(
-        enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
-    )
+class TestPerceptualLoss:
+    def test_set_content_image(self):
+        torch.manual_seed(0)
+        image = torch.rand(1, 1, 100, 100)
+        content_loss = ops.FeatureReconstructionOperator(
+            enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
+        )
+        style_loss = ops.FeatureReconstructionOperator(
+            enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
+        )
 
-    perceptual_loss = loss.PerceptualLoss(content_loss, style_loss)
-    perceptual_loss.set_content_image(image)
+        perceptual_loss = loss.PerceptualLoss(content_loss, style_loss)
+        perceptual_loss.set_content_image(image)
 
-    actual = content_loss.target_image
-    desired = image
-    ptu.assert_allclose(actual, desired)
+        actual = content_loss.target_image
+        desired = image
+        ptu.assert_allclose(actual, desired)
 
+    def test_set_style_image(self):
+        torch.manual_seed(0)
+        image = torch.rand(1, 1, 100, 100)
+        content_loss = ops.FeatureReconstructionOperator(
+            enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
+        )
+        style_loss = ops.FeatureReconstructionOperator(
+            enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
+        )
 
-def test_PerceptualLoss_set_style_image():
-    torch.manual_seed(0)
-    image = torch.rand(1, 1, 100, 100)
-    content_loss = ops.FeatureReconstructionOperator(
-        enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
-    )
-    style_loss = ops.FeatureReconstructionOperator(
-        enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
-    )
+        perceptual_loss = loss.PerceptualLoss(content_loss, style_loss)
+        perceptual_loss.set_style_image(image)
 
-    perceptual_loss = loss.PerceptualLoss(content_loss, style_loss)
-    perceptual_loss.set_style_image(image)
-
-    actual = style_loss.target_image
-    desired = image
-    ptu.assert_allclose(actual, desired)
+        actual = style_loss.target_image
+        desired = image
+        ptu.assert_allclose(actual, desired)
 
 
 def test_GuidedPerceptualLoss(subtests):
