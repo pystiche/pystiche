@@ -118,7 +118,7 @@ def test_verify_str_arg():
     assert actual == desired
 
 
-class TestGetInputImageTensor:
+class TestGetInputImage:
     def test_main(self):
         image = torch.tensor(0.0)
 
