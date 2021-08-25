@@ -16,16 +16,17 @@ def _get_processing_cls(framework, position):
     return getattr(enc, f"{framework.title()}{position.title()}processing")
 
 
-@pytest.mark.parametrize("framework", FRAMEWORKS)
-def test_preprocessing(framework):
-    assert isinstance(
-        enc.preprocessing(framework), _get_processing_cls(framework, "pre")
-    )
+class TestPreProcessing:
+    @pytest.mark.parametrize("framework", FRAMEWORKS)
+    def test_main(self, framework):
+        assert isinstance(
+            enc.preprocessing(framework), _get_processing_cls(framework, "pre")
+        )
 
 
-def test_preprocessing_unknown_framework():
-    with pytest.raises(ValueError):
-        enc.preprocessing("unknown")
+    def test_unknown_framework(self):
+        with pytest.raises(ValueError):
+            enc.preprocessing("unknown")
 
 
 @pytest.mark.parametrize("framework", FRAMEWORKS)
@@ -39,16 +40,17 @@ def test_get_preprocessor_deprecation(mocker, framework):
     mock.assert_called_with(framework)
 
 
-@pytest.mark.parametrize("framework", FRAMEWORKS)
-def test_postprocessing(framework):
-    assert isinstance(
-        enc.postprocessing(framework), _get_processing_cls(framework, "post")
-    )
+class TestPostProcessing:
+    @pytest.mark.parametrize("framework", FRAMEWORKS)
+    def test_main(self, framework):
+        assert isinstance(
+            enc.postprocessing(framework), _get_processing_cls(framework, "post")
+        )
 
 
-def test_postprocessing_unknown_framework():
-    with pytest.raises(ValueError):
-        enc.postprocessing("unknown")
+    def test_unknown_framework(self):
+        with pytest.raises(ValueError):
+            enc.postprocessing("unknown")
 
 
 def collect_processings(*argnames):

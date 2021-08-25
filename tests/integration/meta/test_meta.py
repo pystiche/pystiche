@@ -8,24 +8,25 @@ from torch import nn
 from pystiche import meta
 
 
-def test_tensor_meta():
-    tensor_meta = {"dtype": torch.bool, "device": torch.device("cpu")}
+class TestTensorMeta:
+    def test_main(self):
+        tensor_meta = {"dtype": torch.bool, "device": torch.device("cpu")}
 
-    x = torch.empty((), **tensor_meta)
+        x = torch.empty((), **tensor_meta)
 
-    actual = meta.tensor_meta(x)
-    desired = tensor_meta
-    assert actual == desired
+        actual = meta.tensor_meta(x)
+        desired = tensor_meta
+        assert actual == desired
 
 
-def test_tensor_meta_kwargs():
-    dtype = torch.bool
+    def test_kwargs(main):
+        dtype = torch.bool
 
-    x = torch.empty(())
+        x = torch.empty(())
 
-    actual = meta.tensor_meta(x, dtype=dtype)["dtype"]
-    desired = dtype
-    assert actual == desired
+        actual = meta.tensor_meta(x, dtype=dtype)["dtype"]
+        desired = dtype
+        assert actual == desired
 
 
 def test_is_scalar_tensor():
@@ -87,27 +88,28 @@ def test_is_conv_module(conv_modules, pool_modules):
         assert not meta.is_conv_module(module), msg
 
 
-def test_conv_module_meta():
-    conv_module_meta = {
-        "kernel_size": (2,),
-        "stride": (3,),
-        "padding": (4,),
-        "dilation": (5,),
-    }
-    x = make_conv_module(nn.Conv1d, **conv_module_meta)
+class TestConvModuleMeta:
+    def test_main(self):
+        conv_module_meta = {
+            "kernel_size": (2,),
+            "stride": (3,),
+            "padding": (4,),
+            "dilation": (5,),
+        }
+        x = make_conv_module(nn.Conv1d, **conv_module_meta)
 
-    actual = meta.conv_module_meta(x)
-    desired = conv_module_meta
-    assert actual == desired
+        actual = meta.conv_module_meta(x)
+        desired = conv_module_meta
+        assert actual == desired
 
 
-def test_conv_module_meta_kwargs():
-    stride = (2,)
-    x = make_conv_module(nn.Conv2d, stride=stride)
+    def test_kwargs(self):
+        stride = (2,)
+        x = make_conv_module(nn.Conv2d, stride=stride)
 
-    actual = meta.conv_module_meta(x, stride=stride)["stride"]
-    desired = stride
-    assert actual == desired
+        actual = meta.conv_module_meta(x, stride=stride)["stride"]
+        desired = stride
+        assert actual == desired
 
 
 def test_is_pool_module(pool_modules, conv_modules):
@@ -126,23 +128,24 @@ def test_is_pool_module(pool_modules, conv_modules):
         assert not meta.is_pool_module(module), msg
 
 
-def test_pool_module_meta():
-    pool_module_meta = {
-        "kernel_size": (2,),
-        "stride": (3,),
-        "padding": (4,),
-    }
-    x = make_pool_module(nn.MaxPool1d, **pool_module_meta)
+class TestPoolModuleMeta:
+    def test_main(self):
+        pool_module_meta = {
+            "kernel_size": (2,),
+            "stride": (3,),
+            "padding": (4,),
+        }
+        x = make_pool_module(nn.MaxPool1d, **pool_module_meta)
 
-    actual = meta.pool_module_meta(x)
-    desired = pool_module_meta
-    assert actual == desired
+        actual = meta.pool_module_meta(x)
+        desired = pool_module_meta
+        assert actual == desired
 
 
-def test_pool_module_meta_kwargs():
-    kernel_size = (2,)
-    x = make_pool_module(nn.MaxPool1d, kernel_size=kernel_size)
+    def test_kwargs(self):
+        kernel_size = (2,)
+        x = make_pool_module(nn.MaxPool1d, kernel_size=kernel_size)
 
-    actual = meta.pool_module_meta(x, kernel_size=kernel_size)["kernel_size"]
-    desired = kernel_size
-    assert actual == desired
+        actual = meta.pool_module_meta(x, kernel_size=kernel_size)["kernel_size"]
+        desired = kernel_size
+        assert actual == desired
