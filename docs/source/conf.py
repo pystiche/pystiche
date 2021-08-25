@@ -84,7 +84,16 @@ def intersphinx():
 def html():
     extension = None
 
-    config = dict(html_theme="sphinx_rtd_theme")
+    config = dict(
+        html_theme="pydata_sphinx_theme",
+        html_theme_options=dict(show_prev_next=False, use_edit_page_button=True),
+        html_context=dict(
+            github_user="pystiche",
+            github_repo="pystiche",
+            github_version="main",
+            doc_path="docs/source",
+        ),
+    )
 
     return extension, config
 
