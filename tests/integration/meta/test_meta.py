@@ -18,7 +18,6 @@ class TestTensorMeta:
         desired = tensor_meta
         assert actual == desired
 
-
     def test_kwargs(main):
         dtype = torch.bool
 
@@ -102,7 +101,6 @@ class TestConvModuleMeta:
         desired = conv_module_meta
         assert actual == desired
 
-
     def test_kwargs(self):
         stride = (2,)
         x = make_conv_module(nn.Conv2d, stride=stride)
@@ -140,7 +138,6 @@ class TestPoolModuleMeta:
         actual = meta.pool_module_meta(x)
         desired = pool_module_meta
         assert actual == desired
-
 
     def test_kwargs(self):
         kernel_size = (2,)

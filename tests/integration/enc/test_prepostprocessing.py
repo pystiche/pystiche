@@ -23,7 +23,6 @@ class TestPreProcessing:
             enc.preprocessing(framework), _get_processing_cls(framework, "pre")
         )
 
-
     def test_unknown_framework(self):
         with pytest.raises(ValueError):
             enc.preprocessing("unknown")
@@ -46,7 +45,6 @@ class TestPostProcessing:
         assert isinstance(
             enc.postprocessing(framework), _get_processing_cls(framework, "post")
         )
-
 
     def test_unknown_framework(self):
         with pytest.raises(ValueError):

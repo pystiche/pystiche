@@ -128,7 +128,6 @@ class TestGetInputImageTensor:
         assert actual is not desired
         ptu.assert_allclose(actual, desired)
 
-
     def test_content(self):
         starting_point = "content"
         image = torch.tensor(0.0)
@@ -140,7 +139,6 @@ class TestGetInputImageTensor:
         with pytest.raises(RuntimeError):
             misc.get_input_image(starting_point, style_image=image)
 
-
     def test_style(self):
         starting_point = "style"
         image = torch.tensor(0.0)
@@ -151,7 +149,6 @@ class TestGetInputImageTensor:
 
         with pytest.raises(RuntimeError):
             misc.get_input_image(starting_point, content_image=image)
-
 
     def test_random(self):
         starting_point = "random"
@@ -182,7 +179,6 @@ class TestGetDevice:
         desired = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         assert actual == desired
 
-
     def test_str(self):
         device_name = "mkldnn"
         actual = misc.get_device(device_name)
@@ -198,7 +194,6 @@ class TestDownloadFile:
         actual = read_image(file)
         desired = test_image
         ptu.assert_allclose(actual, desired)
-
 
     @pytest.mark.parametrize(
         ("code", "reason"),
@@ -217,7 +212,6 @@ class TestDownloadFile:
 
         with pytest.raises(RuntimeError):
             misc.download_file(test_image_url)
-
 
     def test_md5_mismatch(self, tmpdir, test_image_url):
         with pytest.raises(RuntimeError):
