@@ -57,29 +57,28 @@ def write_guide(guide, file):
     Image.fromarray(guide, mode="L").save(file)
 
 
-def test_verify_guides():
-    guides, _ = get_test_guides()
-    image.verify_guides(guides)
-
-
-def test_verify_guides_coverage():
-    guides, _ = get_test_guides()
-    del guides["R"]
-
-    with pytest.raises(RuntimeError):
+class TestVerifyGuides:
+    def test_main(self):
+        guides, _ = get_test_guides()
         image.verify_guides(guides)
 
-    image.verify_guides(guides, verify_coverage=False)
+    def test_coverage(self):
+        guides, _ = get_test_guides()
+        del guides["R"]
 
+        with pytest.raises(RuntimeError):
+            image.verify_guides(guides)
 
-def test_verify_guides_overlap():
-    guides, _ = get_test_guides()
-    guides["R2"] = guides["R"]
+        image.verify_guides(guides, verify_coverage=False)
 
-    with pytest.raises(RuntimeError):
-        image.verify_guides(guides)
+    def test_overlap(self):
+        guides, _ = get_test_guides()
+        guides["R2"] = guides["R"]
 
-    image.verify_guides(guides, verify_overlap=False)
+        with pytest.raises(RuntimeError):
+            image.verify_guides(guides)
+
+        image.verify_guides(guides, verify_overlap=False)
 
 
 def test_read_guides(tmpdir):
