@@ -4,11 +4,11 @@
 runners:
   - name: docs-build-gpu
     cloud: aws
-    region: eu-west-1
+    region: eu-central-1
     instance_type: g4dn.xlarge
     # Amazon AMI: Deep Learning AMI GPU CUDA 11.2.1 (Ubuntu 20.04) 20210625
-    # for eu-west-1
-    machine_image: ami-07b138161bedd526d
+    # for eu-central-1
+    machine_image: ami-058d64398d40bfe59
     preemptible: false
     workflow: .github/workflows/docs-build.yml
     count: 1
