@@ -216,7 +216,6 @@ class TestMultiLayerEncoder:
         assert layer in mle.registered_layers
 
 
-
 class TestSingleLayerEncoder:
     def test_call(self, input):
         torch.manual_seed(0)
