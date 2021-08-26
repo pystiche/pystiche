@@ -216,16 +216,18 @@ class TestMultiLayerEncoder:
         assert layer in mle.registered_layers
 
 
-def test_SingleLayerEncoder_call(input):
-    torch.manual_seed(0)
-    conv = nn.Conv2d(3, 1, 1)
-    relu = nn.ReLU(inplace=False)
 
-    modules = (("conv", conv), ("relu", relu))
-    multi_layer_encoder = enc.MultiLayerEncoder(modules)
+class TestSingleLayerEncoder:
+    def test_call(self, input):
+        torch.manual_seed(0)
+        conv = nn.Conv2d(3, 1, 1)
+        relu = nn.ReLU(inplace=False)
 
-    single_layer_encoder = enc.SingleLayerEncoder(multi_layer_encoder, "relu")
+        modules = (("conv", conv), ("relu", relu))
+        multi_layer_encoder = enc.MultiLayerEncoder(modules)
 
-    actual = single_layer_encoder(input)
-    expected = relu(conv(input))
-    ptu.assert_allclose(actual, expected)
+        single_layer_encoder = enc.SingleLayerEncoder(multi_layer_encoder, "relu")
+
+        actual = single_layer_encoder(input)
+        expected = relu(conv(input))
+        ptu.assert_allclose(actual, expected)
