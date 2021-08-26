@@ -118,111 +118,108 @@ def test_verify_str_arg():
     assert actual == desired
 
 
-def test_get_input_image_tensor():
-    image = torch.tensor(0.0)
+class TestGetInputImage:
+    def test_main(self):
+        image = torch.tensor(0.0)
 
-    starting_point = image
-    actual = misc.get_input_image(starting_point)
-    desired = image
-    assert actual is not desired
-    ptu.assert_allclose(actual, desired)
+        starting_point = image
+        actual = misc.get_input_image(starting_point)
+        desired = image
+        assert actual is not desired
+        ptu.assert_allclose(actual, desired)
 
+    def test_content(self):
+        starting_point = "content"
+        image = torch.tensor(0.0)
 
-def test_get_input_image_tensor_content():
-    starting_point = "content"
-    image = torch.tensor(0.0)
+        actual = misc.get_input_image(starting_point, content_image=image)
+        desired = image
+        assert actual == ptu.approx(desired)
 
-    actual = misc.get_input_image(starting_point, content_image=image)
-    desired = image
-    assert actual == ptu.approx(desired)
+        with pytest.raises(RuntimeError):
+            misc.get_input_image(starting_point, style_image=image)
 
-    with pytest.raises(RuntimeError):
-        misc.get_input_image(starting_point, style_image=image)
+    def test_style(self):
+        starting_point = "style"
+        image = torch.tensor(0.0)
 
+        actual = misc.get_input_image(starting_point, style_image=image)
+        desired = image
+        assert actual == ptu.approx(desired)
 
-def test_get_input_image_tensor_style():
-    starting_point = "style"
-    image = torch.tensor(0.0)
+        with pytest.raises(RuntimeError):
+            misc.get_input_image(starting_point, content_image=image)
 
-    actual = misc.get_input_image(starting_point, style_image=image)
-    desired = image
-    assert actual == ptu.approx(desired)
+    def test_random(self):
+        starting_point = "random"
+        content_image = torch.tensor(0.0, dtype=torch.float32)
+        style_image = torch.tensor(0.0, dtype=torch.float64)
 
-    with pytest.raises(RuntimeError):
-        misc.get_input_image(starting_point, content_image=image)
+        actual = misc.get_input_image(starting_point, content_image=content_image)
+        desired = content_image
+        ptu.assert_tensor_attributes_equal(actual, desired)
 
+        actual = misc.get_input_image(starting_point, style_image=style_image)
+        desired = style_image
+        ptu.assert_tensor_attributes_equal(actual, desired)
 
-def test_get_input_image_tensor_random():
-    starting_point = "random"
-    content_image = torch.tensor(0.0, dtype=torch.float32)
-    style_image = torch.tensor(0.0, dtype=torch.float64)
-
-    actual = misc.get_input_image(starting_point, content_image=content_image)
-    desired = content_image
-    ptu.assert_tensor_attributes_equal(actual, desired)
-
-    actual = misc.get_input_image(starting_point, style_image=style_image)
-    desired = style_image
-    ptu.assert_tensor_attributes_equal(actual, desired)
-
-    actual = misc.get_input_image(
-        starting_point, content_image=content_image, style_image=style_image
-    )
-    desired = content_image
-    ptu.assert_tensor_attributes_equal(actual, desired)
-
-    with pytest.raises(RuntimeError):
-        misc.get_input_image(starting_point)
-
-
-def test_get_device():
-    actual = misc.get_device()
-    desired = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    assert actual == desired
-
-
-def test_get_device_str():
-    device_name = "mkldnn"
-    actual = misc.get_device(device_name)
-    desired = torch.device(device_name)
-    assert actual == desired
-
-
-def test_download_file(tmpdir, test_image_url, test_image):
-    file = path.join(tmpdir, path.basename(test_image_url))
-    misc.download_file(test_image_url, file, md5="a858d33c424eaac1322cf3cab6d3d568")
-
-    actual = read_image(file)
-    desired = test_image
-    ptu.assert_allclose(actual, desired)
-
-
-@pytest.mark.parametrize(
-    ("code", "reason"),
-    [
-        (400, "Bad request"),
-        (401, "Unauthorized"),
-        (403, "Forbidden"),
-        (404, "Not Found"),
-        (409, "Conflict"),
-        (500, "Internal Server Error"),
-    ],
-)
-def test_download_file_response_code(mocker, test_image_url, code, reason):
-    side_effect = HTTPError(test_image_url, code, reason, {}, None)
-    mocker.patch(make_mock_target("misc", "urlopen"), side_effect=side_effect)
-
-    with pytest.raises(RuntimeError):
-        misc.download_file(test_image_url)
-
-
-def test_download_file_md5_mismatch(tmpdir, test_image_url):
-    with pytest.raises(RuntimeError):
-        misc.download_file(
-            test_image_url,
-            path.join(tmpdir, path.basename(test_image_url)),
-            md5="invalidmd5",
+        actual = misc.get_input_image(
+            starting_point, content_image=content_image, style_image=style_image
         )
+        desired = content_image
+        ptu.assert_tensor_attributes_equal(actual, desired)
+
+        with pytest.raises(RuntimeError):
+            misc.get_input_image(starting_point)
+
+
+class TestGetDevice:
+    def test_main(self):
+        actual = misc.get_device()
+        desired = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        assert actual == desired
+
+    def test_str(self):
+        device_name = "mkldnn"
+        actual = misc.get_device(device_name)
+        desired = torch.device(device_name)
+        assert actual == desired
+
+
+class TestDownloadFile:
+    def test_main(self, tmpdir, test_image_url, test_image):
+        file = path.join(tmpdir, path.basename(test_image_url))
+        misc.download_file(test_image_url, file, md5="a858d33c424eaac1322cf3cab6d3d568")
+
+        actual = read_image(file)
+        desired = test_image
+        ptu.assert_allclose(actual, desired)
+
+    @pytest.mark.parametrize(
+        ("code", "reason"),
+        [
+            (400, "Bad request"),
+            (401, "Unauthorized"),
+            (403, "Forbidden"),
+            (404, "Not Found"),
+            (409, "Conflict"),
+            (500, "Internal Server Error"),
+        ],
+    )
+    def test_response_code(self, mocker, test_image_url, code, reason):
+        side_effect = HTTPError(test_image_url, code, reason, {}, None)
+        mocker.patch(make_mock_target("misc", "urlopen"), side_effect=side_effect)
+
+        with pytest.raises(RuntimeError):
+            misc.download_file(test_image_url)
+
+    def test_md5_mismatch(self, tmpdir, test_image_url):
+        with pytest.raises(RuntimeError):
+            misc.download_file(
+                test_image_url,
+                path.join(tmpdir, path.basename(test_image_url)),
+                md5="invalidmd5",
+            )
 
 
 def test_reduce():
