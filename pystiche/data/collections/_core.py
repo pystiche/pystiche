@@ -72,6 +72,9 @@ class _ImageCollection(pystiche.ComplexObject):
         for name, image in self._images.items():
             yield name, image
 
+    def __contains__(self, name: str) -> bool:
+        return name in self._images
+
     def read(
         self, root: Optional[str] = None, **read_image_kwargs: Any
     ) -> Dict[str, torch.Tensor]:
