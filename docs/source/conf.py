@@ -302,7 +302,7 @@ def cli():
     path = pathlib.Path() / "cli"
     loader = jinja2.FileSystemLoader(searchpath=path)
     env = jinja2.Environment(loader=loader)
-    template = env.get_template("template.rst")
+    template = env.get_template("index.rst.template")
 
     with open(path / "index.rst", "w") as fh:
         fh.write(
