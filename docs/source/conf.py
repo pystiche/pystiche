@@ -1,20 +1,26 @@
 import contextlib
+import io
 import os
+import pathlib
 import re
 import shutil
+import unittest.mock
 import warnings
 from datetime import datetime
 from distutils.util import strtobool
 from importlib_metadata import metadata as extract_metadata
 from os import path
+from types import SimpleNamespace
 from unittest import mock
 from urllib.parse import urljoin
 
+import jinja2
 from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 from tqdm import tqdm
 
 import torch
 
+from pystiche._cli import main as cli_entrypoint
 from pystiche.misc import download_file
 
 HERE = path.dirname(__file__)
@@ -279,6 +285,36 @@ def logo():
     return extension, config
 
 
+shutil.get_terminal_size()
+
+
+def cli():
+    def capture_cli_output(*args):
+        with contextlib.redirect_stdout(io.StringIO()) as buffer:
+            with contextlib.suppress(SystemExit):
+                with unittest.mock.patch(
+                    "shutil.get_terminal_size", return_value=SimpleNamespace(columns=94)
+                ):
+                    cli_entrypoint(list(args))
+
+        return buffer.getvalue()
+
+    path = pathlib.Path(HERE) / "cli"
+    loader = jinja2.FileSystemLoader(searchpath=path)
+    env = jinja2.Environment(loader=loader)
+    template = env.get_template("index.rst.template")
+
+    with open(path / "index.rst", "w") as fh:
+        fh.write(
+            template.render(
+                version=capture_cli_output("--version"),
+                help=capture_cli_output("--help"),
+            )
+        )
+
+    return None, None
+
+
 extensions = []
 for loader in (
     project,
@@ -290,6 +326,7 @@ for loader in (
     doctest,
     sphinx_gallery,
     logo,
+    cli,
 ):
     extension, config = loader()
 
