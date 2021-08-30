@@ -299,7 +299,7 @@ def cli():
 
         return buffer.getvalue()
 
-    path = pathlib.Path() / "cli"
+    path = pathlib.Path(HERE) / "cli"
     loader = jinja2.FileSystemLoader(searchpath=path)
     env = jinja2.Environment(loader=loader)
     template = env.get_template("index.rst.template")
