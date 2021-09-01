@@ -30,6 +30,7 @@ from urllib.request import urlopen
 
 import matplotlib.pyplot as plt
 from PIL import Image
+from tqdm.auto import tqdm
 
 import torch
 import torchvision
@@ -38,8 +39,6 @@ from torch.nn.functional import mse_loss
 from torchvision import transforms
 from torchvision.models import vgg19
 from torchvision.transforms.functional import resize
-
-from tqdm.auto import tqdm
 
 print(f"I'm working with torch=={torch.__version__}")
 print(f"I'm working with torchvision=={torchvision.__version__}")
@@ -450,6 +449,7 @@ iterable = range(1, num_steps + 1)
 
 with tqdm(desc="Image optimization", iterable=iterable) as progress_bar:
     for _ in iterable:
+
         def closure():
             optimizer.zero_grad()
 
@@ -462,7 +462,9 @@ with tqdm(desc="Image optimization", iterable=iterable) as progress_bar:
             perceptual_loss = content_score + style_score
             perceptual_loss.backward()
 
-            progress_bar.set_postfix(loss=f"{float(perceptual_loss):.3e}", refresh=False)
+            progress_bar.set_postfix(
+                loss=f"{float(perceptual_loss):.3e}", refresh=False
+            )
             progress_bar.update()
 
             return perceptual_loss
