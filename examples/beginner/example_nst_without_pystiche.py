@@ -39,6 +39,8 @@ from torchvision import transforms
 from torchvision.models import vgg19
 from torchvision.transforms.functional import resize
 
+from tqdm.auto import tqdm
+
 print(f"I'm working with torch=={torch.__version__}")
 print(f"I'm working with torchvision=={torchvision.__version__}")
 
@@ -444,30 +446,28 @@ optimizer = optim.LBFGS([input_image.requires_grad_(True)], max_iter=1)
 # . This structure is also valid for all other optimizers.
 
 num_steps = 500
+iterable = range(1, num_steps + 1)
 
-for step in range(1, num_steps + 1):
+with tqdm(desc="Image optimization", iterable=iterable) as progress_bar:
+    for _ in iterable:
+        def closure():
+            optimizer.zero_grad()
 
-    def closure():
-        optimizer.zero_grad()
+            input_encs = multi_layer_encoder(input_image, content_layers, style_layers)
+            input_content_encs, input_style_encs = input_encs
 
-        input_encs = multi_layer_encoder(input_image, content_layers, style_layers)
-        input_content_encs, input_style_encs = input_encs
+            content_score = content_loss(input_content_encs)
+            style_score = style_loss(input_style_encs)
 
-        content_score = content_loss(input_content_encs)
-        style_score = style_loss(input_style_encs)
+            perceptual_loss = content_score + style_score
+            perceptual_loss.backward()
 
-        perceptual_loss = content_score + style_score
-        perceptual_loss.backward()
+            progress_bar.set_postfix(loss=f"{float(perceptual_loss):.3e}", refresh=False)
+            progress_bar.update()
 
-        if step % 50 == 0:
-            print(f"Step {step}")
-            print(f"Content loss: {content_score.item():.3e}")
-            print(f"Style loss:   {style_score.item():.3e}")
-            print("-----------------------")
+            return perceptual_loss
 
-        return perceptual_loss
-
-    optimizer.step(closure)
+        optimizer.step(closure)
 
 output_image = input_image.detach()
 
