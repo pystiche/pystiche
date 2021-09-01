@@ -445,10 +445,9 @@ optimizer = optim.LBFGS([input_image.requires_grad_(True)], max_iter=1)
 # . This structure is also valid for all other optimizers.
 
 num_steps = 500
-iterable = range(1, num_steps + 1)
 
-with tqdm(desc="Image optimization", iterable=iterable) as progress_bar:
-    for _ in iterable:
+with tqdm(desc="Image optimization", total=num_steps) as progress_bar:
+    for _ in range(num_steps):
 
         def closure():
             optimizer.zero_grad()
