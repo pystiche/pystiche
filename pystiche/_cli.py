@@ -188,77 +188,37 @@ def make_parser() -> argparse.ArgumentParser:
         prog="pystiche",
         description=(
             "Performs simple Neural Style Transfers (NSTs) with image optimization. "
-            "For more complex tasks, have a look at the Python API at https://docs.pystiche.org."
+            "For more complex tasks, have a look at the Python API at "
+            "https://docs.pystiche.org."
         ),
         add_help=False,
     )
 
     parser.add_argument(
-        "--multi-layer-encoder",
-        "--mle",
-        type=str,
-        default="vgg19",
-        help="Can be any pretrained multi-layer encoder from pystiche.enc, e.g. 'vgg19' (default) or 'alexnet'.",
+        "-h", "--help", action="help", help="Show this message and exit.",
+    )
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=pystiche.__version__,
+        help="Show pystiche's version and exit.",
     )
 
     parser.add_argument(
-        "--content-loss",
-        "--cl",
+        "content_image",
         type=str,
-        default="FeatureReconstruction",
-        help="Can be any comparison loss from pystiche.loss, e.g. 'FeatureReconstruction' (default).",
-    )
-    parser.add_argument(
-        "--content-layers",
-        "--cla",
-        type=str,
-        default="relu4_2",
         help=(
-            "Layers of the MULTI_LAYER_ENCODER used to encode the content representation, e.g. 'relu4_2' (default). "
-            "Multiple layers can be given as a comma separated list."
+            "Image containing the content for the style transfer. "
+            "Can be a path to an image file or the name of a pystiche.demo image."
         ),
     )
     parser.add_argument(
-        "--content-size",
-        "--cs",
-        type=int,
-        default=500,
-        help="Size in pixels the CONTENT_IMAGE will be resized to before the optimization, e.g. '500' (default).",
-    )
-
-    parser.add_argument(
-        "--style-loss",
-        "--sl",
+        "style_image",
         type=str,
-        default="Gram",
-        help="Can be any comparison loss from pystiche.loss, e.g. 'Gram' (default) or 'MRF'.",
-    )
-    parser.add_argument(
-        "--style-layers",
-        "--sla",
-        type=str,
-        default="relu1_1,relu2_1,relu3_1,relu4_1,relu5_1",
         help=(
-            "Layers of the MULTI_LAYER_ENCODER used to encode the content representation. "
-            "Multiple layers can be given as a comma separated list, "
-            "e.g. 'relu1_1,relu2_1,relu3_1,relu4_1,relu5_1' (default)."
-        ),
-    )
-    parser.add_argument(
-        "--style-size",
-        "--ss",
-        type=int,
-        default=500,
-        help="Size in pixels the STYLE_IMAGE will be resized to before the optimization, e.g. '500' (default).",
-    )
-    parser.add_argument(
-        "--style-weight",
-        "--sw",
-        type=float,
-        default=1e3,
-        help=(
-            "Optimization weight for the STYLE_LOSS, e.g. '1e3' (default). "
-            "Higher values lead to more focus on the style."
+            "Image containing the style for the style transfer. "
+            "Can be a path to an image file or the name of a pystiche.demo image."
         ),
     )
 
@@ -268,7 +228,8 @@ def make_parser() -> argparse.ArgumentParser:
         type=str,
         help=(
             "Path, the output image will be saved to. "
-            "If omitted, the output image will be saved to 'pystiche_{timestamp}.jpg' in the current directory."
+            "If omitted, the output image will be saved to 'pystiche_{timestamp}.jpg' "
+            "in the current directory."
         ),
     )
     parser.add_argument(
@@ -293,37 +254,96 @@ def make_parser() -> argparse.ArgumentParser:
         type=str,
         default="content",
         help=(
-            "Starting point of the optimization. Can be 'content' (default) to start from the content image, "
-            "'random' to start from a white noise image, a path to an image file, or a name of a pystiche.demo image."
+            "Starting point of the optimization. Can be 'content' (default) to start "
+            "from the content image, 'random' to start from a white noise image, "
+            "a path to an image file, or a name of a pystiche.demo image."
+        ),
+    )
+    parser.add_argument(
+        "--multi-layer-encoder",
+        "--mle",
+        type=str,
+        default="vgg19",
+        help=(
+            "Can be any pretrained multi-layer encoder from pystiche.enc, "
+            "e.g. 'vgg19' (default) or 'alexnet'."
         ),
     )
 
-    parser.add_argument(
-        "content_image",
+    content_group = parser.add_argument_group(title="Content options")
+    content_group.add_argument(
+        "--content-loss",
+        "--cl",
         type=str,
+        default="FeatureReconstruction",
         help=(
-            "Image containing the content for the style transfer. "
-            "Can be a path to an image file or the name of a pystiche.demo image."
+            "Can be any comparison loss from pystiche.loss, "
+            "e.g. 'FeatureReconstruction' (default)."
         ),
     )
-    parser.add_argument(
-        "style_image",
+    content_group.add_argument(
+        "--content-layers",
+        "--cla",
         type=str,
+        default="relu4_2",
         help=(
-            "Image containing the style for the style transfer. "
-            "Can be a path to an image file or the name of a pystiche.demo image."
+            "Layers of the MULTI_LAYER_ENCODER used to encode the content "
+            "representation, e.g. 'relu4_2' (default). "
+            "Multiple layers can be given as a comma separated list."
+        ),
+    )
+    content_group.add_argument(
+        "--content-size",
+        "--cs",
+        type=int,
+        default=500,
+        help=(
+            "Size in pixels the CONTENT_IMAGE will be resized to before the "
+            "optimization, e.g. '500' (default)."
         ),
     )
 
-    parser.add_argument(
-        "-h", "--help", action="help", help="Show this message and exit.",
+    style_group = parser.add_argument_group(title="Style options")
+    style_group.add_argument(
+        "--style-loss",
+        "--sl",
+        type=str,
+        default="Gram",
+        help=(
+            "Can be any comparison loss from pystiche.loss, "
+            "e.g. 'Gram' (default) or 'MRF'."
+        ),
     )
-    parser.add_argument(
-        "-V",
-        "--version",
-        action="version",
-        version=pystiche.__version__,
-        help="Show pystiche's version and exit.",
+    style_group.add_argument(
+        "--style-layers",
+        "--sla",
+        type=str,
+        default="relu1_1,relu2_1,relu3_1,relu4_1,relu5_1",
+        help=(
+            "Layers of the MULTI_LAYER_ENCODER used to encode the content "
+            "representation. Multiple layers can be given as a comma separated list, "
+            "e.g. 'relu1_1,relu2_1,relu3_1,relu4_1,relu5_1' (default)."
+        ),
+    )
+    style_group.add_argument(
+        "--style-size",
+        "--ss",
+        type=int,
+        default=500,
+        help=(
+            "Size in pixels the STYLE_IMAGE will be resized to before the "
+            "optimization, e.g. '500' (default)."
+        ),
+    )
+    style_group.add_argument(
+        "--style-weight",
+        "--sw",
+        type=float,
+        default=1e3,
+        help=(
+            "Optimization weight for the STYLE_LOSS, e.g. '1e3' (default). "
+            "Higher values lead to more focus on the style."
+        ),
     )
 
     return parser
