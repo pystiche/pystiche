@@ -54,7 +54,7 @@ show_image(style_image)
 #
 # As a baseline we use a default NST with a
 # :class:`~pystiche.loss.FeatureReconstructionLoss` as ``content_loss`` and
-# :class:`~pystiche.loss.GramLoss` s as ``style_loss``.
+# :class:`~pystiche.loss.GramLoss` as ``style_loss``.
 
 multi_layer_encoder = enc.vgg19_multi_layer_encoder()
 
