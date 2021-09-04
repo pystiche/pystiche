@@ -10,10 +10,11 @@ from typing import Any, Callable, List, Optional, Tuple, Union, cast
 import torch
 
 import pystiche
-from pystiche import demo, enc, loss, optim
+from pystiche import demo, enc, loss
 from pystiche.data import LocalImage
 from pystiche.data.collections._core import _Image
 from pystiche.image import extract_image_size, write_image
+from pystiche.optim import image_optimization
 
 
 def sys_exit(fn: Callable[..., None]) -> Callable[..., None]:
@@ -40,7 +41,7 @@ def main(raw_args: Optional[List[str]] = None) -> None:
     config.perceptual_loss.set_content_image(config.content_image)
     config.perceptual_loss.set_style_image(config.style_image)
 
-    output_image = optim.image_optimization(
+    output_image = image_optimization(
         config.input_image, config.perceptual_loss, num_steps=config.num_steps
     )
 
@@ -318,6 +319,16 @@ def make_parser() -> argparse.ArgumentParser:
         help=(
             "Size in pixels the CONTENT_IMAGE will be resized to before the "
             "optimization, e.g. '500' (default)."
+        ),
+    )
+    content_group.add_argument(
+        "--content-weight",
+        "--cw",
+        type=float,
+        default=1e0,
+        help=(
+            "Optimization weight for the CONTENT_LOSS, e.g. '1e0' (default). "
+            "Higher values lead to more focus on the content."
         ),
     )
 
