@@ -168,9 +168,9 @@ assert torch.allclose(sle(input), conv(input))
 #
 # .. note::
 #
-# The internal cache will be automatically cleared during the backward pass. Since we
-# don't perform that here, we need to clear it manually by calling
-# :meth:`~pystiche.enc.MultiLayerEncoder.clear_cache`
+#   The internal cache will be automatically cleared during the backward pass. Since we
+#   don't perform that here, we need to clear it manually by calling
+#   :meth:`~pystiche.enc.MultiLayerEncoder.clear_cache`
 #
 # .. note::
 #
