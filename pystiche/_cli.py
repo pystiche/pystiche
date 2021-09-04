@@ -45,7 +45,7 @@ def main(raw_args: Optional[List[str]] = None) -> None:
         config.input_image, config.perceptual_loss, num_steps=config.num_steps
     )
 
-    if not args.output_image_specified:
+    if not config.output_image_specified:
         print(f"Saving result to {config.output_image}")
     write_image(output_image, config.output_image)
 
