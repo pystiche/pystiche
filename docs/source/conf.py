@@ -14,6 +14,7 @@ from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 from tqdm import tqdm
 
 import torch
+from torch import nn
 
 from pystiche.misc import download_file
 
@@ -71,13 +72,18 @@ def intersphinx():
         intersphinx_mapping={
             "python": ("https://docs.python.org/3.6", None),
             "torch": ("https://pytorch.org/docs/stable/", None),
-            "torchvision": ("https://pytorch.org/docs/stable/", None),
+            "torchvision": ("https://pytorch.org/vision/stable", None),
             "PIL": ("https://pillow.readthedocs.io/en/stable/", None),
             "numpy": ("https://numpy.org/doc/1.18/", None),
             "requests": ("https://requests.readthedocs.io/en/stable/", None),
             "matplotlib": ("https://matplotlib.org", None),
         }
     )
+
+    # TODO: remove this is there is a proper fix
+    # see https://github.com/sphinx-doc/sphinx/issues/9395
+    nn.Module.__module__ = "torch.nn"
+
     return extension, config
 
 
