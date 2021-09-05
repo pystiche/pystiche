@@ -16,8 +16,7 @@ In ``pystiche`` these losses are implemented :class:`~pystiche.loss.Loss` s.
 :class:`~pystiche.loss.RegularizationLoss` works without any context while a
 :class:`~pystiche.loss.ComparisonLoss` compares two images. Furthermore,
 ``pystiche`` differentiates between two different domains an
-:class:`~pystiche.loss.Loss` can work on:
-:class:`~pystiche.ops.op.PixelOperator`
+:class:`~pystiche.loss.Loss` can work on: :class:`~pystiche.ops.op.PixelOperator`
 and :class:`~pystiche.ops.EncodingOperator` . A :class:`~pystiche.ops.PixelOperator`
 operates directly on the ``input_image`` while an
 :class:`~pystiche.ops.EncodingOperator` encodes it first.
