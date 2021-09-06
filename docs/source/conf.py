@@ -1,4 +1,5 @@
 import contextlib
+import importlib
 import os
 import re
 import shutil
@@ -14,7 +15,6 @@ from sphinx_gallery.sorting import ExampleTitleSortKey, ExplicitOrder
 from tqdm import tqdm
 
 import torch
-from torch import nn
 
 from pystiche.misc import download_file
 
@@ -82,7 +82,16 @@ def intersphinx():
 
     # TODO: remove this is there is a proper fix
     # see https://github.com/sphinx-doc/sphinx/issues/9395
-    nn.Module.__module__ = "torch.nn"
+    for cls in (
+        "torch.nn.Module",
+        "torch.utils.data.DataLoader",
+        "torch.optim.Optimizer",
+        "torch.optim.LBFGS",
+    ):
+        module_name, cls_name = cls.rsplit(".", 1)
+        module = importlib.import_module(module_name)
+        # check if this is already the case and warn if it is
+        getattr(module, cls_name).__module__ = module_name
 
     return extension, config
 
