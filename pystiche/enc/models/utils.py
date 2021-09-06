@@ -169,13 +169,13 @@ class ModelMultiLayerEncoder(MultiLayerEncoder):
                 :meth:`collect_modules`. Defaults to ``True``.
             check_hash: If ``True``, checks if the hash postfix of the URL matches the
                 SHA256 hash of the downloaded ``state_dict``. Defaults to ``True``.
-            kwargs: Optional arguments for :meth:`torch.hub.load_state_dict_from_url` .
+            kwargs: Optional arguments for :func:`torch.hub.load_state_dict_from_url` .
 
         .. seealso::
 
             - :meth:`state_dict_url`
             - :meth:`load_state_dict`
-            - :meth:`torch.hub.load_state_dict_from_url`
+            - :func:`torch.hub.load_state_dict_from_url`
         """
         url = self.state_dict_url(framework)
         state_dict = hub.load_state_dict_from_url(url, check_hash=check_hash, **kwargs)

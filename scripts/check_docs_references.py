@@ -6,7 +6,6 @@ import subprocess
 import sys
 import tempfile
 
-# check if this can be unified into one pattern
 WARNING_PATTERN = r"WARNING: (?P<warning>.*?)$"
 FILE_PATTERN = re.compile(r"(?P<location>.*?): " + WARNING_PATTERN)
 DOCSTRING_PATTERN = re.compile(r".*?(?P<location>docstring of .*?): " + WARNING_PATTERN)
@@ -14,6 +13,38 @@ DOCSTRING_PATTERN = re.compile(r".*?(?P<location>docstring of .*?): " + WARNING_
 IGNORED_WARNINGS = {
     "py:class reference target not found: torchvision.models.VGG",
     "py:class reference target not found: torchvision.models.AlexNet",
+    "py:mod reference target not found: torch",
+    "py:class reference target not found: torch.device",
+    "py:class reference target not found: torch.nn.modules.module._IncompatibleKeys",
+    "py:class reference target not found: torch.optim.lr_scheduler._LRScheduler",
+    "py:class reference target not found: Module",
+    # every warning below this comment should be only temporary ignored and can be
+    # resolved quickly
+    "py:attr reference target not found: transform",
+    "py:exc reference target not found: framework`",
+    "py:class reference target not found: OperatorContainer",
+    "py:meth reference target not found: pystiche.ops.Comparison.set_input_guide",
+    "py:meth reference target not found: pystiche.ops.Comparison.set_target_image",
+    "py:class reference target not found: pystiche.loss._comparison.ScaleAndRotate",
+    "py:class reference target not found: pystiche.ops.TotalVariationOperator",
+    "py:exc reference target not found: getter.",
+    "py:class reference target not found: pystiche.loss.GuidedPerceptualLoss",
+    "py:meth reference target not found: pystiche.loss.PerceptualLoss.set_content_image",
+    "py:class reference target not found: pystiche.ops.Operator",
+    "py:class reference target not found: pystiche.ops.RegularizationOperator",
+    "py:class reference target not found: pystiche.ops.ComparisonOperator",
+    "py:class reference target not found: pystiche.ops.op.PixelOperator",
+    "py:class reference target not found: pystiche.ops.EncodingOperator",
+    "py:class reference target not found: pystiche.ops.PixelRegularizationOperator",
+    "py:class reference target not found: pystiche.ops.TotalVariationOperator",
+    "py:class reference target not found: pystiche.ops.EncodingRegularizationOperator",
+    "py:class reference target not found: pystiche.ops.PixelComparisonOperator",
+    "py:class reference target not found: pystiche.ops.EncodingComparisonOperator",
+    "py:class reference target not found: pystiche.ops.FeatureReconstructionOperator",
+    "py:class reference target not found: pystiche.ops.GramOperator",
+    "py:class reference target not found: pystiche.ops.MRFOperator",
+    "py:class reference target not found: pystiche.ops.MultiLayerEncodingOperator",
+    "py:class reference target not found: pystiche.ops.PixelOperator",
 }
 
 
@@ -63,8 +94,11 @@ def filter_warnings(warnings):
 
         match = pattern.match(line)
         if match is None:
-            # FIXME
-            raise RuntimeError
+            raise RuntimeError(
+                f"The following line does not match the pattern to identify the "
+                f"location and message of a warning:\n\n"
+                f"{line}"
+            )
 
         location = match.group("location")
         warning = match.group("warning")

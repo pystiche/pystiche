@@ -116,7 +116,7 @@ size = 500
 # .. note::
 #
 #   If you want to work with other images you can load them with
-#   :func:`~pystiche.image.io.read_image`:
+#   :func:`~pystiche.image.read_image`:
 #
 #   .. code-block:: python
 #
@@ -176,7 +176,7 @@ show_image(input_image, title="Input image")
 # In every step the ``perceptual_loss`` is calculated nd propagated backward to the
 # pixels of the ``input_image``. If ``get_optimizer`` is not specified, as is the case
 # here, the :func:`~pystiche.optim.default_image_optimizer`, i.e.
-# :class:`~torch.optim.lbfgs.LBFGS` is used.
+# :class:`~torch.optim.LBFGS` is used.
 
 output_image = optim.image_optimization(input_image, perceptual_loss, num_steps=500)
 
