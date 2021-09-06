@@ -32,7 +32,7 @@ In total ``pystiche`` supports four archetypes:
 +-------------------------------------------------------+-----------------------------------------------------------------------+
 | :class:`~pystiche.ops.PixelComparisonOperator`        |                                                                       |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
-| :class:`~pystiche.ops.EncodingComparisonOperator`     | - :class:`~pystiche.loss.FeatureReconstructionLoss` :cite:`MV2015`    |
+| :class:`~pystiche.ops.EncodingComparisonOperator`     | - :class:`~pystiche.loss.FeatureReconstructionLoss` :cite:`MV2015` |
 |                                                       | - :class:`~pystiche.loss.GramLoss` :cite:`GEB2016`                    |
 |                                                       | - :class:`~pystiche.loss.MRFLoss` :cite:`LW2016`                      |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
