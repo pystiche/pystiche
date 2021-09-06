@@ -26,7 +26,7 @@ In total ``pystiche`` supports four archetypes:
 +-------------------------------------------------------+-----------------------------------------------------------------------+
 | :class:`~pystiche.loss.Loss`                          | Builtin examples                                                      |
 +=======================================================+=======================================================================+
-| :class:`~pystiche.ops.PixelRegularizationOperator`    |   - :class:`~pystiche.loss.TotalVariationLoss` :cite:`MV2015`         |
+| :class:`~pystiche.ops.PixelRegularizationOperator`    | - :class:`~pystiche.loss.TotalVariationLoss` :cite:`MV2015`         |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
 | :class:`~pystiche.ops.EncodingRegularizationOperator` |                                                                       |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
