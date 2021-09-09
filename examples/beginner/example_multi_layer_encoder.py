@@ -168,11 +168,9 @@ assert torch.allclose(sle(input), conv(input))
 #
 # .. note::
 #
-#   The internal cache has no functionality to clear it automatically. Thus, the user
-#   has to manually call :meth:`~pystiche.enc.MultiLayerEncoder.clear_cache` to avoid
-#   memory build up. In the builtin optimization functions such as
-#   :func:`pystiche.optim.image_optimization` this is performed after every
-#   optimization step.
+#   The internal cache will be automatically cleared during the backward pass. Since we
+#   don't perform that here, we need to clear it manually by calling
+#   :meth:`~pystiche.enc.MultiLayerEncoder.clear_cache`
 #
 # .. note::
 #
@@ -189,7 +187,11 @@ for layer in shallow_layers:
     print(
         ftimeit(
             lambda: mle(input, layer),
-            f"The encoding of layer '{layer}' took {{seconds}}.",
+            (
+                f"After the forward pass was completed once for the input, "
+                f"extracting the encoding of the intermediate layer '{layer}' "
+                f"took {{seconds}}."
+            ),
         )
     )
 

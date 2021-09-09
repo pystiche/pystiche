@@ -1,4 +1,5 @@
 import contextlib
+import importlib
 import io
 import os
 import pathlib
@@ -77,13 +78,27 @@ def intersphinx():
         intersphinx_mapping={
             "python": ("https://docs.python.org/3.6", None),
             "torch": ("https://pytorch.org/docs/stable/", None),
-            "torchvision": ("https://pytorch.org/docs/stable/", None),
+            "torchvision": ("https://pytorch.org/vision/stable", None),
             "PIL": ("https://pillow.readthedocs.io/en/stable/", None),
             "numpy": ("https://numpy.org/doc/1.18/", None),
             "requests": ("https://requests.readthedocs.io/en/stable/", None),
             "matplotlib": ("https://matplotlib.org", None),
         }
     )
+
+    # TODO: remove this is there is a proper fix
+    # see https://github.com/sphinx-doc/sphinx/issues/9395
+    for cls in (
+        "torch.nn.Module",
+        "torch.utils.data.DataLoader",
+        "torch.optim.Optimizer",
+        "torch.optim.LBFGS",
+    ):
+        module_name, cls_name = cls.rsplit(".", 1)
+        module = importlib.import_module(module_name)
+        # check if this is already the case and warn if it is
+        getattr(module, cls_name).__module__ = module_name
+
     return extension, config
 
 
