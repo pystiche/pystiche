@@ -36,14 +36,40 @@ def set_argv(mocker):
     return set_argv_
 
 
+@pytest.fixture
+def mock_execution_with(mock_image_optimization, mock_write_image, set_argv):
+    mock_image_optimization()
+    mock_write_image()
+    return set_argv
+
+
 @contextlib.contextmanager
-def exits(*, should_succeed=True, expected_code=None):
+def exits(*, should_succeed=True, expected_code=None, check_err=None, check_out=None):
+    def parse_checker(checker):
+        if checker is None or callable(checker):
+            return checker
+
+        if isinstance(checker, str):
+            checker = (checker,)
+
+        def check_fn(text):
+            for phrase in checker:
+                assert phrase in text
+
+        return check_fn
+
+    check_err = parse_checker(check_err)
+    check_out = parse_checker(check_out)
+
     with pytest.raises(SystemExit) as info:
-        with contextlib.redirect_stderr(io.StringIO()) as output:
-            yield
+        with contextlib.redirect_stderr(io.StringIO()) as raw_err:
+            with contextlib.redirect_stdout(io.StringIO()) as raw_out:
+                yield
 
     returned_code = info.value.code or 0
     succeeded = returned_code == 0
+    err = raw_err.getvalue().strip()
+    out = raw_out.getvalue().strip()
 
     if expected_code is not None:
         if returned_code == expected_code:
@@ -56,38 +82,45 @@ def exits(*, should_succeed=True, expected_code=None):
 
     if should_succeed:
         if succeeded:
+            if check_out:
+                check_out(out)
+
             return
 
         raise AssertionError(
-            f"Program should have succeeded, "
-            f"but returned code {returned_code} and printed the following to STDERR: "
-            f"'{output.getvalue().strip()}'."
+            f"Program should have succeeded, but returned code {returned_code} "
+            f"and printed the following to STDERR: '{err}'."
         )
     else:
         if not succeeded:
+            if check_err:
+                check_err(err)
+
             return
 
         raise AssertionError("Program shouldn't have succeeded, but did.")
 
 
 @pytest.mark.parametrize("option", ["-h", "--help"])
-def test_help_smoke(option, set_argv):
-    set_argv(option)
+def test_help_smoke(option, mock_execution_with):
+    mock_execution_with(option)
 
-    with contextlib.redirect_stdout(io.StringIO()) as output, exits():
+    def check_out(out):
+        assert out
+
+    with exits(check_out=check_out):
         main()
-
-    assert output.getvalue()
 
 
 @pytest.mark.parametrize("option", ["-V", "--version"])
-def test_version(option, set_argv):
-    set_argv(option)
+def test_version(option, mock_execution_with):
+    mock_execution_with(option)
 
-    with contextlib.redirect_stdout(io.StringIO()) as output, exits():
+    def check_out(out):
+        assert out == pystiche.__version__
+
+    with exits(check_out=check_out):
         main()
-
-    assert output.getvalue().strip() == pystiche.__version__
 
 
 @pytest.mark.slow
@@ -106,58 +139,61 @@ def test_smoke(mock_image_optimization, mock_write_image, set_argv):
 @pytest.mark.slow
 class TestVerbose:
     @pytest.mark.parametrize("option", ["-v", "--verbose"])
-    def test_smoke(self, mock_image_optimization, mock_write_image, set_argv, option):
-        mock_image_optimization()
-        mock_write_image()
+    def test_smoke(self, mock_execution_with, option):
         # If the output file is not specified,
         # we would get output to STDOUT regardless of -v / --verbose
-        set_argv(option, "--output-image=foo.jpg")
+        mock_execution_with(option, "--output-image=foo.jpg")
 
-        with contextlib.redirect_stdout(io.StringIO()) as output, exits():
+        def check_out(out):
+            assert out
+
+        with exits(check_out=check_out):
             main()
 
-        assert output.getvalue().strip()
-
-    def test_device(self, mock_image_optimization, mock_write_image, set_argv):
+    def test_device(self, mock_execution_with):
         device = "cpu"
+        mock_execution_with("--verbose", f"--device={device}")
 
-        mock_image_optimization()
-        mock_write_image()
-        set_argv("--verbose", f"--device={device}")
-
-        with contextlib.redirect_stdout(io.StringIO()) as output, exits():
+        with exits(check_out=device):
             main()
 
-        assert "'cpu'" in output.getvalue().strip()
-
-    def test_mle(self, mock_image_optimization, mock_write_image, set_argv):
+    def test_mle(self, mock_execution_with):
         mle = "vgg19"
+        mock_execution_with("--verbose", f"--multi-layer-encoder={mle}")
 
-        mock_image_optimization()
-        mock_write_image()
-        set_argv("--verbose", f"--multi-layer-encoder={mle}")
-
-        with contextlib.redirect_stdout(io.StringIO()) as output, exits():
+        with exits(check_out=("VGGMultiLayerEncoder", mle)):
             main()
 
-        output = output.getvalue().strip()
-        assert "VGGMultiLayerEncoder" in output
-        assert f"arch={mle}" in output
-
-    def test_perceptual_loss(self, mock_image_optimization, mock_write_image, set_argv):
+    def test_perceptual_loss(self, mock_execution_with):
         content_loss = "FeatureReconstruction"
         style_loss = "Gram"
 
-        mock_image_optimization()
-        mock_write_image()
-        set_argv(
+        mock_execution_with(
             "--verbose", f"--content-loss={content_loss}", f"--style-loss={style_loss}",
         )
 
-        with contextlib.redirect_stdout(io.StringIO()) as output, exits():
+        with exits(check_out=("PerceptualLoss", content_loss, style_loss)):
             main()
 
-        output = output.getvalue().strip()
-        assert "PerceptualLoss" in output
-        assert content_loss in output
-        assert style_loss in output
+
+class TestDevice:
+    def test_smoke(self, mock_execution_with):
+        mock_execution_with("--device=cpu")
+
+        with exits():
+            main()
+
+    def test_unknown_device(self, mock_execution_with):
+        device = "unknown_device_type"
+        mock_execution_with(f"--device={device}")
+
+        with exits(should_succeed=False, check_err=device):
+            main()
+
+    def test_device_not_available(self, mock_execution_with):
+        # hopefully no one ever has this available when running this test
+        device = "mkldnn"
+        mock_execution_with(f"--device={device}")
+
+        with exits(should_succeed=False, check_err=device):
+            main()

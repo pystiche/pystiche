@@ -2,6 +2,7 @@ import argparse
 import functools
 import os.path
 import pathlib
+import re
 import sys
 from datetime import datetime
 from types import SimpleNamespace
@@ -51,9 +52,7 @@ def main(raw_args: Optional[List[str]] = None) -> None:
 
 
 def make_config(args: argparse.Namespace) -> SimpleNamespace:
-    device = torch.device(
-        args.device or ("cuda" if torch.cuda.is_available() else "cpu")
-    )
+    device = make_device(args.device)
     if args.verbose:
         print(f"NST will be performed on device '{device}'.")
 
@@ -83,6 +82,38 @@ def make_config(args: argparse.Namespace) -> SimpleNamespace:
         perceptual_loss=perceptual_loss,
         num_steps=args.num_steps,
     )
+
+
+def make_device(device_str: Optional[str]) -> torch.device:
+    if device_str:
+        try:
+            device = torch.device(device_str)
+        except RuntimeError as error:
+            msg = f"Unknown device type '{device_str.split(':')[0]}'."
+            match = re.match(
+                r"Expected one of (?P<device_types>(\w+,\s)+\w+)\sdevice type",
+                str(error),
+            )
+            if match:
+                device_types = [
+                    device_type.strip()
+                    for device_type in match.group("device_types").split(",")
+                ]
+                device_types_str = (
+                    f"""'{"', '".join(device_types[:-1])}', or '{device_types[-1]}'"""
+                )
+                msg += f" Should start with {device_types_str}."
+            raise ValueError(msg) from error
+
+        try:
+            torch.empty((), device=device)
+        except Exception as error:
+            msg = f"The device '{device_str}' is not available."
+            raise RuntimeError(msg) from error
+
+        return device
+    else:
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def load_image(
