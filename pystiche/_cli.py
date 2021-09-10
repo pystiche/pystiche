@@ -1,4 +1,5 @@
 import argparse
+import difflib
 import functools
 import os.path
 import pathlib
@@ -6,7 +7,7 @@ import re
 import sys
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Any, Callable, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import torch
 
@@ -163,11 +164,30 @@ def make_output_image(output_image: Optional[str]) -> Tuple[bool, str]:
     return True, output_image
 
 
-def make_multi_layer_encoder(mle_str: str) -> enc.ModelMultiLayerEncoder:
-    return cast(
-        enc.ModelMultiLayerEncoder,
-        getattr(enc, f"{mle_str.lower()}_multi_layer_encoder")(),
-    )
+MLES: Dict[str, Callable[[], enc.MultiLayerEncoder]] = {
+    name.replace("_multi_layer_encoder", ""): fn
+    for name, fn in enc.__dict__.items()
+    if name.endswith("_multi_layer_encoder") and callable(fn)
+}
+
+
+def make_multi_layer_encoder(mle_str: str) -> enc.MultiLayerEncoder:
+    mle_str = mle_str.lower().replace("-", "_")
+    try:
+        mle_fn = MLES[mle_str]
+    except KeyError as error:
+        msg = f"Unknown multi-layer encoder '{mle_str}'."
+        suggestion = difflib.get_close_matches(mle_str, MLES.keys(), 1)
+        if suggestion:
+            hint = f"Did you mean '{suggestion[0]}'?"
+        else:
+            hint = (
+                f"Should be "
+                f"{sequence_to_str(sorted(MLES.keys()), separate_last='or ')}."
+            )
+        raise ValueError(f"{msg} {hint}") from error
+
+    return mle_fn()
 
 
 LOSS_CLSS = {
@@ -217,6 +237,13 @@ def make_perceptual_loss(
     )
     style_loss = make_loss(args.style_loss, args.style_layers, args.style_weight, mle)
     return loss.PerceptualLoss(content_loss, style_loss)
+
+
+def sequence_to_str(seq: Sequence, separate_last: str = "") -> str:
+    return (
+        f"""'{"', '".join([str(item) for item in seq[:-1]])}', """
+        f"""{separate_last}'{seq[-1]}'"""
+    )
 
 
 def parse_args(raw_args: Optional[List[str]] = None) -> argparse.Namespace:
