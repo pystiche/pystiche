@@ -7,7 +7,17 @@ import re
 import sys
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Collection,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 import torch
 
@@ -90,7 +100,8 @@ def make_device(device_str: Optional[str]) -> torch.device:
         try:
             device = torch.device(device_str)
         except RuntimeError as error:
-            msg = f"Unknown device type '{device_str.split(':')[0]}'."
+            device_type = device_str.split(":")[0]
+            msg = f"Unknown device type '{device_type}'."
             match = re.match(
                 r"Expected one of (?P<device_types>(\w+,\s)+\w+)\sdevice type",
                 str(error),
@@ -100,10 +111,7 @@ def make_device(device_str: Optional[str]) -> torch.device:
                     device_type.strip()
                     for device_type in match.group("device_types").split(",")
                 ]
-                device_types_str = (
-                    f"""'{"', '".join(device_types[:-1])}', or '{device_types[-1]}'"""
-                )
-                msg += f" Should start with {device_types_str}."
+                msg = add_suggestion(msg, word=device_type, possibilities=device_types,)
             raise ValueError(msg) from error
 
         try:
@@ -121,16 +129,27 @@ def load_image(
     file_or_name: str, *, size: Union[int, Tuple[int, int]], device: torch.device
 ) -> torch.Tensor:
     file = os.path.abspath(os.path.expanduser(file_or_name))
+    name = file_or_name
+
     images = demo.images()
     image: _Image
     if os.path.exists(file):
         image = LocalImage(file)
-    elif file_or_name in images:
-        image = images[file_or_name]
+    elif name in images:
+        image = images[name]
     else:
-        raise ValueError(
-            f"'{file_or_name}' is neither an image file nor a name of a demo image."
-        )
+        path = pathlib.Path(file_or_name)
+        could_be_name = not path.suffix and path.parent == pathlib.Path(".")
+        if could_be_name:
+            raise ValueError(
+                add_suggestion(
+                    f"Unknown demo image '{name}'.",
+                    word=name,
+                    possibilities=images._images.keys(),
+                )
+            )
+        else:
+            raise ValueError(f"The file {file} does not exist.")
 
     return image.read(size=size, device=device)
 
@@ -176,16 +195,13 @@ def make_multi_layer_encoder(mle_str: str) -> enc.MultiLayerEncoder:
     try:
         mle_fn = MLES[mle_str]
     except KeyError as error:
-        msg = f"Unknown multi-layer encoder '{mle_str}'."
-        suggestion = difflib.get_close_matches(mle_str, MLES.keys(), 1)
-        if suggestion:
-            hint = f"Did you mean '{suggestion[0]}'?"
-        else:
-            hint = (
-                f"Should be "
-                f"{sequence_to_str(sorted(MLES.keys()), separate_last='or ')}."
+        raise ValueError(
+            add_suggestion(
+                f"Unknown multi-layer encoder '{mle_str}'.",
+                word=mle_str,
+                possibilities=MLES.keys(),
             )
-        raise ValueError(f"{msg} {hint}") from error
+        ) from error
 
     return mle_fn()
 
@@ -244,6 +260,16 @@ def sequence_to_str(seq: Sequence, separate_last: str = "") -> str:
         f"""'{"', '".join([str(item) for item in seq[:-1]])}', """
         f"""{separate_last}'{seq[-1]}'"""
     )
+
+
+def add_suggestion(msg: str, *, word: str, possibilities: Collection[str],) -> str:
+    suggestions = difflib.get_close_matches(word, possibilities, 1)
+    if suggestions:
+        hint = f"Did you mean '{suggestions[0]}?"
+    else:
+        hint = f"Can be {sequence_to_str(sorted(possibilities), separate_last='or ')}."
+
+    return f"{msg.strip()} {hint}"
 
 
 def parse_args(raw_args: Optional[List[str]] = None) -> argparse.Namespace:

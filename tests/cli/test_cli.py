@@ -1,10 +1,12 @@
 import contextlib
 import io
+import pathlib
 import sys
 
 import pytest
 
 import pystiche
+from pystiche import demo
 from pystiche._cli import main
 
 from tests.mocks import make_mock_target
@@ -217,4 +219,50 @@ class TestMLE:
         mock_execution_with(f"--mle={mle}")
 
         with exits(should_succeed=False, check_err=mle):
+            main()
+
+
+class TestImage:
+    options = pytest.mark.parametrize("option", ("content", "style", "starting_point"))
+
+    @staticmethod
+    def _mock_execution(mocker, *, option, value):
+        if option == "content":
+            args, kwargs = (), dict(content_image=value)
+        elif option == "style":
+            args, kwargs = (), dict(style_image=value)
+        else:  # option == "starting_point"
+            args, kwargs = (f"--starting-point={value}",), dict()
+        mocker(*args, **kwargs)
+
+    @pytest.mark.parametrize(
+        "name",
+        (
+            pytest.param("bird", id="near_match"),
+            pytest.param("unknown_demo_image", id="unkonwn"),
+        ),
+    )
+    @options
+    def test_unknown_demo_images(self, mock_execution_with, option, name):
+        self._mock_execution(mock_execution_with, option=option, value=name)
+
+        with exits(should_succeed=False, check_err=name):
+            main()
+
+    @options
+    def test_file_smoke(self, mock_execution_with, option):
+        image = demo.images()["bird1"]
+        image.download()
+        file = pathlib.Path(pystiche.home()) / image.file
+        self._mock_execution(mock_execution_with, option=option, value=str(file))
+
+        with exits():
+            main()
+
+    @options
+    def test_non_existing_file(self, mock_execution_with, option):
+        file = "/unknown/file.jpg"
+        self._mock_execution(mock_execution_with, option=option, value=file)
+
+        with exits(should_succeed=False, check_err=file):
             main()
