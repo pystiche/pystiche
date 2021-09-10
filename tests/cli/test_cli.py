@@ -183,17 +183,38 @@ class TestDevice:
         with exits():
             main()
 
-    def test_unknown_device(self, mock_execution_with):
+    def test_unknown(self, mock_execution_with):
         device = "unknown_device_type"
         mock_execution_with(f"--device={device}")
 
         with exits(should_succeed=False, check_err=device):
             main()
 
-    def test_device_not_available(self, mock_execution_with):
+    def test_not_available(self, mock_execution_with):
         # hopefully no one ever has this available when running this test
         device = "mkldnn"
         mock_execution_with(f"--device={device}")
 
         with exits(should_succeed=False, check_err=device):
+            main()
+
+
+class TestMLE:
+    def test_smoke(self, mock_execution_with):
+        mock_execution_with("--mle=vgg19")
+
+        with exits():
+            main()
+
+    @pytest.mark.parametrize(
+        "mle",
+        (
+            pytest.param("vgg18", id="near_match"),
+            pytest.param("unknown_multi_layer_encoder", id="unkonwn"),
+        ),
+    )
+    def test_unknown(self, mock_execution_with, mle):
+        mock_execution_with(f"--mle={mle}")
+
+        with exits(should_succeed=False, check_err=mle):
             main()
