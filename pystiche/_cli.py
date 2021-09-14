@@ -206,23 +206,42 @@ def make_multi_layer_encoder(mle_str: str) -> enc.MultiLayerEncoder:
     return mle_fn()
 
 
-LOSS_CLSS = {
-    name.lower().replace("loss", ""): cls
-    for name, cls in loss.__dict__.items()
-    if isinstance(cls, type)
-    and issubclass(cls, loss.ComparisonLoss)
-    and cls is not loss.ComparisonLoss
+# This needs to be filled manually, since some losses such as MRF need more parameters
+# than just encoder and score_weight
+LOSSES = {
+    "featurereconstruction": (
+        "FeatureReconstruction",
+        lambda encoder, score_weight: loss.FeatureReconstructionLoss(
+            encoder, score_weight=score_weight
+        ),
+    ),
+    "gram": (
+        "Gram",
+        lambda encoder, score_weight: loss.GramLoss(encoder, score_weight=score_weight),
+    ),
+    "mrf": (
+        "MRF",
+        lambda encoder, score_weight: loss.MRFLoss(
+            encoder, patch_size=3, stride=2, score_weight=score_weight
+        ),
+    ),
 }
 
 
 def make_loss(
     loss_str: str, layers_str: str, score_weight: float, mle: enc.MultiLayerEncoder
 ) -> Union[loss.ComparisonLoss, loss.MultiLayerEncodingLoss]:
-    loss_str = loss_str.lower().replace("_", "").replace("-", "")
-    if loss_str not in LOSS_CLSS.keys():
-        raise ValueError(f"Unknown loss class {loss_str}.")
+    loss_str_normalized = loss_str.lower().replace("_", "").replace("-", "")
+    if loss_str_normalized not in LOSSES.keys():
+        raise ValueError(
+            add_suggestion(
+                f"Unknown loss '{loss_str}'.",
+                word=loss_str_normalized,
+                possibilities=tuple(zip(*LOSSES.values()))[0],
+            )
+        )
 
-    loss_cls = LOSS_CLSS[loss_str]
+    _, loss_fn = LOSSES[loss_str_normalized]
 
     layers = [layer.strip() for layer in layers_str.split(",")]
     layers = sorted(layer for layer in layers if layer)
@@ -231,17 +250,10 @@ def make_loss(
             raise ValueError(f"Unknown layer {layer} in MLE.")
 
     if len(layers) == 1:
-        return loss_cls(
-            encoder=mle.extract_encoder(layers[0]), score_weight=score_weight
-        )
+        return loss_fn(mle.extract_encoder(layers[0]), score_weight)
     else:
         return loss.MultiLayerEncodingLoss(
-            mle,
-            layers,
-            lambda encoder, layer_weight: loss_cls(
-                encoder=encoder, score_weight=layer_weight
-            ),
-            score_weight=score_weight,
+            mle, layers, loss_fn, score_weight=score_weight
         )
 
 
