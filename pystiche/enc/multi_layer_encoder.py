@@ -160,9 +160,17 @@ class MultiLayerEncoder(pystiche.Module):
         """
         return layer in self._layers
 
-    def _verify(self, name: str) -> None:
-        if name not in self:
-            raise ValueError(f"Layer {name} is not part of the multi-layer encoder.")
+    def verify(self, layer: str) -> None:
+        r"""Verifies that a layer is part of the multi-layer encoder.
+
+        Args:
+            layer: Layer to be checked.
+
+        Raises:
+            ValueError: If ``layer`` is not part of the multi-layer encoder.
+        """
+        if layer not in self:
+            raise ValueError(f"Layer {layer} is not part of {type(self).__name__}().")
 
     def register_layer(self, layer: str) -> None:
         r"""Register a layer for caching the encodings in the :meth:`forward` pass.
@@ -170,7 +178,7 @@ class MultiLayerEncoder(pystiche.Module):
         Args:
             layer: Layer to be registered.
         """
-        self._verify(layer)
+        self.verify(layer)
         self.registered_layers.add(layer)
 
     # FIXME: could this be moved into pystiche.Module?
@@ -205,7 +213,7 @@ class MultiLayerEncoder(pystiche.Module):
         if layer is None:
             layer = tuple(self._modules.keys())[-1]
         else:
-            self._verify(layer)
+            self.verify(layer)
 
         if cache is None:
             cache = self._cache[input]
@@ -292,7 +300,7 @@ class MultiLayerEncoder(pystiche.Module):
             layers = self.registered_layers
         else:
             for name in layers:
-                self._verify(name)
+                self.verify(name)
 
         for name in self._layers.range(
             self._layers.deepest(layers), include_start=False

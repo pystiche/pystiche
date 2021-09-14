@@ -31,11 +31,30 @@ def input():
 
 
 class TestMultiLayerEncoder:
-    def test_contains(self, mle):
-        assert "shallow" in mle
-        assert "intermediate" in mle
-        assert "deep" in mle
-        assert "unknown" not in mle
+    layers = pytest.mark.parametrize(
+        ("layer", "contained"),
+        [
+            pytest.param(layer, contained, id=layer)
+            for layer, contained in (
+                ("shallow", True),
+                ("intermediate", True),
+                ("deep", True),
+                ("unknown", False),
+            )
+        ],
+    )
+
+    @layers
+    def test_contains(self, mle, layer, contained):
+        assert (layer in mle) is contained
+
+    @layers
+    def test_verify(self, mle, layer, contained):
+        if contained:
+            mle.verify(layer)
+        else:
+            with pytest.raises(ValueError):
+                mle.verify(layer)
 
     def test_register_layer(self, mle):
         layer = "shallow"
