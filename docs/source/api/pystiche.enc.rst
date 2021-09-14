@@ -12,6 +12,7 @@
 .. autoclass:: MultiLayerEncoder
   :members:
     __contains__,
+    verify,
     register_layer,
     __call__,
     forward,
