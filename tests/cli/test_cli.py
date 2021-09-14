@@ -289,3 +289,26 @@ class TestLoss:
 
         with exits(should_succeed=False, check_err=loss):
             main()
+
+
+class TestLayer:
+    def test_smoke(self, mock_execution_with):
+        mock_execution_with("--content-layer=relu4_2")
+
+        with exits():
+            main()
+
+    @pytest.mark.parametrize(
+        "layer",
+        [
+            pytest.param("relu_4_2", id="near_match-single"),
+            pytest.param("unknown_layer", id="unknown-single"),
+            pytest.param("relu4_1,relu_4_2", id="near_match-multi"),
+            pytest.param("relu4_1, unknown_layer", id="unknown-multi"),
+        ],
+    )
+    def test_unknown(self, mock_execution_with, layer):
+        mock_execution_with("--mle=vgg19, " f"--content-layer={layer}")
+
+        with exits(should_succeed=False, check_err=layer):
+            main()
