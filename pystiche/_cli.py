@@ -246,8 +246,7 @@ def make_loss(
     layers = [layer.strip() for layer in layers_str.split(",")]
     layers = sorted(layer for layer in layers if layer)
     for layer in layers:
-        if layer not in mle:
-            raise ValueError(f"Unknown layer {layer} in MLE.")
+        mle.verify(layer)
 
     if len(layers) == 1:
         return loss_fn(mle.extract_encoder(layers[0]), score_weight)
