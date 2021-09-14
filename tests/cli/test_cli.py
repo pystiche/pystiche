@@ -266,3 +266,26 @@ class TestImage:
 
         with exits(should_succeed=False, check_err=file):
             main()
+
+
+class TestLoss:
+    def test_smoke(self, mock_execution_with):
+        mock_execution_with("--content-loss=FeatureReconstruction")
+
+        with exits():
+            main()
+
+    @pytest.mark.parametrize(
+        "loss",
+        (
+            pytest.param("FeaturReconstruction", id="near_match-FeatureReconstruction"),
+            pytest.param("Gramm", id="near_match-Gram"),
+            pytest.param("NRF", id="near_match-MRF"),
+            pytest.param("unknown_loss", id="unkonwn"),
+        ),
+    )
+    def test_unknown(self, mock_execution_with, loss):
+        mock_execution_with(f"--content-loss={loss}")
+
+        with exits(should_succeed=False, check_err=loss):
+            main()
