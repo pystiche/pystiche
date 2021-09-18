@@ -5,10 +5,14 @@ import sys
 from collections import UserDict
 
 import pytest
+import pytorch_testing_utils as ptu
+
+from torchvision.transforms.functional import resize
 
 import pystiche
 from pystiche import _cli as cli
 from pystiche import demo
+from pystiche.image.utils import extract_image_size
 
 from tests.mocks import make_mock_target
 
@@ -33,7 +37,7 @@ def cache_mle_loading(module_mocker):
 @pytest.fixture
 def mock_image_optimization(mocker):
     def mock():
-        return mocker.patch(make_mock_target("_cli", "write_image"))
+        return mocker.patch(make_mock_target("_cli", "image_optimization"))
 
     return mock
 
@@ -41,16 +45,18 @@ def mock_image_optimization(mocker):
 @pytest.fixture
 def mock_write_image(mocker):
     def mock():
-        return mocker.patch(make_mock_target("_cli", "image_optimization"))
+        return mocker.patch(make_mock_target("_cli", "write_image"))
 
     return mock
 
 
 @pytest.fixture
 def set_argv(mocker):
-    def set_argv_(*options, content_image="bird1", style_image="paint"):
+    def set_argv_(*options, content_image="bird1", style_image="paint", device="cpu"):
         return mocker.patch.object(
-            sys, "argv", ["pystiche", *options, content_image, style_image]
+            sys,
+            "argv",
+            ["pystiche", *options, f"--device={device}", content_image, style_image],
         )
 
     return set_argv_
@@ -58,9 +64,14 @@ def set_argv(mocker):
 
 @pytest.fixture
 def mock_execution_with(mock_image_optimization, mock_write_image, set_argv):
-    mock_image_optimization()
+    mock = mock_image_optimization()
     mock_write_image()
-    return set_argv
+
+    def wrapper(*args, **kwargs):
+        set_argv(*args, **kwargs)
+        return mock
+
+    return wrapper
 
 
 @contextlib.contextmanager
@@ -245,7 +256,32 @@ class TestImage:
             args, kwargs = (), dict(style_image=value)
         else:  # option == "starting_point"
             args, kwargs = (f"--starting-point={value}",), dict()
-        mocker(*args, **kwargs)
+        return mocker(*args, **kwargs)
+
+    # TODO: Currently, this test is disabled for the starting point parameter, since
+    #  images are resized by PIL and by torchvision and this leads to some small
+    #  differences. We should only have a single source of "truth" how resizing is done.
+    # @options
+    @pytest.mark.parametrize("option", ["content", "style"])
+    def test_demo_image(self, mock_execution_with, option):
+        name = "bird2"
+        mock = self._mock_execution(mock_execution_with, option=option, value=name)
+
+        with exits():
+            cli.main()
+
+        (input_image, perceptual_loss), _ = mock.call_args
+
+        if option == "content":
+            image = perceptual_loss.content_image
+        elif option == "style":
+            image = perceptual_loss.style_image
+        else:  # option == "starting_point"
+            image = input_image
+
+        ptu.assert_allclose(
+            image, demo.images()[name].read(size=extract_image_size(image)),
+        )
 
     @pytest.mark.parametrize(
         "name",
@@ -261,15 +297,43 @@ class TestImage:
         with exits(should_succeed=False, check_err=name):
             cli.main()
 
-    @options
-    def test_file_smoke(self, mock_execution_with, option):
-        image = demo.images()["bird1"]
-        image.download()
+    @pytest.mark.parametrize("option", ["content", "style"])
+    def test_file(self, mock_execution_with, option):
+        image = demo.images()["bird2"]
+        # TODO: make this independent of the default size value
+        expected = image.read(size=500)
         file = pathlib.Path(pystiche.home()) / image.file
-        self._mock_execution(mock_execution_with, option=option, value=str(file))
+        mock = self._mock_execution(mock_execution_with, option=option, value=str(file))
 
         with exits():
             cli.main()
+
+        (input_image, perceptual_loss), _ = mock.call_args
+
+        if option == "content":
+            actual = perceptual_loss.content_image
+        else:  # option == "style":
+            actual = perceptual_loss.style_image
+
+        ptu.assert_allclose(actual, expected)
+
+    def test_file_starting_point(self, mock_execution_with):
+        image = demo.images()["bird2"]
+        expected = image.read()
+        file = pathlib.Path(pystiche.home()) / image.file
+        mock = self._mock_execution(
+            mock_execution_with, option="starting_point", value=str(file)
+        )
+
+        with exits():
+            cli.main()
+
+        (input_image, perceptual_loss), _ = mock.call_args
+
+        ptu.assert_allclose(
+            input_image,
+            resize(expected, list(extract_image_size(perceptual_loss.content_image))),
+        )
 
     @options
     def test_non_existing_file(self, mock_execution_with, option):
