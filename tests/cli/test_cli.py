@@ -233,15 +233,9 @@ class TestVerbose:
 
 
 class TestDevice:
-    def test_smoke(self, mock_execution_with):
-        mock_execution_with("--device=cpu")
-
-        with exits():
-            cli.main()
-
     def test_unknown(self, mock_execution_with):
         device = "unknown_device_type"
-        mock_execution_with(f"--device={device}")
+        mock_execution_with(device=device)
 
         with exits(should_succeed=False, check_err=device):
             cli.main()
@@ -249,7 +243,7 @@ class TestDevice:
     def test_not_available(self, mock_execution_with):
         # hopefully no one ever has this available when running this test
         device = "mkldnn"
-        mock_execution_with(f"--device={device}")
+        mock_execution_with(device=device)
 
         with exits(should_succeed=False, check_err=device):
             cli.main()
