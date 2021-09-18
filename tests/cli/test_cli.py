@@ -420,7 +420,11 @@ class TestLoss:
 
 class TestLayer:
     @pytest.mark.parametrize(
-        "layer", ["conv1_1", "conv1_1,conv1_2"],
+        "layer",
+        [
+            pytest.param("conv1_1", id="single_layer"),
+            pytest.param("conv1_1,conv1_2", id="multi_layer"),
+        ],
     )
     @pytest.mark.parametrize("option", ["content", "style"])
     def test_main(self, mock_execution_with, option, layer):
@@ -444,10 +448,10 @@ class TestLayer:
     @pytest.mark.parametrize(
         "layer",
         [
-            pytest.param("relu_4_2", id="near_match-single"),
-            pytest.param("unknown_layer", id="unknown-single"),
-            pytest.param("relu4_1,relu_4_2", id="near_match-multi"),
-            pytest.param("relu4_1, unknown_layer", id="unknown-multi"),
+            pytest.param("relu_4_2", id="near_match-single_layer"),
+            pytest.param("unknown_layer", id="unknown-single_layer"),
+            pytest.param("relu4_1,relu_4_2", id="near_match-multi_layer"),
+            pytest.param("relu4_1, unknown_layer", id="unknown-multi_layer"),
         ],
     )
     def test_unknown(self, mock_execution_with, layer):
