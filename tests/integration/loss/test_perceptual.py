@@ -4,8 +4,10 @@ import torch
 from torch import nn
 
 from pystiche import enc, loss, ops
+from pystiche.misc import suppress_depr_warnings
 
 
+@suppress_depr_warnings
 def test_PerceptualLoss_set_content_image():
     torch.manual_seed(0)
     image = torch.rand(1, 1, 100, 100)
@@ -24,6 +26,7 @@ def test_PerceptualLoss_set_content_image():
     ptu.assert_allclose(actual, desired)
 
 
+@suppress_depr_warnings
 def test_PerceptualLoss_set_style_image():
     torch.manual_seed(0)
     image = torch.rand(1, 1, 100, 100)
@@ -42,6 +45,7 @@ def test_PerceptualLoss_set_style_image():
     ptu.assert_allclose(actual, desired)
 
 
+@suppress_depr_warnings
 def test_GuidedPerceptualLoss(subtests):
     class TestOperator(ops.PixelComparisonOperator):
         def __init__(self, bias, score_weight=1e0):

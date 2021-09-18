@@ -4,9 +4,11 @@ import torch
 
 import pystiche.loss.functional as F
 from pystiche import loss
+from pystiche.misc import suppress_depr_warnings
 
 
 class TestTotalVariationLoss:
+    @suppress_depr_warnings
     def test_call(self):
         torch.manual_seed(0)
         image = torch.rand(1, 3, 128, 128)
@@ -18,11 +20,13 @@ class TestTotalVariationLoss:
         desired = F.total_variation_loss(image, exponent=exponent)
         ptu.assert_allclose(actual, desired)
 
+    @suppress_depr_warnings
     def test_repr_smoke(self, encoder):
         assert isinstance(repr(loss.TotalVariationLoss()), str)
 
 
 class TestValueRangeLoss:
+    @suppress_depr_warnings
     def test_call(self):
         torch.manual_seed(0)
         image = torch.randn(1, 3, 128, 128)
@@ -33,5 +37,6 @@ class TestValueRangeLoss:
         desired = F.value_range_loss(image)
         ptu.assert_allclose(actual, desired)
 
+    @suppress_depr_warnings
     def test_repr_smoke(self, encoder):
         assert isinstance(repr(loss.ValueRangeLoss()), str)

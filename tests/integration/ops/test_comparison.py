@@ -7,8 +7,10 @@ from torch.nn.functional import mse_loss
 import pystiche
 import pystiche.ops.functional as F
 from pystiche import enc, ops
+from pystiche.misc import suppress_depr_warnings
 
 
+@suppress_depr_warnings
 def test_FeatureReconstructionOperator_call():
     torch.manual_seed(0)
     target_image = torch.rand(1, 3, 128, 128)
@@ -23,6 +25,7 @@ def test_FeatureReconstructionOperator_call():
     ptu.assert_allclose(actual, desired)
 
 
+@suppress_depr_warnings
 def test_GramOperator_call():
     torch.manual_seed(0)
     target_image = torch.rand(1, 3, 128, 128)
@@ -40,6 +43,7 @@ def test_GramOperator_call():
     ptu.assert_allclose(actual, desired)
 
 
+@suppress_depr_warnings
 def test_MRFOperator_scale_and_rotate_transforms_smoke():
     num_scale_steps = 2
     num_rotate_steps = 3
@@ -53,6 +57,7 @@ def test_MRFOperator_scale_and_rotate_transforms_smoke():
     assert actual == expected
 
 
+@suppress_depr_warnings
 def test_MRFOperator_enc_to_repr_guided(subtests):
     class Identity(pystiche.Module):
         def forward(self, image):
@@ -98,6 +103,7 @@ def test_MRFOperator_enc_to_repr_guided(subtests):
         ptu.assert_allclose(actual, desired)
 
 
+@suppress_depr_warnings
 def test_MRFOperator_set_target_guide():
     patch_size = 3
     stride = 2
@@ -123,6 +129,7 @@ def test_MRFOperator_set_target_guide():
     ptu.assert_allclose(actual, desired)
 
 
+@suppress_depr_warnings
 def test_MRFOperator_set_target_guide_without_recalc():
     patch_size = 3
     stride = 2
@@ -142,6 +149,7 @@ def test_MRFOperator_set_target_guide_without_recalc():
     ptu.assert_allclose(actual, desired)
 
 
+@suppress_depr_warnings
 def test_MRFOperator_call():
     patch_size = 3
     stride = 2
@@ -162,6 +170,7 @@ def test_MRFOperator_call():
     ptu.assert_allclose(actual, desired)
 
 
+@suppress_depr_warnings
 def test_MRFOperator_call_guided():
     patch_size = 2
     stride = 2

@@ -1,4 +1,5 @@
 import contextlib
+import functools
 import itertools
 import warnings
 from functools import reduce as _reduce
@@ -293,3 +294,14 @@ def suppress_warnings(*categories: Type[Warning]) -> Iterator[None]:
         for filter in new_filters:
             warnings.filters.remove(filter)  # type: ignore[attr-defined]
         warnings._filters_mutated()  # type: ignore[attr-defined]
+
+
+def suppress_depr_warnings(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with warnings.catch_warnings(record=True):
+            warnings.filterwarnings(
+                "ignore", category=(UserWarning, DeprecationWarning,)
+            )
+            result = func(*args, **kwargs)
+        return result

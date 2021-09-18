@@ -5,10 +5,12 @@ from torch import nn
 
 import pystiche
 from pystiche import enc, loss, ops
+from pystiche.misc import suppress_depr_warnings
 
 from tests.asserts import assert_named_modules_identical
 
 
+@suppress_depr_warnings
 def test_MultiOperatorLoss():
     class TestOperator(ops.Operator):
         def process_input_image(self, image):
@@ -22,6 +24,7 @@ def test_MultiOperatorLoss():
     assert_named_modules_identical(actuals, desireds)
 
 
+@suppress_depr_warnings
 def test_MultiOperatorLoss_trim():
     class TestOperator(ops.EncodingOperator):
         def __init__(self, encoder, **kwargs):
@@ -46,6 +49,7 @@ def test_MultiOperatorLoss_trim():
     assert all(layer not in multi_layer_encoder for layer in layers[1:])
 
 
+@suppress_depr_warnings
 def test_MultiOperatorLoss_call():
     class TestOperator(ops.Operator):
         def __init__(self, bias):
@@ -65,6 +69,7 @@ def test_MultiOperatorLoss_call():
     ptu.assert_allclose(actual, desired)
 
 
+@suppress_depr_warnings
 def test_MultiOperatorLoss_call_encode(forward_pass_counter):
     class TestOperator(ops.EncodingOperator):
         def __init__(self, encoder, **kwargs):
