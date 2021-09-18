@@ -2,7 +2,6 @@ import contextlib
 import io
 import pathlib
 import sys
-from collections import UserDict
 
 import pytest
 import pytorch_testing_utils as ptu
@@ -16,22 +15,24 @@ from pystiche.image.utils import extract_image_size
 
 from tests.mocks import make_mock_target
 
+# from collections import UserDict
 
-@pytest.fixture(scope="module", autouse=True)
-def cache_mle_loading(module_mocker):
-    class CachedMLEDict(UserDict):
-        def __init__(self, *args, **kwargs):
-            self._mles = dict()
-            super().__init__(*args, **kwargs)
 
-        def __getitem__(self, name):
-            if name not in self._mles:
-                mle_fn = self.data[name]
-                self._mles[name] = mle_fn()
-
-            return lambda: self._mles[name]
-
-    module_mocker.patch.object(cli, "MLES", new=CachedMLEDict(cli.MLES))
+# @pytest.fixture(scope="module", autouse=True)
+# def cache_mle_loading(module_mocker):
+#     class CachedMLEDict(UserDict):
+#         def __init__(self, *args, **kwargs):
+#             self._mles = dict()
+#             super().__init__(*args, **kwargs)
+#
+#         def __getitem__(self, name):
+#             if name not in self._mles:
+#                 mle_fn = self.data[name]
+#                 self._mles[name] = mle_fn()
+#
+#             return lambda: self._mles[name]
+#
+#     module_mocker.patch.object(cli, "MLES", new=CachedMLEDict(cli.MLES))
 
 
 @pytest.fixture
