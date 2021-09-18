@@ -11,7 +11,7 @@ from torchvision.transforms.functional import resize
 
 import pystiche
 from pystiche import _cli as cli
-from pystiche import demo
+from pystiche import demo, enc
 from pystiche.image.utils import extract_image_size
 
 from tests.mocks import make_mock_target
@@ -225,11 +225,25 @@ class TestDevice:
 
 
 class TestMLE:
-    def test_smoke(self, mock_execution_with):
-        mock_execution_with("--mle=vgg19")
+    # TODO: expand test for all MLEs
+    def test_main(self, mock_execution_with):
+        mock = mock_execution_with("--mle=vgg19")
 
         with exits():
             cli.main()
+
+        (_, perceptual_loss), _ = mock.call_args
+
+        mles = {
+            mle
+            for mle in perceptual_loss.modules()
+            if isinstance(mle, enc.MultiLayerEncoder)
+        }
+
+        assert len(mles) == 1
+        mle = mles.pop()
+        assert isinstance(mle, enc.VGGMultiLayerEncoder)
+        assert mle.arch == "vgg19"
 
     @pytest.mark.parametrize(
         "mle",
