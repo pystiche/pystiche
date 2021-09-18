@@ -5,6 +5,7 @@ import os.path
 import pathlib
 import re
 import sys
+import warnings
 from datetime import datetime
 from types import SimpleNamespace
 from typing import (
@@ -20,6 +21,7 @@ from typing import (
 )
 
 import torch
+from torchvision.transforms.functional import resize
 
 import pystiche
 from pystiche import demo, enc, loss
@@ -126,7 +128,10 @@ def make_device(device_str: Optional[str]) -> torch.device:
 
 
 def load_image(
-    file_or_name: str, *, size: Union[int, Tuple[int, int]], device: torch.device
+    file_or_name: str,
+    *,
+    size: Optional[Union[int, Tuple[int, int]]],
+    device: torch.device,
 ) -> torch.Tensor:
     file = os.path.abspath(os.path.expanduser(file_or_name))
     name = file_or_name
@@ -162,11 +167,21 @@ def make_input_image(
     elif starting_point == "random":
         return torch.rand_like(content_image)
     else:
-        return load_image(
-            starting_point,
-            size=extract_image_size(content_image),
-            device=content_image.device,
+        input_image = load_image(
+            starting_point, size=None, device=content_image.device,
         )
+
+        input_image_size = extract_image_size(input_image)
+        content_image_size = extract_image_size(content_image)
+        if extract_image_size(input_image) != content_image_size:
+            warnings.warn(
+                f"Image size of starting point and content image mismatches: "
+                f"{input_image_size} != {content_image_size}. "
+                f"Resizing to {content_image_size} to move forward."
+            )
+            input_image = resize(input_image, list(content_image_size))
+
+        return input_image
 
 
 def make_output_image(output_image: Optional[str]) -> Tuple[bool, str]:
