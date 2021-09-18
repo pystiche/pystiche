@@ -11,7 +11,7 @@ from torchvision.transforms.functional import resize
 
 import pystiche
 from pystiche import _cli as cli
-from pystiche import demo, enc
+from pystiche import demo, enc, loss
 from pystiche.image.utils import extract_image_size
 
 from tests.mocks import make_mock_target
@@ -382,11 +382,27 @@ class TestLoss:
 
 
 class TestLayer:
-    def test_smoke(self, mock_execution_with):
-        mock_execution_with("--content-layer=relu4_2")
+    @pytest.mark.parametrize(
+        "layer", ["conv1_1", "conv1_1,conv1_2"],
+    )
+    @pytest.mark.parametrize("option", ["content", "style"])
+    def test_main(self, mock_execution_with, option, layer):
+        layers = layer.split(",")
+        mock = mock_execution_with(f"--{option}-layer={layer}")
 
         with exits():
             cli.main()
+
+        (_, perceptual_loss), _ = mock.call_args
+
+        partial_loss = getattr(perceptual_loss, f"{option}_loss")
+
+        if len(layers) == 1:
+            assert isinstance(partial_loss.encoder, enc.SingleLayerEncoder)
+            assert partial_loss.encoder.layer == layer
+        else:
+            assert isinstance(partial_loss, loss.MultiLayerEncodingLoss)
+            assert {name for name, _ in partial_loss.named_children()} == set(layers)
 
     @pytest.mark.parametrize(
         "layer",
