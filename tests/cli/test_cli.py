@@ -2,32 +2,14 @@ import contextlib
 import io
 import pathlib
 import sys
-from collections import UserDict
 
 import pytest
 
 import pystiche
-from pystiche import _cli as cli
 from pystiche import demo
+from pystiche._cli import main
 
 from tests.mocks import make_mock_target
-
-
-@pytest.fixture(scope="module", autouse=True)
-def cache_mle_loading(module_mocker):
-    class CachedMLEDict(UserDict):
-        def __init__(self, *args, **kwargs):
-            self._mles = dict()
-            super().__init__(*args, **kwargs)
-
-        def __getitem__(self, name):
-            if name not in self._mles:
-                mle_fn = self.data[name]
-                self._mles[name] = mle_fn()
-
-            return lambda: self._mles[name]
-
-    module_mocker.patch.object(cli, "MLES", new=CachedMLEDict(cli.MLES))
 
 
 @pytest.fixture
@@ -125,16 +107,22 @@ def exits(*, should_succeed=True, expected_code=None, check_err=None, check_out=
 def test_help_smoke(option, mock_execution_with):
     mock_execution_with(option)
 
-    with exits(check_out=""):
-        cli.main()
+    def check_out(out):
+        assert out
+
+    with exits(check_out=check_out):
+        main()
 
 
 @pytest.mark.parametrize("option", ["-V", "--version"])
 def test_version(option, mock_execution_with):
     mock_execution_with(option)
 
-    with exits(check_out=pystiche.__version__):
-        cli.main()
+    def check_out(out):
+        assert out == pystiche.__version__
+
+    with exits(check_out=check_out):
+        main()
 
 
 @pytest.mark.slow
@@ -144,7 +132,7 @@ def test_smoke(mock_image_optimization, mock_write_image, set_argv):
     set_argv()
 
     with exits():
-        cli.main()
+        main()
 
     optim_mock.assert_called_once()
     io_mock.assert_called_once()
@@ -162,21 +150,21 @@ class TestVerbose:
             assert out
 
         with exits(check_out=check_out):
-            cli.main()
+            main()
 
     def test_device(self, mock_execution_with):
         device = "cpu"
         mock_execution_with("--verbose", f"--device={device}")
 
         with exits(check_out=device):
-            cli.main()
+            main()
 
     def test_mle(self, mock_execution_with):
         mle = "vgg19"
         mock_execution_with("--verbose", f"--multi-layer-encoder={mle}")
 
         with exits(check_out=("VGGMultiLayerEncoder", mle)):
-            cli.main()
+            main()
 
     def test_perceptual_loss(self, mock_execution_with):
         content_loss = "FeatureReconstruction"
@@ -187,7 +175,7 @@ class TestVerbose:
         )
 
         with exits(check_out=("PerceptualLoss", content_loss, style_loss)):
-            cli.main()
+            main()
 
 
 class TestDevice:
@@ -195,14 +183,14 @@ class TestDevice:
         mock_execution_with("--device=cpu")
 
         with exits():
-            cli.main()
+            main()
 
     def test_unknown(self, mock_execution_with):
         device = "unknown_device_type"
         mock_execution_with(f"--device={device}")
 
         with exits(should_succeed=False, check_err=device):
-            cli.main()
+            main()
 
     def test_not_available(self, mock_execution_with):
         # hopefully no one ever has this available when running this test
@@ -210,7 +198,7 @@ class TestDevice:
         mock_execution_with(f"--device={device}")
 
         with exits(should_succeed=False, check_err=device):
-            cli.main()
+            main()
 
 
 class TestMLE:
@@ -218,7 +206,7 @@ class TestMLE:
         mock_execution_with("--mle=vgg19")
 
         with exits():
-            cli.main()
+            main()
 
     @pytest.mark.parametrize(
         "mle",
@@ -231,7 +219,7 @@ class TestMLE:
         mock_execution_with(f"--mle={mle}")
 
         with exits(should_succeed=False, check_err=mle):
-            cli.main()
+            main()
 
 
 class TestImage:
@@ -259,7 +247,7 @@ class TestImage:
         self._mock_execution(mock_execution_with, option=option, value=name)
 
         with exits(should_succeed=False, check_err=name):
-            cli.main()
+            main()
 
     @options
     def test_file_smoke(self, mock_execution_with, option):
@@ -269,7 +257,7 @@ class TestImage:
         self._mock_execution(mock_execution_with, option=option, value=str(file))
 
         with exits():
-            cli.main()
+            main()
 
     @options
     def test_non_existing_file(self, mock_execution_with, option):
@@ -277,7 +265,7 @@ class TestImage:
         self._mock_execution(mock_execution_with, option=option, value=file)
 
         with exits(should_succeed=False, check_err=file):
-            cli.main()
+            main()
 
 
 class TestLoss:
@@ -285,7 +273,7 @@ class TestLoss:
         mock_execution_with("--content-loss=FeatureReconstruction")
 
         with exits():
-            cli.main()
+            main()
 
     @pytest.mark.parametrize(
         "loss",
@@ -300,7 +288,7 @@ class TestLoss:
         mock_execution_with(f"--content-loss={loss}")
 
         with exits(should_succeed=False, check_err=loss):
-            cli.main()
+            main()
 
 
 class TestLayer:
@@ -308,7 +296,7 @@ class TestLayer:
         mock_execution_with("--content-layer=relu4_2")
 
         with exits():
-            cli.main()
+            main()
 
     @pytest.mark.parametrize(
         "layer",
@@ -323,4 +311,4 @@ class TestLayer:
         mock_execution_with("--mle=vgg19, " f"--content-layer={layer}")
 
         with exits(should_succeed=False, check_err=layer):
-            cli.main()
+            main()
