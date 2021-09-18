@@ -161,6 +161,19 @@ def test_smoke(mock_image_optimization, mock_write_image, set_argv):
     io_mock.assert_called_once()
 
 
+@pytest.mark.parametrize("option", ["-n", "--num-steps"])
+def test_num_steps(mock_execution_with, option):
+    num_steps = 42
+    mock = mock_execution_with(f"{option}={num_steps}")
+
+    with exits():
+        cli.main()
+
+    _, call_kwargs = mock.call_args
+
+    assert call_kwargs["num_steps"] == num_steps
+
+
 @pytest.mark.slow
 class TestVerbose:
     @pytest.mark.parametrize("option", ["-v", "--verbose"])
