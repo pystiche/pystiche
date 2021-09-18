@@ -36,16 +36,16 @@ def cache_mle_loading(module_mocker):
 
 @pytest.fixture
 def mock_image_optimization(mocker):
-    def mock():
-        return mocker.patch(make_mock_target("_cli", "image_optimization"))
+    def mock(**kwargs):
+        return mocker.patch(make_mock_target("_cli", "image_optimization"), **kwargs)
 
     return mock
 
 
 @pytest.fixture
 def mock_write_image(mocker):
-    def mock():
-        return mocker.patch(make_mock_target("_cli", "write_image"))
+    def mock(**kwargs):
+        return mocker.patch(make_mock_target("_cli", "write_image"), **kwargs)
 
     return mock
 
@@ -172,6 +172,24 @@ def test_num_steps(mock_execution_with, option):
     _, call_kwargs = mock.call_args
 
     assert call_kwargs["num_steps"] == num_steps
+
+
+@pytest.mark.parametrize("option", ["-o", "--output-image"])
+def test_output_image(mock_image_optimization, mock_write_image, set_argv, option):
+    expected_file = "/path/to/output/image"
+    expected_image = object()
+
+    mock_image_optimization(return_value=expected_image)
+    mock = mock_write_image()
+    set_argv(f"{option}={expected_file}")
+
+    with exits():
+        cli.main()
+
+    (actual_image, actual_file), _ = mock.call_args
+
+    assert actual_image is expected_image
+    assert actual_file == expected_file
 
 
 @pytest.mark.slow
