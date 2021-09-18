@@ -34,5 +34,6 @@ built upon `PyTorch <https://pytorch.org>`_. The name of the project is a pun on
   Getting Started <getting_started/index>
   Gist <gist/index>
   Usage Examples <galleries/examples/index>
+  CLI <cli/index>
   Package Reference <api/index>
   Literature Reference <literature>
