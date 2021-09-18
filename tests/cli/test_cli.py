@@ -359,11 +359,23 @@ class TestImage:
 
 
 class TestLoss:
-    def test_smoke(self, mock_execution_with):
-        mock_execution_with("--content-loss=FeatureReconstruction")
+    @pytest.mark.parametrize("loss_name", ["FeatureReconstruction", "Gram", "MRF"])
+    @pytest.mark.parametrize("option", ["content", "style"])
+    def test_main(self, mock_execution_with, option, loss_name):
+        # We also set the layer here to avoid creating a loss.MultiLayerEncoderLoss
+        mock = mock_execution_with(
+            f"--{option}-loss={loss_name}", f"--{option}-layer=conv1_1"
+        )
 
         with exits():
             cli.main()
+
+        (_, perceptual_loss), _ = mock.call_args
+
+        assert isinstance(
+            getattr(perceptual_loss, f"{option}_loss"),
+            getattr(loss, f"{loss_name}Loss"),
+        )
 
     @pytest.mark.parametrize(
         "loss",
