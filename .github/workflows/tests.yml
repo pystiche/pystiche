@@ -3,7 +3,7 @@ name: tests
 on:
   push:
     branches:
-      - master
+      - main
       - dev/*
       - releases/*
 
@@ -13,6 +13,7 @@ on:
       - "tests/**"
       - "docs/source/conf.py"
       - "examples/**.py"
+      - "scripts/check_docs_references.py"
       - "!tests/download/**"
       - "setup.cfg"
       - "pyproject.toml"

@@ -1,0 +1,33 @@
+name: docs
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get current commit
+        id: current
+        run: echo "::set-output name=commit::$(git rev-parse HEAD)"
+
+      - name: Download pre-built galleries
+        run: |
+          wget https://download.pystiche.org/galleries/main.zip
+          unzip main.zip
+
+      - name: Get pre-built commit
+        id: pre-built
+        run: echo "::set-output name=commit::$(cat galleries/commit)"
+
+      - name: Dispatch documentation build
+        if: ${{ steps.current.outputs.commit != steps.pre-built.outputs.commit }}
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          event-type: docs-build

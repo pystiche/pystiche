@@ -1,4 +1,5 @@
 import contextlib
+import importlib
 import os
 import re
 import shutil
@@ -41,8 +42,7 @@ def project():
     author = metadata["author"]
     copyright = f"{datetime.now().year}, {author}"
     release = metadata["version"]
-    canonical_version = release.split("+")[0]
-    version = ".".join(canonical_version.split(".")[:3])
+    version = release.split(".dev")[0]
     config = dict(
         project=project,
         author=author,
@@ -72,20 +72,43 @@ def intersphinx():
         intersphinx_mapping={
             "python": ("https://docs.python.org/3.6", None),
             "torch": ("https://pytorch.org/docs/stable/", None),
-            "torchvision": ("https://pytorch.org/docs/stable/", None),
+            "torchvision": ("https://pytorch.org/vision/stable", None),
             "PIL": ("https://pillow.readthedocs.io/en/stable/", None),
             "numpy": ("https://numpy.org/doc/1.18/", None),
             "requests": ("https://requests.readthedocs.io/en/stable/", None),
             "matplotlib": ("https://matplotlib.org", None),
         }
     )
+
+    # TODO: remove this is there is a proper fix
+    # see https://github.com/sphinx-doc/sphinx/issues/9395
+    for cls in (
+        "torch.nn.Module",
+        "torch.utils.data.DataLoader",
+        "torch.optim.Optimizer",
+        "torch.optim.LBFGS",
+    ):
+        module_name, cls_name = cls.rsplit(".", 1)
+        module = importlib.import_module(module_name)
+        # check if this is already the case and warn if it is
+        getattr(module, cls_name).__module__ = module_name
+
     return extension, config
 
 
 def html():
     extension = None
 
-    config = dict(html_theme="sphinx_rtd_theme")
+    config = dict(
+        html_theme="pydata_sphinx_theme",
+        html_theme_options=dict(show_prev_next=False, use_edit_page_button=True),
+        html_context=dict(
+            github_user="pystiche",
+            github_repo="pystiche",
+            github_version="main",
+            doc_path="docs/source",
+        ),
+    )
 
     return extension, config
 
@@ -159,7 +182,7 @@ def sphinx_gallery():
 
         base = "https://download.pystiche.org/galleries/"
         is_dev = version != release
-        file = "master.zip" if is_dev else f"v{version}.zip"
+        file = "main.zip" if is_dev else f"v{version}.zip"
 
         url = urljoin(base, file)
         print(f"Downloading pre-built galleries from {url}")

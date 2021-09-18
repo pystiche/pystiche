@@ -51,7 +51,7 @@ print(f"I'm working with {device}")
 # with a :class:`~torch.nn.ConvTranspose2d`, it was found that traditional upsampling
 # followed by a standard convolution
 # `produces fewer artifacts <https://distill.pub/2016/deconv-checkerboard/>`_. Thus,
-# we create an module that wraps :func:`~torch.nn.functional.interpolate`.
+# we create an module that wraps :func:`torch.nn.functional.interpolate`.
 
 
 class Interpolate(nn.Module):
@@ -75,6 +75,7 @@ class Interpolate(nn.Module):
 ########################################################################################
 # For the transformer architecture we will be using, we need to define a convolution
 # module with some additional capabilities. In particular, it needs to be able to
+#
 # - optionally upsample the input,
 # - pad the input in order for the convolution to be size-preserving,
 # - optionally normalize the output, and

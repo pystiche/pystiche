@@ -30,6 +30,7 @@ from urllib.request import urlopen
 
 import matplotlib.pyplot as plt
 from PIL import Image
+from tqdm.auto import tqdm
 
 import torch
 import torchvision
@@ -445,29 +446,29 @@ optimizer = optim.LBFGS([input_image.requires_grad_(True)], max_iter=1)
 
 num_steps = 500
 
-for step in range(1, num_steps + 1):
+with tqdm(desc="Image optimization", total=num_steps) as progress_bar:
+    for _ in range(num_steps):
 
-    def closure():
-        optimizer.zero_grad()
+        def closure():
+            optimizer.zero_grad()
 
-        input_encs = multi_layer_encoder(input_image, content_layers, style_layers)
-        input_content_encs, input_style_encs = input_encs
+            input_encs = multi_layer_encoder(input_image, content_layers, style_layers)
+            input_content_encs, input_style_encs = input_encs
 
-        content_score = content_loss(input_content_encs)
-        style_score = style_loss(input_style_encs)
+            content_score = content_loss(input_content_encs)
+            style_score = style_loss(input_style_encs)
 
-        perceptual_loss = content_score + style_score
-        perceptual_loss.backward()
+            perceptual_loss = content_score + style_score
+            perceptual_loss.backward()
 
-        if step % 50 == 0:
-            print(f"Step {step}")
-            print(f"Content loss: {content_score.item():.3e}")
-            print(f"Style loss:   {style_score.item():.3e}")
-            print("-----------------------")
+            progress_bar.set_postfix(
+                loss=f"{float(perceptual_loss):.3e}", refresh=False
+            )
+            progress_bar.update()
 
-        return perceptual_loss
+            return perceptual_loss
 
-    optimizer.step(closure)
+        optimizer.step(closure)
 
 output_image = input_image.detach()
 

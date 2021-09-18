@@ -9,14 +9,14 @@ The identification of content and style are core elements of a Neural Style Tran
 Operators
 ---------
 
-In ``pystiche`` these losses are implemented :class:`~pystiche.ops.Operator` s.
-:class:`~pystiche.ops.Operator` s are differentiated between two  types:
-:class:`~pystiche.ops.RegularizationOperator` and
-:class:`~pystiche.ops.ComparisonOperator`. A
-:class:`~pystiche.ops.RegularizationOperator` works without any context while a
-:class:`~pystiche.ops.ComparisonOperator` compares two images. Furthermore,
+In ``pystiche`` these losses are implemented :class:`~pystiche.loss.Loss` s.
+:class:`~pystiche.loss.Loss` s are differentiated between two  types:
+:class:`~pystiche.loss.RegularizationLoss` and
+:class:`~pystiche.loss.ComparisonLoss`. A
+:class:`~pystiche.loss.RegularizationLoss` works without any context while a
+:class:`~pystiche.loss.ComparisonLoss` compares two images. Furthermore,
 ``pystiche`` differentiates between two different domains an
-:class:`~pystiche.ops.Operator` can work on: :class:`~pystiche.ops.op.PixelOperator`
+:class:`~pystiche.loss.Loss` can work on: :class:`~pystiche.ops.op.PixelOperator`
 and :class:`~pystiche.ops.EncodingOperator` . A :class:`~pystiche.ops.PixelOperator`
 operates directly on the ``input_image`` while an
 :class:`~pystiche.ops.EncodingOperator` encodes it first.
@@ -24,17 +24,17 @@ operates directly on the ``input_image`` while an
 In total ``pystiche`` supports four archetypes:
 
 +-------------------------------------------------------+-----------------------------------------------------------------------+
-| :class:`~pystiche.ops.Operator`                       | Builtin examples                                                      |
+| :class:`~pystiche.loss.Loss`                          | Builtin examples                                                      |
 +=======================================================+=======================================================================+
-| :class:`~pystiche.ops.PixelRegularizationOperator`    | - :class:`~pystiche.ops.TotalVariationOperator` :cite:`MV2015`        |
+| :class:`~pystiche.ops.PixelRegularizationOperator`    | - :class:`~pystiche.loss.TotalVariationLoss` :cite:`MV2015`           |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
 | :class:`~pystiche.ops.EncodingRegularizationOperator` |                                                                       |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
 | :class:`~pystiche.ops.PixelComparisonOperator`        |                                                                       |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
-| :class:`~pystiche.ops.EncodingComparisonOperator`     | - :class:`~pystiche.ops.FeatureReconstructionOperator` :cite:`MV2015` |
-|                                                       | - :class:`~pystiche.ops.GramOperator` :cite:`GEB2016`                 |
-|                                                       | - :class:`~pystiche.ops.MRFOperator` :cite:`LW2016`                   |
+| :class:`~pystiche.ops.EncodingComparisonOperator`     | - :class:`~pystiche.loss.FeatureReconstructionLoss` :cite:`MV2015`    |
+|                                                       | - :class:`~pystiche.loss.GramLoss` :cite:`GEB2016`                    |
+|                                                       | - :class:`~pystiche.loss.MRFLoss` :cite:`LW2016`                      |
 +-------------------------------------------------------+-----------------------------------------------------------------------+
 
 Multi-layer encoder
@@ -50,7 +50,7 @@ from various layers of the encoder.
 :class:`~pystiche.enc.MultiLayerEncoder` that enables to extract all required encodings
 after a single forward pass. If the same operator should be applied to different layers
 of a :class:`~pystiche.enc.MultiLayerEncoder`, a
-:class:`~pystiche.ops.MultiLayerEncodingOperator` can be used.
+:class:`~pystiche.loss.MultiLayerEncodingLoss` can be used.
 
 
 Perceptual loss

@@ -26,10 +26,10 @@ jobs:
           fetch-depth: 0
 
       - name: Install pep517 and twine
-        run: pip install pep517 twine
+        run: pip install build twine
 
       - name: Build source and binary
-        run: python -m pep517.build --source --binary .
+        run: python -m build --sdist --wheel .
 
       - name: Upload to PyPI
         env:

@@ -2,9 +2,9 @@ sphinx >= 3
 importlib-metadata
 sphinxcontrib-bibtex
 sphinx_autodoc_typehints >= 1.11
-sphinx_rtd_theme
+pydata_sphinx_theme
 sphinx-gallery>=0.8
 matplotlib
 memory_profiler
-https://download.pytorch.org/whl/cpu/torch-1.6.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
-https://download.pytorch.org/whl/cpu/torchvision-0.7.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
+https://download.pytorch.org/whl/cpu/torch-1.9.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
+https://download.pytorch.org/whl/cpu/torchvision-0.10.0%2Bcpu-cp36-cp36m-linux_x86_64.whl

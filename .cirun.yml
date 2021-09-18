@@ -1,0 +1,16 @@
+# Self-Hosted Github Action Runners on AWS via Cirun.io
+# Reference: https://docs.cirun.io/reference/yaml.html
+
+runners:
+  - name: docs-build-gpu
+    cloud: aws
+    region: eu-central-1
+    instance_type: g4dn.xlarge
+    # Amazon AMI: Deep Learning AMI GPU CUDA 11.2.1 (Ubuntu 20.04) 20210625
+    # for eu-central-1
+    machine_image: ami-058d64398d40bfe59
+    preemptible: false
+    workflow: .github/workflows/docs-build.yml
+    count: 1
+    labels:
+      - gpu

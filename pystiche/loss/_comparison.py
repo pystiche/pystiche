@@ -56,7 +56,7 @@ class FeatureReconstructionLoss(ComparisonLoss):
 
         The feature reconstruction loss was introduced by Mahendran and Vedaldi in
         :cite:`MV2015` , but its name was coined by Johnson, Alahi, and Fei-Fei in
-        :cite:`JAFF2016` .
+        :cite:`JAL2016` .
     """
 
     def __init__(
