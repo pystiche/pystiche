@@ -5,7 +5,10 @@ import torch
 import pystiche.ops.functional as F
 from pystiche import ops
 
+from tests.utils import suppress_deprecation_warning
 
+
+@suppress_deprecation_warning
 def test_TotalVariationOperator_call():
     torch.manual_seed(0)
     image = torch.rand(1, 3, 128, 128)
@@ -18,6 +21,7 @@ def test_TotalVariationOperator_call():
     ptu.assert_allclose(actual, desired)
 
 
+@suppress_deprecation_warning
 def test_ValueRangeOperator_call():
     torch.manual_seed(0)
     image = torch.randn(1, 3, 128, 128)

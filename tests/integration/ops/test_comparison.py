@@ -7,11 +7,12 @@ from torch.nn.functional import mse_loss
 import pystiche
 import pystiche.ops.functional as F
 from pystiche import enc, ops
-from pystiche.misc import suppress_depr_warnings
+
+from tests.utils import suppress_deprecation_warning
 
 
 class TestFeatureReconstructionOperator:
-    @suppress_depr_warnings
+    @suppress_deprecation_warning
     def test_call(self):
         torch.manual_seed(0)
         target_image = torch.rand(1, 3, 128, 128)
@@ -27,7 +28,7 @@ class TestFeatureReconstructionOperator:
 
 
 class TestGramOperator:
-    @suppress_depr_warnings
+    @suppress_deprecation_warning
     def test_call(self):
         torch.manual_seed(0)
         target_image = torch.rand(1, 3, 128, 128)
@@ -46,7 +47,6 @@ class TestGramOperator:
 
 
 class TestMRFOperator:
-    @suppress_depr_warnings
     def test_scale_and_rotate_transforms_smoke(self):
         num_scale_steps = 2
         num_rotate_steps = 3
@@ -59,7 +59,7 @@ class TestMRFOperator:
         expected = (num_scale_steps * 2 + 1) * (num_rotate_steps * 2 + 1)
         assert actual == expected
 
-    @suppress_depr_warnings
+    @suppress_deprecation_warning
     def test_enc_to_repr_guided(self, subtests):
         class Identity(pystiche.Module):
             def forward(self, image):
@@ -104,7 +104,7 @@ class TestMRFOperator:
             desired = pystiche.extract_patches2d(enc_, patch_size, stride=stride)
             ptu.assert_allclose(actual, desired)
 
-    @suppress_depr_warnings
+    @suppress_deprecation_warning
     def test_set_target_guide(self):
         patch_size = 3
         stride = 2
@@ -129,7 +129,7 @@ class TestMRFOperator:
         desired = image
         ptu.assert_allclose(actual, desired)
 
-    @suppress_depr_warnings
+    @suppress_deprecation_warning
     def test_set_target_guide_without_recalc(self):
         patch_size = 3
         stride = 2
@@ -148,7 +148,7 @@ class TestMRFOperator:
 
         ptu.assert_allclose(actual, desired)
 
-    @suppress_depr_warnings
+    @suppress_deprecation_warning
     def test_call(self):
         patch_size = 3
         stride = 2
@@ -170,7 +170,7 @@ class TestMRFOperator:
         )
         ptu.assert_allclose(actual, desired)
 
-    @suppress_depr_warnings
+    @suppress_deprecation_warning
     def test_call_guided(self):
         patch_size = 2
         stride = 2

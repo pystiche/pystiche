@@ -4,11 +4,12 @@ import torch
 from torch import nn
 
 from pystiche import enc, loss, ops
-from pystiche.misc import suppress_depr_warnings
+
+from tests.utils import suppress_deprecation_warning
 
 
 class TestPerceptualLoss:
-    @suppress_depr_warnings
+    @suppress_deprecation_warning
     def test_set_content_image(self):
         torch.manual_seed(0)
         image = torch.rand(1, 1, 100, 100)
@@ -26,7 +27,7 @@ class TestPerceptualLoss:
         desired = image
         ptu.assert_allclose(actual, desired)
 
-    @suppress_depr_warnings
+    @suppress_deprecation_warning
     def test_set_style_image(self):
         torch.manual_seed(0)
         image = torch.rand(1, 1, 100, 100)
@@ -45,7 +46,6 @@ class TestPerceptualLoss:
         ptu.assert_allclose(actual, desired)
 
 
-@suppress_depr_warnings
 def test_GuidedPerceptualLoss(subtests):
     class TestOperator(ops.PixelComparisonOperator):
         def __init__(self, bias, score_weight=1e0):

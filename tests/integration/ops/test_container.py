@@ -8,9 +8,11 @@ import pystiche
 from pystiche import enc, ops
 
 from tests.asserts import assert_named_modules_identical
+from tests.utils import suppress_deprecation_warning
 
 
 class TestOperatorContainer:
+    @suppress_deprecation_warning
     def test_main(self):
         class TestOperator(ops.Operator):
             def process_input_image(self, image):
@@ -23,6 +25,7 @@ class TestOperatorContainer:
         desireds = named_ops
         assert_named_modules_identical(actuals, desireds)
 
+    @suppress_deprecation_warning
     def test_get_image_or_guide(self, subtests):
         class RegularizationTestOperator(ops.PixelRegularizationOperator):
             def input_image_to_repr(self, image):
@@ -91,6 +94,7 @@ class TestOperatorContainer:
             desired = image_or_guide
             ptu.assert_allclose(actual, desired)
 
+    @suppress_deprecation_warning
     def test_set_image_or_guide(self, subtests):
         class RegularizationTestOperator(ops.PixelRegularizationOperator):
             def input_image_to_repr(self, image):
@@ -148,6 +152,7 @@ class TestOperatorContainer:
             desired = image_or_guide
             ptu.assert_allclose(actual, desired)
 
+    @suppress_deprecation_warning
     def test_call(self):
         class TestOperator(ops.Operator):
             def __init__(self, bias):
@@ -168,6 +173,7 @@ class TestOperatorContainer:
 
 
 class TestSameOperatorContainer:
+    @suppress_deprecation_warning
     def test_main(self):
         class TestOperator(ops.Operator):
             def process_input_image(self, image):
@@ -230,6 +236,7 @@ class TestSameOperatorContainer:
 
 
 class TestMultiLayerEncodingOperator:
+    @suppress_deprecation_warning
     def test_main(self):
         class TestOperator(ops.EncodingRegularizationOperator):
             def input_enc_to_repr(self, image):
