@@ -1,4 +1,5 @@
 import contextlib
+import functools
 import itertools
 import os
 import re
@@ -13,6 +14,10 @@ import igittigitt
 import pytest
 
 import torch
+
+from pystiche.misc import (
+    suppress_deprecation_warnings as _suppress_deprecation_warnings,
+)
 
 __all__ = [
     "get_tmp_dir",
@@ -183,3 +188,12 @@ def extract_fn_name(fn):
     if not match:
         raise RuntimeError
     return match.group("name")
+
+
+def suppress_deprecation_warning(test_fn):
+    @functools.wraps(test_fn)
+    def wrapper(*args, **kwargs):
+        with _suppress_deprecation_warnings():
+            return test_fn(*args, **kwargs)
+
+    return wrapper
