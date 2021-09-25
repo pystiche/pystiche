@@ -280,13 +280,16 @@ def reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:
 
 
 @contextlib.contextmanager
-def suppress_deprecation_warnings(*categories: Type[Warning]) -> Iterator[None]:
+def suppress_warnings(*categories: Type[Warning]) -> Iterator[None]:
     if not categories:
         categories = (UserWarning,)
+    old_filters = set(warnings.filters)  # type: ignore[attr-defined]
     for category in categories:
-        warnings.filterwarnings(
-            "ignore",
-            category=category,
-            message=".* is deprecated since pystiche==.* and will be removed in a future release.",
-        )
-    yield
+        warnings.filterwarnings("ignore", category=category)
+    new_filters = set(warnings.filters) - old_filters  # type: ignore[attr-defined]
+    try:
+        yield
+    finally:
+        for filter in new_filters:
+            warnings.filters.remove(filter)  # type: ignore[attr-defined]
+        warnings._filters_mutated()  # type: ignore[attr-defined]

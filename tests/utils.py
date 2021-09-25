@@ -7,6 +7,8 @@ import shutil
 import stat
 import sys
 import tempfile
+import warnings
+from typing import Type
 from distutils import dir_util
 from os import path
 
@@ -14,10 +16,6 @@ import igittigitt
 import pytest
 
 import torch
-
-from pystiche.misc import (
-    suppress_deprecation_warnings as _suppress_deprecation_warnings,
-)
 
 __all__ = [
     "get_tmp_dir",
@@ -190,10 +188,15 @@ def extract_fn_name(fn):
     return match.group("name")
 
 
-def suppress_deprecation_warning(test_fn):
-    @functools.wraps(test_fn)
-    def wrapper(*args, **kwargs):
-        with _suppress_deprecation_warnings():
-            return test_fn(*args, **kwargs)
-
-    return wrapper
+def suppress_deprecation_warning(*categories: Type[Warning]):
+    if not categories:
+        categories = (UserWarning,)
+    def deprecation_decor(test_fn):
+        @functools.wraps(test_fn)
+        def wrapper(*args, **kwargs):
+            for category in categories:
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=category, module=r'.*pystiche')
+                    return test_fn(*args, **kwargs)
+        return wrapper
+    return deprecation_decor
