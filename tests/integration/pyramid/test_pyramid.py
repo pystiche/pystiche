@@ -64,7 +64,7 @@ class TestImagePyramid:
             actual = (pyramid_level.edge_size, pyramid_level.num_steps)
             assert actual == desired
 
-    def test_iter_resize(self, subtests):
+    def test_iter_resize(self):
         class TestOperator(ops.PixelComparisonOperator):
             def target_image_to_repr(self, image):
                 return image, None
@@ -96,10 +96,9 @@ class TestImagePyramid:
         image_pyramid = pyramid.ImagePyramid(edge_sizes, 1, resize_targets=(op,))
         for pyramid_level, image_size in zip(image_pyramid, image_sizes):
             for attr in ("target_guide", "target_image", "input_guide"):
-                with subtests.test(attr, pyramid_level=pyramid_level):
-                    actual = extract_image_size(getattr(op, attr))
-                    desired = image_size
-                    assert actual == desired
+                actual = extract_image_size(getattr(op, attr))
+                desired = image_size
+                assert actual == desired
 
     def test_iter_restore(self):
         class TestOperator(ops.PixelComparisonOperator):
