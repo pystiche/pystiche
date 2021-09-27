@@ -1,4 +1,3 @@
-import itertools
 import os
 import shutil
 from os import path
@@ -14,24 +13,30 @@ from pystiche.image import read_image, write_image
 
 
 class TestDownloadableImage:
-    def test_generate_file(self, subtests, test_image_url):
-        titles = (None, "girl with painted face")
-        authors = (None, "Steve Kelly")
-        titles_and_authors = itertools.product(titles, authors)
-
-        desireds = (
-            "test_image.png",
-            "steve_kelly.png",
-            "girl_with_painted_face.png",
-            "girl_with_painted_face__steve_kelly.png",
+    @pytest.mark.parametrize(
+        ("title", "author", "expected"),
+        (
+            pytest.param(None, None, "test_image.png", id="no_title_or_author"),
+            pytest.param(None, "Steve Kelly", "steve_kelly.png", id="only_author"),
+            pytest.param(
+                "girl with painted face",
+                None,
+                "girl_with_painted_face.png",
+                id="only_title",
+            ),
+            pytest.param(
+                "girl with painted face",
+                "Steve Kelly",
+                "girl_with_painted_face__steve_kelly.png",
+                id="title_and_author",
+            ),
+        ),
+    )
+    def test_generate_file(self, test_image_url, title, author, expected):
+        actual = data.DownloadableImage.generate_file(
+            test_image_url, title=title, author=author
         )
-
-        for (title, author), desired in zip(titles_and_authors, desireds):
-            with subtests.test(title=title, author=author):
-                actual = data.DownloadableImage.generate_file(
-                    test_image_url, title=title, author=author
-                )
-                assert actual == desired
+        assert actual == expected
 
     def test_download(self, tmpdir, test_image_url, test_image):
         image = data.DownloadableImage(test_image_url)
