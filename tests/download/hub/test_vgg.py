@@ -39,6 +39,6 @@ def test_vgg_side_archs_torch(mocker, github, arch):
 
 @pytest.mark.slow
 @pytest.mark.parametrize("arch", SIDE_ARCHS)
-def test_vgg_side_archs_caffe(subtests, github, arch):
+def test_vgg_side_archs_caffe(github, arch):
     with pytest.raises(RuntimeError):
         hub.load(github, arch, pretrained=True, framework="caffe")
