@@ -188,15 +188,15 @@ def extract_fn_name(fn):
     return match.group("name")
 
 
-def suppress_deprecation_warning(*categories: Type[Warning]):
-    if not categories:
-        categories = (UserWarning,)
-    def deprecation_decor(test_fn):
-        @functools.wraps(test_fn)
-        def wrapper(*args, **kwargs):
-            for category in categories:
-                with warnings.catch_warnings():
-                    warnings.filterwarnings("ignore", category=category, module=r'.*pystiche')
-                    return test_fn(*args, **kwargs)
-        return wrapper
-    return deprecation_decor
+def suppress_deprecation_warning(test_fn):
+    @functools.wraps(test_fn)
+    def wrapper(*args, **kwargs):
+        with warnings.catch_warnings():
+            for category in (UserWarning, DeprecationWarning):
+                warnings.filterwarnings(
+                    "ignore", category=category, module="pystiche([.].*)?"
+                )
+
+            return test_fn(*args, **kwargs)
+
+    return wrapper
