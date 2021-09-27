@@ -5,18 +5,15 @@ from torch import nn
 
 from pystiche import enc, loss, ops
 
-from tests.utils import suppress_deprecation_warning
-
 
 class TestPerceptualLoss:
-    @suppress_deprecation_warning
     def test_set_content_image(self):
         torch.manual_seed(0)
         image = torch.rand(1, 1, 100, 100)
-        content_loss = ops.FeatureReconstructionOperator(
+        content_loss = ops.FeatureReconstructionLoss(
             enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
         )
-        style_loss = ops.FeatureReconstructionOperator(
+        style_loss = ops.FeatureReconstructionLoss(
             enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
         )
 
@@ -27,14 +24,13 @@ class TestPerceptualLoss:
         desired = image
         ptu.assert_allclose(actual, desired)
 
-    @suppress_deprecation_warning
     def test_set_style_image(self):
         torch.manual_seed(0)
         image = torch.rand(1, 1, 100, 100)
-        content_loss = ops.FeatureReconstructionOperator(
+        content_loss = ops.FeatureReconstructionLoss(
             enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
         )
-        style_loss = ops.FeatureReconstructionOperator(
+        style_loss = ops.FeatureReconstructionLoss(
             enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
         )
 
@@ -71,7 +67,7 @@ def test_GuidedPerceptualLoss(subtests):
     ]
 
     def get_guided_perceptual_loss():
-        content_loss = ops.FeatureReconstructionOperator(
+        content_loss = ops.FeatureReconstructionLoss(
             enc.SequentialEncoder((nn.Conv2d(1, 1, 1),))
         )
         style_loss = ops.MultiRegionOperator(regions, get_op)
