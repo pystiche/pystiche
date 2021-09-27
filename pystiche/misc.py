@@ -39,7 +39,7 @@ __all__ = [
     "get_device",
     "download_file",
     "reduce",
-    "suppress_deprecation_warnings",
+    "suppress_warnings",
 ]
 
 
