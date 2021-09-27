@@ -1,6 +1,4 @@
-import builtins
 import os
-import sys
 import unittest.mock
 from distutils import dir_util
 
@@ -12,7 +10,6 @@ import pystiche
 
 __all__ = [
     "make_mock_target",
-    "patch_imports",
     "ContextMock",
     "patch_models_load_state_dict_from_url",
     "patch_home",
@@ -24,49 +21,6 @@ DEFAULT_MOCKER = unittest.mock
 
 def make_mock_target(*args, pkg="pystiche"):
     return ".".join((pkg, *args))
-
-
-def patch_imports(
-    names,
-    clear=True,
-    retain_condition=None,
-    import_error_condition=None,
-    mocker=DEFAULT_MOCKER,
-):
-    if retain_condition is None:
-
-        def retain_condition(name):
-            return not any(name.startswith(name_) for name_ in names)
-
-    if import_error_condition is None:
-
-        def import_error_condition(name, globals, locals, fromlist, level):
-            direct = name in names
-            indirect = fromlist is not None and any(
-                from_ in names for from_ in fromlist
-            )
-            return direct or indirect
-
-    __import__ = builtins.__import__
-
-    def patched_import(name, globals, locals, fromlist, level):
-        if import_error_condition(name, globals, locals, fromlist, level):
-            raise ImportError
-
-        return __import__(name, globals, locals, fromlist, level)
-
-    mocker.patch.object(builtins, "__import__", new=patched_import)
-    if clear:
-        values = {
-            name: module
-            for name, module in sys.modules.items()
-            if retain_condition(name)
-        }
-    else:
-        values = {}
-    mocker.patch.dict(
-        sys.modules, clear=clear, values=values,
-    )
 
 
 class ContextMock:
