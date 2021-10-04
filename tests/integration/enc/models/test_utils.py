@@ -114,18 +114,17 @@ def multi_layer_encoder_cls(
 
 class TestModelMultiLayerEncoder:
     def test_internal_preprocessing(
-        self, subtests, frameworks, multi_layer_encoder_cls
+        self, frameworks, multi_layer_encoder_cls
     ):
         for framework in ("caffe",):
-            with subtests.test(framework=framework):
-                multi_layer_encoder = multi_layer_encoder_cls(
-                    pretrained=False, framework=framework, internal_preprocessing=True
-                )
-                assert "preprocessing" in multi_layer_encoder
-                assert isinstance(
-                    multi_layer_encoder.preprocessing,
-                    type(enc.get_preprocessor(framework)),
-                )
+            multi_layer_encoder = multi_layer_encoder_cls(
+                pretrained=False, framework=framework, internal_preprocessing=True
+            )
+            assert "preprocessing" in multi_layer_encoder
+            assert isinstance(
+                multi_layer_encoder.preprocessing,
+                type(enc.get_preprocessor(framework)),
+            )
 
     def test_pretrained(self, mocker, multi_layer_encoder_cls):
         load_state_dict_from_url = mocker.patch(
@@ -177,7 +176,7 @@ class TestModelMultiLayerEncoder:
             multi_layer_encoder.state_dict(), other_multi_layer_encoder_state_dict
         )
 
-    def test_repr(self, subtests, mocker, multi_layer_encoder_cls):
+    def test_repr(self, mocker, multi_layer_encoder_cls):
         mocker.patch(
             mocks.make_mock_target(
                 "enc",
@@ -204,16 +203,13 @@ class TestModelMultiLayerEncoder:
                 asserts.assert_property_in_repr, repr(multi_layer_encoder)
             )
 
-            with subtests.test(pretrained=pretrained):
-                if pretrained:
-                    assert_property_in_repr_("framework", framework)
-                else:
-                    assert_property_in_repr_("pretrained", False)
+            if pretrained:
+                assert_property_in_repr_("framework", framework)
+            else:
+                assert_property_in_repr_("pretrained", False)
 
-                with subtests.test("internal_preprocessing"):
-                    assert_property_in_repr_(
-                        "internal_preprocessing", internal_preprocessing
-                    )
+            assert_property_in_repr_(
+                "internal_preprocessing", internal_preprocessing
+            )
 
-                with subtests.test("allow_inplace"):
-                    assert_property_in_repr_("allow_inplace", allow_inplace)
+            assert_property_in_repr_("allow_inplace", allow_inplace)

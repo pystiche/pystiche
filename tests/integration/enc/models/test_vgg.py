@@ -60,52 +60,47 @@ class TestVGGMultiLayerEncoder:
 
     @pytest.mark.slow
     def test_smoke(
-        self, subtests, vgg_archs, vgg_multi_layer_encoder_loaders,
+        self, vgg_archs, vgg_multi_layer_encoder_loaders,
     ):
         for arch, loader in zip(vgg_archs, vgg_multi_layer_encoder_loaders):
-            with subtests.test(arch=arch):
-                multi_layer_encoder = loader(pretrained=False)
-                assert isinstance(multi_layer_encoder, enc.vgg.VGGMultiLayerEncoder)
-
-                with subtests.test("repr"):
-                    asserts.assert_property_in_repr(
-                        repr(multi_layer_encoder), "arch", arch
-                    )
+            multi_layer_encoder = loader(pretrained=False)
+            assert isinstance(multi_layer_encoder, enc.vgg.VGGMultiLayerEncoder)
+            asserts.assert_property_in_repr(
+                repr(multi_layer_encoder), "arch", arch
+            )
 
     @pytest.mark.large_download
     @pytest.mark.slow
     @pytest.mark.flaky
     def test_main(
-        self, subtests, vgg_archs, vgg_multi_layer_encoder_loaders, enc_asset_loader
+        self, vgg_archs, vgg_multi_layer_encoder_loaders, enc_asset_loader
     ):
         for arch, loader in zip(vgg_archs, vgg_multi_layer_encoder_loaders):
-            with subtests.test(arch=arch):
-                asset = enc_asset_loader(arch)
+            asset = enc_asset_loader(arch)
+            multi_layer_encoder = loader(
+                pretrained=True,
+                weights="torch",
+                preprocessing=False,
+                allow_inplace=False,
+            )
+            layers = tuple(multi_layer_encoder.children_names())
+            with torch.no_grad():
+                encs = multi_layer_encoder(asset.input.image, layers)
 
-                multi_layer_encoder = loader(
-                    pretrained=True,
-                    weights="torch",
-                    preprocessing=False,
-                    allow_inplace=False,
+            actual = dict(
+                zip(
+                    layers,
+                    [
+                        pystiche.TensorKey(x, precision=asset.params.precision)
+                        for x in encs
+                    ],
                 )
-                layers = tuple(multi_layer_encoder.children_names())
-                with torch.no_grad():
-                    encs = multi_layer_encoder(asset.input.image, layers)
-
-                actual = dict(
-                    zip(
-                        layers,
-                        [
-                            pystiche.TensorKey(x, precision=asset.params.precision)
-                            for x in encs
-                        ],
-                    )
-                )
-                desired = asset.output.enc_keys
-                assert actual == desired
+            )
+            desired = asset.output.enc_keys
+            assert actual == desired
 
     @pytest.mark.slow
-    def test_state_dict_url(self, subtests, vgg_archs, frameworks):
+    def test_state_dict_url(self, vgg_archs, frameworks):
         def should_be_available(arch, framework):
             if framework == "caffe" and arch in ("vgg16", "vgg19"):
                 return True
@@ -115,14 +110,13 @@ class TestVGGMultiLayerEncoder:
         multi_layer_encoder = vgg_multi_layer_encoder(pretrained=False)
 
         for arch, framework in zip(vgg_archs, frameworks):
-            with subtests.test(arch=arch, framework=framework):
-                if should_be_available(arch, framework):
-                    assert isinstance(
-                        multi_layer_encoder.state_dict_url(framework), str
-                    )
-                else:
-                    with pytest.raises(RuntimeError):
-                        multi_layer_encoder.state_dict_url(framework)
+            if should_be_available(arch, framework):
+                assert isinstance(
+                    multi_layer_encoder.state_dict_url(framework), str
+                )
+            else:
+                with pytest.raises(RuntimeError):
+                    multi_layer_encoder.state_dict_url(framework)
 
     @pytest.mark.slow
     def test_load_state_dict_smoke(self):

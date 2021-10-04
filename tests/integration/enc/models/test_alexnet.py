@@ -8,12 +8,10 @@ from pystiche import enc
 
 
 class TestAlexNetMultiLayerEncoder:
-    def test_smoke(self, subtests):
+    def test_smoke(self):
         multi_layer_encoder = enc.alexnet_multi_layer_encoder(pretrained=False)
         assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
-
-        with subtests.test("repr"):
-            assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
+        assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
 
     @pytest.mark.large_download
     @pytest.mark.slow
@@ -37,21 +35,20 @@ class TestAlexNetMultiLayerEncoder:
         desired = asset.output.enc_keys
         assert actual == desired
 
-    def test_state_dict_url(self, subtests, frameworks):
+    def test_state_dict_url(self, frameworks):
         def should_be_available(framework):
             return framework == "torch"
 
         multi_layer_encoder = enc.alexnet_multi_layer_encoder(pretrained=False)
 
         for framework in frameworks:
-            with subtests.test(framework=framework):
-                if should_be_available(framework):
-                    assert isinstance(
-                        multi_layer_encoder.state_dict_url(framework), str
-                    )
-                else:
-                    with pytest.raises(RuntimeError):
-                        multi_layer_encoder.state_dict_url(framework)
+            if should_be_available(framework):
+                assert isinstance(
+                    multi_layer_encoder.state_dict_url(framework), str
+                )
+            else:
+                with pytest.raises(RuntimeError):
+                    multi_layer_encoder.state_dict_url(framework)
 
     @pytest.mark.slow
     def test_load_state_dict_smoke(self):
