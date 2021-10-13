@@ -51,19 +51,24 @@ def test_write_image(tmpdir):
     pyimagetest.assert_images_almost_equal(actual, desired)
 
 
-def test_show_image_smoke(subtests, mocker, test_image_file, test_image):
+@pytest.fixture
+def patch_show_pil_image(mocker):
     mocker.patch("pystiche.image.io._show_pil_image")
+
+
+def test_show_image_tensor_smoke(patch_show_pil_image, test_image):
     image_.show_image(test_image)
 
-    with subtests.test(image=test_image_file):
-        image_.show_image(test_image_file)
 
-    with subtests.test(image=None):
-        with pytest.raises(TypeError):
-            image_.show_image(None)
+def test_show_image_file_smoke(patch_show_pil_image, test_image_file):
+    image_.show_image(test_image_file)
 
-    with subtests.test(size=100):
-        image_.show_image(test_image, size=100)
 
-    with subtests.test(size=(100, 200)):
-        image_.show_image(test_image, size=(100, 200))
+def test_show_image_invalid_type():
+    with pytest.raises(TypeError):
+        image_.show_image(None)
+
+
+@pytest.mark.parametrize("size", (100, (100, 200)), ids=str)
+def test_show_image_size_smoke(patch_show_pil_image, test_image, size):
+    image_.show_image(test_image, size=size)
