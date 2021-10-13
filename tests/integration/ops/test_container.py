@@ -11,155 +11,90 @@ from tests.asserts import assert_named_modules_identical
 
 
 class TestOperatorContainer:
-    def test_main(self):
-        class TestOperator(ops.Operator):
-            def process_input_image(self, image):
-                pass
+    class Operator(ops.Operator):
+        def __init__(self, bias=None):
+            super().__init__()
+            self.bias = bias
 
-        named_ops = [(str(idx), TestOperator()) for idx in range(3)]
+        def process_input_image(self, image):
+            if not self.bias:
+                return image
+
+            return image + self.bias
+
+    class RegularizationOperator(ops.PixelRegularizationOperator):
+        def input_image_to_repr(self, image):
+            pass
+
+        def calculate_score(self, input_repr):
+            pass
+
+    class ComparisonOperator(ops.PixelComparisonOperator):
+        def target_image_to_repr(self, image):
+            return image, None
+
+        def input_image_to_repr(self, image, ctx):
+            pass
+
+        def calculate_score(self, input_repr, target_repr, ctx):
+            pass
+
+    @pytest.fixture
+    def op_container(self):
+        return ops.OperatorContainer(
+            (
+                ("regularization", self.RegularizationOperator()),
+                ("comparison", self.ComparisonOperator()),
+            )
+        )
+
+    def test_main(self):
+        named_ops = [(str(idx), self.Operator()) for idx in range(3)]
         op_container = ops.OperatorContainer(named_ops)
 
         actuals = op_container.named_children()
         desireds = named_ops
         assert_named_modules_identical(actuals, desireds)
 
-    def test_get_image_or_guide(self, subtests):
-        class RegularizationTestOperator(ops.PixelRegularizationOperator):
-            def input_image_to_repr(self, image):
-                pass
+    def test_get_image_or_guide_no(self, op_container):
+        with pytest.raises(RuntimeError):
+            op_container.get_input_guide()
 
-            def calculate_score(self, input_repr):
-                pass
+    def test_get_image_or_guide_mismatching(self, test_image, op_container):
+        op_container.regularization.set_input_guide(test_image)
+        op_container.comparison.set_input_guide(-test_image)
 
-        class ComparisonTestOperator(ops.PixelComparisonOperator):
-            def target_image_to_repr(self, image):
-                return image, None
+        with pytest.raises(RuntimeError):
+            op_container.get_input_guide()
 
-            def input_image_to_repr(self, image, ctx):
-                pass
+    def test_get_image_or_guide_target_guide(self, test_image, op_container):
+        op_container.comparison.set_target_guide(test_image)
+        ptu.assert_allclose(op_container.get_target_guide(), test_image)
 
-            def calculate_score(self, input_repr, target_repr, ctx):
-                pass
+    def test_get_image_or_guide_target_image(self, test_image, op_container):
+        op_container.comparison.set_target_image(test_image)
+        ptu.assert_allclose(op_container.get_target_image(), test_image)
 
-        def get_container():
-            return ops.OperatorContainer(
-                (
-                    ("regularization", RegularizationTestOperator()),
-                    ("comparison", ComparisonTestOperator()),
-                )
-            )
+    def test_get_image_or_guide_input_guide(self, test_image, op_container):
+        op_container.comparison.set_input_guide(test_image)
+        ptu.assert_allclose(op_container.get_input_guide(), test_image)
 
-        torch.manual_seed(0)
-        image_or_guide = torch.rand(1, 3, 128, 128)
+    def test_set_image_or_guide_target_guide(self, test_image, op_container):
+        op_container.set_target_guide(test_image, recalc_repr=False)
+        ptu.assert_allclose(op_container.comparison.target_guide, test_image)
 
-        with subtests.test("no image or guide"):
-            container = get_container()
+    def test_set_image_or_guide_target_image(self, test_image, op_container):
+        op_container.set_target_image(test_image)
+        ptu.assert_allclose(op_container.comparison.target_image, test_image)
 
-            with pytest.raises(RuntimeError):
-                container.get_input_guide()
-
-        with subtests.test("mismatching images or guides"):
-            container = get_container()
-            container.regularization.set_input_guide(image_or_guide)
-            container.comparison.set_input_guide(-image_or_guide)
-
-            with pytest.raises(RuntimeError):
-                container.get_input_guide()
-
-        with subtests.test("get_target_guide"):
-            container = get_container()
-            container.comparison.set_target_guide(image_or_guide)
-
-            actual = container.get_target_guide()
-            desired = image_or_guide
-            ptu.assert_allclose(actual, desired)
-
-        with subtests.test("get_target_image"):
-            container = get_container()
-            container.comparison.set_target_image(image_or_guide)
-
-            actual = container.get_target_image()
-            desired = image_or_guide
-            ptu.assert_allclose(actual, desired)
-
-        with subtests.test("get_input_guide"):
-            container = get_container()
-            container.regularization.set_input_guide(image_or_guide)
-            container.comparison.set_input_guide(image_or_guide)
-
-            actual = container.get_input_guide()
-            desired = image_or_guide
-            ptu.assert_allclose(actual, desired)
-
-    def test_set_image_or_guide(self, subtests):
-        class RegularizationTestOperator(ops.PixelRegularizationOperator):
-            def input_image_to_repr(self, image):
-                pass
-
-            def calculate_score(self, input_repr):
-                pass
-
-        class ComparisonTestOperator(ops.PixelComparisonOperator):
-            def target_image_to_repr(self, image):
-                return image, None
-
-            def input_image_to_repr(self, image, ctx):
-                pass
-
-            def calculate_score(self, input_repr, target_repr, ctx):
-                pass
-
-        def get_container():
-            return ops.OperatorContainer(
-                (
-                    ("regularization", RegularizationTestOperator()),
-                    ("comparison", ComparisonTestOperator()),
-                )
-            )
-
-        torch.manual_seed(0)
-        image_or_guide = torch.rand(1, 3, 128, 128)
-
-        with subtests.test("set_target_guide"):
-            container = get_container()
-            container.set_target_guide(image_or_guide, recalc_repr=False)
-
-            actual = container.comparison.target_guide
-            desired = image_or_guide
-            ptu.assert_allclose(actual, desired)
-
-        with subtests.test("set_target_guide"):
-            container = get_container()
-            container.set_target_image(image_or_guide)
-
-            actual = container.comparison.target_image
-            desired = image_or_guide
-            ptu.assert_allclose(actual, desired)
-
-        with subtests.test("set_input_guide"):
-            container = get_container()
-            container.set_input_guide(image_or_guide)
-
-            actual = container.regularization.input_guide
-            desired = image_or_guide
-            ptu.assert_allclose(actual, desired)
-
-            actual = container.comparison.input_guide
-            desired = image_or_guide
-            ptu.assert_allclose(actual, desired)
+    def test_set_image_or_guide_input_guide(self, test_image, op_container):
+        op_container.set_input_guide(test_image)
+        ptu.assert_allclose(op_container.comparison.input_guide, test_image)
 
     def test_call(self):
-        class TestOperator(ops.Operator):
-            def __init__(self, bias):
-                super().__init__()
-                self.bias = bias
-
-            def process_input_image(self, image):
-                return image + self.bias
-
         input = torch.tensor(0.0)
 
-        named_ops = [(str(idx), TestOperator(idx + 1.0)) for idx in range(3)]
+        named_ops = [(str(idx), self.Operator(idx + 1.0)) for idx in range(3)]
         op_container = ops.OperatorContainer(named_ops)
 
         actual = op_container(input)
@@ -257,49 +192,48 @@ class TestMultiLayerEncodingOperator:
 
 
 class TestMultiRegionOperator:
-    def test_set_regional_image_or_guide(self, subtests):
-        class TestOperator(ops.PixelComparisonOperator):
-            def __init__(self, bias, score_weight=1e0):
-                super().__init__(score_weight=score_weight)
-                self.bias = bias
+    class Operator(ops.PixelComparisonOperator):
+        def __init__(self, bias, score_weight=1e0):
+            super().__init__(score_weight=score_weight)
+            self.bias = bias
 
-            def target_image_to_repr(self, image):
-                return image + self.bias, None
+        def target_image_to_repr(self, image):
+            return image + self.bias, None
 
-            def input_image_to_repr(self, image, ctx):
-                pass
+        def input_image_to_repr(self, image, ctx):
+            pass
 
-            def calculate_score(self, input_repr, target_repr, ctx):
-                pass
+        def calculate_score(self, input_repr, target_repr, ctx):
+            pass
 
-        def get_op(name, score_weight):
-            return TestOperator(float(name), score_weight=score_weight)
+    def get_op(self, name, score_weight):
+        return self.Operator(float(name), score_weight=score_weight)
 
+    @pytest.mark.parametrize(
+        ("method", "desired_attr"),
+        (
+            pytest.param(
+                "set_regional_target_guide", "target_guide", id="target_guide"
+            ),
+            pytest.param(
+                "set_regional_target_image", "target_image", id="target_image"
+            ),
+            pytest.param("set_regional_input_guide", "input_guide", id="input_guide"),
+        ),
+    )
+    def test_set_regional_image_or_guide(self, method, desired_attr):
         regions = [str(idx) for idx in range(3)]
         torch.manual_seed(0)
         regional_images_or_guides = [
             (region, torch.rand(1, 3, 128, 128)) for region in regions
         ]
 
-        def get_multi_region_operator():
-            return ops.MultiRegionOperator(regions, get_op)
+        multi_region_operator = ops.MultiRegionOperator(regions, self.get_op)
 
-        methods_and_desired_attrs = (
-            ("set_regional_target_guide", "target_guide"),
-            ("set_regional_target_image", "target_image"),
-            ("set_regional_input_guide", "input_guide"),
-        )
+        for region, image_or_guide in regional_images_or_guides:
+            getattr(multi_region_operator, method)(region, image_or_guide)
 
-        for method, desired_attr in methods_and_desired_attrs:
-            with subtests.test(method):
-                multi_region_operator = get_multi_region_operator()
-
-                for region, image_or_guide in regional_images_or_guides:
-                    getattr(multi_region_operator, method)(region, image_or_guide)
-
-                for region, image_or_guide in regional_images_or_guides:
-                    actual = getattr(
-                        getattr(multi_region_operator, region), desired_attr
-                    )
-                    desired = image_or_guide
-                    ptu.assert_allclose(actual, desired)
+        for region, image_or_guide in regional_images_or_guides:
+            actual = getattr(getattr(multi_region_operator, region), desired_attr)
+            desired = image_or_guide
+            ptu.assert_allclose(actual, desired)

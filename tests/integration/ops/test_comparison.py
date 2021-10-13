@@ -1,3 +1,4 @@
+import pytest
 import pytorch_testing_utils as ptu
 
 import torch
@@ -55,49 +56,56 @@ class TestMRFOperator:
         expected = (num_scale_steps * 2 + 1) * (num_rotate_steps * 2 + 1)
         assert actual == expected
 
-    def test_enc_to_repr_guided(self, subtests):
-        class Identity(pystiche.Module):
-            def forward(self, image):
-                return image
+    class Identity(pystiche.Module):
+        def forward(self, image):
+            return image
 
+    @pytest.fixture
+    def mrf_op(self):
         patch_size = 2
         stride = 2
 
-        op = ops.MRFOperator(
-            enc.SequentialEncoder((Identity(),)), patch_size, stride=stride
+        return ops.MRFOperator(
+            enc.SequentialEncoder((self.Identity(),)), patch_size, stride=stride
         )
 
-        with subtests.test(enc="constant"):
-            enc_ = torch.ones(1, 4, 8, 8)
+    def test_enc_to_repr_guided_constant(self, mrf_op):
+        enc_ = torch.ones(1, 4, 8, 8)
 
-            actual = op.enc_to_repr(enc_, is_guided=True)
-            desired = torch.ones(1, 0, 4, stride, stride)
-            ptu.assert_allclose(actual, desired)
+        actual = mrf_op.enc_to_repr(enc_, is_guided=True)
+        desired = torch.ones(1, 0, 4, mrf_op.stride[0], mrf_op.stride[0])
+        ptu.assert_allclose(actual, desired)
 
-        with subtests.test(enc="spatial_mix"):
-            constant = torch.ones(1, 4, 4, 8)
-            varying = torch.rand(1, 4, 4, 8)
-            enc_ = torch.cat((constant, varying), dim=2)
+    def test_enc_to_repr_guided_spatial_mix(self, mrf_op):
+        constant = torch.ones(1, 4, 4, 8)
+        varying = torch.rand(1, 4, 4, 8)
+        enc_ = torch.cat((constant, varying), dim=2)
 
-            actual = op.enc_to_repr(enc_, is_guided=True)
-            desired = pystiche.extract_patches2d(varying, patch_size, stride=stride)
-            ptu.assert_allclose(actual, desired)
+        actual = mrf_op.enc_to_repr(enc_, is_guided=True)
+        desired = pystiche.extract_patches2d(
+            varying, mrf_op.patch_size[0], stride=mrf_op.stride[0]
+        )
+        ptu.assert_allclose(actual, desired)
 
-        with subtests.test(enc="channel_mix"):
-            constant = torch.ones(1, 2, 8, 8)
-            varying = torch.rand(1, 2, 8, 8)
-            enc_ = torch.cat((constant, varying), dim=1)
+    def test_enc_to_repr_guided_channel_mix(self, mrf_op):
+        constant = torch.ones(1, 2, 8, 8)
+        varying = torch.rand(1, 2, 8, 8)
+        enc_ = torch.cat((constant, varying), dim=1)
 
-            actual = op.enc_to_repr(enc_, is_guided=True)
-            desired = pystiche.extract_patches2d(enc_, patch_size, stride=stride)
-            ptu.assert_allclose(actual, desired)
+        actual = mrf_op.enc_to_repr(enc_, is_guided=True)
+        desired = pystiche.extract_patches2d(
+            enc_, mrf_op.patch_size[0], stride=mrf_op.stride[0]
+        )
+        ptu.assert_allclose(actual, desired)
 
-        with subtests.test(enc="varying"):
-            enc_ = torch.rand(1, 4, 8, 8)
+    def test_enc_to_repr_guided_varying(self, mrf_op):
+        enc_ = torch.rand(1, 4, 8, 8)
 
-            actual = op.enc_to_repr(enc_, is_guided=True)
-            desired = pystiche.extract_patches2d(enc_, patch_size, stride=stride)
-            ptu.assert_allclose(actual, desired)
+        actual = mrf_op.enc_to_repr(enc_, is_guided=True)
+        desired = pystiche.extract_patches2d(
+            enc_, mrf_op.patch_size[0], stride=mrf_op.stride[0]
+        )
+        ptu.assert_allclose(actual, desired)
 
     def test_set_target_guide(self):
         patch_size = 3
