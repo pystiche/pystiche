@@ -1,3 +1,4 @@
+import pytest
 import pytorch_testing_utils as ptu
 
 import torch
@@ -42,7 +43,15 @@ class TestPerceptualLoss:
         ptu.assert_allclose(actual, desired)
 
 
-def test_GuidedPerceptualLoss(subtests):
+@pytest.mark.parametrize(
+    ("method_name", "desired_attr"),
+    (
+        pytest.param("set_style_guide", "target_guide", id="style_guide"),
+        pytest.param("set_style_image", "target_image", id="style_image"),
+        pytest.param("set_content_guide", "input_guide", id="content_guide"),
+    ),
+)
+def test_GuidedPerceptualLoss(method_name, desired_attr):
     class TestOperator(ops.PixelComparisonOperator):
         def __init__(self, bias, score_weight=1e0):
             super().__init__(score_weight=score_weight)
@@ -73,23 +82,15 @@ def test_GuidedPerceptualLoss(subtests):
         style_loss = ops.MultiRegionOperator(regions, get_op)
         return loss.GuidedPerceptualLoss(content_loss, style_loss)
 
-    method_names_and_desired_attrs = (
-        ("set_style_guide", "target_guide"),
-        ("set_style_image", "target_image"),
-        ("set_content_guide", "input_guide"),
-    )
+    guided_perceptual_loss = get_guided_perceptual_loss()
 
-    for method_name, desired_attr in method_names_and_desired_attrs:
-        with subtests.test(method_name):
-            guided_perceptual_loss = get_guided_perceptual_loss()
+    for region, image_or_guide in regional_images_or_guides:
+        method = getattr(guided_perceptual_loss, method_name)
+        method(region, image_or_guide)
 
-            for region, image_or_guide in regional_images_or_guides:
-                method = getattr(guided_perceptual_loss, method_name)
-                method(region, image_or_guide)
-
-            for region, image_or_guide in regional_images_or_guides:
-                actual = getattr(
-                    getattr(guided_perceptual_loss.style_loss, region), desired_attr
-                )
-                desired = image_or_guide
-                ptu.assert_allclose(actual, desired)
+    for region, image_or_guide in regional_images_or_guides:
+        actual = getattr(
+            getattr(guided_perceptual_loss.style_loss, region), desired_attr
+        )
+        desired = image_or_guide
+        ptu.assert_allclose(actual, desired)
