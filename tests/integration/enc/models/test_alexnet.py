@@ -8,10 +8,13 @@ from pystiche import enc
 
 
 class TestAlexNetMultiLayerEncoder:
-    def test_smoke(self):
+    def test_main_smoke(self):
         multi_layer_encoder = enc.alexnet_multi_layer_encoder(pretrained=False)
         assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
-        assert isinstance(multi_layer_encoder, enc.alexnet.AlexNetMultiLayerEncoder)
+
+    def test_repr_smoke(self):
+        multi_layer_encoder = enc.alexnet_multi_layer_encoder(pretrained=False)
+        assert isinstance(repr(multi_layer_encoder), str)
 
     @pytest.mark.large_download
     @pytest.mark.slow
@@ -35,17 +38,18 @@ class TestAlexNetMultiLayerEncoder:
         desired = asset.output.enc_keys
         assert actual == desired
 
-    def test_state_dict_url(self, frameworks):
-        def should_be_available(framework):
-            return framework == "torch"
+        @pytest.mark.parametrize(
+            ("framework", "should_be_available"),
+            [
+                pytest.param(framework, should_be_available, id=framework)
+                for framework, should_be_available in [("torch", True), ("caffe", False)]
+            ],
+        )
+        def test_state_dict_url(self, framework, should_be_available):
+            multi_layer_encoder = enc.alexnet_multi_layer_encoder(pretrained=False)
 
-        multi_layer_encoder = enc.alexnet_multi_layer_encoder(pretrained=False)
-
-        for framework in frameworks:
-            if should_be_available(framework):
-                assert isinstance(
-                    multi_layer_encoder.state_dict_url(framework), str
-                )
+            if should_be_available:
+                assert isinstance(multi_layer_encoder.state_dict_url(framework), str)
             else:
                 with pytest.raises(RuntimeError):
                     multi_layer_encoder.state_dict_url(framework)

@@ -113,18 +113,24 @@ def multi_layer_encoder_cls(
 
 
 class TestModelMultiLayerEncoder:
+    @pytest.mark.parametrize(
+        ("framework"),
+        [
+            pytest.param(framework, id=framework)
+            for framework in ["caffe"]
+        ],
+    )
     def test_internal_preprocessing(
-        self, frameworks, multi_layer_encoder_cls
+        self, framework, multi_layer_encoder_cls
     ):
-        for framework in ("caffe",):
-            multi_layer_encoder = multi_layer_encoder_cls(
-                pretrained=False, framework=framework, internal_preprocessing=True
-            )
-            assert "preprocessing" in multi_layer_encoder
-            assert isinstance(
-                multi_layer_encoder.preprocessing,
-                type(enc.get_preprocessor(framework)),
-            )
+        multi_layer_encoder = multi_layer_encoder_cls(
+            pretrained=False, framework=framework, internal_preprocessing=True
+        )
+        assert "preprocessing" in multi_layer_encoder
+        assert isinstance(
+            multi_layer_encoder.preprocessing,
+            type(enc.get_preprocessor(framework)),
+        )
 
     def test_pretrained(self, mocker, multi_layer_encoder_cls):
         load_state_dict_from_url = mocker.patch(
