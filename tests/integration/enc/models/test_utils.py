@@ -45,12 +45,12 @@ class TestSelectURL:
 
 
 @pytest.fixture
-def multi_layer_encoder_urls(frameworks):
+def multi_layer_encoder_urls():
     base = "https://download.pystiche.org/models/"
 
     return {
         framework: urljoin(base, f"{framework}-01234567.pth")
-        for framework in frameworks
+        for framework in ("torch", "caffe")
     }
 
 
@@ -115,21 +115,15 @@ def multi_layer_encoder_cls(
 class TestModelMultiLayerEncoder:
     @pytest.mark.parametrize(
         ("framework"),
-        [
-            pytest.param(framework, id=framework)
-            for framework in ["caffe"]
-        ],
+        [pytest.param(framework, id=framework) for framework in ["caffe"]],
     )
-    def test_internal_preprocessing(
-        self, framework, multi_layer_encoder_cls
-    ):
+    def test_internal_preprocessing(self, framework, multi_layer_encoder_cls):
         multi_layer_encoder = multi_layer_encoder_cls(
             pretrained=False, framework=framework, internal_preprocessing=True
         )
         assert "preprocessing" in multi_layer_encoder
         assert isinstance(
-            multi_layer_encoder.preprocessing,
-            type(enc.get_preprocessor(framework)),
+            multi_layer_encoder.preprocessing, type(enc.get_preprocessor(framework)),
         )
 
     def test_pretrained(self, mocker, multi_layer_encoder_cls):
@@ -214,8 +208,6 @@ class TestModelMultiLayerEncoder:
             else:
                 assert_property_in_repr_("pretrained", False)
 
-            assert_property_in_repr_(
-                "internal_preprocessing", internal_preprocessing
-            )
+            assert_property_in_repr_("internal_preprocessing", internal_preprocessing)
 
             assert_property_in_repr_("allow_inplace", allow_inplace)
