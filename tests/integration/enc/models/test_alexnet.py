@@ -42,7 +42,10 @@ class TestAlexNetMultiLayerEncoder:
             ("framework", "should_be_available"),
             [
                 pytest.param(framework, should_be_available, id=framework)
-                for framework, should_be_available in [("torch", True), ("caffe", False)]
+                for framework, should_be_available in [
+                    ("torch", True),
+                    ("caffe", False),
+                ]
             ],
         )
         def test_state_dict_url(self, framework, should_be_available):
