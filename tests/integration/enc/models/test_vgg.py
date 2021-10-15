@@ -90,9 +90,7 @@ class TestVGGMultiLayerEncoder:
     @pytest.mark.parametrize(
         ("arch", "framework", "should_be_available"),
         [
-            pytest.param(
-                arch, framework, should_be_available, id=f"{arch}-{framework})"
-            )
+            pytest.param(arch, framework, should_be_available, id=f"{arch}-{framework}")
             for arch, framework, should_be_available in (
                 *[(arch, "torch", True) for arch in ARCHS],
                 *[(arch, "caffe", arch in ("vgg16", "vgg19")) for arch in ARCHS],
@@ -100,7 +98,7 @@ class TestVGGMultiLayerEncoder:
         ],
     )
     def test_state_dict_url(self, arch, framework, should_be_available):
-        multi_layer_encoder = vgg_multi_layer_encoder(pretrained=False)
+        multi_layer_encoder = self.vgg_mle(arch, pretrained=False)
 
         if should_be_available:
             assert isinstance(multi_layer_encoder.state_dict_url(framework), str)
