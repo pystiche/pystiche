@@ -114,11 +114,8 @@ def multi_layer_encoder_cls(
 
 class TestModelMultiLayerEncoder:
     @pytest.mark.parametrize(
-        ("framework"),
-        [
-            pytest.param(framework, id=framework)
-            for framework in ["caffe"]
-        ],
+        "framework",
+        ("torch", "caffe"),
     )
     def test_internal_preprocessing(
         self, framework, multi_layer_encoder_cls
