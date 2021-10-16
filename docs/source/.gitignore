@@ -12,5 +12,5 @@ bibtex.json
 cli/index.rst
 
 # auto-generated during doc building
-graphics/demo_images/*
+graphics/demo_images
 api/pystiche.demo.rst
