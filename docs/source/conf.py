@@ -299,7 +299,7 @@ def sphinx_gallery():
     config = dict(sphinx_gallery_conf=sphinx_gallery_conf)
     filter_warnings()
 
-    patch_tqdm()
+    # patch_tqdm()
     filter_warnings()
 
     return extension, config
@@ -308,7 +308,7 @@ def sphinx_gallery():
 def logo():
     extension = None
 
-    config = dict(html_logo="../../logo.svg")
+    config = dict(html_logo=str(PROJECT_ROOT / "logo.svg"))
 
     return extension, config
 
@@ -346,11 +346,11 @@ def cli():
 def demo_images():
     print("in demo images")
     cache_path = pathlib.Path(pystiche.home())
+    print("\n".join([str(file) for file in cache_path.glob("*") if file.is_file()]))
     # graphics_path = GRAPHICS / "demo_images"
     api_path = HERE / "api"
 
     images = pystiche.demo.images()
-    print("\n".join([str(file) for file in cache_path.glob("*") if file.is_file()]))
     sleep(3)
     images.download()
 
