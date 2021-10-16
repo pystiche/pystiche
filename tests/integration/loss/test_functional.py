@@ -16,7 +16,7 @@ class TestMRFLoss:
         input = torch.stack((rand_patch + 0.1, rand_patch * 0.9)).unsqueeze(0)
         target = torch.stack((zero_patch, one_patch, rand_patch)).unsqueeze(0)
 
-        actual = F.mrf_loss(input, target)
+        actual = F.mrf_loss(input, target, batched_input=True)
         desired = mse_loss(input, torch.stack((rand_patch, rand_patch)).unsqueeze(0))
         ptu.assert_allclose(actual, desired)
 

@@ -1,4 +1,5 @@
 import contextlib
+import functools
 import itertools
 import os
 import re
@@ -6,6 +7,7 @@ import shutil
 import stat
 import sys
 import tempfile
+import warnings
 from distutils import dir_util
 from os import path
 
@@ -183,3 +185,17 @@ def extract_fn_name(fn):
     if not match:
         raise RuntimeError
     return match.group("name")
+
+
+def suppress_deprecation_warning(test_fn):
+    @functools.wraps(test_fn)
+    def wrapper(*args, **kwargs):
+        with warnings.catch_warnings():
+            for category in (UserWarning, DeprecationWarning):
+                warnings.filterwarnings(
+                    "ignore", category=category, module="pystiche([.].*)?"
+                )
+
+            return test_fn(*args, **kwargs)
+
+    return wrapper

@@ -9,8 +9,11 @@ import pystiche
 import pystiche.ops.functional as F
 from pystiche import enc, ops
 
+from tests.utils import suppress_deprecation_warning
+
 
 class TestFeatureReconstructionOperator:
+    @suppress_deprecation_warning
     def test_call(self):
         torch.manual_seed(0)
         target_image = torch.rand(1, 3, 128, 128)
@@ -26,6 +29,7 @@ class TestFeatureReconstructionOperator:
 
 
 class TestGramOperator:
+    @suppress_deprecation_warning
     def test_call(self):
         torch.manual_seed(0)
         target_image = torch.rand(1, 3, 128, 128)
@@ -61,6 +65,7 @@ class TestMRFOperator:
             return image
 
     @pytest.fixture
+    @suppress_deprecation_warning
     def mrf_op(self):
         patch_size = 2
         stride = 2
@@ -107,6 +112,7 @@ class TestMRFOperator:
         )
         ptu.assert_allclose(actual, desired)
 
+    @suppress_deprecation_warning
     def test_set_target_guide(self):
         patch_size = 3
         stride = 2
@@ -131,6 +137,7 @@ class TestMRFOperator:
         desired = image
         ptu.assert_allclose(actual, desired)
 
+    @suppress_deprecation_warning
     def test_set_target_guide_without_recalc(self):
         patch_size = 3
         stride = 2
@@ -149,6 +156,7 @@ class TestMRFOperator:
 
         ptu.assert_allclose(actual, desired)
 
+    @suppress_deprecation_warning
     def test_call(self):
         patch_size = 3
         stride = 2
@@ -170,6 +178,7 @@ class TestMRFOperator:
         )
         ptu.assert_allclose(actual, desired)
 
+    @suppress_deprecation_warning
     def test_call_guided(self):
         patch_size = 2
         stride = 2

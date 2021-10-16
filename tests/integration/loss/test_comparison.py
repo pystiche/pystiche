@@ -62,6 +62,7 @@ class TestMRFLoss:
             pystiche.extract_patches2d(
                 encoder(target_image), patch_size, stride=stride
             ),
+            batched_input=True,
         )
         ptu.assert_allclose(actual, desired)
 
@@ -88,6 +89,7 @@ class TestMRFLoss:
         desired = F.mrf_loss(
             pystiche.extract_patches2d(input_enc, patch_size, stride=stride),
             pystiche.extract_patches2d(target_enc, patch_size, stride=stride),
+            batched_input=True,
         )
         ptu.assert_allclose(actual, desired)
 

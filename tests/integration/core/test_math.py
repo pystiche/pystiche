@@ -1,5 +1,6 @@
 from math import sqrt
 
+import pytest
 import pytorch_testing_utils as ptu
 
 import torch
@@ -84,7 +85,10 @@ class TestCosineSimilarity:
         input = torch.rand(2, 3, 4, 5)
         target = torch.rand(2, 3, 4, 5)
 
-        assert pystiche.cosine_similarity(input, target).size() == (2, 3, 3)
+        actual = pystiche.cosine_similarity(input, target, batched_input=True).size()
+        expected = (2, 3, 3)
+
+        assert actual == expected
 
     def test_input(self):
         torch.manual_seed(0)
@@ -105,3 +109,10 @@ class TestCosineSimilarity:
         actual = pystiche.cosine_similarity(input, target, eps=eps, batched_input=False)
         expected = F.cosine_similarity(input, target, dim=1, eps=eps).unsqueeze(1)
         ptu.assert_allclose(actual, expected, rtol=1e-6)
+
+    def test_batched_input_not_specified(self):
+        input = torch.rand(2, 1, 256)
+        target = torch.rand(2, 1, 256)
+
+        with pytest.warns(UserWarning):
+            pystiche.cosine_similarity(input, target)

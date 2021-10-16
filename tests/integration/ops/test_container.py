@@ -8,6 +8,7 @@ import pystiche
 from pystiche import enc, ops
 
 from tests.asserts import assert_named_modules_identical
+from tests.utils import suppress_deprecation_warning
 
 
 class TestOperatorContainer:
@@ -40,6 +41,7 @@ class TestOperatorContainer:
             pass
 
     @pytest.fixture
+    @suppress_deprecation_warning
     def op_container(self):
         return ops.OperatorContainer(
             (
@@ -48,6 +50,7 @@ class TestOperatorContainer:
             )
         )
 
+    @suppress_deprecation_warning
     def test_main(self):
         named_ops = [(str(idx), self.Operator()) for idx in range(3)]
         op_container = ops.OperatorContainer(named_ops)
@@ -91,6 +94,7 @@ class TestOperatorContainer:
         op_container.set_input_guide(test_image)
         ptu.assert_allclose(op_container.comparison.input_guide, test_image)
 
+    @suppress_deprecation_warning
     def test_call(self):
         input = torch.tensor(0.0)
 
@@ -165,6 +169,7 @@ class TestSameOperatorContainer:
 
 
 class TestMultiLayerEncodingOperator:
+    @suppress_deprecation_warning
     def test_main(self):
         class TestOperator(ops.EncodingRegularizationOperator):
             def input_enc_to_repr(self, image):
