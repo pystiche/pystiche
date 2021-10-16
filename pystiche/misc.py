@@ -243,9 +243,9 @@ def get_device(device: Optional[str] = None) -> torch.device:
 def download_file(
     url: str, file: Optional[str] = None, md5: Optional[str] = None,
 ) -> str:
-    raise RuntimeError(url, file)
     if file is None:
         file = path.basename(url)
+    raise RuntimeError(f"Download from {url} to {file}")
 
     request = Request(url, headers={"User-Agent": f"pystiche/{pystiche.__version__}"})
 
