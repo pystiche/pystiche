@@ -349,6 +349,9 @@ def demo_images():
 
     images = pystiche.demo.images()
     images.download()
+    raise RuntimeError(
+        "\n".join([str(file) for file in cache_path.glob("*") if file.is_file()])
+    )
 
     entries = {}
     for name, image in images:

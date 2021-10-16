@@ -245,8 +245,6 @@ def download_file(
 ) -> str:
     if file is None:
         file = path.basename(url)
-    raise RuntimeError(f"Download from {url} to {file}")
-
     request = Request(url, headers={"User-Agent": f"pystiche/{pystiche.__version__}"})
 
     try:
