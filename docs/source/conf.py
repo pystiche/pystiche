@@ -349,14 +349,15 @@ def demo_images():
 
     images = pystiche.demo.images()
     images.download()
-    raise RuntimeError(
-        "\n".join([str(file) for file in cache_path.glob("*") if file.is_file()])
-    )
+    print("\n".join([str(file) for file in cache_path.glob("*") if file.is_file()]))
 
     entries = {}
     for name, image in images:
         entries[name] = (image.file, extract_aspect_ratio(image.read()))
         if not (graphics_path / image.file).exists():
+            print(graphics_path)
+            print(cache_path)
+            print(image.file)
             (graphics_path / image.file).symlink_to(cache_path / image.file)
 
     field_len = max(max(len(name) for name in entries.keys()) + 2, len("images"))
