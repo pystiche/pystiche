@@ -243,7 +243,7 @@ def get_device(device: Optional[str] = None) -> torch.device:
 def download_file(
     url: str, file: Optional[str] = None, md5: Optional[str] = None,
 ) -> str:
-    raise RuntimeError(url)
+    raise RuntimeError(url, file)
     if file is None:
         file = path.basename(url)
 
