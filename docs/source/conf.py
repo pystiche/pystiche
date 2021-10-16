@@ -1,6 +1,7 @@
 import contextlib
 import importlib
 import io
+import itertools
 import os
 import pathlib
 import re
@@ -10,7 +11,6 @@ import warnings
 from datetime import datetime
 from distutils.util import strtobool
 from importlib_metadata import metadata as extract_metadata
-from os import path
 from types import SimpleNamespace
 from unittest import mock
 from urllib.parse import urljoin
@@ -21,11 +21,14 @@ from tqdm import tqdm
 
 import torch
 
+import pystiche
 from pystiche._cli import main as cli_entrypoint
+from pystiche.image import extract_aspect_ratio
 from pystiche.misc import download_file
 
-HERE = path.dirname(__file__)
-PROJECT_ROOT = path.abspath(path.join(HERE, "..", ".."))
+HERE = pathlib.Path(__file__).parent
+GRAPHICS = HERE / "graphics"
+PROJECT_ROOT = HERE.parent.parent
 
 
 def get_bool_env_var(name, default=False):
@@ -122,7 +125,7 @@ def html():
 def latex():
     extension = None
 
-    with open(path.join(HERE, "custom_cmds.tex"), "r") as fh:
+    with open(HERE / "custom_cmds.tex", "r") as fh:
         custom_cmds = fh.read()
     config = dict(
         latex_elements={"preamble": custom_cmds},
@@ -195,7 +198,7 @@ def sphinx_gallery():
         download_file(url, file)
 
         with contextlib.suppress(FileNotFoundError):
-            shutil.rmtree(path.join(HERE, "galleries"))
+            shutil.rmtree(HERE / "galleries")
         shutil.unpack_archive(file, extract_dir=".")
         os.remove(file)
 
@@ -275,8 +278,8 @@ def sphinx_gallery():
         print(msg)
 
     sphinx_gallery_conf = {
-        "examples_dirs": path.join(PROJECT_ROOT, "examples"),
-        "gallery_dirs": path.join("galleries", "examples"),
+        "examples_dirs": PROJECT_ROOT / "examples",
+        "gallery_dirs": pathlib.Path("galleries") / "examples",
         "filename_pattern": re.escape(os.sep) + r"example_\w+[.]py$",
         "ignore_pattern": re.escape(os.sep) + r"_\w+[.]py$",
         "line_numbers": True,
@@ -284,7 +287,7 @@ def sphinx_gallery():
         "plot_gallery": plot_gallery,
         "subsection_order": ExplicitOrder(
             [
-                path.join("..", "..", "examples", sub_gallery)
+                pathlib.Path("..") / ".." / "examples" / sub_gallery
                 for sub_gallery in ("beginner", "advanced")
             ]
         ),
@@ -339,6 +342,64 @@ def cli():
     return None, None
 
 
+def demo_images():
+    cache_path = pathlib.Path(pystiche.home())
+    graphics_path = GRAPHICS / "demo_images"
+    api_path = HERE / "api"
+
+    images = pystiche.demo.images()
+    images.download()
+
+    entries = {}
+    for name, image in images:
+        if not (graphics_path / image.file).exists():
+            (graphics_path / image.file).symlink_to(cache_path / image.file)
+
+        entries[name] = (image.file, extract_aspect_ratio(image.read()))
+
+    field_len = max(max(len(name) for name in entries.keys()) + 2, len("images"))
+
+    def sep(char):
+        return "+" + char * (field_len + 2) + "+" + char * (field_len + 2) + "+"
+
+    def row(name, image):
+        key = f"{name:{field_len}}"
+        value = image or f"|{name}|"
+        value += " " * (field_len - len(image or name))
+        return f"| {key} | {value} |"
+
+    images_table = [
+        sep("-"),
+        row("name", "image"),
+        sep("="),
+        *itertools.chain(
+            *[(row(name, f"|{name}|"), sep("-")) for name in sorted(entries.keys())]
+        ),
+    ]
+
+    width = 300
+    aliases = [
+        f".. |{name}|\n"
+        f"  image:: ../graphics/demo_images/{file}\n"
+        f"    :width: {width}px\n"
+        f"    :height: {width / aspect_ratio:.0f}px\n"
+        for name, (file, aspect_ratio) in entries.items()
+    ]
+
+    loader = jinja2.FileSystemLoader(searchpath=api_path)
+    env = jinja2.Environment(loader=loader)
+    template = env.get_template("pystiche.demo.rst.template")
+
+    with open(api_path / "pystiche.demo.rst", "w") as fh:
+        fh.write(
+            template.render(
+                images_table="\n".join(images_table), aliases="\n".join(aliases),
+            )
+        )
+
+    return None, None
+
+
 extensions = []
 for loader in (
     project,
@@ -351,6 +412,7 @@ for loader in (
     sphinx_gallery,
     logo,
     cli,
+    demo_images,
 ):
     extension, config = loader()
 
