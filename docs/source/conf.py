@@ -351,6 +351,7 @@ def demo_images():
 
     entries = {}
     for name, image in images:
+        print(image)
         image.download()
         entries[name] = (image.file, extract_aspect_ratio(image.read()))
         if not (graphics_path / image.file).exists():

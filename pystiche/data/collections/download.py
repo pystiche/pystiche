@@ -103,9 +103,9 @@ class DownloadableImage(_Image):
             overwrite: Overwrites files if they already exists or the MD5 checksum does
                 not match. Defaults to ``False``.
         """
+        print("in download method of ", self.file)
 
         def _download(file: str) -> None:
-            print("Downloading", self, "to", file)
             os.makedirs(path.dirname(file), exist_ok=True)
             download_file(self.url, file=file, md5=self.md5)
 
