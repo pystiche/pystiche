@@ -11,6 +11,7 @@ import warnings
 from datetime import datetime
 from distutils.util import strtobool
 from importlib_metadata import metadata as extract_metadata
+from time import sleep
 from types import SimpleNamespace
 from unittest import mock
 from urllib.parse import urljoin
@@ -343,12 +344,14 @@ def cli():
 
 
 def demo_images():
+    print("in demo images")
     cache_path = pathlib.Path(pystiche.home())
     graphics_path = GRAPHICS / "demo_images"
     api_path = HERE / "api"
 
     images = pystiche.demo.images()
     print("\n".join([str(file) for file in cache_path.glob("*") if file.is_file()]))
+    sleep(3)
     images.download()
 
     entries = {}
