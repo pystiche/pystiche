@@ -65,6 +65,7 @@ class TestMRFOperator:
             return image
 
     @pytest.fixture
+    @suppress_deprecation_warning
     def mrf_op(self):
         patch_size = 2
         stride = 2

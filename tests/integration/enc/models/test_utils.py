@@ -120,7 +120,7 @@ class TestModelMultiLayerEncoder:
         )
         assert "preprocessing" in multi_layer_encoder
         assert isinstance(
-            multi_layer_encoder.preprocessing, type(enc.get_preprocessor(framework)),
+            multi_layer_encoder.preprocessing, type(enc.preprocessing(framework)),
         )
 
     def test_pretrained(self, mocker, multi_layer_encoder_cls):
