@@ -84,7 +84,10 @@ class TestCosineSimilarity:
         input = torch.rand(2, 3, 4, 5)
         target = torch.rand(2, 3, 4, 5)
 
-        assert pystiche.cosine_similarity(input, target).size() == (2, 3, 3)
+        actual = pystiche.cosine_similarity(input, target, batched_input=True).size()
+        expected = (2, 3, 3)
+
+        assert actual == expected
 
     def test_input(self):
         torch.manual_seed(0)
