@@ -45,12 +45,12 @@ class TestSelectURL:
 
 
 @pytest.fixture
-def multi_layer_encoder_urls(frameworks):
+def multi_layer_encoder_urls():
     base = "https://download.pystiche.org/models/"
 
     return {
         framework: urljoin(base, f"{framework}-01234567.pth")
-        for framework in frameworks
+        for framework in ("torch", "caffe")
     }
 
 
@@ -113,19 +113,15 @@ def multi_layer_encoder_cls(
 
 
 class TestModelMultiLayerEncoder:
-    def test_internal_preprocessing(
-        self, subtests, frameworks, multi_layer_encoder_cls
-    ):
-        for framework in ("caffe",):
-            with subtests.test(framework=framework):
-                multi_layer_encoder = multi_layer_encoder_cls(
-                    pretrained=False, framework=framework, internal_preprocessing=True
-                )
-                assert "preprocessing" in multi_layer_encoder
-                assert isinstance(
-                    multi_layer_encoder.preprocessing,
-                    type(enc.get_preprocessor(framework)),
-                )
+    @pytest.mark.parametrize("framework", ("torch", "caffe"))
+    def test_internal_preprocessing(self, framework, multi_layer_encoder_cls):
+        multi_layer_encoder = multi_layer_encoder_cls(
+            pretrained=False, framework=framework, internal_preprocessing=True
+        )
+        assert "preprocessing" in multi_layer_encoder
+        assert isinstance(
+            multi_layer_encoder.preprocessing, type(enc.get_preprocessor(framework)),
+        )
 
     def test_pretrained(self, mocker, multi_layer_encoder_cls):
         load_state_dict_from_url = mocker.patch(
@@ -177,7 +173,14 @@ class TestModelMultiLayerEncoder:
             multi_layer_encoder.state_dict(), other_multi_layer_encoder_state_dict
         )
 
-    def test_repr(self, subtests, mocker, multi_layer_encoder_cls):
+    @pytest.mark.parametrize(
+        "pretrained",
+        (
+            pytest.param(True, id="pretrained"),
+            pytest.param(False, id="not pretrained"),
+        ),
+    )
+    def test_repr(self, pretrained, mocker, multi_layer_encoder_cls):
         mocker.patch(
             mocks.make_mock_target(
                 "enc",
@@ -198,22 +201,16 @@ class TestModelMultiLayerEncoder:
             allow_inplace=allow_inplace,
         )
 
-        for pretrained in (True, False):
-            multi_layer_encoder = cls(pretrained=pretrained)
-            assert_property_in_repr_ = functools.partial(
-                asserts.assert_property_in_repr, repr(multi_layer_encoder)
-            )
+        multi_layer_encoder = cls(pretrained=pretrained)
+        assert_property_in_repr_ = functools.partial(
+            asserts.assert_property_in_repr, repr(multi_layer_encoder)
+        )
 
-            with subtests.test(pretrained=pretrained):
-                if pretrained:
-                    assert_property_in_repr_("framework", framework)
-                else:
-                    assert_property_in_repr_("pretrained", False)
+        if pretrained:
+            assert_property_in_repr_("framework", framework)
+        else:
+            assert_property_in_repr_("pretrained", False)
 
-                with subtests.test("internal_preprocessing"):
-                    assert_property_in_repr_(
-                        "internal_preprocessing", internal_preprocessing
-                    )
+        assert_property_in_repr_("internal_preprocessing", internal_preprocessing)
 
-                with subtests.test("allow_inplace"):
-                    assert_property_in_repr_("allow_inplace", allow_inplace)
+        assert_property_in_repr_("allow_inplace", allow_inplace)

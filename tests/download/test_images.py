@@ -26,7 +26,7 @@ def assert_image_is_downloadable(image, **kwargs):
 
 @pytest.mark.slow
 @pytest.mark.parametrize("image", **IMAGE_PARAMETRIZE_KWARGS)
-def test_image_download_smoke(subtests, image):
+def test_image_download_smoke(image):
     retry(lambda: assert_image_is_downloadable(image), times=2, wait=5.0)
 
 

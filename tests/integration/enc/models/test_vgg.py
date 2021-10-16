@@ -11,20 +11,6 @@ from pystiche.enc.models.vgg import MODELS
 
 from tests import asserts, mocks
 
-
-@pytest.fixture(scope="module")
-def vgg_archs():
-    return tuple(
-        f"vgg{num_layers}{'_bn' if batch_norm else ''}"
-        for num_layers, batch_norm in itertools.product((11, 13, 16, 19), (False, True))
-    )
-
-
-@pytest.fixture(scope="module")
-def vgg_multi_layer_encoder_loaders(vgg_archs):
-    return tuple(getattr(enc, f"{arch}_multi_layer_encoder") for arch in vgg_archs)
-
-
 # We use VGG11 with batch normalization as proxy for all VGG architectures
 vgg_multi_layer_encoder = enc.vgg11_bn_multi_layer_encoder
 vgg = MODELS["vgg11_bn"]
@@ -50,6 +36,15 @@ class TestVGG:
 
 
 class TestVGGMultiLayerEncoder:
+    ARCHS = tuple(
+        f"vgg{num_layers}{'_bn' if batch_norm else ''}"
+        for num_layers, batch_norm in itertools.product((11, 13, 16, 19), (False, True))
+    )
+    archs = pytest.mark.parametrize("arch", ARCHS)
+
+    def vgg_mle(self, arch, **kwargs):
+        return getattr(enc, f"{arch}_multi_layer_encoder")(**kwargs)
+
     @pytest.mark.slow
     def test_unknown_arch(self):
         arch = "unknown"
@@ -59,70 +54,57 @@ class TestVGGMultiLayerEncoder:
             )
 
     @pytest.mark.slow
-    def test_smoke(
-        self, subtests, vgg_archs, vgg_multi_layer_encoder_loaders,
-    ):
-        for arch, loader in zip(vgg_archs, vgg_multi_layer_encoder_loaders):
-            with subtests.test(arch=arch):
-                multi_layer_encoder = loader(pretrained=False)
-                assert isinstance(multi_layer_encoder, enc.vgg.VGGMultiLayerEncoder)
-
-                with subtests.test("repr"):
-                    asserts.assert_property_in_repr(
-                        repr(multi_layer_encoder), "arch", arch
-                    )
+    @archs
+    def test_smoke(self, arch):
+        mle = self.vgg_mle(arch, pretrained=False)
+        assert isinstance(mle, enc.vgg.VGGMultiLayerEncoder)
+        asserts.assert_property_in_repr(repr(mle), "arch", arch)
 
     @pytest.mark.large_download
     @pytest.mark.slow
     @pytest.mark.flaky
-    def test_main(
-        self, subtests, vgg_archs, vgg_multi_layer_encoder_loaders, enc_asset_loader
-    ):
-        for arch, loader in zip(vgg_archs, vgg_multi_layer_encoder_loaders):
-            with subtests.test(arch=arch):
-                asset = enc_asset_loader(arch)
+    @archs
+    def test_main(self, enc_asset_loader, arch):
+        asset = enc_asset_loader(arch)
+        multi_layer_encoder = self.vgg_mle(
+            arch,
+            pretrained=True,
+            weights="torch",
+            preprocessing=False,
+            allow_inplace=False,
+        )
+        layers = tuple(multi_layer_encoder.children_names())
+        with torch.no_grad():
+            encs = multi_layer_encoder(asset.input.image, layers)
 
-                multi_layer_encoder = loader(
-                    pretrained=True,
-                    weights="torch",
-                    preprocessing=False,
-                    allow_inplace=False,
-                )
-                layers = tuple(multi_layer_encoder.children_names())
-                with torch.no_grad():
-                    encs = multi_layer_encoder(asset.input.image, layers)
-
-                actual = dict(
-                    zip(
-                        layers,
-                        [
-                            pystiche.TensorKey(x, precision=asset.params.precision)
-                            for x in encs
-                        ],
-                    )
-                )
-                desired = asset.output.enc_keys
-                assert actual == desired
+        actual = dict(
+            zip(
+                layers,
+                [pystiche.TensorKey(x, precision=asset.params.precision) for x in encs],
+            )
+        )
+        desired = asset.output.enc_keys
+        assert actual == desired
 
     @pytest.mark.slow
-    def test_state_dict_url(self, subtests, vgg_archs, frameworks):
-        def should_be_available(arch, framework):
-            if framework == "caffe" and arch in ("vgg16", "vgg19"):
-                return True
+    @pytest.mark.parametrize(
+        ("arch", "framework", "should_be_available"),
+        [
+            pytest.param(arch, framework, should_be_available, id=f"{arch}-{framework}")
+            for arch, framework, should_be_available in (
+                *[(arch, "torch", True) for arch in ARCHS],
+                *[(arch, "caffe", arch in ("vgg16", "vgg19")) for arch in ARCHS],
+            )
+        ],
+    )
+    def test_state_dict_url(self, arch, framework, should_be_available):
+        multi_layer_encoder = self.vgg_mle(arch, pretrained=False)
 
-            return framework == "torch"
-
-        multi_layer_encoder = vgg_multi_layer_encoder(pretrained=False)
-
-        for arch, framework in zip(vgg_archs, frameworks):
-            with subtests.test(arch=arch, framework=framework):
-                if should_be_available(arch, framework):
-                    assert isinstance(
-                        multi_layer_encoder.state_dict_url(framework), str
-                    )
-                else:
-                    with pytest.raises(RuntimeError):
-                        multi_layer_encoder.state_dict_url(framework)
+        if should_be_available:
+            assert isinstance(multi_layer_encoder.state_dict_url(framework), str)
+        else:
+            with pytest.raises(RuntimeError):
+                multi_layer_encoder.state_dict_url(framework)
 
     @pytest.mark.slow
     def test_load_state_dict_smoke(self):
