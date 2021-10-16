@@ -348,14 +348,12 @@ def demo_images():
     api_path = HERE / "api"
 
     images = pystiche.demo.images()
-    images.download()
 
     entries = {}
     for name, image in images:
+        entries[name] = (image.file, extract_aspect_ratio(image.read()))
         if not (graphics_path / image.file).exists():
             (graphics_path / image.file).symlink_to(cache_path / image.file)
-
-        entries[name] = (image.file, extract_aspect_ratio(image.read()))
 
     field_len = max(max(len(name) for name in entries.keys()) + 2, len("images"))
 

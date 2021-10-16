@@ -197,6 +197,7 @@ class DownloadableImageCollection(_ImageCollection):
         """
         for _, image in self:
             if isinstance(image, DownloadableImage):
+                print("Downloading", image)
                 image.download(root=root, overwrite=overwrite)
 
     def read(
