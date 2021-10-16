@@ -346,7 +346,7 @@ def cli():
 def demo_images():
     print("in demo images")
     cache_path = pathlib.Path(pystiche.home())
-    graphics_path = GRAPHICS / "demo_images"
+    # graphics_path = GRAPHICS / "demo_images"
     api_path = HERE / "api"
 
     images = pystiche.demo.images()
@@ -357,8 +357,8 @@ def demo_images():
     entries = {}
     for name, image in images:
         entries[name] = (image.file, extract_aspect_ratio(image.read()))
-        if not (graphics_path / image.file).exists():
-            (graphics_path / image.file).symlink_to(cache_path / image.file)
+        # if not (graphics_path / image.file).exists():
+        #     (graphics_path / image.file).symlink_to(cache_path / image.file)
 
     field_len = max(max(len(name) for name in entries.keys()) + 2, len("images"))
 
