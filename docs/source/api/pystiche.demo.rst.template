@@ -1,0 +1,12 @@
+``pystiche.demo``
+=================
+
+.. automodule:: pystiche.demo
+
+.. autofunction:: images
+
+{{ images_table }}
+
+.. autofunction:: transformer
+
+{{ aliases }}

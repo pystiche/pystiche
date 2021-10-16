@@ -1,4 +1,5 @@
 import os
+import pathlib
 import re
 import unittest.mock
 import warnings
@@ -24,8 +25,8 @@ def collect_sphinx_gallery_scripts():
     sphinx_gallery_config, filters = extract_sphinx_gallery_config()
 
     examples_dirs = sphinx_gallery_config["examples_dirs"]
-    if isinstance(examples_dirs, str):
-        examples_dirs = (examples_dirs,)
+    if isinstance(examples_dirs, (pathlib.Path, str)):
+        examples_dirs = (str(examples_dirs),)
 
     filename_pattern = re.compile(sphinx_gallery_config["filename_pattern"])
     ignore_pattern = re.compile(sphinx_gallery_config["ignore_pattern"])

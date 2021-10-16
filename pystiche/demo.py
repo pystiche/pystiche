@@ -16,18 +16,7 @@ __all__ = ["images", "transformer"]
 
 
 def images() -> DownloadableImageCollection:
-    """Collection of images used in the usage examples.
-
-    .. note::
-
-        You can use
-
-        .. code-block:: python
-
-            print(images())
-
-        to get a list of all available images.
-    """
+    """Collection of images used in the usage examples."""
     return DownloadableImageCollection(
         {
             "bird1": DownloadableImage(
