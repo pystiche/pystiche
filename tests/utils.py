@@ -8,7 +8,6 @@ import stat
 import sys
 import tempfile
 import warnings
-from typing import Type
 from distutils import dir_util
 from os import path
 
