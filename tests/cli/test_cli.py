@@ -359,7 +359,7 @@ class TestImage:
             mock_execution_with, option="starting_point", value=str(file)
         )
 
-        with exits():
+        with exits(), pytest.warns(UserWarning):
             main()
 
         (input_image, perceptual_loss), _ = mock.call_args
