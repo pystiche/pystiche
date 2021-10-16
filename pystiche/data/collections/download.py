@@ -105,6 +105,7 @@ class DownloadableImage(_Image):
         """
 
         def _download(file: str) -> None:
+            print("Downloading", self, "to", file)
             os.makedirs(path.dirname(file), exist_ok=True)
             download_file(self.url, file=file, md5=self.md5)
 
@@ -197,7 +198,6 @@ class DownloadableImageCollection(_ImageCollection):
         """
         for _, image in self:
             if isinstance(image, DownloadableImage):
-                print("Downloading", image)
                 image.download(root=root, overwrite=overwrite)
 
     def read(
