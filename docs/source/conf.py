@@ -348,11 +348,11 @@ def demo_images():
     api_path = HERE / "api"
 
     images = pystiche.demo.images()
+    print("\n".join([str(file) for file in cache_path.glob("*") if file.is_file()]))
+    images.download()
 
     entries = {}
     for name, image in images:
-        print(image)
-        image.download()
         entries[name] = (image.file, extract_aspect_ratio(image.read()))
         if not (graphics_path / image.file).exists():
             (graphics_path / image.file).symlink_to(cache_path / image.file)
