@@ -5,6 +5,7 @@ from os import path
 try:
     import light_the_torch as ltt
     import yaml
+    from light_the_torch.computation_backend import CPUBackend
 
     assert ltt.__version__ >= "0.2"
 except (ImportError, AssertionError):
@@ -23,7 +24,7 @@ def main(
     deps = extract_docs_deps_from_tox_config(root)
     deps.extend(find_pytorch_wheel_links(root, python_version))
 
-    with open(file, "w") as fh:
+    with open(path.join(root, file), "w") as fh:
         fh.write("\n".join(deps) + "\n")
 
 
@@ -51,11 +52,11 @@ def extract_docs_deps_from_tox_config(root, file="tox.ini", section="docs-common
 
 
 def find_pytorch_wheel_links(
-    root, python_version, computation_backend="cpu", platform="linux_x86_64",
+    root, python_version, computation_backend=CPUBackend(), platform="linux_x86_64",
 ):
     return ltt.find_links(
         [root],
-        computation_backend=computation_backend,
+        computation_backends=computation_backend,
         python_version=python_version,
         platform=platform,
     )
