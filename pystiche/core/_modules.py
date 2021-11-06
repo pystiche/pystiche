@@ -21,8 +21,6 @@ class Module(nn.Module, ComplexObject):
 
         ``named_children`` and ``indexed_children`` are mutually exclusive parameters.
     """
-    _buffers: Dict[str, torch.Tensor]
-    _modules: Dict[str, nn.Module]
 
     def __init__(
         self,
@@ -49,6 +47,14 @@ class Module(nn.Module, ComplexObject):
         self.add_named_modules(
             [(str(idx), module) for idx, module in enumerate(modules)]
         )
+
+    @property
+    def _valid_modules(self) -> Dict[str, nn.Module]:
+        return {
+            name: module
+            for (name, module) in self._modules.items()
+            if module is not None
+        }
 
     def __repr__(self) -> str:
         return ComplexObject.__repr__(self)
