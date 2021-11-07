@@ -298,7 +298,7 @@ def sphinx_gallery():
     config = dict(sphinx_gallery_conf=sphinx_gallery_conf)
     filter_warnings()
 
-    # patch_tqdm()
+    patch_tqdm()
     filter_warnings()
 
     return extension, config
