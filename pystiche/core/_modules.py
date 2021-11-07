@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, Optional, Sequence, Tuple, cast
+from typing import Iterable, Optional, Sequence, Tuple, cast
 
 import torch
 from torch import nn
@@ -21,8 +21,6 @@ class Module(nn.Module, ComplexObject):
 
         ``named_children`` and ``indexed_children`` are mutually exclusive parameters.
     """
-    _buffers: Dict[str, torch.Tensor]
-    _modules: Dict[str, nn.Module]
 
     def __init__(
         self,

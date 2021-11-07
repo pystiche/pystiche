@@ -143,6 +143,7 @@ class MultiLayerEncoder(pystiche.Module):
         registered_layers: Layers, on which the encodings will be cached during the
             :meth:`forward` pass.
     """
+    _modules: Dict[str, nn.Module]  # type: ignore[assignment]
 
     def __init__(self, modules: Sequence[Tuple[str, nn.Module]]) -> None:
         super().__init__(named_children=modules)
