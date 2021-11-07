@@ -146,7 +146,7 @@ class MultiLayerEncoder(pystiche.Module):
 
     def __init__(self, modules: Sequence[Tuple[str, nn.Module]]) -> None:
         super().__init__(named_children=modules)
-        self._layers: _Layers = _Layers(self._valid_modules)
+        self._layers: _Layers = _Layers(self._modules)
         self.registered_layers: Set[str] = set()
         self._cache: DefaultDict[torch.Tensor, Dict[str, torch.Tensor]] = defaultdict(
             lambda: {}
@@ -230,7 +230,7 @@ class MultiLayerEncoder(pystiche.Module):
             input = cache[prev]
 
         for name in self._layers.range(prev, layer, include_start=False):
-            module = self._valid_modules[name]
+            module = self._modules[name]
             input = module(input)
 
             if name in to_cache:
@@ -283,7 +283,7 @@ class MultiLayerEncoder(pystiche.Module):
         """
         guides = {}
         for name in self._layers.range(stop=self._layers.deepest(layers)):
-            module = self._valid_modules[name]
+            module = self._modules[name]
             try:
                 guide = guides[name] = propagate_guide(
                     module, guide, method=method, allow_empty=allow_empty
