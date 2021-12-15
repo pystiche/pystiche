@@ -316,6 +316,9 @@ def train(
 #   `COCO dataset <https://cocodataset.org/>`_. The training was performed for
 #   ``num_epochs=2`` and ``batch_size=4``. Each image was center-cropped to
 #   ``256 x 256`` pixels.
+#
+#   An example script to load and conform the dataset, then perform the training can be found in the `scripts folder <https://github.com/pystiche/pystiche/blob/main/scripts/perform_model_optimization.py>`_
+#   of the repository
 
 use_pretrained_transformer = True
 checkpoint = "example_transformer.pth"
