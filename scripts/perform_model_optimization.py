@@ -6,9 +6,10 @@ from os import path
 from unittest import mock
 
 import torch
+from torch import nn
+from torchvision import transforms
 
 from pystiche.data import ImageFolderDataset
-from pystiche.image import transforms
 
 
 def main(root="."):
@@ -72,24 +73,14 @@ def reload_mle(mle):
 
 
 def make_dataset(root, image_size=256):
-    transform = transforms.ComposedTransform(
-        transforms.Resize(image_size),
-        transforms.CenterCrop(image_size),
-        OptionalGrayscaleToFakeGrayscale(),
+    transform = nn.Sequential(
+        transforms.Resize(image_size), transforms.CenterCrop(image_size),
     )
     return ImageFolderDataset(root, transform=transform)
 
 
-class OptionalGrayscaleToFakeGrayscale(transforms.Transform):
-    def forward(self, input):
-        num_channels = input.size()[0]
-        if num_channels == 1:
-            return input.repeat(3, 1, 1)
-
-        return input
-
-
 if __name__ == "__main__":
+    sys.argv.append("~/datasets/coco/train2017")
     if len(sys.argv) != 2:
         raise RuntimeError(
             "Please supply the root of the dataset as positional argument"
