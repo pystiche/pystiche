@@ -80,7 +80,6 @@ def make_dataset(root, image_size=256):
 
 
 if __name__ == "__main__":
-    sys.argv.append("~/datasets/coco/train2017")
     if len(sys.argv) != 2:
         raise RuntimeError(
             "Please supply the root of the dataset as positional argument"
