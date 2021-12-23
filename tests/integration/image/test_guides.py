@@ -98,7 +98,7 @@ def test_write_guides(tmpdir):
     image.write_guides(guides, tmpdir)
 
     actual = {
-        region: image.read_image(file=path.join(tmpdir, f"{region}.png"), mode="L")
+        region: image.read_image(file=path.join(tmpdir, f"{region}.png"))
         for region in guides.keys()
     }
     desired = guides

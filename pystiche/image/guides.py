@@ -116,7 +116,6 @@ def read_guides(
             path.join(dir, file),
             device=device,
             make_batched=make_batched,
-            mode="L",
             size=size,
             interpolation_mode=interpolation_mode,
         )

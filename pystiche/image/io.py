@@ -114,7 +114,6 @@ def read_image(
     file: str,
     device: Union[torch.device, str] = "cpu",
     make_batched: bool = True,
-    mode: str = "RGB",
     size: Optional[Union[int, Tuple[int, int]]] = None,
     interpolation_mode: str = "bilinear",
 ) -> torch.Tensor:
@@ -125,9 +124,6 @@ def read_image(
         file: Path to image file to be read.
         device: Device that the image is transferred to. Defaults to CPU.
         make_batched: If ``True``, a fake batch dimension is added to the image.
-        mode: Converts the image after opening to this mode. See
-            `Pillow's documentation on modes <https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes>`_
-            for details. Defaults to ``"RGB"``.
         size: Optional size the image is resized to.
         interpolation_mode: Interpolation mode that is used to perform the optional
             resizing. Valid modes are ``"nearest"``, ``"bilinear"``, and ``"bicubic"``.
@@ -136,7 +132,7 @@ def read_image(
     if isinstance(device, str):
         device = torch.device(device)
 
-    image = Image.open(path.expanduser(file)).convert(mode)
+    image = Image.open(path.expanduser(file))
 
     if size is not None:
         image = _pil_resize(image, size, interpolation_mode)
