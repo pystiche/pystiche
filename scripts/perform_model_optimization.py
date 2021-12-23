@@ -6,8 +6,8 @@ from os import path
 from unittest import mock
 
 import torch
-from torch import nn
 from torchvision import transforms
+from torchvision.datasets.folder import pil_loader
 
 from pystiche.data import ImageFolderDataset
 
@@ -73,10 +73,14 @@ def reload_mle(mle):
 
 
 def make_dataset(root, image_size=256):
-    transform = nn.Sequential(
-        transforms.Resize(image_size), transforms.CenterCrop(image_size),
+    transform = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Resize(image_size),
+            transforms.CenterCrop(image_size),
+        ]
     )
-    return ImageFolderDataset(root, transform=transform)
+    return ImageFolderDataset(root, transform=transform, importer=pil_loader)
 
 
 if __name__ == "__main__":
