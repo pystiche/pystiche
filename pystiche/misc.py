@@ -283,10 +283,10 @@ def reduce(x: torch.Tensor, reduction: str) -> torch.Tensor:
 def suppress_warnings(*categories: Type[Warning]) -> Iterator[None]:
     if not categories:
         categories = (UserWarning,)
-    old_filters = set(warnings.filters)  # type: ignore[attr-defined]
+    old_filters = set(warnings.filters)
     for category in categories:
         warnings.filterwarnings("ignore", category=category)
-    new_filters = set(warnings.filters) - old_filters  # type: ignore[attr-defined]
+    new_filters = set(warnings.filters) - old_filters
     try:
         yield
     finally:
