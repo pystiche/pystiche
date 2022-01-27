@@ -22,9 +22,11 @@ from os import path
 import torch
 from torch import hub, nn
 from torch.nn.functional import interpolate
+from torchvision import transforms
 
 import pystiche
 from pystiche import demo, enc, loss, optim
+from pystiche.data import ImageFolderDataset
 from pystiche.image import show_image
 from pystiche.misc import get_device
 
@@ -277,16 +279,24 @@ show_image(style_image)
 #   If you do not specify an ``optimizer``, the
 #   :func:`~pystiche.optim.default_model_optimizer`, i.e. :class:`~torch.optim.Adam` is
 #   used.
+#
+# .. note::
+#
+#   The weights of the provided transformer were trained with the
+#   `2014 training images <http://images.cocodataset.org/zips/train2014.zip>`_ of the
+#   `COCO dataset <https://cocodataset.org/>`_. The training was performed for
+#   ``num_epochs=2`` and ``batch_size=4``. Each image was center-cropped to
+#   ``256 x 256`` pixels.
 
 
-def train(
-    transformer, dataset, batch_size=4, epochs=2,
-):
-    if dataset is None:
-        raise RuntimeError(
-            "You forgot to define a dataset. For example, "
-            "you can use any image dataset from torchvision.datasets."
-        )
+def train(transformer, root, batch_size=4, epochs=2, image_size=256):
+    if root is None:
+        raise RuntimeError("You forgot to define a root image directory.")
+
+    image_transforms = nn.Sequential(
+        transforms.Resize(image_size), transforms.CenterCrop(image_size)
+    )
+    dataset = ImageFolderDataset(root, transform=image_transforms)
 
     from torch.utils.data import DataLoader
 
@@ -305,31 +315,20 @@ def train(
 #
 # .. note::
 #
-#   If you want to perform the training yourself, set
-#   ``use_pretrained_transformer=False``. If you do, you also need to replace
-#   ``dataset = None`` below with the dataset you want to train on.
+#   If you want to perform the training yourself, set ``root`` to the location
+#   of the images downloaded from the link below
 #
-# .. note::
-#
-#   The weights of the provided transformer were trained with the
-#   `2014 training images <http://images.cocodataset.org/zips/train2014.zip>`_ of the
-#   `COCO dataset <https://cocodataset.org/>`_. The training was performed for
-#   ``num_epochs=2`` and ``batch_size=4``. Each image was center-cropped to
-#   ``256 x 256`` pixels.
-#
-#   An example script to load and conform the dataset, then perform the training can be found in the `scripts folder <https://github.com/pystiche/pystiche/blob/main/scripts/perform_model_optimization.py>`_
-#   of the repository
 
-use_pretrained_transformer = True
+root = None
 checkpoint = "example_transformer.pth"
 
-if use_pretrained_transformer:
+
+def load(checkpoint):
     if path.exists(checkpoint):
-        state_dict = torch.load(checkpoint)
-    else:
-        # Unfortunately, torch.hub.load_state_dict_from_url has no option to disable
-        # printing the downloading process. Since this would clutter the output, we
-        # suppress it completely.
+        return torch.load(checkpoint)
+
+    if checkpoint == "example_transformer.pth":
+
         @contextlib.contextmanager
         def suppress_output():
             with open(os.devnull, "w") as devnull:
@@ -342,12 +341,14 @@ if use_pretrained_transformer:
 
         with suppress_output():
             state_dict = hub.load_state_dict_from_url(url)
+        return state_dict
 
-    transformer.load_state_dict(state_dict)
-else:
-    dataset = None
-    transformer = train(transformer, dataset)
+    else:
+        raise RuntimeError("Please specify valid path to checkpoint")
 
+
+if root:
+    transformer = train(transformer, root)
     state_dict = OrderedDict(
         [
             (name, parameter.detach().cpu())
@@ -355,6 +356,10 @@ else:
         ]
     )
     torch.save(state_dict, checkpoint)
+
+else:
+    state_dict = load(checkpoint)
+    transformer.load_state_dict(state_dict)
 
 
 ########################################################################################
