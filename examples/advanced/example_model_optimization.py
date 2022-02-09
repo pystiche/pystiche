@@ -279,24 +279,16 @@ show_image(style_image)
 #   If you do not specify an ``optimizer``, the
 #   :func:`~pystiche.optim.default_model_optimizer`, i.e. :class:`~torch.optim.Adam` is
 #   used.
-#
-# .. note::
-#
-#   The weights of the provided transformer were trained with the
-#   `2014 training images <http://images.cocodataset.org/zips/train2014.zip>`_ of the
-#   `COCO dataset <https://cocodataset.org/>`_. The training was performed for
-#   ``num_epochs=2`` and ``batch_size=4``. Each image was center-cropped to
-#   ``256 x 256`` pixels.
 
 
-def train(transformer, root, batch_size=4, epochs=2, image_size=256):
+def train(*, transformer, root, batch_size, epochs, image_size):
     if root is None:
         raise RuntimeError("You forgot to define a root image directory.")
 
-    image_transforms = nn.Sequential(
-        transforms.Resize(image_size), transforms.CenterCrop(image_size)
+    transform = nn.Sequential(
+        transforms.Resize(image_size), transforms.CenterCrop(image_size),
     )
-    dataset = ImageFolderDataset(root, transform=image_transforms)
+    dataset = ImageFolderDataset(root, transform=transform)
 
     from torch.utils.data import DataLoader
 
@@ -312,22 +304,13 @@ def train(transformer, root, batch_size=4, epochs=2, image_size=256):
 ########################################################################################
 # Depending on the dataset and your setup the training can take a couple of hours. To
 # avoid this, we provide transformer weights that were trained with the scheme above.
-#
-# .. note::
-#
-#   If you want to perform the training yourself, set ``root`` to the location
-#   of the images downloaded from the link below
-#
-
-root = None
-checkpoint = "example_transformer.pth"
 
 
-def load(checkpoint):
+def download_example_transformer_weights():
+    checkpoint = "example_transformer.pth"
     if path.exists(checkpoint):
         return torch.load(checkpoint)
-
-    if checkpoint == "example_transformer.pth":
+    else:
 
         @contextlib.contextmanager
         def suppress_output():
@@ -343,23 +326,47 @@ def load(checkpoint):
             state_dict = hub.load_state_dict_from_url(url)
         return state_dict
 
-    else:
-        raise RuntimeError("Please specify valid path to checkpoint")
 
-
-if root:
-    transformer = train(transformer, root)
-    state_dict = OrderedDict(
-        [
-            (name, parameter.detach().cpu())
-            for name, parameter in transformer.state_dict().items()
-        ]
-    )
-    torch.save(state_dict, checkpoint)
-
-else:
-    state_dict = load(checkpoint)
+use_example_transformer_weights = True
+if use_example_transformer_weights:
+    state_dict = download_example_transformer_weights()
     transformer.load_state_dict(state_dict)
+
+########################################################################################
+#
+#
+# .. note::
+#
+#   The weights of the provided transformer were trained with the
+#   `2014 training images <http://images.cocodataset.org/zips/train2014.zip>`_ of the
+#   `COCO dataset <https://cocodataset.org/>`_. The training was performed for
+#   ``num_epochs=2`` and ``batch_size=4``. Each image was center-cropped to
+#   ``256 x 256`` pixels.
+#
+# .. note::
+#
+#   If you want to perform the training yourself, set ``root`` to a location
+#   of a folder of images.
+
+
+root = None
+checkpoint = "example_transformer.pth"
+if not use_example_transformer_weights:
+    if root:
+        transformer = train(
+            transformer=transformer, root=root, batch_size=4, epochs=2, image_size=256
+        )
+        state_dict = OrderedDict(
+            [
+                (name, parameter.detach().cpu())
+                for name, parameter in transformer.state_dict().items()
+            ]
+        )
+        torch.save(state_dict, checkpoint)
+
+    else:
+        state_dict = torch.load(checkpoint)
+        transformer.load_state_dict(state_dict)
 
 
 ########################################################################################
