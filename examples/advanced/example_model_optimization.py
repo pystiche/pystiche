@@ -306,35 +306,30 @@ def train(*, transformer, root, batch_size, epochs, image_size):
 # avoid this, we provide transformer weights that were trained with the scheme above.
 
 
-def download_example_transformer_weights():
+def download():
     checkpoint = "example_transformer.pth"
     if path.exists(checkpoint):
         return torch.load(checkpoint)
-    else:
 
-        @contextlib.contextmanager
-        def suppress_output():
-            with open(os.devnull, "w") as devnull:
-                with contextlib.redirect_stdout(devnull), contextlib.redirect_stderr(
-                    devnull
-                ):
-                    yield
+    # Unfortunately, torch.hub.load_state_dict_from_url has no option to disable
+    # printing the downloading process. Since this would clutter the output, we
+    # suppress it completely.
+    @contextlib.contextmanager
+    def suppress_output():
+        with open(os.devnull, "w") as devnull:
+            with contextlib.redirect_stdout(devnull), contextlib.redirect_stderr(
+                devnull
+            ):
+                yield
 
-        url = "https://download.pystiche.org/models/example_transformer.pth"
+    url = "https://download.pystiche.org/models/example_transformer.pth"
 
-        with suppress_output():
-            state_dict = hub.load_state_dict_from_url(url)
-        return state_dict
+    with suppress_output():
+        state_dict = hub.load_state_dict_from_url(url)
+    return state_dict
 
-
-use_example_transformer_weights = True
-if use_example_transformer_weights:
-    state_dict = download_example_transformer_weights()
-    transformer.load_state_dict(state_dict)
 
 ########################################################################################
-#
-#
 # .. note::
 #
 #   The weights of the provided transformer were trained with the
@@ -348,25 +343,27 @@ if use_example_transformer_weights:
 #   If you want to perform the training yourself, set ``root`` to a location
 #   of a folder of images.
 
-
 root = None
 checkpoint = "example_transformer.pth"
-if not use_example_transformer_weights:
-    if root:
-        transformer = train(
-            transformer=transformer, root=root, batch_size=4, epochs=2, image_size=256
-        )
-        state_dict = OrderedDict(
-            [
-                (name, parameter.detach().cpu())
-                for name, parameter in transformer.state_dict().items()
-            ]
-        )
-        torch.save(state_dict, checkpoint)
+use_example_transformer_weights = True
 
-    else:
+if root is None:
+    if path.exists(checkpoint):
         state_dict = torch.load(checkpoint)
-        transformer.load_state_dict(state_dict)
+    else:
+        state_dict = download()
+    transformer.load_state_dict(state_dict)
+else:
+    transformer = train(
+        transformer=transformer, root=root, batch_size=4, epochs=2, image_size=256,
+    )
+    state_dict = OrderedDict(
+        [
+            (name, parameter.detach().cpu())
+            for name, parameter in transformer.state_dict().items()
+        ]
+    )
+    torch.save(state_dict, checkpoint)
 
 
 ########################################################################################
