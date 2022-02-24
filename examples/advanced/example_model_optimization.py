@@ -22,6 +22,7 @@ from os import path
 import torch
 from torch import hub, nn
 from torch.nn.functional import interpolate
+from torch.utils.data import DataLoader
 from torchvision import transforms
 
 import pystiche
@@ -289,9 +290,6 @@ def train(*, transformer, root, batch_size, epochs, image_size):
         transforms.Resize(image_size), transforms.CenterCrop(image_size),
     )
     dataset = ImageFolderDataset(root, transform=transform)
-
-    from torch.utils.data import DataLoader
-
     image_loader = DataLoader(dataset, batch_size=batch_size)
 
     perceptual_loss.set_style_image(style_image)
@@ -307,10 +305,6 @@ def train(*, transformer, root, batch_size, epochs, image_size):
 
 
 def download():
-    checkpoint = "example_transformer.pth"
-    if path.exists(checkpoint):
-        return torch.load(checkpoint)
-
     # Unfortunately, torch.hub.load_state_dict_from_url has no option to disable
     # printing the downloading process. Since this would clutter the output, we
     # suppress it completely.
@@ -322,11 +316,10 @@ def download():
             ):
                 yield
 
-    url = "https://download.pystiche.org/models/example_transformer.pth"
-
     with suppress_output():
-        state_dict = hub.load_state_dict_from_url(url)
-    return state_dict
+        return hub.load_state_dict_from_url(
+            "https://download.pystiche.org/models/example_transformer.pth"
+        )
 
 
 ########################################################################################
@@ -345,13 +338,9 @@ def download():
 
 root = None
 checkpoint = "example_transformer.pth"
-use_example_transformer_weights = True
 
 if root is None:
-    if path.exists(checkpoint):
-        state_dict = torch.load(checkpoint)
-    else:
-        state_dict = download()
+    state_dict = torch.load(checkpoint) if path.exists(checkpoint) else download()
     transformer.load_state_dict(state_dict)
 else:
     transformer = train(
