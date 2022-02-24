@@ -22,9 +22,12 @@ from os import path
 import torch
 from torch import hub, nn
 from torch.nn.functional import interpolate
+from torch.utils.data import DataLoader
+from torchvision import transforms
 
 import pystiche
 from pystiche import demo, enc, loss, optim
+from pystiche.data import ImageFolderDataset
 from pystiche.image import show_image
 from pystiche.misc import get_device
 
@@ -279,17 +282,14 @@ show_image(style_image)
 #   used.
 
 
-def train(
-    transformer, dataset, batch_size=4, epochs=2,
-):
-    if dataset is None:
-        raise RuntimeError(
-            "You forgot to define a dataset. For example, "
-            "you can use any image dataset from torchvision.datasets."
-        )
+def train(*, transformer, root, batch_size, epochs, image_size):
+    if root is None:
+        raise RuntimeError("You forgot to define a root image directory.")
 
-    from torch.utils.data import DataLoader
-
+    transform = nn.Sequential(
+        transforms.Resize(image_size), transforms.CenterCrop(image_size),
+    )
+    dataset = ImageFolderDataset(root, transform=transform)
     image_loader = DataLoader(dataset, batch_size=batch_size)
 
     perceptual_loss.set_style_image(style_image)
@@ -302,13 +302,27 @@ def train(
 ########################################################################################
 # Depending on the dataset and your setup the training can take a couple of hours. To
 # avoid this, we provide transformer weights that were trained with the scheme above.
-#
-# .. note::
-#
-#   If you want to perform the training yourself, set
-#   ``use_pretrained_transformer=False``. If you do, you also need to replace
-#   ``dataset = None`` below with the dataset you want to train on.
-#
+
+
+def download():
+    # Unfortunately, torch.hub.load_state_dict_from_url has no option to disable
+    # printing the downloading process. Since this would clutter the output, we
+    # suppress it completely.
+    @contextlib.contextmanager
+    def suppress_output():
+        with open(os.devnull, "w") as devnull:
+            with contextlib.redirect_stdout(devnull), contextlib.redirect_stderr(
+                devnull
+            ):
+                yield
+
+    with suppress_output():
+        return hub.load_state_dict_from_url(
+            "https://download.pystiche.org/models/example_transformer.pth"
+        )
+
+
+########################################################################################
 # .. note::
 #
 #   The weights of the provided transformer were trained with the
@@ -316,35 +330,22 @@ def train(
 #   `COCO dataset <https://cocodataset.org/>`_. The training was performed for
 #   ``num_epochs=2`` and ``batch_size=4``. Each image was center-cropped to
 #   ``256 x 256`` pixels.
+#
+# .. note::
+#
+#   If you want to perform the training yourself, set ``root`` to a location
+#   of a folder of images.
 
-use_pretrained_transformer = True
+root = None
 checkpoint = "example_transformer.pth"
 
-if use_pretrained_transformer:
-    if path.exists(checkpoint):
-        state_dict = torch.load(checkpoint)
-    else:
-        # Unfortunately, torch.hub.load_state_dict_from_url has no option to disable
-        # printing the downloading process. Since this would clutter the output, we
-        # suppress it completely.
-        @contextlib.contextmanager
-        def suppress_output():
-            with open(os.devnull, "w") as devnull:
-                with contextlib.redirect_stdout(devnull), contextlib.redirect_stderr(
-                    devnull
-                ):
-                    yield
-
-        url = "https://download.pystiche.org/models/example_transformer.pth"
-
-        with suppress_output():
-            state_dict = hub.load_state_dict_from_url(url)
-
+if root is None:
+    state_dict = torch.load(checkpoint) if path.exists(checkpoint) else download()
     transformer.load_state_dict(state_dict)
 else:
-    dataset = None
-    transformer = train(transformer, dataset)
-
+    transformer = train(
+        transformer=transformer, root=root, batch_size=4, epochs=2, image_size=256,
+    )
     state_dict = OrderedDict(
         [
             (name, parameter.detach().cpu())
