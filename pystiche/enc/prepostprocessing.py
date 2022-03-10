@@ -20,11 +20,7 @@ __all__ = [
 
 
 class _Normalization(pystiche.Module):
-    def __init__(
-        self,
-        mean: Sequence[float],
-        std: Sequence[float],
-    ) -> None:
+    def __init__(self, mean: Sequence[float], std: Sequence[float]) -> None:
         super().__init__()
         self.mean = mean
         self.std = std
