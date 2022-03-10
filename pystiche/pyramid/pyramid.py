@@ -108,15 +108,13 @@ class ImagePyramid(ComplexObject):
                 loss_.set_input_guide(resized_guide)
 
     def _resize_losses(self) -> Set[loss.Loss]:
-        resize_losses = set()
-        for target in self._resize_targets:
-            if isinstance(target, loss.Loss):
-                resize_losses.add(target)
-
-            for loss_ in target._losses():
-                if not isinstance(loss_, loss.LossContainer):
-                    resize_losses.add(loss_)
-        return resize_losses
+        return {
+            loss_
+            for target in self._resize_targets
+            for loss_ in target.modules()
+            if isinstance(loss_, loss.Loss)
+            and not isinstance(loss_, loss.LossContainer)
+        }
 
     def _properties(self) -> Dict[str, Any]:
         dct = super()._properties()
