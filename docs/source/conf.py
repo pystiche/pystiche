@@ -41,6 +41,7 @@ def get_bool_env_var(name, default=False):
 GITHUB_ACTIONS = get_bool_env_var("GITHUB_ACTIONS")
 RTD = get_bool_env_var("READTHEDOCS")
 CI = GITHUB_ACTIONS or RTD or get_bool_env_var("CI")
+PR = os.getenv("READTHEDOCS_VERSION_TYPE") == "external"
 
 
 def project():
@@ -178,8 +179,8 @@ mock.patch.stopall()
 def sphinx_gallery():
     extension = "sphinx_gallery.gen_gallery"
 
-    plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=not CI)
-    download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY", default=CI)
+    plot_gallery = get_bool_env_var("PYSTICHE_PLOT_GALLERY", default=not (CI or PR))
+    download_gallery = get_bool_env_var("PYSTICHE_DOWNLOAD_GALLERY")
 
     def download():
         nonlocal extension
