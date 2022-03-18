@@ -19,10 +19,6 @@ optimization, could be performed with ``pystiche``.
 #
 # We start this example by importing everything we need and setting the device we will
 # be working on.
-#
-# .. warning::
-#
-#   Hopefully we can see this!
 
 import pystiche
 from pystiche import demo, enc, loss, optim
