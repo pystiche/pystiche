@@ -19,9 +19,9 @@ Guide lines
 
 .. note::
 
-  ``pystiche`` officially supports Python ``3.6``, ``3.7``, and ``3.8``. To ensure
+  ``pystiche`` officially supports Python ``3.7``, and ``3.8``. To ensure
   backwards compatibility, the development should happen on the minimum Python
-  version, i. e. ``3.6``.
+  version, i. e. ``3.7``.
 
 1. Fork ``pystiche`` on GitHub
 
