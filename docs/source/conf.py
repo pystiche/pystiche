@@ -80,7 +80,7 @@ def intersphinx():
     extension = "sphinx.ext.intersphinx"
     config = dict(
         intersphinx_mapping={
-            "python": ("https://docs.python.org/3.6", None),
+            "python": ("https://docs.python.org/3.7", None),
             "torch": ("https://pytorch.org/docs/stable/", None),
             "torchvision": ("https://pytorch.org/vision/stable", None),
             "PIL": ("https://pillow.readthedocs.io/en/stable/", None),
@@ -212,7 +212,7 @@ def sphinx_gallery():
 
         stats = torch.cuda.memory_stats()
         peak_bytes_usage = stats["allocated_bytes.all.peak"]
-        memory = peak_bytes_usage / 1024 ** 2
+        memory = peak_bytes_usage / 1024**2
 
         return memory, out
 
@@ -394,7 +394,8 @@ def demo_images():
     with open(api_path / "pystiche.demo.rst", "w") as fh:
         fh.write(
             template.render(
-                images_table="\n".join(images_table), aliases="\n".join(aliases),
+                images_table="\n".join(images_table),
+                aliases="\n".join(aliases),
             )
         )
 
